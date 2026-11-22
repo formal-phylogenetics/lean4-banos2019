@@ -1,0 +1,32 @@
+name: Lean Action CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read # Read access to repository contents
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Mathlib's compiled files take most of the runner's disk; remove preinstalled toolchains
+      # that the build does not use.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - uses: actions/checkout@v7
+      - uses: leanprover/lean-action@v1
+      # formalize-math-paper adds its checks here (its assets/lean_action_ci.yml), with its
+      # `ProjectName` the root Banos2019
+      # and its `PaperName` the paper Banos2019:
+      # the audit of every module of Banos2019/,
+      # of palomar/Banos2019/Solution.lean
+      # and of the libraries this repository requires (lean4-phylogenetics, docs/CONVENTIONS.md,
+      # Section 3); the route check of docs/Banos2019/paper_routes.tsv;
+      # the copy of Banos2019/Defs.lean
+      # in palomar/Banos2019/Challenge.lean; the links and the tables.

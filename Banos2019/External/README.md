@@ -1,0 +1,13 @@
+# The results the paper cites
+
+One directory per source, `Banos2019/External/<Source>/`, with modules
+`Banos2019.External.<Source>.…`,
+declarations in the namespace `External.<Source>`, and a `README.md` giving the source, the
+statement, and how the paper uses it. Each result is stated in its source's terms and proved
+(formalize-math-paper, Phase 5). These modules import Mathlib, `Banos2019/Basic/` and the libraries
+this repository requires, never the paper's library.
+
+A source that another repository of the collection already formalizes (lean4-phylogenetics, a
+hub's library, or the repository of a paper) is not formalized again: its statement here is
+proved from that repository's theorem (lean4-phylogenetics, docs/CONVENTIONS.md, Sections 4
+and 6).

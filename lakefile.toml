@@ -1,0 +1,47 @@
+name = "Banos2019"
+version = "0.1.0"
+keywords = ["math", "phylogenetics"]
+description = "A Lean 4 formalization of Baños 2019, Identifying Species Network Features from Gene Tree Quartets Under the Coalescent Model"
+defaultTargets = ["Banos2019", "Palomar"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+maxSynthPendingDepth = 3
+
+# The root of the collection: the shared library of phylogenetics.
+[[require]]
+name = "Phylogenetics"
+git = "https://github.com/vltanh/lean4-phylogenetics"
+rev = "4daee158d74436ce6ed6f52e337ba00f1b43ea32"
+
+# The hub of this paper: Phylogenetic network estimation.
+[[require]]
+name = "PhyloNetwork"
+git = "https://github.com/vltanh/lean4-phylo-network"
+rev = "51d53ffd885195694fd0ce91090f07efa620db7a"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.37.0-rc1"
+
+# Every module of the project is in Banos2019/, but its Challenge and its Solution, which are in
+# palomar/ (lean4-phylogenetics, docs/CONVENTIONS.md, Sections 2 and 3). Lake fails on a glob whose
+# directory, or a root whose file, does not exist.
+
+# The paper's library, in the namespace Banos2019: general mathematics in Banos2019/Basic/, the
+# results the paper cites in Banos2019/External/, the definitions of the Challenge in
+# Banos2019/Defs.lean, and the paper's sections.
+[[lean_lib]]
+name = "Banos2019"
+globs = ["Banos2019.+"]
+
+# The paper's Challenge and Solution, the modules Banos2019.Challenge and Banos2019.Solution of
+# the source directory palomar/ (Comparator: palomar/Banos2019/comparator.json). Declared last:
+# Lake gives a module to the last library whose patterns match it, and the glob above matches
+# these names when the paper's name is the root.
+[[lean_lib]]
+name = "Palomar"
+srcDir = "palomar"
+roots = ["Banos2019.Challenge", "Banos2019.Solution"]
