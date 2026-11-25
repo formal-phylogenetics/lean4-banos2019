@@ -1,5 +1,6 @@
 module
 
+public import Banos2019.External.SempleSteel2003.Quartets
 public import Banos2019.Identify.TildeDefs
 public import Banos2019.Identify.TreeIso
 
@@ -8,8 +9,8 @@ public import Banos2019.Identify.TreeIso
 
 The base case of the induction of Theorem 4 (`tildeDetermined_zero`): when `N₁⁻` has no cycle of
 size at least four, neither has `N₂⁻`; then `Ñ₁` and `Ñ₂` are trees, the orderings of the
-concordance factors give the quartet trees they display, and a tree is determined by its quartet
-trees and its splits (Semple and Steel 2003).
+concordance factors give the quartet trees they display, and these determine the trees (Semple and
+Steel 2003, `External.SempleSteel2003.exists_iso_of_quartets_eq`).
 
 * `unrooted_degree`, `unrooted_mem_cycle_of_isDirected`, `unrooted_side_separates`: the nodes of
   `N⁻` have their degrees in `N`, the hybrid edges of `N⁻` lie on cycles, and the bridges of `N⁻`
@@ -19,8 +20,8 @@ trees and its splits (Semple and Steel 2003).
   a cut arc of `N`.
 * `alternatives_eq_of_displays`: a quartet tree displayed by `Ñ` has two alternatives with equal
   concordance factors, by exchangeability across the cut arc.
-* `eq_of_alternatives_eq`: two such trees for concordance factors with the same ordering, not all
-  equal on any set of four taxa, have the same splits.
+* `displays_iff_of_alternatives_eq`: two such trees for concordance factors with the same ordering,
+  not all equal on any set of four taxa, display the same quartet trees.
 * `ncard_le_three_of_sameOrdering`: the orderings and Lemma 12 exclude a cycle of size at least
   four from `N₂⁻`.
 -/
@@ -502,19 +503,19 @@ theorem alternatives_eq_of_displays {V E : Type*} [Fintype V] [Fintype E] {N : R
     · simp only [Set.mem_inter_iff, Finset.mem_coe, Finset.mem_inter] at hx
       exact hx.2.1
 
-/-- **Trees with the same ordering of concordance factors** (Baños 2019, proof of Theorem 4): two
-unrooted trees resolving every set of four taxa, each displaying only quartet trees whose two
-alternatives have equal concordance factors, for concordance factors with the same ordering and not
-all equal on any set of four taxa, are the same tree. On each set of four taxa the displayed quartet
-tree is the one whose concordance factor differs from the two others, which the ordering tells. -/
-theorem eq_of_alternatives_eq {F₁ F₂ : Finset (Finset X)} (hF₁ : IsUnrootedTree F₁)
-    (hF₂ : IsUnrootedTree F₂) {p₁ p₂ : QuartetTree X → ℝ}
+/-- **Trees with the same ordering of concordance factors display the same quartet trees** (Baños
+2019, proof of Theorem 4): two trees, given by their splits, resolving every set of four taxa, each
+displaying only quartet trees whose two alternatives have equal concordance factors, for concordance
+factors with the same ordering and not all equal on any set of four taxa, display the same quartet
+trees. On each set of four taxa the displayed quartet tree is the one whose concordance factor
+differs from the two others, which the ordering tells. -/
+theorem displays_iff_of_alternatives_eq {F₁ F₂ : Finset (Finset X)} {p₁ p₂ : QuartetTree X → ℝ}
     (hres₁ : ∀ q : Finset X, #q = 4 → ∃ s ∈ treesOn q, Displays F₁ s)
     (hres₂ : ∀ q : Finset X, #q = 4 → ∃ s ∈ treesOn q, Displays F₂ s)
     (halt₁ : ∀ s, Displays F₁ s → ∀ r ∈ s.alternatives, ∀ r' ∈ s.alternatives, p₁ r = p₁ r')
     (halt₂ : ∀ s, Displays F₂ s → ∀ r ∈ s.alternatives, ∀ r' ∈ s.alternatives, p₂ r = p₂ r')
-    (hnd₁ : NonDegenerateCF p₁) (hnd₂ : NonDegenerateCF p₂) (hord : SameOrdering p₁ p₂) :
-    F₁ = F₂ := by
+    (hnd₁ : NonDegenerateCF p₁) (hnd₂ : NonDegenerateCF p₂) (hord : SameOrdering p₁ p₂)
+    (s : QuartetTree X) : Displays F₁ s ↔ Displays F₂ s := by
   have key : ∀ {F F' : Finset (Finset X)} {p p' : QuartetTree X → ℝ},
       (∀ q : Finset X, #q = 4 → ∃ s ∈ treesOn q, Displays F' s) →
       (∀ s, Displays F s → ∀ r ∈ s.alternatives, ∀ r' ∈ s.alternatives, p r = p r') →
@@ -552,8 +553,7 @@ theorem eq_of_alternatives_eq {F₁ F₂ : Finset (Finset X)} (hF₁ : IsUnroote
     obtain ⟨a, ha, b, hb, hab⟩ := hnd' s.taxa s.card_taxa
     exact hab ((hall a ha).trans (hall b hb).symm)
   have hord' : SameOrdering p₂ p₁ := fun q r h => (hord q r h).symm
-  exact le_antisymm (subset_of_forall_displays hF₂ hF₁ (key hres₂ halt₁ halt₂ hnd₂ hord))
-    (subset_of_forall_displays hF₁ hF₂ (key hres₁ halt₂ halt₁ hnd₁ hord'))
+  exact ⟨key hres₂ halt₁ halt₂ hnd₂ hord s, key hres₁ halt₂ halt₁ hnd₁ hord' s⟩
 
 /-- **No cycle of size at least four in `N₂⁻`** when there is none in `N₁⁻`: such a cycle separates
 a set of four taxa, which then has the Big Cycle property for `N₂` (Lemma 12), so also for `N₁`,
@@ -589,8 +589,8 @@ end Main
 
 /-- **Theorem 4, the base case of the induction**: networks without cycles of size at least four
 (Baños 2019, proof of Theorem 4). The cycles of `N₁⁻` have size at most three, and so have those of
-`N₂⁻` (`ncard_le_three_of_sameOrdering`). Then `Ñ₁` and `Ñ₂` are trees with the taxa as leaves and
-the other nodes of degree three (`tildeNetwork_facts`), and each displays a quartet tree on every
+`N₂⁻` (`ncard_le_three_of_sameOrdering`). Then `Ñ₁` and `Ñ₂` are phylogenetic `X`-trees whose
+internal nodes have degree three (`tildeNetwork_facts`), and each displays a quartet tree on every
 set of four taxa. The paper's step "the ordering of the concordance factors determines the topology
 of the quartet tree obtained by suppressing all 2- and 3-cycles" is filled as follows: an edge of
 `Ñ` separating `{a, b}` from `{c, d}` comes from a cut arc of `N` separating them, across which
@@ -598,36 +598,33 @@ exchangeability gives `CF_{ac|bd} = CF_{ad|bc}` (`alternatives_eq_of_displays`);
 concordance factors are not all equal, the displayed quartet tree is the one whose concordance
 factor differs from the two others, which the ordering tells. It need not have the largest
 concordance factor: with a `3₂`-cycle it can have the smallest (Example 6, `(32, 33, 33)/98`). So
-`Ñ₁` and `Ñ₂` display the same quartet trees, hence have the same splits (`eq_of_alternatives_eq`),
-and the Splits Equivalence Theorem (Semple and Steel 2003, `SplitsEquivalence.xTree_unique`) gives
-an isomorphism of the two trees fixing the taxa, which is an isomorphism of `Ñ₁` and `Ñ₂`
-(`nonempty_sdIso_of_iso`). -/
+`Ñ₁` and `Ñ₂` display the same quartet trees (`displays_iff_of_alternatives_eq`), and "these then
+determine the topology `Ñ` by a standard result" (Semple and Steel 2003,
+`External.SempleSteel2003.exists_iso_of_quartets_eq`): there is an isomorphism of the two trees
+fixing the taxa, which is an isomorphism of `Ñ₁` and `Ñ₂` (`nonempty_sdIso_of_iso`). -/
 theorem tildeDetermined_zero : TildeDetermined 0 := by
   intro X _ _ hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hg₁ hg₂ hord h0
-  have : Nonempty X := hX.to_nonempty
   have hs₁ : ∀ C, IsCycle (unrooted N₁ hN₁ hX).graph C → C.ncard ≤ 3 := fun C hC =>
     ncard_le_three_of_bigCycleCount_eq_zero h0 hC
   have hs₂ : ∀ C, IsCycle (unrooted N₂ hN₂ hX).graph C → C.ncard ≤ 3 := fun C hC =>
     ncard_le_three_of_sameOrdering hX hN₁ hN₂ h1₂ hθ₁ hθ₂ hg₁ hg₂ hord h0 hC
   obtain ⟨hT₁, hd₁, hX₁, hi₁, hl₁, h3₁, hsep₁⟩ := tildeNetwork_facts hN₁ h1₁ hs₁
   obtain ⟨hT₂, hd₂, hX₂, hi₂, hl₂, h3₂, hsep₂⟩ := tildeNetwork_facts hN₂ h1₂ hs₂
-  have hcard : 2 ≤ Fintype.card X := Fintype.one_lt_card_iff_nontrivial.2 hX
-  have hF := eq_of_alternatives_eq (isUnrootedTree_splitFinset hX₁ hi₁ hl₁ hcard)
-    (isUnrootedTree_splitFinset hX₂ hi₂ hl₂ hcard)
-    (fun q hq => exists_displays_splitFinset hX₁ hi₁ hl₁ (fun v hv => (h3₁ v hv).le) hq)
-    (fun q hq => exists_displays_splitFinset hX₂ hi₂ hl₂ (fun v hv => (h3₂ v hv).le) hq)
-    (fun s hs => alternatives_eq_of_displays hN₁.1 hθ₁.1
-      (fun A hA => hsep₁ _ (mem_splitFinset.1 hA)) hs)
-    (fun s hs => alternatives_eq_of_displays hN₂.1 hθ₂.1
-      (fun A hA => hsep₂ _ (mem_splitFinset.1 hA)) hs)
-    (hg₁ hθ₁ hN₁).2 (hg₂ hθ₂ hN₂).2 hord
-  have hss : SplitsEquivalence.splitSides (tildeNetwork (unrooted N₁ hN₁ hX)).graph.toSimpleGraph
+  have hQ : External.SempleSteel2003.quartets
+      (tildeNetwork (unrooted N₁ hN₁ hX)).graph.toSimpleGraph
       (tildeNetwork (unrooted N₁ hN₁ hX)).leaf =
-      SplitsEquivalence.splitSides (tildeNetwork (unrooted N₂ hN₂ hX)).graph.toSimpleGraph
-      (tildeNetwork (unrooted N₂ hN₂ hX)).leaf := by
-    ext A
-    rw [← Set.Finite.coe_toFinset (Set.toFinite A), ← mem_splitFinset, ← mem_splitFinset, hF]
-  obtain ⟨f, hf⟩ := SplitsEquivalence.xTree_unique hX₁ hX₂ hss
+      External.SempleSteel2003.quartets (tildeNetwork (unrooted N₂ hN₂ hX)).graph.toSimpleGraph
+        (tildeNetwork (unrooted N₂ hN₂ hX)).leaf :=
+    Set.ext fun s => displays_iff_of_alternatives_eq
+      (fun q hq => exists_displays_splitFinset hX₁ hi₁ hl₁ (fun v hv => (h3₁ v hv).le) hq)
+      (fun q hq => exists_displays_splitFinset hX₂ hi₂ hl₂ (fun v hv => (h3₂ v hv).le) hq)
+      (fun s hs => alternatives_eq_of_displays hN₁.1 hθ₁.1
+        (fun A hA => hsep₁ _ (External.SempleSteel2003.mem_splitFinset.1 hA)) hs)
+      (fun s hs => alternatives_eq_of_displays hN₂.1 hθ₂.1
+        (fun A hA => hsep₂ _ (External.SempleSteel2003.mem_splitFinset.1 hA)) hs)
+      (hg₁ hθ₁ hN₁).2 (hg₂ hθ₂ hN₂).2 hord s
+  obtain ⟨f, hf⟩ := External.SempleSteel2003.exists_iso_of_quartets_eq ⟨hX₁, hi₁, hl₁⟩
+    ⟨hX₂, hi₂, hl₂⟩ hQ
   exact nonempty_sdIso_of_iso hT₁ hT₂ hd₁ hd₂ f hf
 
 end Banos2019

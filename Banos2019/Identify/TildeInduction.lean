@@ -10,22 +10,25 @@ public import Banos2019.Identify.SameData
 /-!
 # The induction of Theorem 4 (Baños 2019, Section 8)
 
-`TildeDetermined m` holds for every `m` (`tildeDetermined`), by strong induction on `m`:
+`TildeDeterminedData m` is the claim of the induction: the claim `TildeDetermined m` for networks
+with the same cycle data (`SameCycleData`, which Lemmas 15 and 16 give for the networks of Theorem 4).
+It holds for every `m` (`tildeDeterminedData`), by strong induction on `m`:
 
-* `tildeDetermined_zero` (`Identify/TildeBase.lean`): no cycle of size at least four.
-* `tildeDetermined_one`: one cycle `C₁` of size at least four, by strong induction on the number of
-  taxa. The cycle `C₂` of `N₂⁻` with the same blocks, adjacent blocks and hybrid block
-  (`exists_bigCycle_sameData`, Lemmas 15 and 16) gives the isomorphism when the blocks are single taxa
-  (`tilde_sdIso_of_singletonBlocks`). Otherwise a block `P` with at least two taxa splits `Ñ` into the
-  networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}`, which has fewer taxa, and on `P ∪ {s₁}`, which
-  has no cycle of size at least four.
-* `tildeDetermined_of_lt`: for `m ≥ 2` cycles, a cycle `C₁` and a node `u` of it with the property of a
-  leaf of the tree of cycles (`exists_leaf_bigCycle`) split `Ñ` at the block of `u` into two networks
-  with fewer cycles of size at least four.
+* `tildeDeterminedData_zero`: no cycle of size at least four (`tildeDetermined_zero`,
+  `Identify/TildeBase.lean`).
+* `tildeDeterminedData_one`: one cycle `C₁` of size at least four, by strong induction on the number of
+  taxa. The cycle `C₂` of `N₂⁻` with the same blocks, adjacent blocks and hybrid block gives the
+  isomorphism when the blocks are single taxa (`tilde_sdIso_of_singletonBlocks`). Otherwise a block `P`
+  with at least two taxa splits `Ñ` into the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}`, which
+  has fewer taxa, and on `P ∪ {s₁}`, which has no cycle of size at least four.
+* `tildeDeterminedData_of_lt`: for `m ≥ 2` cycles, a cycle `C₁` and a node `u` of it with the property
+  of a leaf of the tree of cycles (`exists_leaf_bigCycle`) split `Ñ` at the block of `u` into two
+  networks with fewer cycles of size at least four.
 
 Both steps glue the two pieces (`tilde_sdIso_of_leafCycle`): `Ñ` of `N₁` and of `N₂` are the gluings of
 the networks `Ñ` of the pieces (`tilde_sdIso_glue`), and isomorphic pieces glue to isomorphic networks
-(`glue_congr`). The pieces satisfy the conditions of Theorem 4 (`Identify/InducedCycles.lean`).
+(`glue_congr`). The pieces satisfy the conditions of Theorem 4 (`Identify/InducedCycles.lean`) and have
+the same cycle data (`SameCycleData.inducedLSA`).
 
 * `bigCycleCount_inducedLSA_insert_compl_le_one`, `bigCycleCount_inducedLSA_insert_lt`: the numbers of
   cycles of size at least four of the two pieces.
@@ -60,6 +63,26 @@ theorem not_separatesQuartet_of_subset_insert {V' E' X' : Type*} [DecidableEq X'
   intro hsep
   obtain ⟨x, hx, y, hy, hxy, hxT, hyT⟩ := exists_ne_mem_of_card_four_subset_insert hs h
   exact hsep.2.2.1 x hx y hy hxy (hT x hxT y hyT)
+
+/-- **The claim of the induction of Theorem 4** for `m` cycles of size at least four: two binary
+level-1 networks on the same taxa, with parameters satisfying `GoodParams`, the same orderings of
+concordance factors and the same cycle data, the first with `m` cycles of size at least four in `N⁻`,
+have isomorphic networks `Ñ`. -/
+def TildeDeterminedData (m : ℕ) : Prop :=
+  ∀ (X : Type) [Fintype X] [DecidableEq X] (hX : Nontrivial X) (V₁ E₁ V₂ E₂ : Type) [Fintype V₁]
+    [Fintype E₁] [Fintype V₂] [Fintype E₂] (N₁ : RootedNetwork V₁ E₁ X) (N₂ : RootedNetwork V₂ E₂ X)
+    (hN₁ : IsBinaryRootedNetwork N₁) (hN₂ : IsBinaryRootedNetwork N₂),
+    IsLevelOne N₁.graph → IsLevelOne N₂.graph → ∀ θ₁ θ₂, IsMetricNetwork N₁ θ₁ →
+    IsMetricNetwork N₂ θ₂ → GoodParams hX N₁ θ₁ → GoodParams hX N₂ θ₂ →
+    SameOrdering (cf N₁ θ₁) (cf N₂ θ₂) → SameCycleData (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX) →
+    bigCycleCount (unrooted N₁ hN₁ hX) = m →
+    Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX)))
+
+/-- **No cycle of size at least four**: the base case `tildeDetermined_zero`, which does not use the
+cycle data. -/
+theorem tildeDeterminedData_zero : TildeDeterminedData 0 :=
+  fun X _ _ hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord _ hc =>
+    tildeDetermined_zero X hX V₁ E₁ V₂ E₂ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord hc
 
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
 
@@ -118,15 +141,15 @@ theorem bigCycleCount_inducedLSA_insert_lt {N : RootedNetwork V E X}
   refine not_separatesQuartet_of_subset_insert hs4 (a := s₁) (T := ↑P) hP ?_ hsep
   simpa only [coe_insert] using hsY
 
-/-- **The claim for a piece**: `TildeDetermined k` gives isomorphic networks `Ñ` for the networks
+/-- **The claim for a piece**: `TildeDeterminedData k` gives isomorphic networks `Ñ` for the networks
 induced on `Y` with `k` cycles of size at least four. -/
-theorem nonempty_sdIso_tilde_inducedLSA {k : ℕ} (hk : TildeDetermined k) {V' E' : Type} [Fintype V']
-    [Fintype E'] {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X}
+theorem nonempty_sdIso_tilde_inducedLSA {k : ℕ} (hk : TildeDeterminedData k) {V' E' : Type}
+    [Fintype V'] [Fintype E'] {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X}
     (hN₁ : IsBinaryRootedNetwork N₁) (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph)
     (h1₂ : IsLevelOne N₂.graph) (hX : Nontrivial X) {θ₁ : MetricData E} {θ₂ : MetricData E'}
     (hθ₁ : IsMetricNetwork N₁ θ₁) (hθ₂ : IsMetricNetwork N₂ θ₂) (hG₁ : GoodParams hX N₁ θ₁)
-    (hG₂ : GoodParams hX N₂ θ₂) (hord : SameOrdering (cf N₁ θ₁) (cf N₂ θ₂)) {Y : Set X}
-    (hY : Y.Nontrivial)
+    (hG₂ : GoodParams hX N₂ θ₂) (hord : SameOrdering (cf N₁ θ₁) (cf N₂ θ₂))
+    (hD : SameCycleData (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX)) {Y : Set X} (hY : Y.Nontrivial)
     (hcount : bigCycleCount (unrooted (inducedLSA N₁ hN₁.1 Y hY)
       (inducedLSA_isBinaryRootedNetwork hN₁ hY) hY.coe_sort) = k) :
     Nonempty (SDIso
@@ -139,7 +162,8 @@ theorem nonempty_sdIso_tilde_inducedLSA {k : ℕ} (hk : TildeDetermined k) {V' E
     (inducedLSA_isLevelOne hN₂ h1₂ hY) _ _ (inducedLSA_isMetricNetwork hN₁ hθ₁ hY)
     (inducedLSA_isMetricNetwork hN₂ hθ₂ hY) (goodParams_inducedLSA hN₁ h1₁ hX hθ₁ hG₁ hY)
     (goodParams_inducedLSA hN₂ h1₂ hX hθ₂ hG₂ hY)
-    (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hY) hcount
+    (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hY)
+    (hD.inducedLSA hN₁ hN₂ h1₁ h1₂ hX hY) hcount
 
 /-- **Gluing the pieces**: for nodes `u₁`, `u₂` of cycles of `N₁⁻` and `N₂⁻` with the same block `P`,
 if the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` are isomorphic, so are
@@ -182,15 +206,13 @@ at least four of `N₁⁻` has the taxa outside `P` in one of its blocks. If the
 `Pᶜ ∪ {s₂}` (at most one cycle of size at least four) and on `P ∪ {s₁}` (fewer cycles of size at least
 four than `N₁⁻`) have isomorphic networks `Ñ`, so have `N₁` and `N₂`.
 
-The cycle `C₂` of `N₂⁻` with the same blocks as `C₁` (Lemma 15, `exists_bigCycle_sameData`) has a node
-with the block `P`, and `Ñ` of each network is the gluing of the networks `Ñ` of its pieces
+The cycle `C₂` of `N₂⁻` with the same blocks as `C₁` (the same cycle data) has a node with the block
+`P`, and `Ñ` of each network is the gluing of the networks `Ñ` of its pieces
 (`tilde_sdIso_of_pieces`). -/
 theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
     {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
     (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph)
-    (hX : Nontrivial X) {θ₁ : MetricData E} {θ₂ : MetricData E'} (hθ₁ : IsMetricNetwork N₁ θ₁)
-    (hθ₂ : IsMetricNetwork N₂ θ₂) (hG₁ : GoodParams hX N₁ θ₁) (hG₂ : GoodParams hX N₂ θ₂)
-    (hord : SameOrdering (cf N₁ θ₁) (cf N₂ θ₂)) {C₁ : Set _}
+    (hX : Nontrivial X) (hD : SameCycleData (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX)) {C₁ : Set _}
     (hC₁ : C₁ ∈ cyclesOfSizeAtLeast (unrooted N₁ hN₁ hX).graph 4) {P : Finset X} {s₁ s₂ : X}
     (hP : ∀ x, x ∈ P ↔ SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ s₂ x)
     (hs₁ : s₁ ∉ P)
@@ -214,8 +236,7 @@ theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
           hY.coe_sort)))) :
     Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by
   obtain ⟨v₁, hv₁⟩ := exists_isHybridNodeOf h1₁ hC₁.1
-  obtain ⟨C₂, v₂, hC₂, -, -, hsame, -, -⟩ :=
-    exists_bigCycle_sameData hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord hC₁ hv₁
+  obtain ⟨C₂, v₂, hC₂, -, -, hsame, -, -⟩ := hD C₁ hC₁ v₁ hv₁
   have hs₂ : s₂ ∈ P := (hP s₂).2 .refl
   have hP₁ : ∀ x, x ∈ P ↔ x ∈ nodeBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁
       (blockNode (unrooted N₁ hN₁ hX) C₁ s₂) := fun x =>
@@ -235,29 +256,28 @@ theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
     (H₁ hZ₁ (bigCycleCount_inducedLSA_insert_compl_le_one hN₁ h1₁ hX hleaf s₂ hZ₁))
     (H₂ hZ₂ (bigCycleCount_inducedLSA_insert_lt hN₁ h1₁ hX hC₁ hPP s₁ hZ₂))
 
-/-- **One cycle of size at least four** (proof of Theorem 4, the case of one cycle). Lemmas 15 and 16
+/-- **One cycle of size at least four** (proof of Theorem 4, the case of one cycle). The cycle data
 give a cycle `C₂` of `N₂⁻` with the same blocks, adjacent blocks and hybrid block as the cycle `C₁` of
-`N₁⁻` (`exists_bigCycle_sameData`). When the blocks are single taxa, `Ñ₁` and `Ñ₂` are this cycle with
-a taxon at each node (`tilde_sdIso_of_singletonBlocks`). Otherwise, for a block `P` with at least
-two taxa, a taxon `s₂ ∈ P` and a taxon `s₁ ∉ P`, the networks `Ñ` are the gluings of those of the
-networks induced on `Pᶜ ∪ {s₂}`, which has fewer taxa and at most one cycle of size at least four
-(induction on the number of taxa, or `tildeDetermined_zero`), and on `P ∪ {s₁}`, which has none
-(`tildeDetermined_zero`). This is the paper's step of joining the tree of each block, read with an
-outgroup, to its node of the cycle. -/
-theorem tildeDetermined_one : TildeDetermined 1 := by
+`N₁⁻`. When the blocks are single taxa, `Ñ₁` and `Ñ₂` are this cycle with a taxon at each node
+(`tilde_sdIso_of_singletonBlocks`). Otherwise, for a block `P` with at least two taxa, a taxon
+`s₂ ∈ P` and a taxon `s₁ ∉ P`, the networks `Ñ` are the gluings of those of the networks induced on
+`Pᶜ ∪ {s₂}`, which has fewer taxa and at most one cycle of size at least four (induction on the
+number of taxa, or `tildeDeterminedData_zero`), and on `P ∪ {s₁}`, which has none
+(`tildeDeterminedData_zero`). This is the paper's step of joining the tree of each block, read with
+an outgroup, to its node of the cycle. -/
+theorem tildeDeterminedData_one : TildeDeterminedData 1 := by
   intro X _ _
   obtain ⟨n, hn⟩ : ∃ n, Fintype.card X = n := ⟨_, rfl⟩
   induction n using Nat.strong_induction_on generalizing X with
   | _ n ihn =>
-  intro hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord hc
+  intro hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord hD hc
   -- the cycle `C₁` of size at least four and its counterpart `C₂`
   obtain ⟨C₁, hbig⟩ := Set.ncard_eq_one.1 hc
   have hC₁ : C₁ ∈ cyclesOfSizeAtLeast (unrooted N₁ hN₁ hX).graph 4 := by
     rw [hbig]
     rfl
   obtain ⟨v₁, hv₁⟩ := exists_isHybridNodeOf h1₁ hC₁.1
-  obtain ⟨C₂, v₂, hC₂, hv₂, -, hsame, hadj, hhyb⟩ :=
-    exists_bigCycle_sameData hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord hC₁ hv₁
+  obtain ⟨C₂, v₂, hC₂, hv₂, -, hsame, hadj, hhyb⟩ := hD C₁ hC₁ v₁ hv₁
   by_cases hsing : ∀ x y, SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x y →
       x = y
   · exact tilde_sdIso_of_singletonBlocks hN₁ hN₂ h1₁ h1₂ hX hC₁ hC₂ hv₁ hv₂ hsing
@@ -275,7 +295,7 @@ theorem tildeDetermined_one : TildeDetermined 1 := by
   have hs₁P : s₁ ∉ P := by
     rw [hP, sameBlock_iff_blockNode_eq h1₁ hC₁.1, hs₁]
     exact fun h => hu'x h.symm
-  refine tilde_sdIso_of_leafCycle hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord hC₁ hP hs₁P ?_ ?_ ?_
+  refine tilde_sdIso_of_leafCycle hN₁ hN₂ h1₁ h1₂ hX hD hC₁ hP hs₁P ?_ ?_ ?_
   · -- `C₁` is the only cycle of size at least four
     intro C' hC' hC'C₁
     rw [hbig] at hC'
@@ -283,8 +303,8 @@ theorem tildeDetermined_one : TildeDetermined 1 := by
   · -- the piece on `Pᶜ ∪ {x}`: fewer taxa, at most one cycle of size at least four
     intro hY hY1
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hY1 with h0 | h1
-    · exact nonempty_sdIso_tilde_inducedLSA tildeDetermined_zero hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂
-        hord hY h0
+    · exact nonempty_sdIso_tilde_inducedLSA tildeDeterminedData_zero hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁
+        hG₂ hord hD hY h0
     · have hyY : y ∉ ((insert x Pᶜ : Finset X) : Set X) := by
         simp only [coe_insert, coe_compl, Set.mem_insert_iff, Set.mem_compl_iff, mem_coe, not_or,
           not_not]
@@ -295,13 +315,14 @@ theorem tildeDetermined_one : TildeDetermined 1 := by
         (inducedLSA_isLevelOne hN₂ h1₂ hY) _ _ (inducedLSA_isMetricNetwork hN₁ hθ₁ hY)
         (inducedLSA_isMetricNetwork hN₂ hθ₂ hY) (goodParams_inducedLSA hN₁ h1₁ hX hθ₁ hG₁ hY)
         (goodParams_inducedLSA hN₂ h1₂ hX hθ₂ hG₂ hY)
-        (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hY) h1
+        (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hY)
+        (hD.inducedLSA hN₁ hN₂ h1₁ h1₂ hX hY) h1
       rw [← hn]
       exact Fintype.card_subtype_lt hyY
   · -- the piece on `P ∪ {s₁}`: no cycle of size at least four
     intro hY hY1
-    exact nonempty_sdIso_tilde_inducedLSA tildeDetermined_zero hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂
-      hord hY (by omega)
+    exact nonempty_sdIso_tilde_inducedLSA tildeDeterminedData_zero hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁
+      hG₂ hord hD hY (by omega)
 
 /-- **The induction step of Theorem 4**: for `m ≥ 2` cycles of size at least four, a cycle `C₁` and a
 node `u` of it, with block `P`, such that every other cycle of size at least four has the taxa outside
@@ -309,9 +330,9 @@ node `u` of it, with block `P`, such that every other cycle of size at least fou
 into the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` (`s₂ ∈ P`, `s₁ ∉ P`).
 The first has at most one cycle of size at least four, the second fewer than `m`, since `C₁` meets
 its taxa in two blocks; the induction hypothesis applies to both. -/
-theorem tildeDetermined_of_lt {m : ℕ} (hm : 2 ≤ m) (ih : ∀ k < m, TildeDetermined k) :
-    TildeDetermined m := by
-  intro X _ _ hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord hc
+theorem tildeDeterminedData_of_lt {m : ℕ} (hm : 2 ≤ m) (ih : ∀ k < m, TildeDeterminedData k) :
+    TildeDeterminedData m := by
+  intro X _ _ hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord hD hc
   obtain ⟨C₁, u, hC₁, hu, hleaf⟩ := exists_leaf_bigCycle hN₁ h1₁ hX (hc ▸ hm)
   -- a taxon `s₂` of the block of `u`, and a taxon `s₁` of the block of another node
   obtain ⟨s₂, hs₂⟩ := nodeBlock_nonempty_unrooted h1₁ hC₁.1 hu
@@ -329,24 +350,24 @@ theorem tildeDetermined_of_lt {m : ℕ} (hm : 2 ≤ m) (ih : ∀ k < m, TildeDet
   have hs₁P : s₁ ∉ P := by
     rw [hP, sameBlock_iff_blockNode_eq h1₁ hC₁.1, hs₁, ← hus₂]
     exact fun h => hu'u h.symm
-  refine tilde_sdIso_of_leafCycle hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord hC₁ hP hs₁P ?_ ?_ ?_
+  refine tilde_sdIso_of_leafCycle hN₁ hN₂ h1₁ h1₂ hX hD hC₁ hP hs₁P ?_ ?_ ?_
   · intro C' hC' hC'C₁ x y hx hy
     exact hleaf C' hC' hC'C₁ x y (by rwa [hu₀, ← hP]) (by rwa [hu₀, ← hP])
   · intro hY hY1
     exact nonempty_sdIso_tilde_inducedLSA (ih _ (by omega)) hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord
-      hY rfl
+      hD hY rfl
   · intro hY hY1
     exact nonempty_sdIso_tilde_inducedLSA (ih _ (by omega)) hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁ hG₂ hord
-      hY rfl
+      hD hY rfl
 
 /-- **The claim of the induction of Theorem 4 holds for every number of cycles of size at least
 four.** -/
-theorem tildeDetermined (m : ℕ) : TildeDetermined m := by
+theorem tildeDeterminedData (m : ℕ) : TildeDeterminedData m := by
   induction m using Nat.strong_induction_on with
   | _ m ih =>
     rcases m with _ | _ | m
-    · exact tildeDetermined_zero
-    · exact tildeDetermined_one
-    · exact tildeDetermined_of_lt (by omega) ih
+    · exact tildeDeterminedData_zero
+    · exact tildeDeterminedData_one
+    · exact tildeDeterminedData_of_lt (by omega) ih
 
 end Banos2019

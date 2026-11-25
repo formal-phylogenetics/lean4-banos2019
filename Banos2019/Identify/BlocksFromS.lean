@@ -7,15 +7,16 @@ public import Banos2019.Identify.QuartetCycles
 
 For metric parameters at which the statement of Lemma 12 holds, the blocks, the size and the hybrid
 block of the cycle `C_v` of `N⁻` whose hybrid node a set `s ∈ S` determines are functions of `S` and
-`s` (`lemma15_core`), and which of its blocks are adjacent is a function of the comparisons of the
-concordance factors of quartet trees on the same four taxa (`lemma16_core`). Lemmas 15 and 16
-(`Banos2019/Identifiability.lean`) are these statements for generic parameters.
+`s` (`lemma15_core`), and, given such functions, which of its blocks are adjacent is a function of
+the comparisons of the concordance factors of quartet trees on the same four taxa (`lemma16_core`).
+Lemmas 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for generic parameters.
 
 * `bcSets`: the set `S`.
 * `extensions` (`Z_T`), `blockRelation`, `blockCount`, `hybridBlock`: the constructions of the proof
   of Lemma 15 from `S`.
 * `bcSetsOf`, `IsBCQuartetOf`, `adjacencyOf`: `S`, `q^BC_s` and the adjacent blocks, read from the
-  comparisons of concordance factors (proof of Lemma 16).
+  comparisons of concordance factors and from the blocks, the size and the hybrid block (proof of
+  Lemma 16).
 -/
 
 @[expose] public noncomputable section
@@ -520,24 +521,26 @@ theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : 
 
 end Comparisons
 
-/-- The adjacent blocks of the cycle determined by `s`, read from the comparisons `R` (proof of
-Lemma 16): `x` and `y` are in different blocks, and `q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that
-`x, y, z, z'` are in four distinct blocks and, when the cycle has size at least five, one of them is
-the hybrid block. -/
-def adjacencyOf (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X) (x y : X) : Prop :=
-  ¬ blockRelation (bcSetsOf R) s x y ∧ ∀ z z' (h : Distinct4 x y z z'),
-    ¬ blockRelation (bcSetsOf R) s x z → ¬ blockRelation (bcSetsOf R) s x z' →
-    ¬ blockRelation (bcSetsOf R) s y z → ¬ blockRelation (bcSetsOf R) s y z' →
-    ¬ blockRelation (bcSetsOf R) s z z' →
-    (blockCount (bcSetsOf R) s = 4 ∨ x ∈ hybridBlock (bcSetsOf R) s ∨
-      y ∈ hybridBlock (bcSetsOf R) s ∨ z ∈ hybridBlock (bcSetsOf R) s ∨
-      z' ∈ hybridBlock (bcSetsOf R) s) →
+/-- The adjacent blocks of the cycle determined by `s`, read from the comparisons `R` and from the
+blocks `B`, the size `K` and the hybrid block `H` given by `S` (proof of Lemma 16): `x` and `y` are in
+different blocks, and `q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that `x, y, z, z'` are in four
+distinct blocks and, when the cycle has size at least five, one of them is the hybrid block. -/
+def adjacencyOf (B : Set (Finset X) → Finset X → X → X → Prop) (K : Set (Finset X) → Finset X → ℕ)
+    (H : Set (Finset X) → Finset X → Set X) (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X)
+    (x y : X) : Prop :=
+  ¬ B (bcSetsOf R) s x y ∧ ∀ z z' (h : Distinct4 x y z z'),
+    ¬ B (bcSetsOf R) s x z → ¬ B (bcSetsOf R) s x z' → ¬ B (bcSetsOf R) s y z →
+    ¬ B (bcSetsOf R) s y z' → ¬ B (bcSetsOf R) s z z' →
+    (K (bcSetsOf R) s = 4 ∨ x ∈ H (bcSetsOf R) s ∨ y ∈ H (bcSetsOf R) s ∨
+      z ∈ H (bcSetsOf R) s ∨ z' ∈ H (bcSetsOf R) s) →
     ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h)
 
 /-- **The adjacent blocks of a cycle from the comparisons of concordance factors** (Lemma 16 at given
-parameters): for metric parameters at which the statement of Lemma 12 holds and `s ∈ S` determining
-the hybrid node `w` of the cycle `C_w` of `N⁻`, `adjacencyOf` applied to the comparisons of the
-concordance factors of quartet trees on the same four taxa gives the adjacent blocks of `C_w`. -/
+parameters): for metric parameters at which the statement of Lemma 12 holds, `s ∈ S` determining
+the hybrid node `w` of the cycle `C_w` of `N⁻`, and functions `B`, `K`, `H` of `S` and `s` giving the
+blocks, the size and the hybrid block of `C_w` (the conclusion of Lemma 15), `adjacencyOf B K H`
+applied to the comparisons of the concordance factors of quartet trees on the same four taxa gives
+the adjacent blocks of `C_w`. -/
 theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ)
@@ -545,30 +548,31 @@ theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
       ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s))
     {s : Finset X} (hs : s ∈ bcSets N θ) {C : Set _} {w : SemidirectedVertex hN.1 hX}
     (hC : IsCycle (unrooted N hN hX).graph C) (hw : IsHybridNodeOf (unrooted N hN hX) C w)
-    (hdet : Determines hN s hs.1 w.1.1) (x y : X) :
-    adjacencyOf (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
+    (hdet : Determines hN s hs.1 w.1.1) {B : Set (Finset X) → Finset X → X → X → Prop}
+    {K : Set (Finset X) → Finset X → ℕ} {H : Set (Finset X) → Finset X → Set X}
+    (hB : ∀ x y, B (bcSets N θ) s x y ↔
+      SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y)
+    (hK : K (bcSets N θ) s = C.ncard)
+    (hH : 5 ≤ C.ncard → H (bcSets N θ) s = {x | DescendsFrom (unrooted N hN hX) w x}) (x y : X) :
+    adjacencyOf B K H (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
       AdjacentBlocks (unrooted N hN hX) C x y := by
-  -- the blocks, the size and the hybrid block of the cycle, from `S` (Lemma 15)
-  obtain ⟨hB, hK, hH⟩ := lemma15_core hN h1 hX hθ h12 hs hC hw hdet
   simp only [adjacencyOf, bcSetsOf_cf, isBCQuartetOf_cf]
   -- `s` is separated by `C_w`
   obtain ⟨C', hsep⟩ := (determines_iff_separatesQuartet hN h1 hX hs.1 w).1 hdet
   rw [← hw.cycle_eq h1 hC hsep.1 hsep.2.1] at hsep
   have hC4 := four_le_ncard_of_separatesQuartet h1 hC hw hs.1 hsep
   set β := blockNode (unrooted N hN hX) C
-  have hBβ : ∀ a b, blockRelation (bcSets N θ) s a b ↔ β a = β b :=
+  have hBβ : ∀ a b, B (bcSets N θ) s a b ↔ β a = β b :=
     fun a b => (hB a b).trans (sameBlock_iff_blockNode_eq h1 hC a b)
   rw [adjacentBlocks_iff_forall_joinedAvoiding h1 hC hC4 hw x y, ← hB x y]
   refine and_congr_right fun hxy => forall₂_congr fun z z' => ?_
   rw [hBβ] at hxy
   -- the sets of four taxa that `C_w` separates, from the blocks and the hybrid block
   have hsepiff : ∀ h : Distinct4 x y z z',
-      ((¬ blockRelation (bcSets N θ) s x z ∧ ¬ blockRelation (bcSets N θ) s x z' ∧
-        ¬ blockRelation (bcSets N θ) s y z ∧ ¬ blockRelation (bcSets N θ) s y z' ∧
-        ¬ blockRelation (bcSets N θ) s z z') ∧
-        (blockCount (bcSets N θ) s = 4 ∨ x ∈ hybridBlock (bcSets N θ) s ∨
-          y ∈ hybridBlock (bcSets N θ) s ∨ z ∈ hybridBlock (bcSets N θ) s ∨
-          z' ∈ hybridBlock (bcSets N θ) s)) ↔
+      ((¬ B (bcSets N θ) s x z ∧ ¬ B (bcSets N θ) s x z' ∧ ¬ B (bcSets N θ) s y z ∧
+        ¬ B (bcSets N θ) s y z' ∧ ¬ B (bcSets N θ) s z z') ∧
+        (K (bcSets N θ) s = 4 ∨ x ∈ H (bcSets N θ) s ∨ y ∈ H (bcSets N θ) s ∨
+          z ∈ H (bcSets N θ) s ∨ z' ∈ H (bcSets N θ) s)) ↔
       SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} := by
     intro h
     simp only [hBβ]
@@ -591,10 +595,10 @@ theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
           (by simp) e), fun e => h.2.2.2.1 (hinj (by simp) (by simp) e),
           fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e),
           fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)⟩, Or.inl (hK.trans h4)⟩
-    · -- at least five blocks: the hybrid block is `hybridBlock S s`
+    · -- at least five blocks: the hybrid block is `H S s`
       have hH5 := hH (by omega)
-      have hK4 : blockCount (bcSets N θ) s ≠ 4 := hK ▸ h4
-      have hmemH : ∀ m, m ∈ hybridBlock (bcSets N θ) s ↔ β m = w := fun m => by
+      have hK4 : K (bcSets N θ) s ≠ 4 := hK ▸ h4
+      have hmemH : ∀ m, m ∈ H (bcSets N θ) s ↔ β m = w := fun m => by
         rw [hH5]
         exact (blockNode_eq_iff_descendsFrom h1 hC hw m).symm
       simp only [hmemH, hK4, false_or]
