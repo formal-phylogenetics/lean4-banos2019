@@ -216,6 +216,40 @@ theorem exists_arc_enter {p : V → Prop} {a b : V} (h : Q.graph.Reaches a b) (h
     · exact ⟨e, hs, hb⟩
 
 
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- A path from outside a set into it enters it by an arc whose source is on the path. -/
+theorem exists_arc_enter' {p : V → Prop} {a b : V} (h : Q.graph.Reaches a b) (ha : ¬ p a)
+    (hb : p b) : ∃ e, Q.graph.Reaches a (Q.graph.source e) ∧ ¬ p (Q.graph.source e) ∧
+      p (Q.graph.target e) := by
+  induction h with
+  | refl => exact absurd hb ha
+  | @tail b c hab hbc ih =>
+    obtain ⟨e, rfl, rfl⟩ := hbc
+    by_cases hs : p (Q.graph.source e)
+    · exact ih hs
+    · exact ⟨e, hab, hs, hb⟩
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- Every vertex of a phylogenetic network is above a taxon. -/
+theorem exists_reaches_leaf (hQ : Q.IsPhylogenetic) (w : V) : ∃ x, Q.graph.Reaches w (Q.leaf x) := by
+  have : Finite V := hQ.finite_vertices
+  have : Finite E := hQ.finite_arcs
+  let rel : V → V → Prop := fun a c => Relation.TransGen Q.graph.Adj c a
+  have : IsTrans V rel := ⟨fun _ _ _ h₁ h₂ => h₂.trans h₁⟩
+  have : Std.Irrefl rel := ⟨fun a ha => hQ.acyclic a ha⟩
+  have hwf : WellFounded rel := Finite.wellFounded_of_trans_of_irrefl rel
+  induction w using hwf.induction with
+  | _ w ih =>
+    by_cases h0 : Q.graph.outdegree w = 0
+    · obtain ⟨x, hx⟩ := (hQ.leaves w).1 h0
+      exact ⟨x, hx ▸ .refl⟩
+    · obtain ⟨e, he⟩ : ∃ e, Q.graph.source e = w := by
+        by_contra hno
+        push Not at hno
+        exact h0 ((Q.graph.outdegree_eq_zero_iff _).2 hno)
+      obtain ⟨x, hx⟩ := ih (Q.graph.target e) (.single ⟨e, he, rfl⟩)
+      exact ⟨x, Relation.ReflTransGen.head ⟨e, he, rfl⟩ hx⟩
+
 /-- The hypotheses on a cycle `C` under which `Q₀⊕` is a metric phylogenetic network: no taxon is a
 node of `C`; a node `t` of `C` above all its nodes receives every arc into a node of `C` that is not
 an edge of `C`, and no edge of `C` enters `t`; and an arc leaves a node of `C` off `C`. -/
