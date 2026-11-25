@@ -5,6 +5,7 @@ public import Banos2019.Quartet.Fig15
 public import Banos2019.Quartet.Fig16
 public import Banos2019.Quartet.Fig17
 public import Banos2019.Quartet.Fig18
+public import Banos2019.Quartet.SingleCycle
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!
@@ -389,6 +390,156 @@ theorem inducesNetwork_q18 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 �
     rw [← hedge e]
     generalize edge e = j
     fin_cases j <;> simp [figMetric, q18Metric]
+
+omit [Fintype V] in
+/-- **The metric unrooted network of a network isomorphic to a rooting of a figure**: let `φ` map
+a network `P` on `Fin 9` nodes and edges (the leaves `a, b, c, d` at `0, 1, 2, 3`, the root `8`, the
+hybrid edges `6`, `7`) onto `Q`, the edge `8` at the root onto the edge of `Q` that `Q⁻` merges into
+the other edge `m` at the root. Then `Q⁻` is the figure `figNet fs ft a b c` when the edges `0, …, 7`
+of `P` join the nodes of the figure's edges (the edge `m` from the end of the edge `8`), in the same
+direction for the hybrid edges, with the lengths and inheritance probabilities of `Q`. -/
+theorem inducesNetwork_of_rootedIso {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {qs qt : Fin 9 → Fin 9} {fs ft : Fin 8 → Fin 8} {a b c : X} {m : Fin 8}
+    {len : Fin 8 → ℝ} {γ : ℝ}
+    (φ : RootedNetworkIso (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X) Q)
+    (hr : (rootTreeArc hQ.binary.1 hQ.binary.2 hQ.nontrivial).1 = φ.arc 8)
+    (hhyb : ∀ e : Fin 9, 2 ≤ #(univ.filter fun f => qt f = qt e) ↔ e = 6 ∨ e = 7)
+    (hmerge : ∀ j : Fin 8, qs j.castSucc = 8 ↔ j = m)
+    (hjoin : ∀ j : Fin 8,
+      ((fs j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc) ∧
+          (ft j).castSucc = qt j.castSucc) ∨
+        ((fs j).castSucc = qt j.castSucc ∧
+          (ft j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc)))
+    (hdir : ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      (fs j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc) ∧
+        (ft j).castSucc = qt j.castSucc)
+    (hlen : θ.length (φ.arc m.castSucc) + θ.length (φ.arc 8) = len m)
+    (hlen' : ∀ j : Fin 8, j ≠ m → θ.length (φ.arc j.castSucc) = len j)
+    (hinh : ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      (figMetric len γ).inheritance j = θ.inheritance (φ.arc j.castSucc)) :
+    InducesNetwork hQ (figNet fs ft a b c) (figMetric len γ) := by
+  have hP := hQ.binary.1
+  have hB := hQ.binary.2
+  have hXn := hQ.nontrivial
+  have hl : lsa hP Set.univ Set.univ_nonempty = φ.vert 8 :=
+    (lsa_univ_eq_root hP hXn hQ.isLSA).trans φ.root
+  have hr' : sdRootArc hP hB hXn = φ.arc 8 := hr
+  -- the nodes and the edges of `Q⁻`: those of `P` but the root and the edge `8`
+  have hv : ∀ w : SemidirectedVertex hP hXn, φ.vert.symm (sdVert hP hXn w) ≠ Fin.last 8 := by
+    intro w h
+    apply sdVert_ne_lsa hP hXn w
+    have := congrArg φ.vert h
+    rw [Equiv.apply_symm_apply] at this
+    rw [hl]
+    exact this
+  have he : ∀ g : SemidirectedArc hP hB hXn, φ.arc.symm (sdArc hP hB hXn g) ≠ Fin.last 8 := by
+    intro g h
+    apply sdArc_ne_sdRootArc hP hB hXn g
+    have := congrArg φ.arc h
+    rw [Equiv.apply_symm_apply] at this
+    rw [hr']
+    exact this
+  let vert : SemidirectedVertex hP hXn ≃ Fin 8 := Equiv.ofBijective
+    (fun w => (φ.vert.symm (sdVert hP hXn w)).castPred (hv w)) (by
+      constructor
+      · intro w w' h
+        have h' := congrArg Fin.castSucc h
+        simp only [Fin.castSucc_castPred] at h'
+        exact sdVert_injective hP hXn (φ.vert.symm.injective h')
+      · intro i
+        obtain ⟨w, hw⟩ := (mem_range_sdVert hP hXn (φ.vert i.castSucc)).2 ⟨hl ▸ (by
+          rw [← φ.root]; exact hP.root_reaches _), fun h => by
+            rw [hl] at h
+            exact Fin.castSucc_ne_last i (φ.vert.injective h)⟩
+        exact ⟨w, by simp [hw]⟩)
+  let edge : SemidirectedArc hP hB hXn ≃ Fin 8 := Equiv.ofBijective
+    (fun g => (φ.arc.symm (sdArc hP hB hXn g)).castPred (he g)) (by
+      constructor
+      · intro g g' h
+        have h' := congrArg Fin.castSucc h
+        simp only [Fin.castSucc_castPred] at h'
+        exact sdArc_injective hP hB hXn (φ.arc.symm.injective h')
+      · intro i
+        obtain ⟨g, hg⟩ := (mem_range_sdArc hP hB hXn (φ.arc i.castSucc)).2 ⟨hl ▸ (by
+          rw [← φ.root]; exact hP.root_reaches _), fun h => by
+            rw [hr'] at h
+            exact Fin.castSucc_ne_last i (φ.arc.injective h)⟩
+        exact ⟨g, by simp [hg]⟩)
+  have hvert : ∀ w, φ.vert (vert w).castSucc = sdVert hP hXn w := fun w => by
+    show φ.vert ((φ.vert.symm (sdVert hP hXn w)).castPred (hv w)).castSucc = _
+    rw [Fin.castSucc_castPred, Equiv.apply_symm_apply]
+  have hedge : ∀ g, φ.arc (edge g).castSucc = sdArc hP hB hXn g := fun g => by
+    show φ.arc ((φ.arc.symm (sdArc hP hB hXn g)).castPred (he g)).castSucc = _
+    rw [Fin.castSucc_castPred, Equiv.apply_symm_apply]
+  -- the ends of the edges of `Q⁻`, in the terms of `P`
+  have hroot' : ∀ g, Q.graph.source (sdArc hP hB hXn g) = lsa hP Set.univ Set.univ_nonempty ↔
+      qs (edge g).castSucc = 8 := by
+    intro g
+    rw [← hedge g, φ.source, hl]
+    exact φ.vert.injective.eq_iff
+  have hS : ∀ g, (vert (hQ.unrooted.graph.source g)).castSucc =
+      if qs (edge g).castSucc = 8 then qt 8 else qs (edge g).castSucc := by
+    intro g
+    apply φ.vert.injective
+    rw [hvert, sdVert_source]
+    split_ifs with h₁ h₂ h₂
+    · rw [hr', φ.target]
+    · exact absurd ((hroot' g).1 h₁) h₂
+    · exact absurd ((hroot' g).2 h₂) h₁
+    · rw [← hedge g, φ.source]
+  have hT : ∀ g, (vert (hQ.unrooted.graph.target g)).castSucc = qt (edge g).castSucc := by
+    intro g
+    apply φ.vert.injective
+    rw [hvert, sdVert_target, ← hedge g, φ.target]
+  have hdir' : ∀ g, hQ.unrooted.IsDirected g ↔ edge g = 6 ∨ edge g = 7 := by
+    intro g
+    rw [semidirected_isDirected_iff, ← hedge g, φ.isHybridArc_iff]
+    have key : ∀ y : Fin 9, (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X).graph.indegree y =
+        #(univ.filter fun f => qt f = y) := by
+      intro y
+      unfold DirectedMultigraph.indegree
+      rw [← Set.ncard_coe_finset]
+      congr 1
+      ext f
+      simp
+    unfold IsHybridArc
+    rw [key]
+    refine (hhyb _).trans ?_
+    constructor
+    · rintro (h' | h')
+      · exact Or.inl (Fin.castSucc_injective _ h')
+      · exact Or.inr (Fin.castSucc_injective _ h')
+    · rintro (h' | h')
+      · exact Or.inl (by rw [h']; rfl)
+      · exact Or.inr (by rw [h']; rfl)
+  refine ⟨⟨⟨vert, edge, fun g => ?_, fun g => ?_, fun g hd => ?_, fun x => ?_⟩, fun g => ?_,
+    fun g hd => ?_⟩⟩
+  · rw [hdir']
+    rfl
+  · rcases hjoin (edge g) with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨Fin.castSucc_injective _ (by rw [← hS] at h₁; exact h₁),
+        Fin.castSucc_injective _ (by rw [← hT] at h₂; exact h₂)⟩
+    · exact Or.inr ⟨Fin.castSucc_injective _ (by rw [← hT] at h₁; exact h₁),
+        Fin.castSucc_injective _ (by rw [← hS] at h₂; exact h₂)⟩
+  · obtain ⟨h₁, h₂⟩ := hdir _ ((hdir' g).1 hd)
+    rw [← hS] at h₁
+    rw [← hT] at h₂
+    exact ⟨Fin.castSucc_injective _ h₁, Fin.castSucc_injective _ h₂⟩
+  · apply Fin.castSucc_injective
+    apply φ.vert.injective
+    rw [hvert]
+    show φ.vert (figLeaf a b c x).castSucc = Q.leaf x
+    rw [figLeaf_castSucc, φ.leaf]
+  · rw [semidirectedMetric_length, ← hedge g, hr']
+    split_ifs with h8
+    · have hm : edge g = m := (hmerge _).1 ((hroot' g).1 (by rw [← hedge g]; exact h8))
+      rw [hm]
+      exact hlen.symm
+    · have hm : edge g ≠ m := fun hm => h8 (by
+        rw [hedge g]; exact (hroot' g).2 ((hmerge _).2 hm))
+      exact (hlen' _ hm).symm
+  · show (figMetric len γ).inheritance (edge g) = θ.inheritance (sdArc hP hB hXn g)
+    rw [hinh _ ((hdir' g).1 hd), hedge]
 
 /-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with `xᵢ = e^{-tᵢ}`:
 `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
