@@ -3,6 +3,7 @@ module
 public import Banos2019.Quartet.Examples
 public import Banos2019.Quartet.Transfer
 public import Banos2019.External.AllmanDegnanRhodes2011.Basic
+public import Banos2019.Quartet.TreeContract
 
 /-!
 # The reduced quartet networks of Sections 6 and 7
@@ -81,7 +82,60 @@ theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : Metric
     ∃ σ : SpeciesTree X, (∃ (a b c d : X) (_ : Distinct4 a b c d), {a, b} ∈ unroot σ.clusters) ∧
       (∀ A : Finset X, #A = 2 → (Q.HasCutSplit ↑A ↔ A ∈ unroot σ.clusters)) ∧
       cf (contractRooted Q P) (contractMetric Q P θ) = External.AllmanDegnanRhodes2011.quartetProb σ := by
-  sorry
+  have hX := hQ.card_taxa
+  -- every cycle is a 2-cycle or a `3₁`-cycle, and is contracted
+  have hall : ∀ C, IsCycle Q.graph C → P C := by
+    intro C hC
+    have := hQ.binary.1.finite_arcs
+    obtain ⟨⟨v, ⟨hv, h2⟩, -⟩, -, -⟩ := lemma3 hQ.binary hQ.levelOne hC
+    have hCt : InducesCycleType Q C v _ _ := ⟨hC, hv, h2, rfl, rfl⟩
+    have hb := add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hCt
+    rw [hX] at hb
+    rw [hP]
+    set n := C.ncard - (if Q.root ∈ cycleNodes Q.graph C then 1 else 0)
+    set k := {x | Q.graph.Reaches v (Q.leaf x)}.ncard
+    rcases (by omega : n = 2 ∨ (n = 3 ∧ k = 1) ∨ (n = 3 ∧ k = 2) ∨ n = 4) with h | ⟨h, hk⟩ |
+      ⟨h, hk⟩ | h
+    · exact ⟨v, Or.inl ⟨k, h ▸ hCt⟩⟩
+    · exact ⟨v, Or.inr (h ▸ hk ▸ hCt)⟩
+    · exact absurd ⟨C, v, h ▸ hk ▸ hCt⟩ h32
+    · exact absurd ⟨C, v, k, h ▸ hCt⟩ h4
+  have hn3 : ∀ C, IsCycle Q.graph C → P C →
+      C.ncard - (if Q.root ∈ cycleNodes Q.graph C then 1 else 0) ≤ 3 := by
+    intro C _ hPC
+    rw [hP] at hPC
+    obtain ⟨v, ⟨k, hk⟩ | hk⟩ := hPC
+    · rw [hk.2.2.2.1]
+      omega
+    · rw [hk.2.2.2.1]
+  have hM := contractSet_isPhylogenetic (P := P) hQ.binary hQ.levelOne
+  have ht := contractSet_not_isHybridArc hQ.binary hQ.levelOne hall
+  have hθM := contractSet_isMetric (P := P) hQ.binary hQ.levelOne hQ.metric.1
+  refine ⟨treeSpeciesTree _ hM ht hθM, ?_, fun A hA => ?_, funext fun q =>
+    nmscCF_eq_quartetProb hM ht hθM (by omega) le_rfl q⟩
+  · -- a cluster of two taxa
+    obtain ⟨A, hA, hA2⟩ := exists_card_two_mem_treeClusters hM ht hX
+      (fun W hW => by
+        have := contractSet_outdegree_le hQ.binary hQ.levelOne hn3 W
+        rwa [ite_eq_right hW] at this)
+      (by
+        have := contractSet_outdegree_le hQ.binary hQ.levelOne hn3 (contractRooted Q P).root
+        rwa [ite_eq_left rfl] at this)
+    obtain ⟨a, b, hab, rfl⟩ := card_eq_two.1 hA2
+    have hc : #({a, b} : Finset X)ᶜ = 2 := by rw [card_compl, hX, hA2]
+    obtain ⟨c, d, hcd, hcd'⟩ := card_eq_two.1 hc
+    have hcm : c ∈ ({a, b} : Finset X)ᶜ := hcd' ▸ mem_insert_self c {d}
+    have hdm : d ∈ ({a, b} : Finset X)ᶜ := hcd' ▸ mem_insert_of_mem (mem_singleton_self d)
+    simp only [mem_compl, mem_insert, mem_singleton, not_or] at hcm hdm
+    refine ⟨a, b, c, d, ⟨hab, Ne.symm hcm.1, Ne.symm hdm.1, Ne.symm hcm.2, Ne.symm hdm.2, hcd⟩,
+      mem_unroot.2 (Or.inl ⟨hA, fun h => ?_⟩)⟩
+    rw [h, card_univ, hX] at hA2
+    omega
+  · -- the cut edges of `Q` are those of the tree
+    have hne : A.Nonempty := card_pos.1 (by omega)
+    have hne' : Aᶜ.Nonempty := card_pos.1 (by rw [card_compl, hX]; omega)
+    exact (contractSet_hasCutSplit_iff hQ.binary hQ.levelOne (P := P) ↑A).symm.trans
+      (hasCutSplit_iff_mem_unroot_treeClusters hM ht hne hne')
 
 /-- **The concordance factors of a species tree are treelike** (equation (1)): on a species tree with
 the split `ab|cd`, those of the two alternatives `ac|bd`, `ad|bc` are equal and smaller. -/
