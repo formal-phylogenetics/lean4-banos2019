@@ -64,9 +64,10 @@ distinct 4-network blocks. Conversely, a taxon `b` outside the 4-network block o
 block than `a` of some cycle `C_v` of size at least four (Lemma 4); with taxa `c`, `d` of two other
 blocks, one of the four in the hybrid block, `{a, b, c, d}` has the Big Cycle property (Lemma 12), and
 `b ∈ Y_a`.
-Departure from the paper: the paper leaves out `|X| < 3` ("nothing to prove"; there is no set of four
-taxa when `|X| < 4`) and derives the case `|X| = 4` from Proposition 9, which gives only one of the two
-inclusions; its argument for `|X| ≥ 5` uses no bound on `|X|`, and the proof applies it to every `X`. -/
+Departure from the paper: the paper's cases `|X| < 3` ("nothing to prove"), `|X| = 4` and `|X| ≥ 5`
+leave out `|X| = 3`; "`|X| < 3`" reads as "`|X| < 4`", where there is no set of four taxa. The paper
+derives the case `|X| = 4` from Proposition 9, which gives only one of the two inclusions; its argument
+for `|X| ≥ 5` uses no bound on `|X|`, and the proof applies it to every `X`. -/
 theorem lemma14 (hX : Nontrivial X) :
     ∃ F : Set (Finset X) → X → X → Prop,
       ∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X)
@@ -134,14 +135,15 @@ four taxa compare (Definition 15).
 
 The proof is the paper's: the blocks, the size and, for `k_v ≥ 5`, the hybrid block come from Lemma 15,
 and the order from `q^BC` of the sets of four taxa that `C_v` separates, by Proposition 11. For `k_v = 4`
-these are the sets with one taxon in each block. For `k_v ≥ 5` the paper finds the two blocks adjacent to
-the hybrid block `A_1` with the test `q^BC_{a₁aⱼxy} ≠ a₁aⱼ|xy` for all `x, y` in other blocks, and
-continues around the cycle.
-Departure from the paper: the continuation step is printed as `q^BC_{a₁aⱼa_px} ≠ a₁aⱼ|xa_p`, which does
-not involve the block `A_q` whose neighbour it looks for. The proof applies the test of the first step,
-with a taxon of the hybrid block among the four, to every pair of blocks: two blocks are adjacent exactly
-when `q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that `x, y, z, z'` are in four distinct blocks, one of
-them the hybrid block. -/
+these are the sets with one taxon in each block. For `k_v ≥ 5` the procedure is the paper's (`adjacencyOf`). With `a₁` in the
+hybrid block `A₁`, the test `q^BC_{a₁aⱼxy} ≠ a₁aⱼ|xy` for all `x, y` in distinct other blocks gives the
+two blocks `A_p` and `A_q` adjacent to `A₁` (`AdjacencyTest`). The block `A_j` (`j ≠ 1, p, q`) adjacent
+to `A_q` is the one with `q^BC_{a₁aⱼa_px} ≠ a₁aⱼ|xa_p` for all `x` in the blocks other than `A₁`, `A_p`,
+`A_q` and `A_j`: by Proposition 11 this says that the blocks of `a₁` and `aⱼ` are joined along `C_v`
+avoiding those of `x` and `a_p`, which fails exactly when the block of `x` lies between `A₁` and `A_j` on
+the side of `A_q`. Continuing in this way, each step places the block that passes this test against the
+blocks not yet placed (`IsNextBlock`, `placedBlocks`), and two blocks are adjacent when they are
+consecutive in the order `A₁, A_q, …, A_p` so built (`FollowsBlock`, `followsBlock_iff`). -/
 theorem lemma16 (hX : Nontrivial X) :
     ∃ A : (QuartetTree X → QuartetTree X → Prop) → Finset X → X → X → Prop,
       ∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X)
@@ -254,8 +256,10 @@ blocks of a cycle `C_v` of `N⁻`; no extension of three of them satisfies the B
 Departure from the paper: Proposition 8 gives a `3₂`-cycle or a 4-cycle, and only for generic parameters
 does the failure of the Big Cycle property exclude the 4-cycle (Theorem 3): that is Corollary 4, which
 the proof uses. A fourth block of `C_v` would give, with a taxon of `s` in the hybrid block and two in
-other blocks, a set of four taxa with the Big Cycle property (Lemma 12). The two taxa below `v` come from
-the type `3₂` of the cycle, and Proposition 7 (where the concordance factors lie) is not needed. -/
+other blocks, a set of four taxa with the Big Cycle property (Lemma 12). The last step miscites
+Proposition 7, which says where the concordance factors of a `3₂`-cycle lie: with the size less than
+four, the size three follows from the three blocks of `C_v` that hold taxa of `s`, and the two taxa
+below `v` from the definition of a `3₂`-cycle. -/
 theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s →
@@ -304,35 +308,44 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     · exact hdp
     · exact hdq
 
-/-- No cycle of `G` other than `C` has three taxa of `T` in pairwise distinct blocks. -/
-def OnlyCycleSeparatingThree {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E')
+/-- `C` is the only cycle of `G` that a `3₂`-cycle on `T` can come from: no cycle `C'` of `G` other
+than `C`, with hybrid node `w`, has two taxa `p ≠ q` of `T` descending from `w` and three taxa
+`p, r, t` of `T` in pairwise distinct blocks (the cycles that `exists_cycle_of_hasThreeTwoCycle`
+gives). -/
+def OnlyThreeTwoSource {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E')
     (T : Finset X') : Prop :=
-  ∀ C', IsCycle G.graph C' → C' ≠ C → ∀ x ∈ T, ∀ y ∈ T, ∀ z ∈ T, x ≠ y → x ≠ z → y ≠ z →
-    SameBlock G.graph G.leaf C' x y ∨ SameBlock G.graph G.leaf C' x z ∨
-      SameBlock G.graph G.leaf C' y z
+  ∀ C' w, IsCycle G.graph C' → IsHybridNodeOf G C' w → C' ≠ C →
+    ¬ ∃ p ∈ T, ∃ q ∈ T, ∃ r ∈ T, ∃ t ∈ T, p ≠ q ∧ DescendsFrom G w p ∧ DescendsFrom G w q ∧
+      ¬ SameBlock G.graph G.leaf C' p r ∧ ¬ SameBlock G.graph G.leaf C' p t ∧
+      ¬ SameBlock G.graph G.leaf C' r t
 
 /-- **Proposition 13** (`lem::cpto4c`), corrected: let `C_v` be a 4-cycle of `N⁻` and `a, b, c, d` taxa
 in distinct `v`-blocks. For generic parameters, if for distinct `i, j, k ∈ {a, b, c, d}` some taxon `e`
 makes `{i, j, k, e}` satisfy the Cycle property but not the Big Cycle property, and no cycle of `N⁻`
-other than `C_v` has three of `i, j, k, e` in distinct blocks, then `e` is in the `v`-hybrid block.
+other than `C_v` has two of `i, j, k, e` below its hybrid node and three of them, one of those two, in
+distinct blocks (`OnlyThreeTwoSource`), then `e` is in the `v`-hybrid block.
 
 The paper states this without the last hypothesis, and its proof asserts that the 4-cycle of `Q⁻_abcd`
 and the `3₂`-cycle of `Q⁻_abce` "have to have the same hybrid edges, otherwise the level-1 condition
 would be violated". The `3₂`-cycle can come from another cycle of `N⁻`, and then the conclusion fails:
-`proposition13_asPrinted_false`.
+`proposition13_asPrinted_false`. A `3₂`-cycle of `Q⁻_ijke` comes from a cycle of `N⁻` with two of
+`i, j, k, e` below its hybrid node and three of them, one of those two, in distinct blocks
+(`exists_cycle_of_hasThreeTwoCycle`); the last hypothesis, that `C_v` is the only such cycle, is the
+paper's step made a hypothesis.
 
 The proof is the paper's. Say `l` is the fourth of `a, b, c, d`. The taxon `e` is not in the block of
 `l`, or `i, j, k, e` would be in the four blocks of `C_v`, one of them the hybrid block, and would
 satisfy the Big Cycle property (Lemma 12); so `e` is in the block of one of `i, j, k`, say `g`. By
-Corollary 4, `Q⁻_ijke` has a `3₂`-cycle, which comes from a cycle of `N⁻` with three of `i, j, k, e` in
-distinct blocks: by the added hypothesis, from `C_v`. Its two taxa below the hybrid node are in the
-hybrid block of `C_v`, and the only two of `i, j, k, e` in one block are `g` and `e`.
+Corollary 4, `Q⁻_ijke` has a `3₂`-cycle, which comes from a cycle of `N⁻` with two of `i, j, k, e`
+below its hybrid node and three of them in distinct blocks: by the last hypothesis, from `C_v`. Its two
+taxa below the hybrid node are in the hybrid block of `C_v`, and the only two of `i, j, k, e` in one
+block are `g` and `e`.
 Departure from the paper (reason 1, the paper's step is wrong): the step that the 4-cycle of `Q⁻_abcd`
-and the `3₂`-cycle of `Q⁻_abce` have the same hybrid edges is false, and is replaced by the added
-hypothesis, as above. The paper prepares that step by fixing the order of the cycle (Theorem 4, the
-labels of Figure 21) and the hybrid node of `{e, j, k, l}` (Lemma 13), so as to compare the hybrid
-edges of the two quartet networks; with the step replaced, the two taxa in the hybrid block are read
-from the `3₂`-cycle, and these preparations are not used.
+and the `3₂`-cycle of `Q⁻_abce` have the same hybrid edges is false, and is made the last hypothesis,
+as above. The paper prepares that step by fixing the order of the cycle (Theorem 4, the labels of
+Figure 24) and the hybrid node of `{e, j, k, l}` (Lemma 13), so as to compare the hybrid edges of the
+two quartet networks; with the step a hypothesis, the two taxa in the hybrid block are read from the
+`3₂`-cycle, and these preparations are not used.
 -/
 theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} {v : SemidirectedVertex hN.1 hX}
@@ -344,7 +357,7 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       ∀ i ∈ ({a, b, c, d} : Finset X), ∀ j ∈ ({a, b, c, d} : Finset X),
         ∀ k ∈ ({a, b, c, d} : Finset X), i ≠ j → i ≠ k → j ≠ k → ∀ e,
           #({i, j, k, e} : Finset X) = 4 →
-          OnlyCycleSeparatingThree (unrooted N hN hX) C {i, j, k, e} →
+          OnlyThreeTwoSource (unrooted N hN hX) C {i, j, k, e} →
           CyclePropertyOn (cf N θ) {i, j, k, e} →
           ¬ BigCycleOn (cf N θ) {i, j, k, e} → DescendsFrom (unrooted N hN hX) v e := by
   refine ((forGenericParams_iInter (ι := {s : Finset X // #s = 4})
@@ -397,12 +410,7 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       (h4 ⟨_, he4⟩ hθ (by convert hcp) (by convert hbc))
   have hCC' : C' = C := by
     by_contra hCC'
-    have hsb : ∀ {x y : X}, ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y →
-        x ≠ y := fun h h' => h (h' ▸ .refl)
-    rcases honly C' hC' hCC' p hp r hr t ht (hsb hpr) (hsb hpt) (hsb hrt) with h | h | h
-    · exact hpr h
-    · exact hpt h
-    · exact hrt h
+    exact honly C' w hC' hw hCC' ⟨p, hp, q, hq, r, hr, t, ht, hpq, hdp, hdq, hpr, hpt, hrt⟩
   subst hCC'
   have hwv : w = v := hw.eq h1 hC' hv
   subst hwv
@@ -444,7 +452,15 @@ def Proposition13AsPrinted : Prop :=
 `{d}`. In `Q⁻_abce` the cycle `C_v` disappears and the 3-cycle `t, p, u` is a `3₂`-cycle with hybrid
 block `{b, c}` (Figure 18 relabelled), so on an open set of parameters around those of Example 6,
 `{a, b, c, e}` satisfies the Cycle property but not the Big Cycle property, while `e` is not in the
-`v`-hybrid block. -/
+`v`-hybrid block.
+`Proposition13AsPrinted` reads "for generic parameters" as qualifying the implication, with one null set
+for all `i, j, k, e` (as `X` is finite, a null set for each gives the same statement); read as part of
+the hypothesis, "`{i, j, k, e}` satisfies the Cycle property but not the Big Cycle property for generic
+parameters", the printed statement holds vacuously, since that hypothesis never holds: with a 4-cycle
+in `Q⁻_ijke` the Big Cycle property holds for generic parameters (Theorem 3), with neither a 4-cycle
+nor a `3₂`-cycle the Cycle property fails (Proposition 8), and with a `3₂`-cycle it fails when the edge
+below the hybrid node is longer than `log (3/2)`, as the two taxa below it then coalesce there with
+probability more than `1/3` and the other two concordance factors are equal (Proposition 7). -/
 theorem proposition13_asPrinted_false : ¬ Proposition13AsPrinted :=
   proposition13AsPrinted_counterexample
 

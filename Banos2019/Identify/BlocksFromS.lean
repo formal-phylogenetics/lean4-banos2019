@@ -14,9 +14,15 @@ Lemmas 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for gen
 * `bcSets`: the set `S`.
 * `extensions` (`Z_T`), `blockRelation`, `blockCount`, `hybridBlock`: the constructions of the proof
   of Lemma 15 from `S`.
-* `bcSetsOf`, `IsBCQuartetOf`, `adjacencyOf`: `S`, `q^BC_s` and the adjacent blocks, read from the
-  comparisons of concordance factors and from the blocks, the size and the hybrid block (proof of
-  Lemma 16).
+* `bcSetsOf`, `IsBCQuartetOf`: `S` and `q^BC_s`, read from the comparisons of concordance factors.
+* `AdjacencyTest`, `IsNextBlock`, `placedBlocks`, `IsInBlockAt`, `FollowsBlock`, `adjacencyOf`: the
+  procedure of the proof of Lemma 16. The test of Proposition 11 gives the adjacent blocks of a
+  4-cycle and the two blocks `A_p`, `A_q` adjacent to the hybrid block `A₁` of a larger cycle; the
+  other blocks are then placed one after the other from `A_q`, and the adjacent blocks are the
+  consecutive ones.
+* `adjacencyTest_iff`, `isBCQuartetOf_cf_iff_lt`, `followsBlock_iff`: what the test of
+  Proposition 11 and the test of a step give, and the order the steps build, along a listing of the
+  cycle from its hybrid node (`IsCycleOf.reverse`, `IsCycleOf.reflTransGen_apply_zero`).
 -/
 
 @[expose] public noncomputable section
@@ -440,6 +446,105 @@ def IsBCQuartetOf (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X) 
     Prop :=
   q ∈ treesOn s ∧ ∀ r ∈ treesOn s, r ≠ q → R q r ∧ ¬ R r q
 
+/-- The test of Proposition 11 for the blocks of `x` and `y` (proof of Lemma 16), read from the
+comparisons `R` and the blocks `Bl`: `x` and `y` are in different blocks, and `q^BC_{xyzz'} ≠ xy|zz'`
+for all `z, z'` such that `x, y, z, z'` are in four distinct blocks. -/
+def AdjacencyTest (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (x y : X) : Prop :=
+  ¬ Bl x y ∧ ∀ z z' (h : Distinct4 x y z z'), ¬ Bl x z → ¬ Bl x z' → ¬ Bl y z → ¬ Bl y z' →
+    ¬ Bl z z' → ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h)
+
+/-- A step of the order of the blocks around the cycle (proof of Lemma 16), read from the comparisons
+`R` and the blocks `Bl`. With `a` in the hybrid block `A₁`, `p` in a block `A_p` adjacent to `A₁`, and
+`F` the taxa of the blocks already placed, the block of `t` is the next one when `t` is neither in `F`
+nor in `A_p`, and `q^BC_{atpx} ≠ at|xp` for every taxon `x` in none of `F`, `A_p` and the block of
+`t`. -/
+def IsNextBlock (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (a p : X)
+    (F : Set X) (t : X) : Prop :=
+  t ∉ F ∧ ¬ Bl p t ∧ ∀ x (h : Distinct4 a t x p), x ∉ F → ¬ Bl p x → ¬ Bl t x →
+    ¬ IsBCQuartetOf R {a, x, t, p} (quartetTree a t x p h)
+
+/-- The taxa of the blocks placed after `m` steps (proof of Lemma 16): the hybrid block `A₁` of `a`
+and the block `A_q` of `q` adjacent to it, followed by the `m` blocks that `IsNextBlock` gives in
+turn, the other block `A_p` of `p` adjacent to `A₁` being set aside. -/
+def placedBlocks (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (a p q : X) :
+    ℕ → Set X
+  | 0 => {t | Bl a t ∨ Bl q t}
+  | m + 1 => placedBlocks Bl R a p q m ∪ {t | IsNextBlock Bl R a p (placedBlocks Bl R a p q m) t}
+
+/-- `t` is in the `i`-th block from the hybrid block `A₁` of `a` (`i = 0`) around the cycle, on the
+side of the block `A_q` of `q` (`i = 1`), the block `A_p` of `p` being the other block adjacent to
+`A₁` (proof of Lemma 16). -/
+def IsInBlockAt (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (a p q : X) :
+    ℕ → X → Prop
+  | 0, t => Bl a t
+  | 1, t => Bl q t
+  | m + 2, t => IsNextBlock Bl R a p (placedBlocks Bl R a p q m) t
+
+/-- The block of `y` follows that of `x` in the order `A₁, A_q, …, A_p` of the `k` blocks around the
+cycle, from the hybrid block `A₁` of `a` (proof of Lemma 16): they are the `i`-th and the `(i + 1)`-th
+blocks, or the `(k - 2)`-th block and `A_p`, or `A_p` and `A₁`. -/
+def FollowsBlock (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (k : ℕ)
+    (a p q x y : X) : Prop :=
+  (∃ i, IsInBlockAt Bl R a p q i x ∧ IsInBlockAt Bl R a p q (i + 1) y) ∨
+    (IsInBlockAt Bl R a p q (k - 2) x ∧ Bl p y) ∨ (Bl p x ∧ Bl a y)
+
+/-- The adjacent blocks of the cycle determined by `s`, read from the comparisons `R` and from the
+blocks `B`, the size `K` and the hybrid block `H` given by `S` (proof of Lemma 16). For a cycle of
+size four, `x` and `y` pass the test of Proposition 11 (`AdjacencyTest`). For a larger cycle, with `a`
+in the hybrid block `A₁`, the taxa `p` and `q` in different blocks pass that test with `a`, so that
+their blocks `A_p` and `A_q` are the two blocks adjacent to `A₁`; the blocks are ordered from `A₁` and
+`A_q` by the test of `IsNextBlock`, and the blocks of `x` and `y` are consecutive in this order. -/
+def adjacencyOf (B : Set (Finset X) → Finset X → X → X → Prop) (K : Set (Finset X) → Finset X → ℕ)
+    (H : Set (Finset X) → Finset X → Set X) (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X)
+    (x y : X) : Prop :=
+  (K (bcSetsOf R) s = 4 ∧ AdjacencyTest (B (bcSetsOf R) s) R x y) ∨
+    (K (bcSetsOf R) s ≠ 4 ∧ ∃ a ∈ H (bcSetsOf R) s, ∃ p q,
+      AdjacencyTest (B (bcSetsOf R) s) R a p ∧ AdjacencyTest (B (bcSetsOf R) s) R a q ∧
+        ¬ B (bcSetsOf R) s p q ∧
+        (FollowsBlock (B (bcSetsOf R) s) R (K (bcSetsOf R) s) a p q x y ∨
+          FollowsBlock (B (bcSetsOf R) s) R (K (bcSetsOf R) s) a p q y x))
+
+/-! ### Walks along a cycle -/
+
+section CycleWalk
+
+variable {V' E' : Type*} {G : DirectedMultigraph V' E'}
+
+/-- **A cycle read backwards is a cycle**: the nodes `v 0, v (-1), v (-2), …`. -/
+theorem IsCycleOf.reverse {n : ℕ} {v : Fin (n + 1) → V'} {e : Fin (n + 1) → E'}
+    (hC : IsCycleOf G (n + 1) v e) :
+    IsCycleOf G (n + 1) (fun i => v (-i)) (fun i => e (-i - 1)) where
+  pos := hC.pos
+  joins i := by
+    have h := hC.joins (-i - 1)
+    simp only [finRotate_apply, sub_add_cancel] at h ⊢
+    rw [neg_add']
+    exact Or.symm h
+  injective_node := hC.injective_node.comp neg_injective
+  injective_edge := hC.injective_edge.comp fun i j h => by simpa using h
+
+/-- **A walk along a cycle from `v 0` to `v j` avoiding a set `F` of nodes**, when none of the nodes
+`v 0, …, v j` is in `F`. -/
+theorem IsCycleOf.reflTransGen_apply_zero {n : ℕ} {v : Fin (n + 1) → V'} {e : Fin (n + 1) → E'}
+    (hC : IsCycleOf G (n + 1) v e) {F : Set V'} (j : Fin (n + 1)) (hF : ∀ l ≤ j, v l ∉ F) :
+    Relation.ReflTransGen (fun p q => G.AdjOn (Set.range e) p q ∧ p ∉ F ∧ q ∉ F) (v 0) (v j) := by
+  obtain ⟨m, hm⟩ := j
+  induction m with
+  | zero => exact .refl
+  | succ m ih =>
+    have hm' : m < n + 1 := by omega
+    have hstep : finRotate (n + 1) ⟨m, hm'⟩ = ⟨m + 1, hm⟩ := Fin.ext (by
+      rw [coe_finRotate_of_ne_last fun h => by
+        have := congrArg Fin.val h
+        rw [Fin.val_last] at this
+        exact absurd this (by simp only; omega)])
+    have hj := hC.joins ⟨m, hm'⟩
+    rw [hstep] at hj
+    exact (ih hm' fun l hl => hF l (hl.trans (Fin.mk_le_mk.2 (Nat.le_succ m)))).tail
+      ⟨⟨e ⟨m, hm'⟩, ⟨_, rfl⟩, hj⟩, hF _ (Fin.mk_le_mk.2 (Nat.le_succ m)), hF _ le_rfl⟩
+
+end CycleWalk
+
 section Comparisons
 
 variable {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X} {θ : MetricData E}
@@ -519,28 +624,279 @@ theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : 
   rw [herase, hcoe] at hadj
   exact (not_congr h11).trans (not_not.trans hadj)
 
-end Comparisons
+/-- **The test of Proposition 11 gives the blocks adjacent to the hybrid block, and the adjacent blocks
+of a cycle of size four.** Two taxa `x` and `y`, with `x` in the hybrid block of `C_w` or `C_w` of size
+four, pass `AdjacencyTest` exactly when their blocks are adjacent: the sets of four taxa in distinct
+blocks that contain them are then the sets that `C_w` separates. -/
+theorem adjacencyTest_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
+    (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s))
+    {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard)
+    {w : SemidirectedVertex hN.1 hX} (hw : IsHybridNodeOf (unrooted N hN hX) C w)
+    {Bl : X → X → Prop}
+    (hBl : ∀ a b, Bl a b ↔ blockNode (unrooted N hN hX) C a = blockNode (unrooted N hN hX) C b)
+    {x y : X} (hx : C.ncard = 4 ∨ blockNode (unrooted N hN hX) C x = w) :
+    AdjacencyTest Bl (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) x y ↔
+      AdjacentBlocks (unrooted N hN hX) C x y := by
+  rw [adjacentBlocks_iff_forall_joinedAvoiding h1 hC hC4 hw x y, sameBlock_iff_blockNode_eq h1 hC]
+  simp only [AdjacencyTest, isBCQuartetOf_cf, hBl]
+  set β := blockNode (unrooted N hN hX) C
+  refine and_congr_right fun hxy => ?_
+  -- four taxa in distinct blocks, one of them in the hybrid block or the cycle of size four, are
+  -- separated by the cycle
+  have hsep : ∀ z z', Distinct4 x y z z' → β x ≠ β z → β x ≠ β z' → β y ≠ β z → β y ≠ β z' →
+      β z ≠ β z' → SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} := by
+    intro z z' h hxz hxz' hyz hyz' hzz'
+    have hinj := injOn_four hxy hxz hxz' hyz hyz' hzz'
+    refine (separatesQuartet_iff h1 hC hw _).2 ⟨hinj, ?_⟩
+    rcases hx with h4 | hxw
+    · have := hN.1.finite_vertices
+      have hnodes : β '' ↑({x, y, z, z'} : Finset X) = cycleNodes (unrooted N hN hX).graph C := by
+        refine Set.eq_of_subset_of_ncard_le ?_ ?_ (Set.toFinite _)
+        · rintro _ ⟨m, -, rfl⟩
+          exact blockNode_mem hC m
+        · rw [ncard_cycleNodes hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
+            Distinct4.card_insert_eq h]
+      obtain ⟨m, hm, hmw⟩ := hnodes ▸ hw.mem_cycleNodes
+      exact ⟨m, hm, hmw⟩
+    · exact ⟨x, by simp, hxw⟩
+  constructor
+  · intro hL z z' h4' hsep'
+    have h := distinct4_of_card_insert_eq h4'
+    obtain ⟨hinj, -⟩ := (separatesQuartet_iff h1 hC hw _).1 hsep'
+    exact (not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep').1
+      (hL z z' h (fun e => h.2.1 (hinj (by simp) (by simp) e))
+        (fun e => h.2.2.1 (hinj (by simp) (by simp) e))
+        (fun e => h.2.2.2.1 (hinj (by simp) (by simp) e))
+        (fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e))
+        (fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)))
+  · intro hR z z' h hxz hxz' hyz hyz' hzz'
+    have hsep' := hsep z z' h hxz hxz' hyz hyz' hzz'
+    exact (not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep').2
+      (hR z z' h.card_insert_eq hsep')
 
-/-- The adjacent blocks of the cycle determined by `s`, read from the comparisons `R` and from the
-blocks `B`, the size `K` and the hybrid block `H` given by `S` (proof of Lemma 16): `x` and `y` are in
-different blocks, and `q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that `x, y, z, z'` are in four
-distinct blocks and, when the cycle has size at least five, one of them is the hybrid block. -/
-def adjacencyOf (B : Set (Finset X) → Finset X → X → X → Prop) (K : Set (Finset X) → Finset X → ℕ)
-    (H : Set (Finset X) → Finset X → Set X) (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X)
-    (x y : X) : Prop :=
-  ¬ B (bcSetsOf R) s x y ∧ ∀ z z' (h : Distinct4 x y z z'),
-    ¬ B (bcSetsOf R) s x z → ¬ B (bcSetsOf R) s x z' → ¬ B (bcSetsOf R) s y z →
-    ¬ B (bcSetsOf R) s y z' → ¬ B (bcSetsOf R) s z z' →
-    (K (bcSetsOf R) s = 4 ∨ x ∈ H (bcSetsOf R) s ∨ y ∈ H (bcSetsOf R) s ∨
-      z ∈ H (bcSetsOf R) s ∨ z' ∈ H (bcSetsOf R) s) →
-    ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h)
+omit [Fintype X] [DecidableEq X] [Fintype V] in
+/-- **Adjacent blocks along a listing of the cycle**: with the nodes of `C` listed as `v 0, …, v n`
+and `ι t` the index of the node of the block of `t`, the blocks of `x` and `y` are adjacent exactly
+when `ι x` and `ι y` are consecutive, in one order or the other. -/
+theorem adjacentBlocks_iff_index_finRotate {hN : IsBinaryRootedNetwork N} {hX : Nontrivial X}
+    (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {n : ℕ}
+    {v : Fin (n + 1) → SemidirectedVertex hN.1 hX} {e : Fin (n + 1) → _}
+    (hcyc : IsCycleOf (unrooted N hN hX).graph (n + 1) v e) (hrange : Set.range e = C)
+    {ι : X → Fin (n + 1)} (hι : ∀ t, v (ι t) = blockNode (unrooted N hN hX) C t) (x y : X) :
+    AdjacentBlocks (unrooted N hN hX) C x y ↔
+      ι y = finRotate (n + 1) (ι x) ∨ ι x = finRotate (n + 1) (ι y) := by
+  subst hrange
+  have hmem : ∀ i, v i ∈ cycleNodes (unrooted N hN hX).graph (Set.range e) := fun i => by
+    rw [hcyc.cycleNodes_eq]
+    exact ⟨i, rfl⟩
+  have hblock : ∀ i t, t ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
+      (Set.range e) (v i) ↔ i = ι t := fun i t => by
+    rw [← hcyc.injective_node.eq_iff, hι]
+    exact ⟨eq_blockNode h1 hC (hmem i), by intro h; rw [h]; exact (blockNode_spec hC t).2⟩
+  constructor
+  · rintro ⟨f, ⟨l, rfl⟩, u, u', hj, hxu, hyu'⟩
+    rcases hcyc.eq_or_eq_of_joins hj with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · rw [hblock] at hxu hyu'
+      rw [← hxu, ← hyu']
+      exact Or.inl rfl
+    · rw [hblock] at hxu hyu'
+      rw [← hxu, ← hyu']
+      exact Or.inr rfl
+  · rintro (h | h)
+    · refine ⟨e (ι x), ⟨_, rfl⟩, v (ι x), v (ι y), ?_, (hblock _ _).2 rfl, (hblock _ _).2 rfl⟩
+      rw [h]
+      exact hcyc.joins (ι x)
+    · refine ⟨e (ι y), ⟨_, rfl⟩, v (ι x), v (ι y), ?_, (hblock _ _).2 rfl, (hblock _ _).2 rfl⟩
+      rw [h]
+      exact Or.symm (hcyc.joins (ι y))
+
+/-- **The test of the step of the order (Proposition 11)**: with the nodes of `C_w` listed as
+`v 0 = w, v 1, …, v n`, `a` in the hybrid block, `p` in the block of `v n`, and `t`, `x` in two other
+distinct blocks, `q^BC_{atpx} = at|xp` exactly when the block of `x` comes before that of `t` from
+`v 1`. The blocks of `a` and `t` are joined avoiding those of `x` and `p` exactly along `v 0, …, v (ι t)`,
+which avoids `x` when it comes after `t`; otherwise `x` and `p` cut the cycle between `a` and `t`. -/
+theorem isBCQuartetOf_cf_iff_lt (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
+    (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s))
+    {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard)
+    {w : SemidirectedVertex hN.1 hX} (hw : IsHybridNodeOf (unrooted N hN hX) C w) {n : ℕ}
+    {v : Fin (n + 1) → SemidirectedVertex hN.1 hX} {e : Fin (n + 1) → _}
+    (hcyc : IsCycleOf (unrooted N hN hX).graph (n + 1) v e) (hrange : Set.range e = C)
+    (h0 : v 0 = w) {ι : X → Fin (n + 1)} (hι : ∀ t, v (ι t) = blockNode (unrooted N hN hX) C t)
+    {a t x p : X} (h : Distinct4 a t x p) (ha : ι a = 0) (hp : ι p = Fin.last n)
+    (ht0 : (ι t : ℕ) ≠ 0) (htn : (ι t : ℕ) ≠ n) (hx0 : (ι x : ℕ) ≠ 0) (hxn : (ι x : ℕ) ≠ n)
+    (hxt : (ι x : ℕ) ≠ ι t) :
+    IsBCQuartetOf (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) {a, x, t, p}
+        (quartetTree a t x p h) ↔ (ι x : ℕ) < ι t := by
+  subst hrange
+  rw [isBCQuartetOf_cf]
+  have hmem : ∀ i, v i ∈ cycleNodes (unrooted N hN hX).graph (Set.range e) := fun i => by
+    rw [hcyc.cycleNodes_eq]
+    exact ⟨i, rfl⟩
+  have hblock : ∀ i s, s ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
+      (Set.range e) (v i) ↔ i = ι s := fun i s => by
+    rw [← hcyc.injective_node.eq_iff, hι]
+    exact ⟨eq_blockNode h1 hC (hmem i), by intro h; rw [h]; exact (blockNode_spec hC s).2⟩
+  have hβ : ∀ {u u' : X}, (ι u : ℕ) ≠ ι u' →
+      blockNode (unrooted N hN hX) (Set.range e) u ≠ blockNode (unrooted N hN hX) (Set.range e) u' :=
+    fun hne heq => hne (by rw [← hι, ← hι] at heq; rw [hcyc.injective_node heq])
+  have ha' : (ι a : ℕ) = 0 := by rw [ha, Fin.val_zero]
+  have hp' : (ι p : ℕ) = n := by rw [hp, Fin.val_last]
+  have htlt := (ι t).isLt
+  have hsep : SeparatesQuartet (unrooted N hN hX) (Set.range e) w {a, t, x, p} :=
+    (separatesQuartet_iff h1 hC hw _).2 ⟨injOn_four (hβ (by omega)) (hβ (by omega))
+      (hβ (by omega)) (hβ (by omega)) (hβ (by omega)) (hβ (by omega)), a, by simp,
+      by rw [← hι, ha, h0]⟩
+  rw [← not_iff_not, not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep, not_lt]
+  -- the nodes of the blocks of `x` and `p`
+  have hmemF : ∀ l, v l ∈ blockNodes (unrooted N hN hX) (Set.range e) {x, p} ↔
+      (l : ℕ) = ι x ∨ (l : ℕ) = n := by
+    intro l
+    simp only [blockNodes, Set.mem_ofPred_eq, hmem, true_and, Set.mem_insert_iff,
+      Set.mem_singleton_iff, exists_eq_or_imp, exists_eq_left, hblock, Fin.ext_iff, hp']
+  constructor
+  · rintro ⟨u, u', hu, hu', hau, htu', hwalk⟩
+    obtain ⟨i, rfl⟩ : u ∈ Set.range v := hcyc.cycleNodes_eq ▸ hu
+    obtain ⟨i', rfl⟩ : u' ∈ Set.range v := hcyc.cycleNodes_eq ▸ hu'
+    rw [hblock] at hau htu'
+    subst hau htu'
+    have key := hcyc.mem_image_Ioo_iff_of_reflTransGen ((hmemF (ι x)).2 (Or.inl rfl))
+      ((hmemF (Fin.last n)).2 (Or.inr (Fin.val_last n))) hwalk
+    rw [ha, hcyc.injective_node.mem_set_image, hcyc.injective_node.mem_set_image] at key
+    simp only [Set.mem_Ioo, Fin.lt_def, Fin.val_zero, Fin.val_last] at key
+    by_contra hlt
+    have := key.2 ⟨by omega, by omega⟩
+    omega
+  · intro hle
+    refine ⟨v (ι a), v (ι t), hmem _, hmem _, (hblock _ _).2 rfl, (hblock _ _).2 rfl, ?_⟩
+    rw [ha]
+    refine hcyc.reflTransGen_apply_zero (ι t) fun l hl => ?_
+    rw [hmemF]
+    rw [Fin.le_def] at hl
+    omega
+
+/-- **The order of the blocks from the hybrid block** (proof of Lemma 16): with the nodes of `C_w`
+listed as `v 0 = w, v 1, …, v n`, `a` in the hybrid block, `q` in the block of `v 1` and `p` in that of
+`v n`, the `i`-th block of the order that `IsNextBlock` builds is the block of `v i` (for `i < n`), so
+the block of `y` follows that of `x` exactly when `ι y` follows `ι x`. When the blocks of
+`v 0, …, v (m + 1)` are placed, the block of `v (m + 2)` passes the test of `IsNextBlock`, and a block
+further on fails it at a taxon of the block of `v (m + 2)` (`isBCQuartetOf_cf_iff_lt`). -/
+theorem followsBlock_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
+    (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s))
+    {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard)
+    {w : SemidirectedVertex hN.1 hX} (hw : IsHybridNodeOf (unrooted N hN hX) C w)
+    {Bl : X → X → Prop}
+    (hBl : ∀ a b, Bl a b ↔ blockNode (unrooted N hN hX) C a = blockNode (unrooted N hN hX) C b)
+    {n : ℕ} {v : Fin (n + 1) → SemidirectedVertex hN.1 hX} {e : Fin (n + 1) → _}
+    (hcyc : IsCycleOf (unrooted N hN hX).graph (n + 1) v e) (hrange : Set.range e = C)
+    (h0 : v 0 = w) {ι : X → Fin (n + 1)} (hι : ∀ t, v (ι t) = blockNode (unrooted N hN hX) C t)
+    {a p q : X} (ha : ι a = 0) (hp : ι p = Fin.last n) (hq : ι q = 1) (x y : X) :
+    FollowsBlock Bl (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) (n + 1) a p q x y ↔
+      ι y = finRotate (n + 1) (ι x) := by
+  set R := fun q r : QuartetTree X => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r with hR
+  have hk : C.ncard = n + 1 := by
+    rw [← hrange, Set.ncard_range_of_injective hcyc.injective_edge, Nat.card_eq_fintype_card,
+      Fintype.card_fin]
+  have hn : 3 ≤ n := by omega
+  have hBlι : ∀ t t', Bl t t' ↔ (ι t : ℕ) = ι t' := fun t t' => by
+    rw [hBl, ← hι, ← hι, hcyc.injective_node.eq_iff, Fin.val_inj]
+  have hsurj : ∀ i, ∃ t, ι t = i := fun i => by
+    obtain ⟨t, ht⟩ := exists_blockNode_eq h1 hC (u := v i)
+      (by rw [← hrange, hcyc.cycleNodes_eq]; exact ⟨i, rfl⟩)
+    exact ⟨t, hcyc.injective_node (by rw [hι, ht])⟩
+  have ha' : (ι a : ℕ) = 0 := by rw [ha, Fin.val_zero]
+  have hp' : (ι p : ℕ) = n := by rw [hp, Fin.val_last]
+  have hq' : (ι q : ℕ) = 1 := by rw [hq, Fin.val_one', Nat.mod_eq_of_lt (by omega)]
+  have hlt : ∀ t, (ι t : ℕ) < n + 1 := fun t => (ι t).isLt
+  have hne : ∀ {t t' : X}, (ι t : ℕ) ≠ ι t' → t ≠ t' := fun h e => h (by rw [e])
+  -- the step: after the blocks of `v 0, …, v (m + 1)`, the next block is that of `v (m + 2)`
+  have hnext : ∀ m t, IsNextBlock Bl R a p {t | (ι t : ℕ) ≤ min (m + 1) (n - 1)} t ↔
+      (ι t : ℕ) = m + 2 ∧ m + 2 < n := by
+    intro m t
+    have htest := fun x (h : Distinct4 a t x p) => isBCQuartetOf_cf_iff_lt hN h1 hX hθ hS hC hC4 hw
+      hcyc hrange h0 hι h ha hp
+    simp only [IsNextBlock, Set.mem_ofPred_eq, hBlι, hp']
+    have htn := hlt t
+    constructor
+    · rintro ⟨ht, htp, hall⟩
+      by_contra hcon
+      obtain ⟨x, hx⟩ := hsurj ⟨m + 2, by omega⟩
+      have hx' : (ι x : ℕ) = m + 2 := by rw [hx]
+      have h : Distinct4 a t x p := ⟨hne (by omega), hne (by omega), hne (by omega),
+        hne (by omega), hne (by omega), hne (by omega)⟩
+      exact hall x h (by omega) (by omega) (by omega)
+        ((htest x h (by omega) (by omega) (by omega) (by omega) (by omega)).2 (by omega))
+    · rintro ⟨ht, hmn⟩
+      refine ⟨by omega, by omega, fun x h hxF hxp hxt hbc => ?_⟩
+      have := (htest x h (by omega) (by omega) (by omega) (by omega) (by omega)).1 hbc
+      omega
+  -- the blocks placed after `m` steps
+  have hplaced : ∀ m, placedBlocks Bl R a p q m = {t | (ι t : ℕ) ≤ min (m + 1) (n - 1)} := by
+    intro m
+    induction m with
+    | zero =>
+      ext t
+      simp only [placedBlocks, Set.mem_ofPred_eq, hBlι, ha', hq']
+      omega
+    | succ m ih =>
+      ext t
+      simp only [placedBlocks, ih, Set.mem_union, Set.mem_ofPred_eq, hnext]
+      omega
+  have hat : ∀ i t, IsInBlockAt Bl R a p q i t ↔ (ι t : ℕ) = i ∧ i < n := by
+    intro i t
+    match i with
+    | 0 =>
+      simp only [IsInBlockAt, hBlι, ha']
+      omega
+    | 1 =>
+      simp only [IsInBlockAt, hBlι, hq']
+      omega
+    | m + 2 => simp only [IsInBlockAt, hplaced, hnext]
+  have hrot : ι y = finRotate (n + 1) (ι x) ↔
+      (ι y : ℕ) = if (ι x : ℕ) = n then 0 else (ι x : ℕ) + 1 := by
+    rw [Fin.ext_iff, coe_finRotate]
+    by_cases hx : (ι x : ℕ) = n
+    · rw [ite_eq_left (Fin.ext (by rw [hx, Fin.val_last])), ite_eq_left hx]
+    · rw [ite_eq_right (fun h => hx (by rw [h, Fin.val_last])), ite_eq_right hx]
+  rw [hrot]
+  simp only [FollowsBlock, hat, hBlι, ha', hp']
+  have hxl := hlt x
+  have hyl := hlt y
+  constructor
+  · rintro (⟨i, ⟨hxi, hi⟩, hyi, -⟩ | ⟨⟨hx, -⟩, hy⟩ | ⟨hx, hy⟩)
+    · rw [ite_eq_right (by omega)]
+      omega
+    · rw [ite_eq_right (by omega)]
+      omega
+    · rw [ite_eq_left (by omega)]
+      omega
+  · intro h
+    split_ifs at h with hx
+    · exact Or.inr (Or.inr ⟨by omega, by omega⟩)
+    · by_cases hxn : (ι x : ℕ) + 1 < n
+      · exact Or.inl ⟨ι x, ⟨rfl, by omega⟩, by omega, hxn⟩
+      · exact Or.inr (Or.inl ⟨⟨by omega, by omega⟩, by omega⟩)
+
+end Comparisons
 
 /-- **The adjacent blocks of a cycle from the comparisons of concordance factors** (Lemma 16 at given
 parameters): for metric parameters at which the statement of Lemma 12 holds, `s ∈ S` determining
 the hybrid node `w` of the cycle `C_w` of `N⁻`, and functions `B`, `K`, `H` of `S` and `s` giving the
 blocks, the size and the hybrid block of `C_w` (the conclusion of Lemma 15), `adjacencyOf B K H`
 applied to the comparisons of the concordance factors of quartet trees on the same four taxa gives
-the adjacent blocks of `C_w`. -/
+the adjacent blocks of `C_w`.
+
+For `C_w` of size four, the sets of four taxa in distinct blocks are the sets that `C_w` separates,
+and Proposition 11 gives the adjacent blocks (`adjacencyTest_iff`). For a larger cycle, with the nodes
+of `C_w` listed as `v 0 = w, v 1, …, v n`, the test of Proposition 11 with a taxon `a` of the hybrid
+block gives the two blocks adjacent to it, those of `v 1` and `v n`; listing the cycle the other way
+if needed, `q` is in the block of `v 1` and `p` in that of `v n`, and the order that `IsNextBlock`
+builds is that of `v 0, v 1, …, v n` (`followsBlock_iff`). -/
 theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ)
@@ -556,85 +912,93 @@ theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
     (hH : 5 ≤ C.ncard → H (bcSets N θ) s = {x | DescendsFrom (unrooted N hN hX) w x}) (x y : X) :
     adjacencyOf B K H (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
       AdjacentBlocks (unrooted N hN hX) C x y := by
-  simp only [adjacencyOf, bcSetsOf_cf, isBCQuartetOf_cf]
+  simp only [adjacencyOf, bcSetsOf_cf]
   -- `s` is separated by `C_w`
   obtain ⟨C', hsep⟩ := (determines_iff_separatesQuartet hN h1 hX hs.1 w).1 hdet
   rw [← hw.cycle_eq h1 hC hsep.1 hsep.2.1] at hsep
   have hC4 := four_le_ncard_of_separatesQuartet h1 hC hw hs.1 hsep
-  set β := blockNode (unrooted N hN hX) C
-  have hBβ : ∀ a b, B (bcSets N θ) s a b ↔ β a = β b :=
-    fun a b => (hB a b).trans (sameBlock_iff_blockNode_eq h1 hC a b)
-  rw [adjacentBlocks_iff_forall_joinedAvoiding h1 hC hC4 hw x y, ← hB x y]
-  refine and_congr_right fun hxy => forall₂_congr fun z z' => ?_
-  rw [hBβ] at hxy
-  -- the sets of four taxa that `C_w` separates, from the blocks and the hybrid block
-  have hsepiff : ∀ h : Distinct4 x y z z',
-      ((¬ B (bcSets N θ) s x z ∧ ¬ B (bcSets N θ) s x z' ∧ ¬ B (bcSets N θ) s y z ∧
-        ¬ B (bcSets N θ) s y z' ∧ ¬ B (bcSets N θ) s z z') ∧
-        (K (bcSets N θ) s = 4 ∨ x ∈ H (bcSets N θ) s ∨ y ∈ H (bcSets N θ) s ∨
-          z ∈ H (bcSets N θ) s ∨ z' ∈ H (bcSets N θ) s)) ↔
-      SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} := by
-    intro h
-    simp only [hBβ]
-    rw [separatesQuartet_iff h1 hC hw]
-    have := hN.1.finite_vertices
-    by_cases h4 : C.ncard = 4
-    · -- four blocks on a 4-cycle: one of them is the hybrid block
-      refine ⟨fun ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, _⟩ => ?_, fun ⟨hinj, _⟩ => ?_⟩
-      · have hinj := injOn_four hxy hxz hxz' hyz hyz' hzz'
-        have hnodes : β '' ↑({x, y, z, z'} : Finset X) =
-            cycleNodes (unrooted N hN hX).graph C := by
-          refine Set.eq_of_subset_of_ncard_le ?_ ?_ (Set.toFinite _)
-          · rintro _ ⟨m, -, rfl⟩
-            exact blockNode_mem hC m
-          · rw [ncard_cycleNodes hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
-              Distinct4.card_insert_eq h]
-        obtain ⟨m, hm, hmw⟩ := hnodes ▸ hw.mem_cycleNodes
-        exact ⟨hinj, m, hm, hmw⟩
-      · refine ⟨⟨fun e => h.2.1 (hinj (by simp) (by simp) e), fun e => h.2.2.1 (hinj (by simp)
-          (by simp) e), fun e => h.2.2.2.1 (hinj (by simp) (by simp) e),
-          fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e),
-          fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)⟩, Or.inl (hK.trans h4)⟩
-    · -- at least five blocks: the hybrid block is `H S s`
-      have hH5 := hH (by omega)
-      have hK4 : K (bcSets N θ) s ≠ 4 := hK ▸ h4
-      have hmemH : ∀ m, m ∈ H (bcSets N θ) s ↔ β m = w := fun m => by
-        rw [hH5]
-        exact (blockNode_eq_iff_descendsFrom h1 hC hw m).symm
-      simp only [hmemH, hK4, false_or]
-      constructor
-      · rintro ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩
-        refine ⟨injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
-        rcases hhyb with hm | hm | hm | hm
-        · exact ⟨x, by simp, hm⟩
-        · exact ⟨y, by simp, hm⟩
-        · exact ⟨z, by simp, hm⟩
-        · exact ⟨z', by simp, hm⟩
-      · rintro ⟨hinj, m, hm, hmw⟩
-        refine ⟨⟨fun e => h.2.1 (hinj (by simp) (by simp) e), fun e => h.2.2.1 (hinj (by simp)
-          (by simp) e), fun e => h.2.2.2.1 (hinj (by simp) (by simp) e),
-          fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e),
-          fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)⟩, ?_⟩
-        simp only [mem_insert, mem_singleton] at hm
-        rcases hm with rfl | rfl | rfl | rfl
-        · exact Or.inl hmw
-        · exact Or.inr (Or.inl hmw)
-        · exact Or.inr (Or.inr (Or.inl hmw))
-        · exact Or.inr (Or.inr (Or.inr hmw))
-  -- for a set that `C_w` separates, `q^BC ≠ xy|zz'` exactly when the blocks of `x` and `y` are
-  -- joined avoiding those of `z` and `z'` (Proposition 11)
   have hS := mem_bcSets_iff_of_lemma12 h12
-  have hcore : ∀ h : Distinct4 x y z z', SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} →
-      (¬ IsBCQuartet (cf N θ) {x, z, y, z'} (quartetTree x y z z' h) ↔
-        JoinedAvoiding (unrooted N hN hX) C {z, z'} x y) := fun h hsep' =>
-    not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep'
+  have hBβ : ∀ a b, B (bcSets N θ) s a b ↔
+      blockNode (unrooted N hN hX) C a = blockNode (unrooted N hN hX) C b :=
+    fun a b => (hB a b).trans (sameBlock_iff_blockNode_eq h1 hC a b)
+  rw [hK]
+  rcases hC4.eq_or_lt with h4 | h5
+  · -- `k_v = 4`: Proposition 11
+    simp only [← h4, true_and, ne_eq, not_true_eq_false, false_and, or_false]
+    exact adjacencyTest_iff hN h1 hX hθ hS hC hC4 hw hBβ (Or.inl h4.symm)
+  -- `k_v ≥ 5`: the nodes `v 0 = w, v 1, …, v n` of `C_w`, and the index `ι t` of the block of `t`
+  have h5' : C.ncard ≠ 4 := by omega
+  simp only [h5', false_and, false_or, ne_eq, not_false_eq_true, true_and]
+  rw [hH h5]
+  obtain ⟨n, v, e, hcyc, hrange, h0⟩ := hC.exists_isCycleOf_apply_zero hw.mem_cycleNodes
+  have hk : C.ncard = n + 1 := by
+    rw [← hrange, Set.ncard_range_of_injective hcyc.injective_edge, Nat.card_eq_fintype_card,
+      Fintype.card_fin]
+  rw [hk]
+  have hι' : ∀ t, ∃ i, v i = blockNode (unrooted N hN hX) C t := fun t => by
+    have : blockNode (unrooted N hN hX) C t ∈ Set.range v := by
+      rw [← hcyc.cycleNodes_eq, hrange]
+      exact blockNode_mem hC t
+    exact this
+  choose ι hι using hι'
+  have hsurj : ∀ i, ∃ t, ι t = i := fun i => by
+    obtain ⟨t, ht⟩ := exists_blockNode_eq h1 hC (u := v i)
+      (by rw [← hrange, hcyc.cycleNodes_eq]; exact ⟨i, rfl⟩)
+    exact ⟨t, hcyc.injective_node (by rw [hι, ht])⟩
+  have hH' : ∀ a, a ∈ {x | DescendsFrom (unrooted N hN hX) w x} ↔ ι a = 0 := fun a => by
+    rw [Set.mem_ofPred_eq, ← blockNode_eq_iff_descendsFrom h1 hC hw, ← hι, ← h0,
+      hcyc.injective_node.eq_iff]
+  -- the blocks adjacent to the hybrid block (Proposition 11)
+  have htest : ∀ a p, ι a = 0 → (AdjacencyTest (B (bcSets N θ) s)
+      (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) a p ↔ ι p = 1 ∨ ι p = Fin.last n) := by
+    intro a p ha
+    rw [adjacencyTest_iff hN h1 hX hθ hS hC hC4 hw hBβ (Or.inr (by rw [← hι, ha, h0])),
+      adjacentBlocks_iff_index_finRotate h1 hC hcyc hrange hι, ha, finRotate_apply_zero, eq_comm (a := 0),
+      (finRotate (n + 1)).injective.eq_iff' (finRotate_last (n := n))]
+  have hpq : ∀ p q, ¬ B (bcSets N θ) s p q ↔ ι p ≠ ι q := fun p q => by
+    rw [hBβ, ← hι, ← hι, hcyc.injective_node.eq_iff]
   constructor
-  · intro hL h4' hsep'
-    have h := distinct4_of_card_insert_eq h4'
-    obtain ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩ := (hsepiff h).2 hsep'
-    exact (hcore h hsep').1 (hL h hxz hxz' hyz hyz' hzz' hhyb)
-  · intro hR h hxz hxz' hyz hyz' hzz' hhyb
-    have hsep' := (hsepiff h).1 ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩
-    exact (hcore h hsep').2 (hR (Distinct4.card_insert_eq h) hsep')
+  · rintro ⟨a, ha, p, q, hap, haq, hBpq, hfol⟩
+    rw [hH'] at ha
+    rw [htest a p ha] at hap
+    rw [htest a q ha] at haq
+    rw [hpq] at hBpq
+    rw [adjacentBlocks_iff_index_finRotate h1 hC hcyc hrange hι]
+    rcases haq with hq | hq <;> rcases hap with hp | hp
+    · exact absurd (hp.trans hq.symm) hBpq
+    · -- `q` in the block of `v 1`, `p` in that of `v n`
+      rwa [followsBlock_iff hN h1 hX hθ hS hC hC4 hw hBβ hcyc hrange h0 hι ha hp hq,
+        followsBlock_iff hN h1 hX hθ hS hC hC4 hw hBβ hcyc hrange h0 hι ha hp hq] at hfol
+    · -- `q` in the block of `v n`, `p` in that of `v 1`: the cycle listed the other way
+      have hrange' : Set.range (fun i : Fin (n + 1) => e (-i - 1)) = C := by
+        rw [← hrange]
+        exact Function.Surjective.range_comp (fun j => ⟨-(j + 1), by simp⟩) e
+      have hι'' : ∀ t, v (-(-ι t)) = blockNode (unrooted N hN hX) C t := fun t => by
+        rw [neg_neg, hι]
+      have hfr := fun x y => followsBlock_iff (ι := fun t => -ι t) hN h1 hX hθ hS hC hC4 hw hBβ
+        hcyc.reverse hrange' (show v (-0) = w by rw [neg_zero, h0]) hι''
+        (show -ι a = 0 by rw [ha, neg_zero]) (show -ι p = Fin.last n by
+          rw [hp, ← Fin.neg_last, neg_neg]) (show -ι q = 1 by rw [hq, Fin.neg_last]) x y
+      rw [hfr, hfr] at hfol
+      simp only [finRotate_apply] at hfol ⊢
+      rcases hfol with h | h
+      · refine Or.inr ?_
+        calc ι x = -(-ι x + 1) + 1 := by abel
+          _ = ι y + 1 := by rw [← h, neg_neg]
+      · refine Or.inl ?_
+        calc ι y = -(-ι y + 1) + 1 := by abel
+          _ = ι x + 1 := by rw [← h, neg_neg]
+    · exact absurd (hp.trans hq.symm) hBpq
+  · intro hadj
+    obtain ⟨a, ha⟩ := hsurj 0
+    obtain ⟨p, hp⟩ := hsurj (Fin.last n)
+    obtain ⟨q, hq⟩ := hsurj 1
+    refine ⟨a, (hH' a).2 ha, p, q, (htest a p ha).2 (Or.inr hp), (htest a q ha).2 (Or.inl hq),
+      (hpq p q).2 ?_, ?_⟩
+    · rw [hp, hq, Ne, Fin.ext_iff, Fin.val_last, Fin.val_one', Nat.mod_eq_of_lt (by omega)]
+      omega
+    · rw [followsBlock_iff hN h1 hX hθ hS hC hC4 hw hBβ hcyc hrange h0 hι ha hp hq,
+        followsBlock_iff hN h1 hX hθ hS hC hC4 hw hBβ hcyc hrange h0 hι ha hp hq]
+      exact (adjacentBlocks_iff_index_finRotate h1 hC hcyc hrange hι x y).1 hadj
 
 end Banos2019

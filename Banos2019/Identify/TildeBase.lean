@@ -3,6 +3,7 @@ module
 public import Banos2019.External.SempleSteel2003.Quartets
 public import Banos2019.Identify.TildeDefs
 public import Banos2019.Identify.TreeIso
+public import Phylogenetics.Network.CutHierarchy
 
 /-!
 # Theorem 4 without cycles of size at least four (Baños 2019, Section 8)
@@ -18,8 +19,16 @@ Steel 2003, `External.SempleSteel2003.exists_iso_of_quartets_eq`).
 * `tildeNetwork_facts`: without cycles of size at least four, `Ñ` is an `X`-tree whose leaves are
   the taxa and whose other nodes have degree three, and each side of each of its edges is a side of
   a cut arc of `N`.
-* `alternatives_eq_of_displays`: a quartet tree displayed by `Ñ` has two alternatives with equal
-  concordance factors, by exchangeability across the cut arc.
+* `cf_eq_of_not_mem_of_hasCutSplit`: in an LSA quartet network without a 4-cycle, the two quartet
+  trees other than that of a cut edge have equal concordance factors, by Proposition 6 without a
+  `3₂`-cycle and by Proposition 7 with one (`onSegmentOfI_below_hybrid_of_threeTwo`: the segment of
+  `I` of the two taxa below its hybrid node, which are a side of the cut edge or of its complement,
+  `cutSplit_pair_eq_or_eq_compl`).
+* `not_hasFourCycle_of_ncard_le_three`, `quartetLSA_hasCutSplit_of_separates`: without cycles of
+  size at least four in `N⁻`, no `Q⁻_s` has a 4-cycle, and a cut arc of `N` splitting `s` into two
+  pairs gives a cut edge of `Q⊕_s`.
+* `alternatives_eq_of_displays`: a quartet tree displayed by `Ñ` is that of a cut edge of `Q⊕_s`,
+  so its two alternatives have equal concordance factors.
 * `displays_iff_of_alternatives_eq`: two such trees for concordance factors with the same ordering,
   not all equal on any set of four taxa, display the same quartet trees.
 * `ncard_le_three_of_sameOrdering`: the orderings and Lemma 12 exclude a cycle of size at least
@@ -457,6 +466,124 @@ theorem tildeNetwork_facts (h1 : IsLevelOne N.graph)
 
 end Tilde
 
+section Quartet
+
+variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
+
+/-- **The segment of `I` of a `3₂`-cycle** (proof of Proposition 7): if `Q⁻` has a `3₂`-cycle with
+the taxa `a`, `b` below its hybrid node, `CF(Q)` lies on the open segment for the cherry `{a, b}`:
+the quartet tree `ab|cd` has a concordance factor above `1/6`, and the two others are equal.
+Corollary 2 suppresses the `2₁`- and `2₃`-cycles, and Lemmas 9 and 10 write the concordance factors
+as a convex combination of those of networks with the same `3₂`-cycle and one cycle fewer
+(`onSegmentOfI_of_threeTwo`). -/
+theorem onSegmentOfI_below_hybrid_of_threeTwo {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V} (hC : InducesCycleType Q C v 3 2) {a b : X}
+    (hab : a ≠ b) (hD : {x | Q.graph.Reaches v (Q.leaf x)} = {a, b}) :
+    OnSegmentOfI (cf Q θ) {a, b} := by
+  -- Corollary 2: suppress the `2₁`- and `2₃`-cycles
+  obtain ⟨V', E', _, _, Q', θ', hQ', hcf', hsame, -⟩ := exists_lsaQuartet_of_corollary2 hQ
+  have hnot : ∀ C' v', InducesCycleType Q C' v' 2 1 ∨ InducesCycleType Q C' v' 2 3 →
+      IsTwoOneOrThree Q C' := fun C' v' h => ⟨v', h⟩
+  have h32' : HasCycleWithBelow Q' 3 ↑({a, b} : Finset X) := by
+    refine (hsame 3 _).2 ⟨C, v, ?_, ?_, ?_⟩
+    · rintro ⟨v', h | h⟩ <;> have := h.2.2.2.1 <;> have := hC.2.2.2.1 <;> omega
+    · rw [Finset.coe_pair, Set.ncard_pair hab]
+      exact hC
+    · rw [Finset.coe_pair]
+      exact hD
+  have h21 : ¬ ∃ C v, InducesCycleType Q' C v 2 1 := by
+    rintro ⟨C', v', hC'⟩
+    obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC')
+    rw [hC'.2.2.2.2] at hC''
+    exact hn (hnot _ _ (Or.inl hC''))
+  have h23 : ¬ ∃ C v, InducesCycleType Q' C v 2 3 := by
+    rintro ⟨C', v', hC'⟩
+    obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC')
+    rw [hC'.2.2.2.2] at hC''
+    exact hn (hnot _ _ (Or.inr hC''))
+  -- Lemmas 9 and 10, by induction
+  have hseg := onSegmentOfI_of_threeTwo _ hQ' rfl _ (card_pair hab) h32' h21 h23
+  rwa [hcf', ← corollary2 hQ] at hseg
+
+omit [Fintype V] [Fintype E] in
+/-- **Two cut splits of pairs of the four taxa are equal or complementary**: the sides of cut edges
+avoiding a taxon are laminar (`cutSplits_laminar`). -/
+theorem cutSplit_pair_eq_or_eq_compl {Q : RootedNetwork V E X} (hQ : Q.IsPhylogenetic)
+    (hX : Fintype.card X = 4) {B D : Finset X} (hB : #B = 2) (hD : #D = 2)
+    (hBc : Q.HasCutSplit ↑B) (hDc : Q.HasCutSplit ↑D) : B = D ∨ B = Dᶜ := by
+  have hcompl : ∀ A : Finset X, #A = 2 → #Aᶜ = 2 := fun A hA => by
+    rw [card_compl, hX, hA]
+  -- a taxon off `D`
+  obtain ⟨r, hrD⟩ : ∃ r, r ∉ D := by
+    by_contra h
+    push Not at h
+    rw [eq_univ_of_forall h, card_univ, hX] at hD
+    omega
+  -- a cut split of a pair avoiding `r` is `D` or its complement
+  have key : ∀ B' : Finset X, #B' = 2 → Q.HasCutSplit ↑B' → r ∉ B' → B' = D ∨ B' = Dᶜ := by
+    intro B' hB' hB'c hrB'
+    rcases Q.cutSplits_laminar (Q.graph_connected hQ) r hDc hB'c (by simpa using hrD)
+      (by simpa using hrB') with h | h | h
+    · exact Or.inl (eq_of_subset_of_card_le (coe_subset.1 h) (by omega)).symm
+    · exact Or.inl (eq_of_subset_of_card_le (coe_subset.1 h) (by omega))
+    · refine Or.inr (eq_of_subset_of_card_le (fun x hx => mem_compl.2 fun hxD => ?_)
+        (by rw [hcompl D hD, hB']))
+      exact Set.disjoint_left.1 h (mem_coe.2 hxD) (mem_coe.2 hx)
+  by_cases hrB : r ∈ B
+  · have hBc' : Q.HasCutSplit ↑Bᶜ := by
+      rw [coe_compl, Q.hasCutSplit_compl]
+      exact hBc
+    rcases key Bᶜ (hcompl B hB) hBc' (fun h => mem_compl.1 h hrB) with h | h
+    · exact Or.inr (by rw [← h, compl_compl])
+    · exact Or.inl (compl_injective h)
+  · exact key B hB hBc hrB
+
+/-- **The two quartet trees other than that of a cut edge have equal concordance factors**, in an
+LSA quartet network `Q⊕` without a 4-cycle. Without a `3₂`-cycle, the ordering of `CF(Q)` is that of
+the network `Q'` with its 2-cycles and `3₁`-cycles contracted (Proposition 6), a tree whose
+concordance factors are those of a species tree whose split of two pairs of taxa is that of the cut
+edge (`exists_speciesTree_contractRooted`): its quartet tree has the largest, strictly, and the two
+others are equal (equation (1)). With a `3₂`-cycle, `CF(Q)` lies on the segment of `I` for the two
+taxa below its hybrid node (Proposition 7), which are a side of the cut edge out of the hybrid node
+(`hasCutSplit_below_hybrid`), so a side of the given cut edge or its complement
+(`cutSplit_pair_eq_or_eq_compl`): the two other quartet trees have equal concordance factors. -/
+theorem cf_eq_of_not_mem_of_hasCutSplit [DecidableEq X] {Q : RootedNetwork V E X}
+    {θ : MetricData E} (hQ : IsLSAQuartet Q θ) (h4 : ¬ ∃ C v k, InducesCycleType Q C v 4 k)
+    {B : Finset X} (hB : #B = 2) (hcut : Q.HasCutSplit ↑B) {r r' : QuartetTree X} (hr : B ∉ r.val)
+    (hr' : B ∉ r'.val) : cf Q θ r = cf Q θ r' := by
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  have htaxa : ∀ q : QuartetTree X, q.taxa = univ := fun q =>
+    eq_univ_of_card _ (by rw [q.card_taxa, hQ.card_taxa])
+  by_cases h32 : ∃ C v, InducesCycleType Q C v 3 2
+  · -- Proposition 7: the segment of the two taxa below the hybrid node of the `3₂`-cycle
+    obtain ⟨C, v, hC⟩ := h32
+    obtain ⟨a, b, hab, hD⟩ := Set.ncard_eq_two.1 hC.2.2.2.2
+    have hseg := onSegmentOfI_below_hybrid_of_threeTwo hQ hC hab hD
+    have hDc : Q.HasCutSplit ↑({a, b} : Finset X) := by
+      rw [coe_pair, ← hD]
+      exact hasCutSplit_below_hybrid hQ.binary hQ.levelOne hC.2.2.1
+    have key : ∀ q : QuartetTree X, B ∉ q.val → ({a, b} : Finset X) ∉ q.val := by
+      intro q hq hq'
+      apply hq
+      rcases cutSplit_pair_eq_or_eq_compl hQ.binary.1 hQ.card_taxa hB (card_pair hab) hcut hDc with
+        rfl | rfl
+      · exact hq'
+      · have := q.sdiff_mem hq'
+        rwa [htaxa q, ← compl_eq_univ_sdiff] at this
+    exact hseg.2.1 r r' (key r hr) (key r' hr')
+  · -- Proposition 6: the ordering of the species tree of the contracted network, equation (1)
+    have hord := proposition6 hQ h32
+    obtain ⟨σ, -, hσcut, hcf⟩ :=
+      exists_speciesTree_contractRooted hQ h32 h4 (IsTwoOrThreeOne Q) rfl
+    have ht := orderedAsQuartetTree_quartetProb hQ.card_taxa σ hB ((hσcut B hB).1 hcut)
+    rw [← hcf] at ht
+    have e := ht.2 r r' hr hr'
+    have hrr : r.taxa = r'.taxa := (htaxa r).trans (htaxa r').symm
+    exact le_antisymm ((hord r r' hrr).2 e.le) ((hord r' r hrr.symm).2 e.ge)
+
+end Quartet
+
 section Main
 
 variable {X : Type*} [Fintype X] [DecidableEq X]
@@ -472,36 +599,107 @@ theorem bigCycleOn_iff_of_sameOrdering {p p' : QuartetTree X → ℝ} (h : SameO
   · intro hb q hq r hr hne heq
     exact hb q hq r hr hne ((key q r ((mem_treesOn.1 hq).trans (mem_treesOn.1 hr).symm)).1 heq)
 
-/-- **A quartet tree displayed by splits that are cut arcs of `N` has alternatives of equal
-concordance factors**, by exchangeability across the cut arc (Ané et al. 2024). -/
+omit [Fintype X] [DecidableEq X] in
+/-- **Without a cycle of size at least four in `N⁻`, no `Q⁻_s` has a 4-cycle**: a 4-cycle of `Q⁻_s`
+comes from a cycle of `N⁻` of size at least four (`exists_separates_of_fourCycle`). -/
+theorem not_hasFourCycle_of_ncard_le_three {V E : Type*} [Fintype V] [Fintype E]
+    {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hX : Nontrivial X) {θ : MetricData E} (hθ : IsMetricNetwork N θ)
+    (hsize : ∀ C, IsCycle (unrooted N hN hX).graph C → C.ncard ≤ 3) {s : Finset X} (hs : #s = 4) :
+    ¬ HasFourCycle N hN s hs := by
+  rintro ⟨C₀, v₀, k, hC₀⟩
+  obtain ⟨C, hC, hC4, w, hw, -⟩ :=
+    (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+  obtain ⟨C', w', h4, hC', -⟩ := exists_separates_of_fourCycle hN h1 hX hs hC hC4 hw
+  have := hsize C' hC'
+  omega
+
+omit [Fintype X] in
+/-- **A cut arc of `N` gives a cut edge of `Q⊕_s`**: if the arc `f` separates `A` from its
+complement, and both `A` and its complement meet the four taxa `s`, the taxa of `A` in `s` are a
+side of a cut edge of `Q⊕_s` (`hasCutSplitOn_iff_separates`,
+`hasCutSplitOn_iff_inducedNetwork_hasCutSplit`). -/
+theorem quartetLSA_hasCutSplit_of_separates {V E : Type*} {N : RootedNetwork V E X}
+    (hN : IsBinaryRootedNetwork N) {s : Finset X} (hs : #s = 4) {A : Finset X}
+    (hA₁ : (A ∩ s).Nonempty) (hA₂ : (s \ A).Nonempty) {f : E}
+    (hf : N.Separates f ↑A (↑A)ᶜ ∨ N.Separates f (↑A)ᶜ ↑A) :
+    (quartetLSA N hN.1 s hs).HasCutSplit (Subtype.val ⁻¹' ↑A) := by
+  have h₁ : ((↑s : Set X) ∩ ↑A).Nonempty := by
+    obtain ⟨x, hx⟩ := hA₁
+    rw [mem_inter] at hx
+    exact ⟨x, hx.2, hx.1⟩
+  have h₂ : ((↑s : Set X) \ ↑A).Nonempty := by
+    obtain ⟨x, hx⟩ := hA₂
+    rw [mem_sdiff] at hx
+    exact ⟨x, hx.1, hx.2⟩
+  refine (hasCutSplitOn_iff_inducedNetwork_hasCutSplit hN.1 _ h₁ h₂).1 ?_
+  rw [hasCutSplitOn_iff_separates hN.1]
+  rcases hf with hf | hf
+  · exact ⟨f, Or.inl ⟨h₁, hf.mono Set.inter_subset_right fun x hx => hx.2⟩⟩
+  · exact ⟨f, Or.inr ⟨h₂, hf.mono (fun x hx => hx.2) Set.inter_subset_right⟩⟩
+
+/-- **A quartet tree displayed by `Ñ` has alternatives of equal concordance factors**, when `N⁻` has
+no cycle of size at least four (Baños 2019, proof of Theorem 4): the side `A` of an edge of `Ñ` that
+splits the four taxa of the quartet tree into its two cherries is a side of a cut arc of `N`
+(`tildeNetwork_facts`), which gives a cut edge of `Q⊕_s` between the two cherries
+(`quartetLSA_hasCutSplit_of_separates`); `Q⁻_s` has no 4-cycle
+(`not_hasFourCycle_of_ncard_le_three`), so by Propositions 6 and 7 the two other quartet trees have
+equal concordance factors in `Q⊕_s` (`cf_eq_of_not_mem_of_hasCutSplit`), which are those of `N`
+(Theorem 2, `cf_quartetLSA`). -/
 theorem alternatives_eq_of_displays {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
-    (hN : N.IsPhylogenetic) {θ : MetricData E} (hθ : N.IsMetric θ) {F : Finset (Finset X)}
+    (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
+    {θ : MetricData E} (hθ : IsMetricNetwork N θ)
+    (hsize : ∀ C, IsCycle (unrooted N hN hX).graph C → C.ncard ≤ 3) {F : Finset (Finset X)}
     (hF : ∀ A ∈ F, ∃ f, N.Separates f (↑A : Set X) (↑A)ᶜ ∨ N.Separates f (↑A)ᶜ ↑A)
     {s : QuartetTree X} (hs : Displays F s) :
     ∀ r ∈ s.alternatives, ∀ r' ∈ s.alternatives, cf N θ r = cf N θ r' := by
-  refine NMSC.cut_alternatives hN hθ ⟨le_refl 0, zero_le_one⟩ s ?_
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
   obtain ⟨A, hA, hAs⟩ := hs
-  refine ⟨A ∩ s.taxa, hAs, (hasCutSplitOn_iff_separates hN _ _).2 ?_⟩
-  have h2 := s.card_of_mem hAs
-  have h2' := s.card_of_mem (s.sdiff_mem hAs)
-  obtain ⟨a, ha⟩ := card_pos.1 (show 0 < #(A ∩ s.taxa) by omega)
-  obtain ⟨b, hb⟩ := card_pos.1 (show 0 < #(s.taxa \ (A ∩ s.taxa)) by omega)
-  obtain ⟨f, hf | hf⟩ := hF A hA
-  · refine ⟨f, Or.inl ⟨⟨a, ?_⟩, fun x hx => hf.1 x ?_, fun x hx => hf.2 x ?_⟩⟩
-    · simp only [Finset.mem_inter] at ha
-      simp [ha]
-    · simp only [Set.mem_inter_iff, Finset.mem_coe, Finset.mem_inter] at hx
-      exact hx.2.1
-    · simp only [Set.mem_sdiff, Finset.mem_coe, Finset.mem_inter] at hx
-      exact fun h => hx.2 ⟨h, hx.1⟩
-  · refine ⟨f, Or.inr ⟨⟨b, ?_⟩, fun x hx => hf.1 x ?_, fun x hx => hf.2 x ?_⟩⟩
-    · simp only [Finset.mem_sdiff, Finset.mem_inter] at hb
-      simp only [Set.mem_sdiff, Finset.mem_coe, Finset.coe_inter, Set.mem_inter_iff]
-      exact ⟨hb.1, hb.2⟩
-    · simp only [Set.mem_sdiff, Finset.mem_coe, Finset.mem_inter] at hx
-      exact fun h => hx.2 ⟨h, hx.1⟩
-    · simp only [Set.mem_inter_iff, Finset.mem_coe, Finset.mem_inter] at hx
-      exact hx.2.1
+  obtain ⟨f, hf⟩ := hF A hA
+  set t := s.taxa with ht_def
+  have ht : #t = 4 := s.card_taxa
+  -- the cut edge of `Q⊕_t` between the two cherries of `s`
+  have hA₁ : (A ∩ t).Nonempty := card_pos.1 (by rw [s.card_of_mem hAs]; norm_num)
+  have hA₂ : (t \ A).Nonempty := by
+    obtain ⟨y, hy⟩ := card_pos.1 (show 0 < #(t \ (A ∩ t)) by
+      rw [s.card_of_mem (s.sdiff_mem hAs)]; norm_num)
+    rw [mem_sdiff, mem_inter] at hy
+    exact ⟨y, mem_sdiff.2 ⟨hy.1, fun h => hy.2 ⟨h, hy.1⟩⟩⟩
+  have hcut := quartetLSA_hasCutSplit_of_separates hN ht hA₁ hA₂ hf
+  set B : Finset (t : Set X) := univ.filter fun x => x.1 ∈ A with hB_def
+  have hBcoe : (↑B : Set (t : Set X)) = Subtype.val ⁻¹' ↑A := by
+    ext x
+    simp [B]
+  have hBimg : B.image Subtype.val = A ∩ t := by
+    ext x
+    simp only [B, mem_image, mem_filter, mem_univ, true_and, mem_inter]
+    constructor
+    · rintro ⟨y, hy, rfl⟩
+      exact ⟨hy, y.2⟩
+    · rintro ⟨hxA, hxt⟩
+      exact ⟨⟨x, hxt⟩, hxA, rfl⟩
+  have hB : #B = 2 := by
+    rw [← card_image_of_injective B Subtype.val_injective, hBimg, s.card_of_mem hAs]
+  -- each alternative of `s` is the image of a quartet tree on `t` without the cherry `B`
+  have hlift : ∀ r ∈ s.alternatives, ∃ q : QuartetTree (t : Set X),
+      q.map Subtype.val_injective = r ∧ B ∉ q.val := by
+    intro r hr
+    obtain ⟨hrt, hrs⟩ := QuartetTree.mem_alternatives.1 hr
+    obtain ⟨q, rfl⟩ := QuartetTree.exists_map_eq Subtype.val_injective r
+      (by rw [hrt, image_val_univ_finsetCoe])
+    refine ⟨q, rfl, fun hBq => hrs ?_⟩
+    have hmem : A ∩ t ∈ (q.map Subtype.val_injective).val := by
+      rw [QuartetTree.map_val, ← hBimg]
+      exact mem_image_of_mem _ hBq
+    exact quartetTree_eq_of_taxa_eq_of_mem hrt hmem hAs
+  intro r hr r' hr'
+  obtain ⟨q, rfl, hq⟩ := hlift r hr
+  obtain ⟨q', rfl, hq'⟩ := hlift r' hr'
+  have hcf := cf_quartetLSA hN h1 hθ ht
+  rw [← congrFun hcf q, ← congrFun hcf q']
+  exact cf_eq_of_not_mem_of_hasCutSplit (isLSAQuartet_quartetLSA hN h1 hθ ht)
+    (not_hasFourCycle_of_ncard_le_three hN h1 hX hθ hsize ht) hB (hBcoe ▸ hcut) hq hq'
 
 /-- **Trees with the same ordering of concordance factors display the same quartet trees** (Baños
 2019, proof of Theorem 4): two trees, given by their splits, resolving every set of four taxa, each
@@ -588,20 +786,30 @@ theorem ncard_le_three_of_sameOrdering {V₁ E₁ V₂ E₂ : Type*} [Fintype V�
 end Main
 
 /-- **Theorem 4, the base case of the induction**: networks without cycles of size at least four
-(Baños 2019, proof of Theorem 4). The cycles of `N₁⁻` have size at most three, and so have those of
-`N₂⁻` (`ncard_le_three_of_sameOrdering`). Then `Ñ₁` and `Ñ₂` are phylogenetic `X`-trees whose
-internal nodes have degree three (`tildeNetwork_facts`), and each displays a quartet tree on every
-set of four taxa. The paper's step "the ordering of the concordance factors determines the topology
-of the quartet tree obtained by suppressing all 2- and 3-cycles" is filled as follows: an edge of
-`Ñ` separating `{a, b}` from `{c, d}` comes from a cut arc of `N` separating them, across which
-exchangeability gives `CF_{ac|bd} = CF_{ad|bc}` (`alternatives_eq_of_displays`); as the three
-concordance factors are not all equal, the displayed quartet tree is the one whose concordance
-factor differs from the two others, which the ordering tells. It need not have the largest
-concordance factor: with a `3₂`-cycle it can have the smallest (Example 6, `(32, 33, 33)/98`). So
-`Ñ₁` and `Ñ₂` display the same quartet trees (`displays_iff_of_alternatives_eq`), and "these then
-determine the topology `Ñ` by a standard result" (Semple and Steel 2003,
-`External.SempleSteel2003.exists_iso_of_quartets_eq`): there is an isomorphism of the two trees
-fixing the taxa, which is an isomorphism of `Ñ₁` and `Ñ₂` (`nonempty_sdIso_of_iso`). -/
+(Baños 2019, proof of Theorem 4, TeX l. 1180). The cycles of `N₁⁻` have size at most three, and so
+have those of `N₂⁻` (`ncard_le_three_of_sameOrdering`). Then `Ñ₁` and `Ñ₂` are phylogenetic
+`X`-trees whose internal nodes have degree three (`tildeNetwork_facts`), and each displays a quartet
+tree on every set `s` of four taxa. "Every induced quartet tree will have no cycle of size 4"
+(`not_hasFourCycle_of_ncard_le_three`), "and the ordering of the concordance factors determines the
+topology of the quartet tree obtained by suppressing all 2- and 3-cycles": when `Q⁻_s` has no
+`3₂`-cycle, the concordance factors are ordered as those of that tree (Proposition 6), whose quartet
+tree `ab|cd` has the largest, strictly, and the two others equal; when it has one, they lie on the
+segment of `I` where `CF_{ac|bd} = CF_{ad|bc}`, for `a`, `b` the taxa below its hybrid node
+(Proposition 7, `cf_eq_of_not_mem_of_hasCutSplit`).
+
+The paper does not say that this quartet tree is the one `Ñ` displays, nor how the ordering tells
+it. The first holds since an edge of `Ñ` between `{a, b}` and `{c, d}` comes from a cut arc of `N`,
+which gives a cut edge of `Q⊕_s` between them: the edge of the tree with the split `ab|cd`, and,
+with a `3₂`-cycle, the taxa below its hybrid node are `{a, b}` or `{c, d}`, a side of the cut edge
+out of that node (`alternatives_eq_of_displays`). For the second, the reading that holds is the
+quartet tree whose concordance factor differs from the two others, which needs the three not to be
+all equal, as they can be with a `3₂`-cycle (Proposition 7); this is generic (`NonDegenerateCF`,
+part of `GoodParams`). The quartet tree need not have the largest concordance factor: with a
+`3₂`-cycle it can have the smallest (Example 6, `(32, 33, 33)/98`). So `Ñ₁` and `Ñ₂` display the
+same quartet trees (`displays_iff_of_alternatives_eq`), and "these then determine the topology `Ñ`
+by a standard result" (Semple and Steel 2003, `External.SempleSteel2003.exists_iso_of_quartets_eq`):
+there is an isomorphism of the two trees fixing the taxa, which is an isomorphism of `Ñ₁` and `Ñ₂`
+(`nonempty_sdIso_of_iso`). -/
 theorem tildeDetermined_zero : TildeDetermined 0 := by
   intro X _ _ hX V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hg₁ hg₂ hord h0
   have hs₁ : ∀ C, IsCycle (unrooted N₁ hN₁ hX).graph C → C.ncard ≤ 3 := fun C hC =>
@@ -618,9 +826,9 @@ theorem tildeDetermined_zero : TildeDetermined 0 := by
     Set.ext fun s => displays_iff_of_alternatives_eq
       (fun q hq => exists_displays_splitFinset hX₁ hi₁ hl₁ (fun v hv => (h3₁ v hv).le) hq)
       (fun q hq => exists_displays_splitFinset hX₂ hi₂ hl₂ (fun v hv => (h3₂ v hv).le) hq)
-      (fun s hs => alternatives_eq_of_displays hN₁.1 hθ₁.1
+      (fun s hs => alternatives_eq_of_displays hN₁ h1₁ hX hθ₁ hs₁
         (fun A hA => hsep₁ _ (External.SempleSteel2003.mem_splitFinset.1 hA)) hs)
-      (fun s hs => alternatives_eq_of_displays hN₂.1 hθ₂.1
+      (fun s hs => alternatives_eq_of_displays hN₂ h1₂ hX hθ₂ hs₂
         (fun A hA => hsep₂ _ (External.SempleSteel2003.mem_splitFinset.1 hA)) hs)
       (hg₁ hθ₁ hN₁).2 (hg₂ hθ₂ hN₂).2 hord s
   obtain ⟨f, hf⟩ := External.SempleSteel2003.exists_iso_of_quartets_eq ⟨hX₁, hi₁, hl₁⟩
