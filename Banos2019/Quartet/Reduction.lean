@@ -2499,13 +2499,12 @@ theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E
         (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₁))
         (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₂)) θ'))) := by
   obtain ⟨ι⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ.binary hQ.levelOne hQ.nontrivial
-    (lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA) θ hne hd₁ hd₂ ht₁ ht₂ hab hb hl
+    (lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA) θ hne hd₁ ht₁ ht₂ hab hb hl
   obtain ⟨ι'⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ'.binary hQ'.levelOne hQ'.nontrivial
     (lsa_univ_eq_root hQ'.binary.1 hQ'.nontrivial hQ'.isLSA) θ' (φ.edge.injective.ne hne)
-    ((φ.isDirected_iff h₁).2 hd₁) ((φ.isDirected_iff h₂).2 hd₂)
-    ((φ.directed h₁ hd₁).2.trans (congrArg φ.vert ht₁))
+    ((φ.isDirected_iff h₁).2 hd₁) ((φ.directed h₁ hd₁).2.trans (congrArg φ.vert ht₁))
     ((φ.directed h₂ hd₂).2.trans (congrArg φ.vert ht₂)) hab hb' hl'
-  obtain ⟨κ⟩ := φ.nonempty_cutSD w h₁ h₂ a b
+  obtain ⟨κ⟩ := φ.nonempty_cutSD_of_isDirected w hd₁ hd₂ a b
   exact ⟨ι.trans (κ.trans ι'.symm)⟩
 
 /-- **`P(K = k)` and `CF(Q₀⊕ | K = 1)` are read from the unrooted network** (proof of Proposition 5,
