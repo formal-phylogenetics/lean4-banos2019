@@ -3,7 +3,7 @@ module
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
-public import Banos2019.Quartet.Conditioning
+public import Banos2019.Quartet.Contract
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -133,11 +133,95 @@ theorem lemma7 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 1) :
     cf Q θ = cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) := by
   sorry
 
+omit [Fintype V] [Fintype E] in
+/-- Three of four taxa satisfy `P`: the fourth does not. -/
+theorem exists_fourth_of_three (hX : Fintype.card X = 4) {P : X → Prop}
+    (h : {x | P x}.ncard = 3) : ∃ d, ¬ P d ∧ ∀ x, x ≠ d → P x := by
+  have hc : ({x | P x}ᶜ).ncard = 1 := by
+    rw [Set.ncard_compl, Nat.card_eq_fintype_card, hX, h]
+  obtain ⟨d, hd⟩ := Set.ncard_eq_one.1 hc
+  refine ⟨d, ?_, fun x hx => ?_⟩
+  · have : d ∈ ({x | P x}ᶜ) := hd ▸ Set.mem_singleton d
+    exact this
+  · by_contra hPx
+    have : x ∈ ({x | P x}ᶜ) := hPx
+    rw [hd] at this
+    exact hx this
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- The taxa below a hybrid node are those below its child. -/
+theorem reaches_leaf_iff_of_hybrid (hQ : IsBinaryRootedNetwork Q) (h2 : Q.graph.indegree v = 2)
+    {c : E} (hc : Q.graph.source c = v) (huniq : ∀ g, Q.graph.source g = v → g = c) (x : X) :
+    Q.graph.Reaches v (Q.leaf x) ↔ Q.graph.Reaches (Q.graph.target c) (Q.leaf x) := by
+  constructor
+  · intro h
+    rcases eq_or_reaches_of_unique_child huniq h with h' | h'
+    · have := hQ.1.leaf_indegree x
+      rw [h', h2] at this
+      exact absurd this (by norm_num)
+    · exact h'
+  · exact fun h => Relation.ReflTransGen.head ⟨c, hc, rfl⟩ h
+
 /-- **Lemma 8** (`lem::formula2:3`): contracting a cycle that induces a `2₃`-cycle does not change the
-concordance factors. -/
+concordance factors.
+
+The paper's proof: with `K` the number of lineages at the hybrid node `v` (at the top of its child
+edge `c`), `CF(Q⊕) = ∑ₖ P(K = k) CF(Q⊕ | K = k)` (`cf_eq_sum_jointCF`), and the same for `Q₀⊕`, whose
+part below `c` is that of `Q⊕` (`rootDist_cutLower_contract`), so `K` has the same law. Given the
+forest at the top of `c`, its value for a quartet tree is `quartetValue` in both networks
+(`jointCF_eq_sum_quartetValue`): for `K = 1, 2` a coalescence has occurred and its cluster of two
+lineages decides the quartet tree; for `K = 3` the three quartet trees are equally likely by
+exchangeability of the three lineages at `v`.
+
+Departure from the paper: for `K = 3` the paper conditions further on the event `𝔇` that the lineage
+of the fourth taxon `d` is in the first coalescent event, and uses exchangeability on each of
+`𝔇 = 0, 1`; the formalization uses exchangeability of the three lineages at `v` once
+(`NMSC.cherryMass_eq_third`); the order of coalescent events is not part of the gene tree
+distribution (`Phylogenetics.geneTreeDist` records topologies, not times), so `𝔇` has no meaning in
+the representation. -/
 theorem lemma8 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 3) :
     cf Q θ = cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) := by
-  sorry
+  obtain ⟨hcyc, hv, h2, -, h3⟩ := hC
+  have hN := hQ.binary.1
+  obtain ⟨c, hc, hcu⟩ := existsUnique_child_of_hybrid hQ.binary h2
+  obtain ⟨hcut, huniq⟩ := isCut_child_of_hybrid hQ.binary hQ.levelOne h2 hc hcu
+  -- the three taxa below `v` and the fourth one
+  obtain ⟨d, hd, hbelow⟩ := exists_fourth_of_three hQ.card_taxa h3
+  have hd' : ¬ Q.graph.Reaches (Q.graph.target c) (Q.leaf d) := fun h =>
+    hd ((reaches_leaf_iff_of_hybrid hQ.binary h2 hc hcu d).2 h)
+  have hbelow' : ∀ x, x ≠ d → Q.graph.Reaches (Q.graph.target c) (Q.leaf x) := fun x hx =>
+    (reaches_leaf_iff_of_hybrid hQ.binary h2 hc hcu x).1 (hbelow x hx)
+  -- the contracted network
+  obtain ⟨t, hK⟩ := isContractible_of_cycle hQ.binary hQ.levelOne hcyc hv h2
+  have hN₀ := hK.isPhylogenetic hN
+  have hθ₀ := hK.isMetric hQ.metric.1
+  have hS : ∀ w, Q.graph.Reaches (Q.graph.target c) w → w ∉ cycleNodes Q.graph C := fun w hw hwC =>
+    hN.acyclic v (Relation.TransGen.head' ⟨c, hc, rfl⟩
+      (hw.trans (reaches_hybrid hQ.binary hQ.levelOne hcyc hv h2 w hwC)))
+  have hcut₀ := isCut_contract hcyc hcut hS
+  let c₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'} :=
+    ⟨c, fun C' _ hC' => hC' ▸ notMem_of_source_eq_hybrid hQ.binary hQ.levelOne hcyc hv h2 hc⟩
+  have huniq₀ : ∀ g, (contractRooted Q (· = C)).graph.target g =
+      (contractRooted Q (· = C)).graph.target c₀ → g = c₀ := fun g hg =>
+    Subtype.ext (huniq g.1 ((mk_eq_mk_iff_of_notMem' hcyc (hS _ .refl)).1 hg))
+  have hd₀ : ¬ (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ (Q.graph.target c))
+      ((contractRooted Q (· = C)).leaf d) := fun h => hd' ((reaches_contract_iff hcyc hS _).1 h)
+  have hbelow₀ : ∀ x, x ≠ d → (contractRooted Q (· = C)).graph.Reaches
+      (Quot.mk _ (Q.graph.target c)) ((contractRooted Q (· = C)).leaf x) := fun x hx =>
+    (reaches_contract_iff hcyc hS _).2 (hbelow' x hx)
+  funext q
+  -- `CF(Q⊕) = ∑ₖ P(K = k) CF(Q⊕ | K = k)`, and the same for `Q₀⊕`
+  rw [cf_eq_sum_jointCF Q θ c q, cf_eq_sum_jointCF _ _ c₀ q]
+  refine sum_congr rfl fun k _ => ?_
+  -- `P(K = k) CF(Q⊕ | K = k) = P(K = k) CF(Q₀⊕ | K = k)`
+  rw [jointCF_eq_sum_quartetValue hN hQ.metric.1 hQ.card_taxa hcut rfl huniq hd' hbelow' k q,
+    jointCF_eq_sum_quartetValue hN₀ hθ₀ hQ.card_taxa hcut₀ rfl huniq₀ hd₀ hbelow₀ k q]
+  refine sum_congr rfl fun t _ => ?_
+  congr 2
+  unfold arcLaw
+  refine sum_congr rfl fun F₁ _ => ?_
+  rw [rootDist_cutLower_contract hcyc hcut hS θ 0 F₁]
+  rfl
 
 /-- The cycles of `Q⊕` that induce `2₁`- or `2₃`-cycles. -/
 def IsTwoOneOrThree (Q : RootedNetwork V E X) (C : Set E) : Prop :=

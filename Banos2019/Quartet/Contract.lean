@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Conditioning
+public import Banos2019.Network.CycleFacts
 
 /-!
 # Contracting one cycle (Baños 2019, Section 5)
@@ -433,6 +434,87 @@ theorem isMetric {θ : MetricData E} (hθ : Q.IsMetric θ) :
       mem_filter.2 ⟨mem_univ _, (hK.target_eq_iff _ W).2 (mem_filter.1 he).2⟩, rfl⟩
 
 end IsContractible
+
+omit [Fintype X] in
+/-- **Every cycle of a binary level-1 network can be contracted**: its top `t` receives every arc
+into the cycle off it (Lemma 3 and the orientation of the cycle). -/
+theorem isContractible_of_cycle (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
+    (hC : IsCycle Q.graph C) {v : V} (hv : v ∈ cycleNodes Q.graph C) (h2 : Q.graph.indegree v = 2) :
+    ∃ t, IsContractible Q C t := by
+  have := hQ.1.finite_arcs
+  obtain ⟨t, ⟨htS, ht0⟩, htu⟩ := existsUnique_top hQ h1 hC hv h2
+  have hnz : ∀ s ∈ cycleNodes Q.graph C, s ≠ t → ∃ e ∈ C, Q.graph.target e = s := by
+    intro s hs hst
+    have h0 : inCycle (N := Q) C s ≠ 0 := fun h0 => hst (htu s ⟨hs, h0⟩)
+    obtain ⟨e, he⟩ := card_pos.1 (Nat.pos_of_ne_zero h0)
+    exact ⟨e, (mem_filter.1 he).2.1, (mem_filter.1 he).2.2⟩
+  have hnotC : ∀ e, Q.graph.target e = t → e ∉ C := fun e he hC' => by
+    have : e ∈ univ.filter fun e => e ∈ C ∧ Q.graph.target e = t :=
+      mem_filter.2 ⟨mem_univ _, hC', he⟩
+    have hpos := card_pos.2 ⟨e, this⟩
+    unfold inCycle at ht0
+    omega
+  refine ⟨t, ⟨hC, fun x hx => ?_, htS, fun s hs => ?_, fun e he hs => ?_, hnotC, ?_⟩⟩
+  · -- a taxon has one incident arc
+    have hinc := hC.ncard_incident (source_ne_target_of_binary hQ) hx
+    have hout := (hQ.1.leaves (Q.leaf x)).2 ⟨x, rfl⟩
+    have hsub : {e | e ∈ C ∧ (Q.graph.source e = Q.leaf x ∨ Q.graph.target e = Q.leaf x)} ⊆
+        {e | Q.graph.target e = Q.leaf x} := fun e he =>
+      he.2.resolve_left fun h => (Q.graph.outdegree_eq_zero_iff _).1 hout e h
+    have := Set.ncard_le_ncard hsub (Set.toFinite _)
+    have h1x := hQ.1.leaf_indegree x
+    unfold DirectedMultigraph.indegree at h1x
+    omega
+  · have := hQ.1.finite_vertices
+    let rel : V → V → Prop := fun a c => Relation.TransGen Q.graph.Adj a c
+    have : IsTrans V rel := ⟨fun _ _ _ h₁ h₂ => h₁.trans h₂⟩
+    have : Std.Irrefl rel := ⟨fun a ha => hQ.1.acyclic a ha⟩
+    have hwf : WellFounded rel := Finite.wellFounded_of_trans_of_irrefl rel
+    induction s using hwf.induction with
+    | _ s ih =>
+      by_cases hst : s = t
+      · rw [hst]
+        exact .refl
+      · obtain ⟨e, he, het⟩ := hnz s hs hst
+        exact (ih _ (.single ⟨e, rfl, het⟩) (source_mem_cycleNodes he)).tail ⟨e, rfl, het⟩
+  · by_contra hst
+    obtain ⟨e', he', he't⟩ := hnz _ hs hst
+    by_cases hsv : Q.graph.target e = v
+    · exact he (mem_of_target_eq_hybrid hQ h1 hC hv h2 hsv)
+    · have hle := indegree_le_one_of_mem hQ h1 hC hv h2 hs hsv
+      have hne : e ≠ e' := fun h => he (h ▸ he')
+      have := two_le_indegree_of_two_targets hQ hne rfl he't
+      omega
+  · obtain ⟨c, hc, -⟩ := existsUnique_child_of_hybrid hQ h2
+    exact ⟨c, notMem_of_source_eq_hybrid hQ h1 hC hv h2 hc, hc ▸ hv⟩
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- **The child of a hybrid node is a cut vertex**, entered only by the child arc `c` of the hybrid
+node. -/
+theorem isCut_child_of_hybrid (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph) {v : V}
+    (h2 : Q.graph.indegree v = 2) {c : E} (hc : Q.graph.source c = v)
+    (huniq : ∀ g, Q.graph.source g = v → g = c) :
+    IsCut Q (Q.graph.target c) ∧ ∀ g, Q.graph.target g = Q.graph.target c → g = c := by
+  have hvz : Q.graph.Reaches v (Q.graph.target c) := .single ⟨c, hc, rfl⟩
+  have hzv : Q.graph.target c ≠ v := fun h => hQ.1.acyclic v (.single ⟨c, hc, h⟩)
+  have := hQ.1.finite_arcs
+  have hnot : ∀ w, Q.graph.Reaches (Q.graph.target c) w → w ≠ v := fun w hw hwv =>
+    hQ.1.acyclic v (Relation.TransGen.head' ⟨c, hc, rfl⟩ (hwv ▸ hw))
+  have hsrc : ∀ g, Q.graph.Reaches (Q.graph.target c) (Q.graph.target g) →
+      Q.graph.source g = v ∨ Q.graph.Reaches (Q.graph.target c) (Q.graph.source g) := by
+    intro g hg
+    have hs := reaches_source_of_below_hybrid hQ h1 h2 (hvz.trans hg) (hnot _ hg)
+    exact eq_or_reaches_of_unique_child huniq hs
+  refine ⟨⟨fun hr => ?_, fun g hg hne => ?_⟩, fun g hg => ?_⟩
+  · obtain ⟨g, -, hg⟩ := exists_arc_enter (p := fun w => w = Q.root) hr
+      (fun h => (Q.graph.indegree_eq_zero_iff _ |>.1 hQ.1.root_indegree) c h) rfl
+    exact (Q.graph.indegree_eq_zero_iff _ |>.1 hQ.1.root_indegree) g hg
+  · rcases hsrc g hg with hs | hs
+    · exact absurd (congrArg Q.graph.target (huniq g hs)) hne
+    · exact hs
+  · rcases hsrc g (hg ▸ .refl) with hs | hs
+    · exact huniq g hs
+    · exact absurd (Relation.TransGen.tail' hs ⟨g, rfl, hg⟩) (hQ.1.acyclic _)
 
 end Contract
 
