@@ -247,7 +247,9 @@ import all Banos2019.Quartet.Fig15
 import all Banos2019.Quartet.Fig16
 import all Banos2019.Quartet.Fig17
 import all Banos2019.Quartet.Fig18
+import all Banos2019.Quartet.FourCycleNet
 import all Banos2019.Quartet.Generic
+import all Banos2019.Quartet.GraphMaps
 import all Banos2019.Quartet.HybridGlue
 import all Banos2019.Quartet.LSARoot
 import all Banos2019.Quartet.Normal
@@ -259,6 +261,7 @@ import all Banos2019.Quartet.RootContract
 import all Banos2019.Quartet.RootedIso
 import all Banos2019.Quartet.SemidirectedCycles
 import all Banos2019.Quartet.SingleCycle
+import all Banos2019.Quartet.SingleFourCycle
 import all Banos2019.Quartet.SuppressCycles
 import all Banos2019.Quartet.Transfer
 import all Banos2019.Quartet.TreeContract
