@@ -218,9 +218,11 @@ of the two hybrid edges of a hybrid node are positive and sum to `1`; a tree edg
 def IsMetricNetwork [Fintype E] (N : RootedNetwork V E X) (θ : MetricData E) : Prop :=
   N.IsMetric θ ∧ ∀ e, 0 < θ.length e
 
-/-- **Definition 2, as printed**: on a binary rooted network, a metric gives every edge a positive
-length, every hybrid edge an inheritance probability in `(0, 1)`, with those of the two hybrid edges of
-a hybrid node summing to `1`; tree edges carry inheritance probability `1`, which the coalescent reads. -/
+/-- **Definition 2, clause by clause**: on a binary rooted network, a metric gives every edge a positive
+length and every hybrid edge an inheritance probability in `(0, 1)`, with those of the two hybrid edges
+of a hybrid node summing to `1`. The paper's `γ` is defined on hybrid edges only; the library's
+`MetricData` gives every arc an inheritance probability, and a tree edge has `1`, the convention stated
+in the module docstring. -/
 theorem isMetricNetwork_iff [Fintype E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (θ : MetricData E) :
     IsMetricNetwork N θ ↔

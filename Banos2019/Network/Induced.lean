@@ -529,10 +529,14 @@ def asSemidirected (N : RootedNetwork V E X) : SemidirectedNetwork V E X :=
 descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` whose edges are all below
 `LSA(Z)`.
 
-The proof is the paper's: `y` comes from Lemma 2; when `y` is not below `e`, the trek is
+The proof follows the paper: `y` comes from Lemma 2; when `y` is not below `e`, the trek is
 `trek_of_not_below`; otherwise `trek_of_config` is the induction on the number of nodes below `e`
 common to the two paths, with the five cases on the position of `w` in `trek_mainStep`, which uses
-that the network is binary. -/
+that the network is binary.
+
+Departure from the paper, in `trek_mainStep`: in case 5 (ii) the paper takes `w` on `Px` without loss
+of generality; the case `w` on `Py` only is not symmetric to it, and the construction of case 5 (i) is
+used for it. -/
 theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X}
     (hZ : Z.Nonempty) {e : E} (he : N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e))
     (hdesc : ∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) :

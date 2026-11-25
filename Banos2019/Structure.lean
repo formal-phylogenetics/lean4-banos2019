@@ -35,12 +35,14 @@ above or equal to `m`).
 The proof is the paper's induction, carried out on the top node `u` of the chain (a stable ancestor
 of `X` above `m`) in place of the network below it. The two out-edges of `u ≠ m` cannot lead to
 distinct children `x`, `y`: neither is `m` (Lemma 1 (i)); they are not both hybrid nodes; and if `x`
-has two out-edges `e₁`, `e₂`, the three paths from `u` to `m` through `e₁`, `e₂` and `y` give two
-cycles through the edge `(u, x)`, one from the paths through `e₁` and `y`, one from those through
-`e₂` and `y` (`exists_isCycle_of_walks`). By the level-1 condition they are one cycle; its other edge
-at `x` is `e₁` or `e₂`, which lies on only one of them, as the path through `y` cannot enter the tree
-node `x`. So the out-edges of `u` form a 2-cycle at a hybrid node other than `m` (Lemma 1 (i)), whose
-child is `m` or a tree node, and the chain continues from that child. -/
+has two out-edges `e₁`, `e₂`, there are three paths from `u` to `m`, through `e₁`, `e₂` and `y`. The
+paper states that these three paths contradict the level-1 condition (TeX l. 365–369) without saying
+how; this gap is filled along the paper's lines. The paths give two cycles through the edge `(u, x)`,
+one from the paths through `e₁` and `y`, one from those through `e₂` and `y`
+(`exists_isCycle_of_walks`). By the level-1 condition they are one cycle; its other edge at `x` is `e₁`
+or `e₂`, which lies on only one of them, as the path through `y` cannot enter the tree node `x`. So the
+out-edges of `u` form a 2-cycle at a hybrid node other than `m` (Lemma 1 (i)), whose child is `m` or a
+tree node, and the chain continues from that child. -/
 theorem proposition2 [Nonempty X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) :
     ∃ (n : ℕ) (t : Fin (n + 1) → V) (h : Fin n → V),
@@ -418,10 +420,12 @@ end Blocks
 a family `𝒟` of cycles are in different blocks of some cycle of `𝒟` (that is, different `v`-blocks for
 its hybrid node `v`). It holds for the graph of a rooted network and of an unrooted one.
 
-The published version gives no proof; the proof is that of arXiv v1, left in a comment of its source.
-Some edge `e` of a path from `a` to `b` is on a cycle `C` of `𝒟`. A walk from `a` to `b` avoiding the
-edges of `C` and the path give a cycle through `e` (`exists_isCycle_of_walks`), which is `C` by the
-level-1 condition; it would then have all its edges on the path, which a cycle does not
+The published version gives no proof; the proof is that of arXiv v1, left in a comment of its source
+(TeX l. 403–409). Some edge `e` of a path from `a` to `b` is on a cycle `C` of `𝒟`. A walk from `a` to
+`b` avoiding the edges of `C` and the path give a cycle `C'` through `e` (`exists_isCycle_of_walks`).
+arXiv v1 concludes with "this cycle contains some edges not in `C_v`, and at least one in `C_v`", which
+it does not justify (TeX l. 406); this gap is filled along its lines: `C' = C` by the level-1
+condition, so all the edges of `C` lie on the path, which a cycle does not
 (`IsPathOf.not_subset_of_isCycle`). -/
 theorem lemma4 {G : DirectedMultigraph V E} (ℓ : X → V) (hG : G.IsConnected) (h1 : IsLevelOne G)
     {𝒟 : Set (Set E)} (h𝒟 : ∀ C ∈ 𝒟, IsCycle G C) {a b : X}
