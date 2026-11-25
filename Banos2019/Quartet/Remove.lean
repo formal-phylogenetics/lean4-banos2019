@@ -17,7 +17,8 @@ quartet networks with the same concordance factors and the remaining cycles.
 * `inducesCycleType_cases`, `exists_inducesCycleType_of_isCycle`, `eq_of_inducesCycleType_three_two`:
   the cycles of an LSA quartet network.
 * `exists_lsaQuartet_of_corollary2`, `exists_lsaQuartet_deleteArc`, `exists_lsaQuartet_contractRooted`:
-  the networks of Corollary 2 and of Lemmas 9 and 10, as LSA quartet networks.
+  the networks of Corollary 2 and of Lemmas 9 and 10, as LSA quartet networks; the first is
+  `corollary2Net` (`corollary2Net_spec`, `sameCyclesBut_corollary2Net`).
 * `exists_fig18`: with a single cycle, a `3₂`-cycle, `Q⁻` is the network of Figure 18.
 * `OrderedAsQuartetTree`, `OnSegmentOfI`: the orderings of Propositions 6 and 7, kept by convex combinations.
 -/
@@ -110,14 +111,15 @@ theorem exists_lsaQuartet_of_corollary2 {Q : RootedNetwork V E X} {θ : MetricDa
       cf Q' θ' = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) ∧
         SameCyclesBut Q' Q (IsTwoOneOrThree Q) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
-  obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, -, hcyc, hcut⟩ :=
-    exists_reduce_contractSet hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric
-      (P := IsTwoOneOrThree Q) fun C _ ⟨v, hv⟩ => by
-        rcases hv with hv | hv
-        · exact hv.2.2.2.1
-        · exact hv.2.2.2.1
-  exact ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf,
+  obtain ⟨hQ', hcf, -, hcyc, hcut⟩ := corollary2Net_spec hQ hQ.metric
+  exact ⟨_, _, inferInstance, inferInstance, corollary2Net hQ, corollary2Metric hQ θ, hQ', hcf,
     fun n D => hcyc n D.ncard D, fun A hA => hcut _ (by rwa [Set.ncard_coe_finset])⟩
+
+/-- The cycles of `Q̃⊕` (`corollary2Net`) are those of `Q⊕` that do not induce `2₁`- or
+`2₃`-cycles. -/
+theorem sameCyclesBut_corollary2Net {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) : SameCyclesBut (corollary2Net hQ) Q (IsTwoOneOrThree Q) :=
+  fun n D => (corollary2Net_spec hQ hQ.metric).2.2.2.1 n D.ncard D
 
 /-- **The networks `Q₁⊕`, `Q₂⊕` of Lemmas 9 and 10**: deleting a hybrid edge of a cycle inducing a
 `2₂`- or a `3₁`-cycle, and suppressing the nodes of degree two this leaves (and the edge of the root,

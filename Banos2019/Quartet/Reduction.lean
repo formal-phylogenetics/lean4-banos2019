@@ -859,6 +859,45 @@ theorem lemma8 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 3) :
 def IsTwoOneOrThree (Q : RootedNetwork V E X) (C : Set E) : Prop :=
   ∃ v, InducesCycleType Q C v 2 1 ∨ InducesCycleType Q C v 2 3
 
+/-- The cycles inducing `2₁`- and `2₃`-cycles induce 2-cycles. -/
+theorem ncard_sub_eq_two_of_isTwoOneOrThree {C : Set E} (hC : IsTwoOneOrThree Q C) :
+    C.ncard - (if Q.root ∈ cycleNodes Q.graph C then 1 else 0) = 2 := by
+  obtain ⟨v, h | h⟩ := hC
+  · exact h.2.2.2.1
+  · exact h.2.2.2.1
+
+/-- **The network `Q̃⊕` of Corollary 2**: `Q⊕` with the cycles inducing `2₁`- and `2₃`-cycles
+contracted, and the nodes of degree two this leaves suppressed (`contractNet`). It depends on `Q⊕`
+only; its parameters `corollary2Metric hQ θ'`, from any parameters `θ'` of `Q⊕`, give each of its
+arcs the total length of a chain of arcs of `Q⊕` (`contractNetMetric_length`,
+`contractNetChain`, `disjoint_contractNetChain`) and the inheritance of the last arc of the chain
+(`contractNetMetric_inheritance`, `isHybridArc_contractNet_iff`). -/
+abbrev corollary2Net (hQ : IsLSAQuartet Q θ) :=
+  contractNet Q hQ.binary hQ.levelOne (IsTwoOneOrThree Q)
+
+/-- The parameters of `Q̃⊕` from parameters `θ'` of `Q⊕`. -/
+abbrev corollary2Metric (hQ : IsLSAQuartet Q θ) (θ' : MetricData E) :=
+  contractNetMetric Q hQ.binary hQ.levelOne (IsTwoOneOrThree Q) θ'
+
+/-- **`Q̃⊕` is an LSA quartet network**, with the concordance factors of `contractRooted Q
+(IsTwoOneOrThree Q)`, the cycles of `Q⊕` that do not induce `2₁`- or `2₃`-cycles with their types,
+and the cut edges of `Q⊕` between two pairs of taxa, for all parameters `θ'` of `Q⊕`. -/
+theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E} (hθ' : IsMetricNetwork Q θ') :
+    IsLSAQuartet (corollary2Net hQ) (corollary2Metric hQ θ') ∧
+      cf (corollary2Net hQ) (corollary2Metric hQ θ') =
+        cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ') ∧
+      {D | IsCycle (corollary2Net hQ).graph D}.ncard =
+        {D | IsCycle Q.graph D ∧ ¬ IsTwoOneOrThree Q D}.ncard ∧
+      (∀ n' k' (Dx : Set X), (∃ D w, InducesCycleType (corollary2Net hQ) D w n' k' ∧
+          {x | (corollary2Net hQ).graph.Reaches w ((corollary2Net hQ).leaf x)} = Dx) ↔
+        ∃ D w, ¬ IsTwoOneOrThree Q D ∧ InducesCycleType Q D w n' k' ∧
+          {x | Q.graph.Reaches w (Q.leaf x)} = Dx) ∧
+      (∀ A : Set X, A.ncard = 2 → ((corollary2Net hQ).HasCutSplit A ↔ Q.HasCutSplit A)) := by
+  obtain ⟨hb, h1', hlsa', hθ'', hcf, hnum, hcyc, hcut⟩ :=
+    contractNet_spec hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hθ'
+      (P := IsTwoOneOrThree Q) fun _ _ hC => ncard_sub_eq_two_of_isTwoOneOrThree hC
+  exact ⟨⟨hb, h1', hlsa', hQ.card_taxa, hθ''⟩, hcf, hnum, hcyc, hcut⟩
+
 /-- **Corollary 2** (`cor:2isgood`): contracting all cycles that induce `2₁`- or `2₃`-cycles does not
 change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`. -/
 theorem corollary2 (hQ : IsLSAQuartet Q θ) :

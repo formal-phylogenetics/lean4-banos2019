@@ -525,10 +525,14 @@ abbrev ContractRootVertex := {v : VS // ¬ (v = S.root ∧ S.graph.outdegree S.r
 /-- The arcs of `S` that remain when the arc at a root of outdegree one is contracted. -/
 abbrev ContractRootArc := {e : ES // ¬ (S.graph.source e = S.root ∧ S.graph.outdegree S.root = 1)}
 
+/-- The nodes of `finContract S hS`. -/
+abbrev FinContractVertex := Fin (Fintype.card (ContractRootVertex S))
+
+/-- The arcs of `finContract S hS`. -/
+abbrev FinContractArc := Fin (Fintype.card (ContractRootArc S))
+
 /-- **`S` with the arc at a root of outdegree one contracted, its nodes and arcs renamed by `Fin`.** -/
-def finContract :
-    RootedNetwork (Fin (Fintype.card (ContractRootVertex S))) (Fin (Fintype.card (ContractRootArc S)))
-      Y where
+def finContract : RootedNetwork (FinContractVertex S) (FinContractArc S) Y where
   graph :=
     { source := fun e => Fintype.equivFin _
         ((contractRoot S hS).graph.source ((Fintype.equivFin _).symm e))
@@ -538,15 +542,15 @@ def finContract :
   leaf x := Fintype.equivFin _ ((contractRoot S hS).leaf x)
 
 /-- The node of `S` of a node of `finContract S hS`. -/
-def finContractVertex (c : Fin (Fintype.card (ContractRootVertex S))) : VS :=
+def finContractVertex (c : FinContractVertex S) : VS :=
   ((Fintype.equivFin (ContractRootVertex S)).symm c).1
 
 /-- The arc of `S` of an arc of `finContract S hS`. -/
-def finContractArc (e : Fin (Fintype.card (ContractRootArc S))) : ES :=
+def finContractArc (e : FinContractArc S) : ES :=
   ((Fintype.equivFin (ContractRootArc S)).symm e).1
 
 /-- The parameters of `finContract S hS`: those of the arcs of `S`. -/
-def finContractMetric (θ : MetricData ES) : MetricData (Fin (Fintype.card (ContractRootArc S))) :=
+def finContractMetric (θ : MetricData ES) : MetricData (FinContractArc S) :=
   ⟨fun e => θ.length (finContractArc S e), fun e => θ.inheritance (finContractArc S e)⟩
 
 /-- `finContract S hS` is `S` with the arc at a root of outdegree one contracted. -/

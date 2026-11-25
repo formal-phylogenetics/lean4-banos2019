@@ -62,6 +62,60 @@ the last arc. -/
 def reduceMetric (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) (θ : MetricData E) :=
   finContractMetric (M.suppress hM) (M.suppressMetric θ)
 
+/-- The arcs of `reduceNet M hM`. -/
+abbrev ReduceArc (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) :=
+  FinContractArc (M.suppress hM)
+
+/-- The arcs of `M` on the chain of an arc of `reduceNet M hM`. -/
+def reduceChain (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) (e : ReduceArc M hM) : Finset E :=
+  univ.filter fun f => M.IsOnChain (finContractArc (M.suppress hM) e).1 f
+
+/-- The last arc of `M` on the chain of an arc of `reduceNet M hM`. -/
+def reduceLastArc (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) (e : ReduceArc M hM) : E :=
+  NMSC.lastArc hM (finContractArc (M.suppress hM) e).1
+
+section Chain
+
+variable {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
+
+/-- **The length of an arc of `reduceNet M hM` is the total length of its chain of arcs of `M`.** -/
+theorem reduceMetric_length (θ : MetricData E) (e : ReduceArc M hM) :
+    (reduceMetric M hM θ).length e = ∑ f ∈ reduceChain M hM e, θ.length f := rfl
+
+theorem mem_reduceChain_self (e : ReduceArc M hM) :
+    (finContractArc (M.suppress hM) e).1 ∈ reduceChain M hM e :=
+  mem_filter.2 ⟨mem_univ _, Or.inl rfl⟩
+
+/-- **The chains of distinct arcs of `reduceNet M hM` are disjoint.** -/
+theorem disjoint_reduceChain {e e' : ReduceArc M hM} (hne : e ≠ e') :
+    Disjoint (reduceChain M hM e) (reduceChain M hM e') := by
+  refine Finset.disjoint_left.2 fun f hf hf' => hne ?_
+  have h := IsOnChain.unique (mem_filter.1 hf).2 (mem_filter.1 hf').2
+    (finContractArc _ e).2 (finContractArc _ e').2
+  exact (isContraction_finContract _ (suppress_isPhylogenetic hM)).inj_e (Subtype.ext h)
+
+theorem reduceLastArc_mem (e : ReduceArc M hM) : reduceLastArc M hM e ∈ reduceChain M hM e :=
+  mem_filter.2 ⟨mem_univ _, NMSC.isOnChain_lastArc _ _⟩
+
+/-- **The inheritance of an arc of `reduceNet M hM` is that of the last arc of its chain.** -/
+theorem reduceMetric_inheritance {θ : MetricData E} (hθ : M.IsNormalized θ) (e : ReduceArc M hM) :
+    (reduceMetric M hM θ).inheritance e = θ.inheritance (reduceLastArc M hM e) :=
+  NMSC.suppressMetric_inheritance_eq_lastArc hM hθ _
+
+/-- **An arc of `reduceNet M hM` is a hybrid arc exactly when the last arc of its chain is one.** -/
+theorem isHybridArc_reduceNet_iff (htwo : ∃ x y : X, x ≠ y) (e : ReduceArc M hM) :
+    (reduceNet M hM).IsHybridArc e ↔ M.IsHybridArc (reduceLastArc M hM e) := by
+  have hS := suppress_isPhylogenetic hM
+  have hK := isContraction_finContract (M.suppress hM) hS
+  refine (hK.isHybridArc_iff (hK.isPhylogenetic hS htwo) e).trans ?_
+  unfold IsHybridArc
+  rw [suppress_indegree]
+  change 2 ≤ M.graph.indegree (chainEnd hM _) ↔ _
+  rw [← NMSC.target_lastArc hM]
+  rfl
+
+end Chain
+
 namespace IsReducible
 
 variable {M : RootedNetwork V E X} {θ : MetricData E} (hM : IsReducible M θ)
