@@ -81,4 +81,18 @@ theorem proposition5 {V E V' E' X : Type*} [Fintype V] [Fintype E] [Fintype V'] 
   classical
   rw [Q.cf_eq, Q'.cf_eq, key]
 
+/-- **The LSA exists**: in a binary rooted network, `lsa` is the lowest stable ancestor of the taxa
+(Definition 4). A binary network has taxa: going down from the root ends at a leaf. -/
+theorem lsa_isLSA {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) :
+    N.IsLSA Set.univ N.lsa := by
+  have hb := N.isBinaryNetwork_iff.mp hN
+  have : Nonempty X := ⟨(exists_reaches_leaf hb.1 N.root).choose⟩
+  exact N.isLSA_lsa hN
+
+/-- **The root reaches every node** of a binary rooted network (Definition 1 asks for a connected
+graph; the clauses give more). -/
+theorem root_reaches {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) (v : V) :
+    N.graph.Reaches N.root v :=
+  (N.isBinaryNetwork_iff.mp hN).1.root_reaches v
+
 end Banos2019.Model
