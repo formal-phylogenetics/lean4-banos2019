@@ -5,6 +5,8 @@ public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
 public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Quartet.HybridGlue
+public import Banos2019.Quartet.ReduceSpec
+public import Banos2019.Quartet.DisjointNet
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -16,6 +18,9 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
 * `lemma5`, `lemma6`: the cycles of `Q⁻`.
 * `observation1`, `theorem2`.
 * `lemma7`, `lemma8`, `corollary2`, `lemma9`, `lemma10`, `lemma11`: the reduction formulas.
+* `corollary2Net`, `corollary2Net_spec`: the network `Q̃⊕` of Corollary 2, with its nodes of degree
+  two suppressed, as an LSA quartet network for all parameters of `Q⊕`; `corollary2_step`: one step
+  of Corollary 2.
 * `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network.
 -/
 
@@ -857,11 +862,126 @@ theorem lemma8 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 3) :
 def IsTwoOneOrThree (Q : RootedNetwork V E X) (C : Set E) : Prop :=
   ∃ v, InducesCycleType Q C v 2 1 ∨ InducesCycleType Q C v 2 3
 
+/-- The cycles inducing `2₁`- and `2₃`-cycles induce 2-cycles. -/
+theorem ncard_sub_eq_two_of_isTwoOneOrThree {C : Set E} (hC : IsTwoOneOrThree Q C) :
+    C.ncard - (if Q.root ∈ cycleNodes Q.graph C then 1 else 0) = 2 := by
+  obtain ⟨v, h | h⟩ := hC
+  · exact h.2.2.2.1
+  · exact h.2.2.2.1
+
+/-- **The network `Q̃⊕` of Corollary 2**: `Q⊕` with the cycles inducing `2₁`- and `2₃`-cycles
+contracted, and the nodes of degree two this leaves suppressed (`contractNet`). It depends on `Q⊕`
+only; its parameters `corollary2Metric hQ θ'`, from any parameters `θ'` of `Q⊕`, give each of its
+arcs the total length of a chain of arcs of `Q⊕` (`contractNetMetric_length`,
+`contractNetChain`, `disjoint_contractNetChain`) and the inheritance of the last arc of the chain
+(`contractNetMetric_inheritance`, `isHybridArc_contractNet_iff`). -/
+abbrev corollary2Net (hQ : IsLSAQuartet Q θ) :=
+  contractNet Q hQ.binary hQ.levelOne (IsTwoOneOrThree Q)
+
+/-- The parameters of `Q̃⊕` from parameters `θ'` of `Q⊕`. -/
+abbrev corollary2Metric (hQ : IsLSAQuartet Q θ) (θ' : MetricData E) :=
+  contractNetMetric Q hQ.binary hQ.levelOne (IsTwoOneOrThree Q) θ'
+
+/-- **`Q̃⊕` is an LSA quartet network**, with the concordance factors of `contractRooted Q
+(IsTwoOneOrThree Q)`, the cycles of `Q⊕` that do not induce `2₁`- or `2₃`-cycles with their types,
+and the cut edges of `Q⊕` between two pairs of taxa, for all parameters `θ'` of `Q⊕`. -/
+theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E} (hθ' : IsMetricNetwork Q θ') :
+    IsLSAQuartet (corollary2Net hQ) (corollary2Metric hQ θ') ∧
+      cf (corollary2Net hQ) (corollary2Metric hQ θ') =
+        cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ') ∧
+      {D | IsCycle (corollary2Net hQ).graph D}.ncard =
+        {D | IsCycle Q.graph D ∧ ¬ IsTwoOneOrThree Q D}.ncard ∧
+      (∀ n' k' (Dx : Set X), (∃ D w, InducesCycleType (corollary2Net hQ) D w n' k' ∧
+          {x | (corollary2Net hQ).graph.Reaches w ((corollary2Net hQ).leaf x)} = Dx) ↔
+        ∃ D w, ¬ IsTwoOneOrThree Q D ∧ InducesCycleType Q D w n' k' ∧
+          {x | Q.graph.Reaches w (Q.leaf x)} = Dx) ∧
+      (∀ A : Set X, A.ncard = 2 → ((corollary2Net hQ).HasCutSplit A ↔ Q.HasCutSplit A)) := by
+  obtain ⟨hb, h1', hlsa', hθ'', hcf, hnum, hcyc, hcut⟩ :=
+    contractNet_spec hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hθ'
+      (P := IsTwoOneOrThree Q) fun _ _ hC => ncard_sub_eq_two_of_isTwoOneOrThree hC
+  exact ⟨⟨hb, h1', hlsa', hQ.card_taxa, hθ''⟩, hcf, hnum, hcyc, hcut⟩
+
+/-- With no cycle inducing a `2₁`- or `2₃`-cycle, contracting them changes nothing. -/
+theorem cf_contractRooted_of_forall_not (hQ : IsLSAQuartet Q θ)
+    (hP : ∀ C, IsCycle Q.graph C → ¬ IsTwoOneOrThree Q C) :
+    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  have hK := isContraction_contractSet_of_forall_not hQ.binary hQ.levelOne hP
+  have htwo : ∃ x y : X, x ≠ y := by
+    have : Nontrivial X := hQ.nontrivial
+    exact exists_pair_ne X
+  funext q
+  exact (hK.nmscCF_eq hQ.binary.1 htwo θ (fun a _ h1 => by have := hQ.binary.2.1; omega)
+    le_rfl q).symm
+
+/-- **One step of Corollary 2**: contracting a cycle `C` inducing a `2₁`- or `2₃`-cycle does not
+change the concordance factors (Lemma 7 or 8), and the network obtained, with its nodes of degree two
+suppressed (`contractNet`), is an LSA quartet network with one cycle fewer. -/
+theorem corollary2_step (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C) (hCP : IsTwoOneOrThree Q C) :
+    IsLSAQuartet (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
+      cf Q θ = cf (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
+      {D | IsCycle (contractNet Q hQ.binary hQ.levelOne (· = C)).graph D}.ncard <
+        {D | IsCycle Q.graph D}.ncard := by
+  obtain ⟨hb, h1', hlsa', hθ', hcf, hnum, -, -⟩ :=
+    contractNet_spec hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric (P := (· = C))
+      fun _ _ hC' => hC' ▸ ncard_sub_eq_two_of_isTwoOneOrThree hCP
+  refine ⟨⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, ?_, ?_⟩
+  · rw [hcf]
+    obtain ⟨v, h | h⟩ := hCP
+    · exact lemma7 hQ h
+    · exact lemma8 hQ h
+  · rw [hnum]
+    exact Set.ncard_lt_ncard ⟨fun D hD => hD.1, fun hsub => (hsub hC).2 rfl⟩ (Set.toFinite _)
+
+/-- **Contracting the remaining cycles after one step of Corollary 2** has the concordance factors
+of contracting the cycles inducing `2₁`- and `2₃`-cycles of `Q⊕` at once: the cycles of the network
+of the step that induce `2₁`- and `2₃`-cycles are those of `Q⊕` other than `C`
+(`contractNet_spec`), and the two contracted networks, with their nodes of degree two suppressed,
+are the same network up to the names of their nodes and arcs, with the same lengths along their
+chains and the same inheritance probabilities. -/
+theorem cf_contractRooted_contractNet (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C)
+    (hCP : IsTwoOneOrThree Q C) :
+    cf (contractRooted (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C))))
+      (contractMetric _ (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C)))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ)) =
+      cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  sorry
+
+omit [Fintype V] [Fintype E] in
+/-- **Corollary 2, by induction on the number of cycles**, for networks on `Type`. -/
+theorem corollary2_aux (n : ℕ) :
+    ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
+      IsLSAQuartet Q θ → {D | IsCycle Q.graph D}.ncard = n →
+        cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro V' E' _ _ Q θ hQ hn
+  by_cases hex : ∃ C, IsCycle Q.graph C ∧ IsTwoOneOrThree Q C
+  · obtain ⟨C, hC, hCP⟩ := hex
+    obtain ⟨hQ₁, hcf, hlt⟩ := corollary2_step hQ hC hCP
+    rw [hcf, ih _ (hn ▸ hlt) hQ₁ rfl, cf_contractRooted_contractNet hQ hC hCP]
+  · push Not at hex
+    exact cf_contractRooted_of_forall_not hQ hex
+
 /-- **Corollary 2** (`cor:2isgood`): contracting all cycles that induce `2₁`- or `2₃`-cycles does not
-change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`. -/
+change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`.
+
+The paper's proof applies Lemmas 7 and 8 to these cycles one after the other. Contracting one of them,
+`C`, does not change the concordance factors (`corollary2_step`, by Lemma 7 or 8); the network
+obtained, with its nodes of degree two suppressed, is an LSA quartet network with the other cycles
+(`contractNet_spec`), to which the induction applies (`corollary2_aux`); and contracting its cycles
+inducing `2₁`- and `2₃`-cycles has the concordance factors of contracting those of `Q⊕` at once
+(`cf_contractRooted_contractNet`). -/
 theorem corollary2 (hQ : IsLSAQuartet Q θ) :
     cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
-  sorry
+  by_cases hex : ∃ C, IsCycle Q.graph C ∧ IsTwoOneOrThree Q C
+  · obtain ⟨C, hC, hCP⟩ := hex
+    obtain ⟨hQ₁, hcf, -⟩ := corollary2_step hQ hC hCP
+    rw [hcf, corollary2_aux _ hQ₁ rfl, cf_contractRooted_contractNet hQ hC hCP]
+  · push Not at hex
+    exact cf_contractRooted_of_forall_not hQ hex
 
 /-- The law at the top of an arc does not depend on the inheritance probabilities of arcs not below
 it. -/
@@ -1807,7 +1927,29 @@ theorem cf_disjointNet_eq_cherryMass (hQ : IsLSAQuartet Q θ) (hC : InducesCycle
     (hb : Q.graph.Reaches v (Q.leaf b)) (q : QuartetTree X) :
     cf (disjointNet Q v h₁ h₂ a b) (disjointMetric Q v h₁ h₂ θ) q =
       cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) {{a}} {{b}}) q := by
-  sorry
+  obtain ⟨-, -, h2, -, hk⟩ := hC
+  -- the taxa below `v` are `a` and `b`
+  have hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b := by
+    have hsub : ({a, b} : Set X) ⊆ {x | Q.graph.Reaches v (Q.leaf x)} := by
+      rintro x (rfl | rfl)
+      · exact ha
+      · exact hb
+    have heq := Set.eq_of_subset_of_ncard_le hsub (by rw [hk, Set.ncard_pair hab])
+      (Set.toFinite _)
+    intro x
+    rw [← Set.mem_ofPred_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
+    rfl
+  have hD := disjointNet_isPhylogenetic hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow
+  have hnorm := disjointNet_isNormalized hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow
+    hQ.metric.1.isNormalized
+  have hsum := inheritance_add_eq_one hQ.metric.1 h2 hne hh₁ hh₂
+  rw [cf, nmscCF_eq_cherryMass_weak hD hnorm le_rfl, taxa_eq_univ hQ.card_taxa q,
+    cherryMass_eq_cherryOf, cherryMass_eq_cherryOf]
+  congr 1
+  funext F
+  rw [rootDist_disjointNet hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow θ F,
+    rootDist_hybInj hQ.binary.1 (isCut_hybrid hQ.binary hQ.levelOne h2) hne hh₁ hh₂
+      (hpar_of_hybrid hQ.binary h2 hne hh₁ hh₂) (γ := θ.inheritance h₁) rfl (by linarith)]
 
 /-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the
 taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge `c`),
@@ -1937,7 +2079,7 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
     have heq := Set.eq_of_subset_of_ncard_le hsub (by rw [hk, Set.ncard_pair hab])
       (Set.toFinite _)
     intro x
-    rw [← Set.mem_setOf_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
+    rw [← Set.mem_ofPred_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
     simp
   have hsupp : ∀ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G ≠ 0 →
       IsGoodForest G ∧ lineages G = {a, b} := by
