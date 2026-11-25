@@ -223,13 +223,17 @@ theorem observation1 (hX : Fintype.card X = 4) {G : Finset (Finset X)} (hG : IsB
 /-- **Theorem 2** (`thm::MRCA`): the concordance factors of four taxa `s` under the network
 multispecies coalescent on a level-1 rooted metric network are those of the LSA network `Q⊕_s`.
 
-This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`, whose argument is the paper's: by the Markov
-property at the LSA of `s` (`NMSC.sum_sum_mul_injDist_atInj`), the process is a mixture over the forest
-of the four lineages arriving there; a forest with a cluster of two lineages decides the quartet tree
-(Observation 1, as `NMSC.cherryMass_of_mem`), and with four lineages there the three quartet trees are
-equally likely by exchangeability (`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library
-proves it for every phylogenetic network with valid parameters and every inheritance correlation in
-`[0, 1]`; the level-1 hypothesis is not needed. -/
+This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`. As in the paper, by the Markov property at the LSA
+of `s` (`NMSC.sum_sum_mul_injDist_atInj`) the process is a mixture over the forest of the four lineages
+arriving there, and a forest with a cluster of two lineages decides the quartet tree (Observation 1,
+as `NMSC.cherryMass_of_mem`). With four lineages at the LSA, the paper conditions on the two rooted
+shapes of the gene tree (caterpillar and balanced), uses exchangeability of the lineages within each
+shape, and notes that four taxa have a single unrooted shape (TeX 592–594). The library uses the same
+exchangeability without splitting by rooted shape: the process above the LSA is invariant under the
+transpositions of the four lineages, so the three quartet trees are equally likely
+(`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library proves it for every phylogenetic
+network with valid parameters and every inheritance correlation in `[0, 1]`; the level-1 hypothesis is
+not needed. -/
 theorem theorem2 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4)
     (q : QuartetTree (s : Set X)) :
@@ -2350,9 +2354,10 @@ theorem not_isHybridArc_of_forall_not_isCycle {N : RootedNetwork V E X}
 /-- **Proposition 5 for networks without cycles**: LSA quartet networks without cycles are trees
 (`not_isHybridArc_of_forall_not_isCycle`), whose concordance factors are those of their species trees
 (`nmscCF_eq_quartetProb`); isomorphic unrooted metric networks give the same unrooted metric species
-tree (`sameUnrootedMetricTree_of_sdMetricIso`), and by Proposition 3 of Allman, Degnan, Rhodes (2011)
-(`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`) the same distribution of
-unrooted gene trees. -/
+tree (`sameUnrootedMetricTree_of_sdMetricIso`), and so, as the root placement does not matter
+(`pub:rootplace`, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`, the
+source's Theorem 9 and Proposition 11; the paper cites its Proposition 3, which as printed states
+identifiability), the same distribution of unrooted gene trees. -/
 theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2575,8 +2580,14 @@ theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype
 omit [Fintype X] in
 /-- **Proposition 5, by induction on the number of cycles**, for networks on `Type`.
 
-The paper's proof. With no cycle, `Q⊕` and `Q̃⊕` are trees, and Proposition 3 of Allman, Degnan,
-Rhodes (2011) gives the equality (`cf_eq_of_forall_not_isCycle`). Otherwise a cycle `D` of `Q⁻` is the
+The paper's proof. With no cycle, `Q⊕` and `Q̃⊕` are trees, whose concordance factors are those of
+their species trees, which have the same unrooted metric tree (`cf_eq_of_forall_not_isCycle`). The
+paper cites Proposition 3 of Allman, Degnan, Rhodes (2011) for the equality; the step is the statement
+that the root placement does not matter (`pub:rootplace`,
+`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`: the source's Theorem 9
+and Proposition 11, for four taxa). Proposition 3 as printed in the paper states that the unrooted
+metric tree is identifiable from the concordance factors and the rooted one is not, which is not this
+statement. Otherwise a cycle `D` of `Q⁻` is the
 cycle `φ D` of `Q̃⁻` of the same type (`SDIso.isCycleType_image`), and `D`, `φ D` come from cycles of
 `Q⊕`, `Q̃⊕` of that type (`inducesCycleType_liftEdges_of_isHybridNodeOf`). The lemma of that type
 writes the concordance factors of `Q⊕` and of `Q̃⊕` in terms of networks with fewer cycles, the same
@@ -2934,7 +2945,17 @@ end Proposition5
 network have the same concordance factors.
 
 The paper's proof, by induction on the number of cycles (`proposition5_aux`), for networks renamed to
-`Type` (`exists_isLSAQuartet_type`). -/
+`Type` (`exists_isLSAQuartet_type`). With no cycle the networks are trees, and the root placement does
+not matter (`pub:rootplace`, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`,
+the source's Theorem 9 and Proposition 11; the paper cites Proposition 3 of Allman, Degnan, Rhodes 2011,
+which as printed states identifiability). Otherwise Lemmas 7–11 are applied to corresponding cycles of
+`Q⊕` and `Q̃⊕`. The cycles are reduced in this order: `2₁`- and `2₃`-cycles (Lemmas 7 and 8), then
+`2₂`-cycles (Lemma 9), then `3₁`- and 4-cycles (Lemma 10), then the `3₂`-cycle (Lemma 11), which is
+then the only cycle (Lemma 6). This order fills a step the paper leaves unstated (TeX 810–812): Lemma 11
+has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of networks with fewer
+cycles; with the `3₂`-cycle alone, the child of its hybrid node is the parent of the two taxa below it,
+and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of these taxa, for the length
+`ℓ` of the edge out of the hybrid node, which the isomorphism keeps. -/
 theorem proposition5 {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X}
     {θ : MetricData E} (hQ : IsLSAQuartet Q θ) {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ' : IsLSAQuartet Q' θ')
