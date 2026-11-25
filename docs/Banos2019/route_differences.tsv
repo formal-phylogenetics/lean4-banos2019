@@ -35,3 +35,5 @@ lem::cpto4c	-3tax	Departure from the paper (recorded in proposition13's docstrin
 lem::cpto4c	-thm::main	See the line above (TeX l. 1231).
 pub:prop12	+cor::Cpgen	Departure from the paper (recorded in proposition12's docstring): the proof concludes from Proposition 8 that Q-_s has a 3_2-cycle (TeX l. 1213), but Proposition 8 also allows a 4-cycle; excluding it for generic parameters is Theorem 3, through Corollary 4.
 pub:prop12	+cfs	Lemma 12 is used without citation in "this implies C_v is not a k-cycle for k >= 4" (TeX l. 1213).
+thm::main	+lem:numberofcycles	The base case reads the quartet trees of N~ from the orderings through Section 6 (Propositions 6 and 7; TeX l. 1180). The step of Proposition 7's proof that places the concordance factors of a 3_2-cycle on the segment of the cherry below its hybrid node is used there, since Proposition 7's statement does not name the segment; that step, as in Proposition 7, uses Lemmas 5 and 6 for the cycles that can accompany the 3_2-cycle.
+thm::main	+thm::MRCA	As for Lemma 13: the base case and the data of the pieces read the concordance factors of Q+_s as those of N on s (TeX l. 1180, 1186).

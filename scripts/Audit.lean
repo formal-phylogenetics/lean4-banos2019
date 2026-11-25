@@ -230,6 +230,7 @@ import all Banos2019.Basic.Logic.RelationSymm
 import all Banos2019.Basic.MeasureTheory.SumCoordsNull
 import all Banos2019.Basic.Order.FiniteTotal
 import all Banos2019.Bridge.Examples
+import all Banos2019.Bridge.Figures
 import all Banos2019.Bridge.Generic
 import all Banos2019.Bridge.Invariance
 import all Banos2019.Bridge.Model
@@ -252,7 +253,6 @@ import all Banos2019.Identify.Generic
 import all Banos2019.Identify.Glue
 import all Banos2019.Identify.HybridBlock
 import all Banos2019.Identify.InducedCycles
-import all Banos2019.Identify.InducedOrder
 import all Banos2019.Identify.NonDegenerate
 import all Banos2019.Identify.QuartetCycles
 import all Banos2019.Identify.SameData
@@ -442,7 +442,8 @@ meta def solutionResults : List Name :=
   [``Banos2019Challenge.theorem3, ``Banos2019Challenge.theorem4, ``Banos2019Challenge.proposition5,
    ``Banos2019Challenge.equation1_balanced, ``Banos2019Challenge.lsa_isLSA,
    ``Banos2019Challenge.root_reaches, ``Banos2019Challenge.not_forGenericParams_false,
-   ``Banos2019Challenge.example6, ``Banos2019Challenge.example7]
+   ``Banos2019Challenge.example6, ``Banos2019Challenge.example7,
+   ``Banos2019Challenge.fig17_fig18_unrooted, ``Banos2019Challenge.fig17_fig18_tilde]
 
 /-- Lean's standard axioms. -/
 meta def standardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
