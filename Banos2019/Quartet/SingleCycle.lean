@@ -70,28 +70,28 @@ theorem card_eq_nine_of_single_hybrid (hQ : IsBinaryRootedNetwork Q) (hX : Finty
     intro w
     by_cases hw : w = Q.root
     · subst hw
-      rw [if_pos rfl, if_neg (Ne.symm hvr), hr0]
-    rw [if_neg hw]
+      rw [ite_eq_left rfl, ite_eq_right (Ne.symm hvr), hr0]
+    rw [ite_eq_right hw]
     by_cases hl : w ∈ Set.range Q.leaf
     · obtain ⟨x, rfl⟩ := hl
-      rw [if_neg (fun h : Q.leaf x = v => hvl ⟨x, h⟩), (hleaf x).1]
+      rw [ite_eq_right (fun h : Q.leaf x = v => hvl ⟨x, h⟩), (hleaf x).1]
     rcases hother w hw hl with h | h
-    · rw [if_neg (fun h' => by rw [h', hv2] at h; omega), h.1]
-    · rw [if_pos (huniq w (by omega)), h.1]
+    · rw [ite_eq_right (fun h' => by rw [h', hv2] at h; omega), h.1]
+    · rw [ite_eq_left (huniq w (by omega)), h.1]
   have hout : ∀ w, Q.graph.outdegree w + 2 * (if w ∈ Set.range Q.leaf then 1 else 0) +
       (if w = v then 1 else 0) = 2 := by
     intro w
     by_cases hw : w = Q.root
     · subst hw
-      rw [if_neg hrl, if_neg (Ne.symm hvr), hr2]
+      rw [ite_eq_right hrl, ite_eq_right (Ne.symm hvr), hr2]
     by_cases hl : w ∈ Set.range Q.leaf
-    · rw [if_pos hl]
+    · rw [ite_eq_left hl]
       obtain ⟨x, rfl⟩ := hl
-      rw [if_neg (fun h : Q.leaf x = v => hvl ⟨x, h⟩), (hleaf x).2]
-    rw [if_neg hl]
+      rw [ite_eq_right (fun h : Q.leaf x = v => hvl ⟨x, h⟩), (hleaf x).2]
+    rw [ite_eq_right hl]
     rcases hother w hw hl with h | h
-    · rw [if_neg (fun h' => by rw [h', hv2] at h; omega), h.2]
-    · rw [if_pos (huniq w (by omega)), h.2]
+    · rw [ite_eq_right (fun h' => by rw [h', hv2] at h; omega), h.2]
+    · rw [ite_eq_left (huniq w (by omega)), h.2]
   have hE₁ : Fintype.card E = ∑ w, Q.graph.indegree w := by
     rw [← Finset.card_univ, Finset.card_eq_sum_card_fiberwise (f := Q.graph.target)
       (t := univ) (fun _ _ => mem_univ _)]
@@ -102,9 +102,9 @@ theorem card_eq_nine_of_single_hybrid (hQ : IsBinaryRootedNetwork Q) (hX : Finty
     exact sum_congr rfl fun w _ => (outdegree_eq_card_filter_source _ w).symm
   have hs₁ := Finset.sum_congr rfl (fun w (_ : w ∈ (univ : Finset V)) => hin w)
   have hs₂ := Finset.sum_congr rfl (fun w (_ : w ∈ (univ : Finset V)) => hout w)
-  rw [sum_add_distrib, sum_add_distrib, sum_ite_eq', sum_ite_eq', if_pos (mem_univ _),
-    if_pos (mem_univ _), sum_const, card_univ, smul_eq_mul, mul_one] at hs₁
-  rw [sum_add_distrib, sum_add_distrib, ← mul_sum, sum_ite_eq', if_pos (mem_univ _), sum_const,
+  rw [sum_add_distrib, sum_add_distrib, sum_ite_eq', sum_ite_eq', ite_eq_left (mem_univ _),
+    ite_eq_left (mem_univ _), sum_const, card_univ, smul_eq_mul, mul_one] at hs₁
+  rw [sum_add_distrib, sum_add_distrib, ← mul_sum, sum_ite_eq', ite_eq_left (mem_univ _), sum_const,
     card_univ, smul_eq_mul] at hs₂
   have hL : ∑ w : V, (if w ∈ Set.range Q.leaf then 1 else 0) = 4 := by
     rw [sum_boole]
