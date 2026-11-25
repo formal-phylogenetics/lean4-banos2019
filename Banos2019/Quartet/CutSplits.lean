@@ -10,6 +10,8 @@ public import Banos2019.Network.Suppress
 * `hasCutSplit_of_isCut`: the taxa below a cut vertex entered by a single arc are the side of a cut
   edge.
 * `hasCutSplit_below_hybrid`: the taxa below a hybrid node are the side of a cut edge.
+* `exists_offCycle_edge`: a node of a cycle other than the root is on exactly one edge off the
+  cycle.
 * `hasCutSplit_nodeBlock`: the block of a node of a cycle other than the root is the side of a cut
   edge, the edge at that node off the cycle.
 -/
@@ -68,12 +70,12 @@ theorem hasCutSplit_below_hybrid (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne
   rw [heq]
   exact hs
 
-/-- **The block of a node `w` of a cycle `C` other than the root is the side of a cut edge**: `w` is
-on three edges, two of `C` and one off `C`, `g`; the nodes joined to `w` avoiding `C`, other than `w`,
-are entered only by `g`. -/
-theorem hasCutSplit_nodeBlock [Finite E] (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
-    {C : Set E} (hC : IsCycle N.graph C) {w : V} (hw : w ∈ cycleNodes N.graph C)
-    (hwr : w ≠ N.root) : N.HasCutSplit (nodeBlock N.graph N.leaf C w) := by
+/-- **A node of a cycle other than the root is on exactly one edge off the cycle**: it is on three
+edges, two of the cycle. -/
+theorem exists_offCycle_edge [Finite E] (hN : IsBinaryRootedNetwork N) {C : Set E}
+    (hC : IsCycle N.graph C) {w : V} (hw : w ∈ cycleNodes N.graph C) (hwr : w ≠ N.root) :
+    N.graph.outdegree w ≠ 0 ∧ ∃ g, g ∉ C ∧ (N.graph.source g = w ∨ N.graph.target g = w) ∧
+      ∀ f, f ∉ C → (N.graph.source f = w ∨ N.graph.target f = w) → f = g := by
   have hloop : ∀ f, N.graph.source f ≠ N.graph.target f := fun f h =>
     hN.1.acyclic _ (.single ⟨f, rfl, h.symm⟩)
   have hinc := hC.ncard_incident hloop hw
@@ -114,11 +116,21 @@ theorem hasCutSplit_nodeBlock [Finite E] (hN : IsBinaryRootedNetwork N) (h1 : Is
     have : g ∈ ({g} : Set E) := rfl
     rw [← hg] at this
     exact this
-  have hguniq : ∀ f, f ∉ C → (N.graph.source f = w ∨ N.graph.target f = w) → f = g := by
-    intro f hf hfw
-    have : f ∈ {f | f ∉ C ∧ (N.graph.source f = w ∨ N.graph.target f = w)} := ⟨hf, hfw⟩
-    rw [hg] at this
-    exact this
+  refine ⟨h0, g, hgmem.1, hgmem.2, fun f hf hfw => ?_⟩
+  have : f ∈ {f | f ∉ C ∧ (N.graph.source f = w ∨ N.graph.target f = w)} := ⟨hf, hfw⟩
+  rw [hg] at this
+  exact this
+
+/-- **The block of a node `w` of a cycle `C` other than the root is the side of a cut edge**: `w` is
+on three edges, two of `C` and one off `C`, `g`; the nodes joined to `w` avoiding `C`, other than `w`,
+are entered only by `g`. -/
+theorem hasCutSplit_nodeBlock [Finite E] (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    {C : Set E} (hC : IsCycle N.graph C) {w : V} (hw : w ∈ cycleNodes N.graph C)
+    (hwr : w ≠ N.root) : N.HasCutSplit (nodeBlock N.graph N.leaf C w) := by
+  have hloop : ∀ f, N.graph.source f ≠ N.graph.target f := fun f h =>
+    hN.1.acyclic _ (.single ⟨f, rfl, h.symm⟩)
+  obtain ⟨h0, g, hgC, hgw, hguniq⟩ := exists_offCycle_edge hN hC hw hwr
+  have hgmem : g ∉ C ∧ (N.graph.source g = w ∨ N.graph.target g = w) := ⟨hgC, hgw⟩
   -- the nodes joined to `w` avoiding `C`, other than `w`
   set T : Set V := {u | u ≠ w ∧ N.graph.Walks Cᶜ w u} with hT_def
   have hcn : ∀ u ∈ cycleNodes N.graph C, u ∉ T := fun u hu hT =>
