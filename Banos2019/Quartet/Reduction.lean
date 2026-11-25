@@ -3,7 +3,7 @@ module
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
-public import Banos2019.Quartet.CycleBlocks
+public import Banos2019.Quartet.SemidirectedCycles
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -45,31 +45,126 @@ theorem IsLSAQuartet.nontrivial {Q : RootedNetwork V E X} {θ : MetricData E} (h
 abbrev IsLSAQuartet.unrooted {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :=
   Banos2019.unrooted Q hQ.binary hQ.nontrivial
 
+/-- A cycle of `Q⁻` of type `n_k` is the image of the cycle `liftEdges D` of `Q⊕`, of type `n_k`:
+its hybrid node is that of `Q⊕` (`isHybridNodeOf_semidirected_iff`), it has one edge more when it
+passes through the root, and the taxa descending from its hybrid node are those below it
+(`descendsFrom_semidirected_iff`). -/
+theorem inducesCycleType_liftEdges {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {D : Set _} {n k : ℕ} (hD : IsCycleType hQ.unrooted D n k) :
+    ∃ v, InducesCycleType Q (liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) v n k := by
+  obtain ⟨hcyc, hn, v', hv', hk⟩ := hD
+  have hr := lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA
+  obtain ⟨hvD, h2⟩ := (isHybridNodeOf_semidirected_iff _ _ _ hQ.binary hQ.levelOne hcyc v').1 hv'
+  refine ⟨_, isCycle_liftEdges _ _ _ hcyc,
+    (sdVert_mem_cycleNodes_liftEdges_iff _ _ _ D v').2 hvD, h2, ?_, ?_⟩
+  · have h := card_cycleNodesOffRoot_liftEdges _ _ _ hr hcyc
+    rw [card_cycleNodesOffRoot (isCycle_liftEdges _ _ _ hcyc)] at h
+    omega
+  · rw [← hk]
+    congr 1
+    ext x
+    exact (descendsFrom_semidirected_iff _ _ _ v' h2 x).symm
+
 /-- **The cycles of `Q⁻` are those of `Q⊕`** (Section 5, the paragraph before Lemma 5): a cycle of `Q⊕`
 with hybrid node `v` induces an `n_k`-cycle of `Q⁻` exactly when its image is an `n_k`-cycle of `Q⁻`,
 and every cycle of `Q⁻` is such an image. The edge of `Q⁻` merged at the root stands for both edges at
-the root; the others are the edges of `Q⊕`. -/
+the root; the others are the edges of `Q⊕` (`liftEdges`, `exists_liftEdges_eq`). -/
 theorem inducesCycleType_iff {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (n k : ℕ) :
     (∃ C v, InducesCycleType Q C v n k) ↔ ∃ C, IsCycleType hQ.unrooted C n k := by
-  sorry
+  have hr := lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA
+  constructor
+  · rintro ⟨C, v, hC⟩
+    obtain ⟨D, hD, hDC⟩ := exists_liftEdges_eq _ _ _ hr hQ.binary hC.1
+    have hvr : v ≠ Q.root := fun h => by
+      have := hQ.binary.1.root_indegree
+      rw [← h, hC.2.2.1] at this
+      exact absurd this (by norm_num)
+    obtain ⟨v', rfl⟩ := exists_sdVert_of_ne hQ.binary.1 hQ.nontrivial hr hvr
+    have hvD := (sdVert_mem_cycleNodes_liftEdges_iff _ _ _ D v').1 (hDC ▸ hC.2.1)
+    refine ⟨D, hD, ?_, v', (isHybridNodeOf_semidirected_iff _ _ _ hQ.binary hQ.levelOne hD v').2
+      ⟨hvD, hC.2.2.1⟩, ?_⟩
+    · have h := card_cycleNodesOffRoot_liftEdges _ _ _ hr hD
+      rw [hDC, card_cycleNodesOffRoot hC.1, hC.2.2.2.1] at h
+      exact h.symm
+    · rw [← hC.2.2.2.2]
+      congr 1
+      ext x
+      exact descendsFrom_semidirected_iff _ _ _ v' hC.2.2.1 x
+  · rintro ⟨D, hD⟩
+    obtain ⟨v, hv⟩ := inducesCycleType_liftEdges hQ hD
+    exact ⟨_, v, hv⟩
 
 /-- **Lemma 5** (`lem:numberofcycles`): `Q⁻` has no `k`-cycle for `k ≥ 5`, at most one 4-cycle, and then
-no 3-cycle, and at most two 3-cycles. -/
+no 3-cycle, and at most two 3-cycles.
+
+The paper's proof, on the blocks of the cycles (`nodeBlock`), read on the cycles of `Q⊕` that the
+cycles of `Q⁻` come from (`liftEdges`): a cycle of `Q⁻` of size `k` has `k` pairwise disjoint nonempty
+blocks (`card_cycleNodesOffRoot_le`); two cycles of sizes `k₁`, `k₂` keep `k₁ + k₂ - 2` of them, all
+disjoint (`card_add_card_le_of_cycles`). For three cycles the paper counts `k₁ + k₂ + k₃ - 3` blocks;
+the cycle between the two others loses two, so the count is `k₁ + k₂ + k₃ - 4`
+(`card_add_card_add_card_le_of_cycles`), which is still more than four for three 3-cycles. -/
 theorem lemma5 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
     (∀ k ≥ 5, ∀ C, IsCycle hQ.unrooted.graph C → C.ncard ≠ k) ∧
       {C | IsCycle hQ.unrooted.graph C ∧ C.ncard = 4}.ncard ≤ 1 ∧
       ((∃ C, IsCycle hQ.unrooted.graph C ∧ C.ncard = 4) →
         ∀ C, IsCycle hQ.unrooted.graph C → C.ncard ≠ 3) ∧
       {C | IsCycle hQ.unrooted.graph C ∧ C.ncard = 3}.ncard ≤ 2 := by
-  sorry
+  have hr := lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA
+  have hX := hQ.card_taxa
+  have hsize : ∀ D, IsCycle hQ.unrooted.graph D → D.ncard ≤ 4 := fun D hD => by
+    rw [← card_cycleNodesOffRoot_liftEdges _ _ _ hr hD, ← hX]
+    exact card_cycleNodesOffRoot_le hQ.binary hQ.levelOne hQ.isLSA (isCycle_liftEdges _ _ _ hD)
+  have htwo : ∀ D D', IsCycle hQ.unrooted.graph D → IsCycle hQ.unrooted.graph D' → D ≠ D' →
+      D.ncard + D'.ncard ≤ 6 := fun D D' hD hD' hne => by
+    have h := card_add_card_le_of_cycles hQ.binary hQ.levelOne hQ.isLSA (isCycle_liftEdges _ _ _ hD)
+      (isCycle_liftEdges _ _ _ hD') fun h => hne (liftEdges_injective _ _ _ h)
+    rw [card_cycleNodesOffRoot_liftEdges _ _ _ hr hD, card_cycleNodesOffRoot_liftEdges _ _ _ hr hD',
+      hX] at h
+    exact h
+  refine ⟨fun k hk D hD h => by have := hsize D hD; omega, ?_, ?_, ?_⟩
+  · refine (Set.ncard_le_one (Set.toFinite _)).2 fun a ha b hb => ?_
+    by_contra hne
+    have := htwo a b ha.1 hb.1 hne
+    rw [ha.2, hb.2] at this
+    omega
+  · rintro ⟨D₄, hD₄, h4⟩ D hD h3
+    have hne : D₄ ≠ D := by
+      rintro rfl
+      omega
+    have := htwo _ _ hD₄ hD hne
+    omega
+  · by_contra h
+    push Not at h
+    obtain ⟨a, b, c, ha, hb, hc, hab, hac, hbc⟩ := (Set.two_lt_ncard_iff (Set.toFinite _)).1 h
+    have h3 := card_add_card_add_card_le_of_cycles hQ.binary hQ.levelOne hQ.isLSA
+      (isCycle_liftEdges _ _ _ ha.1) (isCycle_liftEdges _ _ _ hb.1) (isCycle_liftEdges _ _ _ hc.1)
+      (fun h => hab (liftEdges_injective _ _ _ h)) (fun h => hac (liftEdges_injective _ _ _ h))
+      (fun h => hbc (liftEdges_injective _ _ _ h))
+    rw [card_cycleNodesOffRoot_liftEdges _ _ _ hr ha.1, card_cycleNodesOffRoot_liftEdges _ _ _ hr hb.1,
+      card_cycleNodesOffRoot_liftEdges _ _ _ hr hc.1, ha.2, hb.2, hc.2, hX] at h3
+    omega
 
 /-- **Lemma 6** (`lem::no2 3_2`): `Q⁻` does not have two `3₂`-cycles, nor a `2₂`-cycle and a
-`4₁`-cycle. -/
+`4₁`-cycle.
+
+The paper's proof, on the cycles of `Q⊕` that the cycles of `Q⁻` come from (`inducesCycleType_liftEdges`):
+the two blocks of a `3₂`-cycle away from another `3₂`-cycle lie in the block of the node toward it,
+which is therefore the hybrid block, and each hybrid node would be below the other
+(`eq_of_inducesCycleType_three_two_of_card`); the blocks of a `4`-cycle are singletons, and a block of
+two taxa of the `2₂`-cycle would lie in one of them (`not_inducesCycleType_two_two_of_four`). -/
 theorem lemma6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
     (∀ C C', IsCycleType hQ.unrooted C 3 2 → IsCycleType hQ.unrooted C' 3 2 → C = C') ∧
       ¬ ((∃ C, IsCycleType hQ.unrooted C 2 2) ∧ ∃ C, IsCycleType hQ.unrooted C 4 1) := by
-  sorry
+  refine ⟨fun D D' hD hD' => ?_, ?_⟩
+  · obtain ⟨v, hv⟩ := inducesCycleType_liftEdges hQ hD
+    obtain ⟨v', hv'⟩ := inducesCycleType_liftEdges hQ hD'
+    exact liftEdges_injective _ _ _ (eq_of_inducesCycleType_three_two_of_card hQ.binary
+      hQ.levelOne hQ.isLSA hQ.card_taxa hv hv')
+  · rintro ⟨⟨D, hD⟩, ⟨D', hD'⟩⟩
+    obtain ⟨v, hv⟩ := inducesCycleType_liftEdges hQ hD
+    obtain ⟨v', hv'⟩ := inducesCycleType_liftEdges hQ hD'
+    exact not_inducesCycleType_two_two_of_four hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hv hv'
 
 omit [Fintype V] [Fintype E] in
 /-- **Observation 1** (`obs:quartetcoales`): the first coalescent event of a gene tree on four taxa
