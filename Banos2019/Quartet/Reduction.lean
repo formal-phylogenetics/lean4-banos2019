@@ -2398,7 +2398,9 @@ theorem isLSAQuartet_reduceNet_deleteArc {Q : RootedNetwork V E X} {θ : MetricD
 
 /-- **The unrooted networks of `Q₁⊕` and `Q̃₁⊕`** (proof of Proposition 5): deleting corresponding
 hybrid edges `h` and `φ h` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic
-metric unrooted networks. -/
+metric unrooted networks. The unrooted network of `Q₁⊕` is `Q⁻` without `h` with its nodes of degree
+two suppressed (`nonempty_sdMetricIso_suppress_deleteHybridEdge`), wherever the root of `Q⊕` is, and
+`φ` maps this network to the one of `Q̃⁻` without `φ h`. -/
 theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2422,7 +2424,9 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [F
 
 /-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
 2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
-unrooted networks. -/
+unrooted networks. The unrooted network of `Q₀⊕` is `Q⁻` with `D` contracted and its nodes of degree
+two suppressed (`nonempty_sdMetricIso_suppress_contractCycles`), whether or not the cycle of `Q⊕`
+passes through the root, and `φ` maps this network to the one of `Q̃⁻` with `φ D` contracted. -/
 theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2466,7 +2470,9 @@ theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
 
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
 nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
-edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. -/
+edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. The unrooted network of `Q_a⊕` is
+`Q⁻` cut below `w` (`nonempty_sdMetricIso_disjointNet_cutSD`), and `φ` maps this network to `Q̃⁻` cut
+below `φ w` (`SDMetricIso.nonempty_cutSD_of_isDirected`). -/
 theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
