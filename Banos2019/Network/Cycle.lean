@@ -20,7 +20,11 @@ semidirected network alike, so they apply to both.
 * `exists_isCycle_of_walks`: a walk between the ends of an edge `e` avoiding `e` closes a cycle
   through `e`; `IsLevelOne.eq_of_walks_compl`: in a level-1 graph, two nodes of a cycle joined by a
   walk avoiding its edges are equal; `IsPathOf.not_subset_of_isCycle`: the edges of a cycle are not
-  all on a path; `IsCycle.exists_ne_of_mem`: a node of a cycle is on two of its edges.
+  all on a path; `IsCycle.exists_ne_of_mem`: a node of a cycle is on two of its edges;
+  `IsPathOf.isCycle_insert`, `IsPathOf.isCycle_insert_insert`, `IsCycleOf.rotate`: building cycles
+  from paths, and reading a cycle from another node.
+* `IsLevelOne.exists_top`: a cycle of a level-1 rooted network has a top node, above its other nodes,
+  which no edge of the cycle enters; every arc entering another node of the cycle is on the cycle.
 * `lemma3`: a cycle of a binary level-1 rooted network has exactly one hybrid node and contains its two
   hybrid edges, and two cycles with a common node are the same (Rosselló, Valiente 2009).
 -/
@@ -189,7 +193,8 @@ theorem IsPathOf.isCycle_insert_insert {G : DirectedMultigraph V E} {F : Set E} 
     IsCycle G (insert f (insert g (Set.range q))) := by
   have hP' : IsPathOf G Set.univ n p q := ⟨fun _ => trivial, hP.link, hP.injective⟩
   have hQ := hP'.snoc hz (Set.mem_univ f) hjf
-  have h0 : Fin.snoc (α := fun _ => V) p z 0 = p 0 := Fin.snoc_castSucc (α := fun _ => V) (i := 0) ..
+  have h0 : Fin.snoc (α := fun _ => V) p z 0 = p 0 :=
+    Fin.snoc_castSucc (α := fun _ => V) (i := 0) ..
   have := hQ.isCycle_insert (f := g) (by
     rw [Fin.range_snoc]
     rintro (h | h)
@@ -359,18 +364,77 @@ theorem last_hit {G : DirectedMultigraph V E} {C : Set E} {s z : V} (h : G.Reach
 
 end Hits
 
+/-- **The top node of a cycle** of a level-1 rooted network: a node `a` of the cycle `C` above all
+its nodes, which no edge of `C` enters, and such that every arc entering another node of `C` is an
+edge of `C`. It is the only node of `C` that the root reaches by a directed path avoiding the edges
+of `C`: two such nodes would be joined by a walk avoiding them (`IsLevelOne.eq_of_walks_compl`). -/
+theorem IsLevelOne.exists_top {N : RootedNetwork V E X} (hN : N.IsPhylogenetic)
+    (h1 : IsLevelOne N.graph) {C : Set E} (hC : IsCycle N.graph C) :
+    ∃ a ∈ cycleNodes N.graph C, (∀ c ∈ cycleNodes N.graph C, N.graph.Reaches a c) ∧
+      (∀ g ∈ C, N.graph.target g ≠ a) ∧
+      (∀ c ∈ cycleNodes N.graph C, c ≠ a → ∀ g, N.graph.target g = c → g ∈ C) ∧
+      (N.root ∈ cycleNodes N.graph C → N.root = a) := by
+  have : Finite E := hN.finite_arcs
+  have hcyc : ∀ {a b}, N.graph.Reaches a b → N.graph.Adj b a → False := fun h hab =>
+    hN.acyclic _ (Relation.TransGen.tail' h hab)
+  -- the entry node `a`: the only node of `C` that the root reaches avoiding the edges of `C`
+  obtain ⟨k, v, e, hC', rfl⟩ := id hC
+  have hv0 : v ⟨0, hC'.pos⟩ ∈ cycleNodes N.graph (Set.range e) := by
+    rw [hC'.cycleNodes_eq]; exact ⟨_, rfl⟩
+  obtain ⟨a, haT, ha⟩ : ∃ a ∈ cycleNodes N.graph (Set.range e),
+      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root a := by
+    rcases first_hit (C := Set.range e) (hN.root_reaches (v ⟨0, hC'.pos⟩)) with h | h
+    · exact ⟨_, hv0, h⟩
+    · exact h
+  have huniq : ∀ c ∈ cycleNodes N.graph (Set.range e),
+      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root c → c = a :=
+    fun c hc h => h1.eq_of_walks_compl hC hc haT
+      ((N.graph.walks_symm (walks_of_adjOff h)).trans (walks_of_adjOff ha))
+  -- every arc entering a node of `C` other than `a` is an edge of `C`
+  have hE : ∀ c ∈ cycleNodes N.graph (Set.range e), c ≠ a →
+      ∀ g, N.graph.target g = c → g ∈ Set.range e := by
+    intro c hcT hca g hg
+    by_contra hgC
+    rcases last_hit (C := Set.range e) (hN.root_reaches (N.graph.source g)) with h | ⟨c₂, hc₂, h⟩
+    · exact hca (huniq c hcT (h.tail ⟨g, hgC, rfl, hg⟩))
+    · have hc₂c := h1.eq_of_walks_compl hC hc₂ hcT (walks_of_adjOff (h.tail ⟨g, hgC, rfl, hg⟩))
+      subst hc₂c
+      exact hcyc (reaches_of_adjOff h) ⟨g, rfl, hg⟩
+  have hroot : N.root ∈ cycleNodes N.graph (Set.range e) → N.root = a := fun h => huniq _ h .refl
+  -- `a` reaches every node of `C`
+  have : Finite V := hN.finite_vertices
+  let r : V → V → Prop := fun x y => Relation.TransGen N.graph.Adj x y
+  have : IsTrans V r := ⟨fun _ _ _ h h' => h.trans h'⟩
+  have : Std.Irrefl r := ⟨fun x h => hN.acyclic x h⟩
+  have hwf : WellFounded r := Finite.wellFounded_of_trans_of_irrefl r
+  have hF : ∀ c ∈ cycleNodes N.graph (Set.range e), N.graph.Reaches a c := by
+    intro c
+    induction c using hwf.induction with
+    | _ c ih =>
+      intro hcT
+      by_cases hca : c = a
+      · rw [hca]
+        exact .refl
+      have hcr : c ≠ N.root := fun h => hca (h ▸ hroot (h ▸ hcT))
+      obtain ⟨g, hg⟩ := (N.graph.one_le_indegree_iff c).mp (hN.nonroot_indegree c hcr)
+      have hgC := hE c hcT hca g hg
+      exact (ih _ (.single ⟨g, rfl, hg⟩) (source_mem_cycleNodes hgC)).tail ⟨g, rfl, hg⟩
+  -- no edge of `C` enters `a`
+  have hG : ∀ g ∈ Set.range e, N.graph.target g ≠ a := fun g hg h =>
+    hcyc (hF _ (source_mem_cycleNodes hg)) ⟨g, rfl, h⟩
+  exact ⟨a, haT, hF, hG, hE, hroot⟩
+
 /-- **Lemma 3** (`lem:assos`), for rooted networks: in a binary level-1 rooted network, a cycle `C`
 contains exactly one hybrid node `v`, and both hybrid edges of `v` are edges of `C`; and two cycles
 with a common node are the same, so `v` and its hybrid edges lie on exactly one cycle. The paper takes
 the lemma from Rosselló and Valiente (2009) and gives no proof.
 
-Proved here directly. Two nodes of `C` are not joined by a walk avoiding the edges of `C`
-(`IsLevelOne.eq_of_walks_compl`), so the root reaches exactly one node `a` of `C` by a directed path
-avoiding them; every arc entering another node of `C` is an edge of `C`, `a` is above every node
-of `C`, and no edge of `C` enters `a`. A lowest node of `C` is entered by its two edges of `C`, so
-it is a hybrid node; counting the edges of `C` by the node they enter (none enters `a`, at least one
-enters every other node, two enter a hybrid node) leaves room for only one. A node on two cycles without a
-common edge would be on four edges, and a node of a binary network is on at most three. -/
+Proved here directly. The cycle has a top node `a` (`IsLevelOne.exists_top`): no edge of `C` enters
+`a`, and every arc entering another node of `C` is an edge of `C`. A lowest node of `C` is entered
+by its two edges of `C`, so it is a hybrid node; counting the edges of `C` by the node they enter
+(none enters `a`, at least one enters every other node, two enter a hybrid node) leaves room for only
+one. A node on two cycles without a common edge would be on four edges, and a node of a binary
+network is on at most three. -/
 theorem lemma3 [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {C : Set E} (hC : IsCycle N.graph C) :
     (∃! v, v ∈ cycleNodes N.graph C ∧ N.graph.indegree v = 2) ∧
@@ -383,51 +447,9 @@ theorem lemma3 [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork 
     hN.1.acyclic _ (Relation.TransGen.tail' h hab)
   have htwo := fun {u} (hu : u ∈ cycleNodes N.graph C) =>
     hC.exists_ne_of_mem (fun f _ => hloop f) hu
-  -- the entry node `a`: the only node of `C` that the root reaches avoiding the edges of `C`
+  obtain ⟨a, haT, -, hG, hE, hroot⟩ := h1.exists_top hN.1 hC
   obtain ⟨k, v, e, hC', rfl⟩ := id hC
-  have hv0 : v ⟨0, hC'.pos⟩ ∈ cycleNodes N.graph (Set.range e) := by
-    rw [hC'.cycleNodes_eq]; exact ⟨_, rfl⟩
-  obtain ⟨a, haT, ha⟩ : ∃ a ∈ cycleNodes N.graph (Set.range e),
-      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root a := by
-    rcases first_hit (C := Set.range e) (hN.1.root_reaches (v ⟨0, hC'.pos⟩)) with h | h
-    · exact ⟨_, hv0, h⟩
-    · exact h
-  have huniq : ∀ c ∈ cycleNodes N.graph (Set.range e),
-      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root c → c = a :=
-    fun c hc h => h1.eq_of_walks_compl hC hc haT
-      ((N.graph.walks_symm (walks_of_adjOff h)).trans (walks_of_adjOff ha))
-  -- every arc entering a node of `C` other than `a` is an edge of `C`
-  have hE : ∀ c ∈ cycleNodes N.graph (Set.range e), c ≠ a →
-      ∀ g, N.graph.target g = c → g ∈ Set.range e := by
-    intro c hcT hca g hg
-    by_contra hgC
-    rcases last_hit (C := Set.range e) (hN.1.root_reaches (N.graph.source g)) with h | ⟨c₂, hc₂, h⟩
-    · exact hca (huniq c hcT (h.tail ⟨g, hgC, rfl, hg⟩))
-    · have hc₂c := h1.eq_of_walks_compl hC hc₂ hcT (walks_of_adjOff (h.tail ⟨g, hgC, rfl, hg⟩))
-      subst hc₂c
-      exact hcyc (reaches_of_adjOff h) ⟨g, rfl, hg⟩
-  have hroot : N.root ∈ cycleNodes N.graph (Set.range e) → N.root = a := fun h => huniq _ h .refl
-  -- `a` reaches every node of `C`
   have : Finite V := hN.1.finite_vertices
-  let r : V → V → Prop := fun x y => Relation.TransGen N.graph.Adj x y
-  have : IsTrans V r := ⟨fun _ _ _ h h' => h.trans h'⟩
-  have : Std.Irrefl r := ⟨fun x h => hN.1.acyclic x h⟩
-  have hwf : WellFounded r := Finite.wellFounded_of_trans_of_irrefl r
-  have hF : ∀ c ∈ cycleNodes N.graph (Set.range e), N.graph.Reaches a c := by
-    intro c
-    induction c using hwf.induction with
-    | _ c ih =>
-      intro hcT
-      by_cases hca : c = a
-      · rw [hca]
-        exact .refl
-      have hcr : c ≠ N.root := fun h => hca (h ▸ hroot (h ▸ hcT))
-      obtain ⟨g, hg⟩ := (N.graph.one_le_indegree_iff c).mp (hN.1.nonroot_indegree c hcr)
-      have hgC := hE c hcT hca g hg
-      exact (ih _ (.single ⟨g, rfl, hg⟩) (source_mem_cycleNodes hgC)).tail ⟨g, rfl, hg⟩
-  -- no edge of `C` enters `a`
-  have hG : ∀ g ∈ Set.range e, N.graph.target g ≠ a := fun g hg h =>
-    hcyc (hF _ (source_mem_cycleNodes hg)) ⟨g, rfl, h⟩
   -- so both edges of `C` at `a` leave it, and `a` is not a hybrid node
   have hA : N.graph.indegree a ≠ 2 := by
     intro h2

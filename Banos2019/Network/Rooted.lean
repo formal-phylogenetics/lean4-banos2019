@@ -296,7 +296,12 @@ theorem isLeastStableAncestor_iff_def4 (N : RootedNetwork V E X) (Z : Set X) (v 
 /-- **Lemma 1** (`lem::MRCAproperties`): for nonempty sets of taxa `Z ⊆ Y` of a binary rooted network,
 (i) the LSA of `Z` has indegree at most one; (ii) at most one of its out-edges is hybrid; (iii) the LSA
 of `Z` is below or equal to the LSA of `Y`. The paper states the lemma for every `Z ⊆ X`; the LSA of
-the empty set does not exist (every node lies on every path to a taxon of `∅`). -/
+the empty set does not exist (every node lies on every path to a taxon of `∅`).
+
+The proof of (ii) is the paper's, with two steps filled in. A taxon of `Z` is below each child `xᵢ` of
+`LSA(Z)`: otherwise every path to `Z` would leave `LSA(Z)` through the other child, a lower stable
+ancestor. If the other parent of `x₁` is below `LSA(Z)`, a path to it from `LSA(Z)` starts with `e₂`,
+since through `e₁` it would close a directed cycle; so it is below `x₂`, and symmetrically. -/
 theorem lemma1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z Y : Set X}
     (hZ : Z.Nonempty) (hZY : Z ⊆ Y) :
     N.graph.indegree (lsa hN.1 Z hZ) ≤ 1 ∧
