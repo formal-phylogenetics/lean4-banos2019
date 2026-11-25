@@ -133,7 +133,11 @@ theorem example6 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     (h₄ : len 6 = -Real.log (13 / 14))
     (hiso : InducesNetwork hQ (fig18 a b c) (figMetric len (1 / 2))) :
     CF Q θ a b c d h = (32 / 98, 33 / 98, 33 / 98) := by
-  sorry
+  -- equation (9) of Example 5, with `x₁ = x₂ = 6/7`, `x₃ = 1/14`, `x₄ = 13/14`
+  have e := example5 h hQ len (1 / 2) hiso
+  simp only [h₁, h₂, h₃, h₄, neg_neg] at e
+  rw [e, Real.exp_log (by norm_num), Real.exp_log (by norm_num), Real.exp_log (by norm_num)]
+  norm_num
 
 /-- **Example 7** (`ex::cpbc4`): the 4-cycle of Figure 17 with `γ = 1/2` and `t₁ = t₂ = -log(48/49)` has
 the concordance factors of Example 6, up to the labels of the taxa: by equation (8) its concordance
@@ -146,6 +150,19 @@ theorem example7 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     (hiso : InducesNetwork hQ (fig17 a b c) (figMetric len (1 / 2))) :
     CF Q θ a b c d h = (33 / 98, 32 / 98, 33 / 98) ∧
       CF Q θ a c b d (distinct4_acbd h) = (32 / 98, 33 / 98, 33 / 98) := by
-  sorry
+  -- equation (8) of Example 4, with `x₁ = x₂ = 48/49`
+  have e := example4 h hQ len (1 / 2) hiso
+  simp only [h₁, h₂, neg_neg] at e
+  rw [Real.exp_log (by norm_num)] at e
+  norm_num at e
+  refine ⟨by rw [e]; norm_num, ?_⟩
+  -- the same three quartet trees, `ac|bd`, `ab|cd`, `ad|cb`
+  have hadcb : quartetTree a d c b (distinct4_adbc (distinct4_acbd h)) =
+      quartetTree a d b c (distinct4_adbc h) := Subtype.ext (by
+    simp only [quartetTree]
+    rw [Finset.pair_comm c b])
+  simp only [CF, Prod.mk.injEq] at e ⊢
+  rw [hadcb, e.1, e.2.1, e.2.2]
+  norm_num
 
 end Banos2019
