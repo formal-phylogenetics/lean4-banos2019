@@ -190,6 +190,7 @@ import all PhyloNetwork
 import all Banos2019.Basic.Analysis.AnalyticZeroSet
 import all Banos2019.Basic.Data.Set.Card
 import all Banos2019.Basic.Logic.EquivOfInjective
+import all Banos2019.Basic.Logic.RelationAvoid
 import all Banos2019.Basic.Logic.RelationSymm
 import all Banos2019.Basic.Order.FiniteTotal
 import all Banos2019.Bridge.Examples
@@ -229,6 +230,7 @@ import all Banos2019.Network.Suppress
 import all Banos2019.Network.SuppressIso
 import all Banos2019.Network.TrekArc
 import all Banos2019.Network.TrekEdges
+import all Banos2019.Quartet.CherryArc
 import all Banos2019.Quartet.Concrete
 import all Banos2019.Quartet.Conditioning
 import all Banos2019.Quartet.Contract
@@ -245,6 +247,7 @@ import all Banos2019.Quartet.HybridGlue
 import all Banos2019.Quartet.Normal
 import all Banos2019.Quartet.Reduction
 import all Banos2019.Quartet.Remove
+import all Banos2019.Quartet.RootedIso
 import all Banos2019.Quartet.SemidirectedCycles
 import all Banos2019.Quartet.Transfer
 import all Banos2019.Quartet.Trees
