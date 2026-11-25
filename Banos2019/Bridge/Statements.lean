@@ -9,7 +9,9 @@ public import Banos2019.Identifiability
 `Banos2019.Model.theorem3`, `theorem4`, `proposition5` are the theorems of the Challenge
 (`palomar/Banos2019/Challenge.lean`), stated on the definitions of `Banos2019.Defs` and proved from the
 library's `Banos2019.theorem3`, `Banos2019.theorem4`, `Banos2019.proposition5` through the bridges of
-`Banos2019.Bridge`. The Solution restates them.
+`Banos2019.Bridge`. `lsa_isLSA` and `root_reaches` are two of the Challenge's checks of its
+definitions; the third, `equation1_balanced`, is in `Banos2019.Bridge.Examples`. The Solution restates
+them.
 -/
 
 @[expose] public noncomputable section

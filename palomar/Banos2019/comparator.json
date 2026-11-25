@@ -4,9 +4,16 @@
   "theorem_names": [
     "Banos2019Challenge.theorem3",
     "Banos2019Challenge.theorem4",
-    "Banos2019Challenge.proposition5"
+    "Banos2019Challenge.proposition5",
+    "Banos2019Challenge.equation1_balanced",
+    "Banos2019Challenge.lsa_isLSA",
+    "Banos2019Challenge.root_reaches"
   ],
   "definition_names": [],
-  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
   "enable_nanoda": true
 }

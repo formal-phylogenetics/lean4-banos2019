@@ -49,6 +49,15 @@ left by the contraction suppressed.
 * `proposition5` (Proposition 5): two binary level-1 metric LSA quartet networks (on four taxa, rooted
   at the LSA of the taxa) that induce isomorphic metric unrooted networks have the same concordance
   factors.
+
+Three further theorems check the definitions against known facts:
+
+* `equation1_balanced`: on the balanced rooted quartet tree `((0,1),(2,3))` with root edges of lengths
+  `t₁`, `t₂`, whose unrooted internal edge has length `t₁ + t₂`, the concordance factors are those of
+  equation (1) (Allman, Degnan and Rhodes 2011): `1 - ⅔ e^{-(t₁+t₂)}` for `01|23` and `⅓ e^{-(t₁+t₂)}`
+  for the two other quartet trees.
+* `lsa_isLSA`: in a binary rooted network, `lsa` is the lowest stable ancestor of the taxa.
+* `root_reaches`: in a binary rooted network, the root reaches every node.
 -/
 
 -- BEGIN SHARED DEFINITIONS
@@ -524,6 +533,33 @@ theorem proposition5 {V E V' E' X : Type*} [Fintype V] [Fintype E] [Fintype V'] 
     (hr' : Q'.IsLSA Set.univ Q'.root) (hθ : Q.IsMetric θ) (hθ' : Q'.IsMetric θ')
     (hiso : Nonempty (SDMetricIso Q.unrooted (Q.unrootedParams θ) Q'.unrooted (Q'.unrootedParams θ'))) :
     Q.cf θ = Q'.cf θ' := by
+  sorry
+
+/-- **Equation (1) on a quartet tree** (a check of the definitions): the balanced rooted quartet tree
+`((0,1),(2,3))`, whose root `0` has the children `1` and `2`, with the leaves `3, 4` of the taxa `0, 1`
+below `1` and the leaves `5, 6` of the taxa `2, 3` below `2`, with root edges of lengths `t₁`, `t₂` and
+pendant edges of length one, is a binary metric network, and its concordance factors are
+`1 - ⅔ e^{-(t₁+t₂)}` for the quartet tree `01|23` and `⅓ e^{-(t₁+t₂)}` for `02|13` and `03|12`. -/
+theorem equation1_balanced (t₁ t₂ : ℝ) (h₁ : 0 < t₁) (h₂ : 0 < t₂) :
+    let N : Network (Fin 7) (Fin 6) (Fin 4) := ⟨⟨![0, 0, 1, 1, 2, 2], ![1, 2, 3, 4, 5, 6]⟩, 0, ![3, 4, 5, 6]⟩
+    let θ : Params (Fin 6) := ⟨![t₁, t₂, 1, 1, 1, 1], fun _ => 1⟩
+    N.IsBinaryNetwork ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 1 - 2 / 3 * Real.exp (-(t₁ + t₂))) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 1 / 3 * Real.exp (-(t₁ + t₂))) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 1 / 3 * Real.exp (-(t₁ + t₂))) := by
+  sorry
+
+/-- **The lowest stable ancestor exists** (a check of the definitions): in a binary rooted network,
+`lsa` is the LSA of all the taxa (Definition 4). -/
+theorem lsa_isLSA {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) :
+    N.IsLSA Set.univ N.lsa := by
+  sorry
+
+/-- **The root reaches every node** of a binary rooted network (a check of the definitions):
+Definition 1's connectedness follows from its other clauses. -/
+theorem root_reaches {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) (v : V) :
+    N.graph.Reaches N.root v := by
   sorry
 
 end Banos2019Challenge

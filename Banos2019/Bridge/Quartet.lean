@@ -11,7 +11,8 @@ library's speaks of `Q⁻_s = (N⊕_s)⁻`, the unrooted network of the induced 
 4-cycles (`HasFourCycle`). They are joined by Proposition 1, `(N⁻)_s ≅ (N⁺_s)⁻`, and by the fact
 that `N⊕_s` is the part of `N⁺_s` below its LSA: below `LSA(s)`, both are the nodes and arcs of `N`
 above taxa of `s`, with the nodes of indegree and outdegree one suppressed
-(`belowLSA_inducedRooted_sdIso`), so that `(N⁺_s)⁻ ≅ (N⊕_s)⁻` (`unrooted_inducedRooted_sdIso`).
+(`belowLSA_inducedRooted_sdIso`), so that `(N⁺_s)⁻ ≅ (N⊕_s)⁻`
+(`nonempty_sdIso_unrooted_inducedRooted`).
 
 * `SDIso.ofValues`: an isomorphism of two semidirected networks whose nodes and edges are given, by
   injective maps with the same images, by the same objects.
