@@ -122,6 +122,35 @@ theorem ncard_cycleNodes {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).ncard
 
 theorem IsCycle.finite [Finite E] {C : Set E} (_ : IsCycle G C) : C.Finite := Set.toFinite C
 
+/-- A directed path all of whose arcs are in `F` is a walk on `F`. -/
+theorem walks_of_reaches_of_forall {a b : V} (h : G.Reaches a b) {F : Set E}
+    (hF : ∀ f, G.Reaches a (G.source f) → G.Reaches (G.target f) b → f ∈ F) : G.Walks F a b := by
+  induction h with
+  | refl => exact .refl
+  | @tail y z hay hyz ih =>
+    obtain ⟨f, hfs, hft⟩ := hyz
+    refine (ih fun f' h₁ h₂ => hF f' h₁ (h₂.tail ⟨f, hfs, hft⟩)).tail
+      ⟨f, hF f (by rw [hfs]; exact hay) (by rw [hft]; exact .refl), Or.inl ⟨hfs, hft⟩⟩
+
+/-- **A walk on `F` either avoids the edges of `C` or reaches a node of `C` before using any.** -/
+theorem walks_inter_compl_or_exists_cycleNodes {F C : Set E} {a b : V} (h : G.Walks F a b) :
+    G.Walks (F ∩ Cᶜ) a b ∨ ∃ c ∈ cycleNodes G C, G.Walks (F ∩ Cᶜ) a c := by
+  induction h with
+  | refl => exact Or.inl .refl
+  | @tail y z hay hyz ih =>
+    obtain ⟨f, hfF, hf⟩ := hyz
+    by_cases hfC : f ∈ C
+    · have hy : y ∈ cycleNodes G C := by
+        rcases hf with ⟨h, -⟩ | ⟨-, h⟩
+        · exact ⟨f, hfC, Or.inl h⟩
+        · exact ⟨f, hfC, Or.inr h⟩
+      rcases ih with h | h
+      · exact Or.inr ⟨y, hy, h⟩
+      · exact Or.inr h
+    · rcases ih with h | h
+      · exact Or.inl (h.tail ⟨f, ⟨hfF, hfC⟩, hf⟩)
+      · exact Or.inr h
+
 end Graph
 
 section Rooted
@@ -313,13 +342,81 @@ theorem existsUnique_child_of_hybrid : ∃ c, N.graph.source c = v ∧ ∀ g, N.
   have : g ∈ ({c} : Set E) := hc ▸ hg
   exact this
 
+omit hC hv h2 in
+/-- **Two arcs into one vertex lie on a cycle**: the walk from their common target up one of them to
+the root and down to the source of the other closes a cycle through the other (`exists_isCycle_of_walks`),
+which contains both arcs into its node of indegree two (Lemma 3). -/
+theorem exists_isCycle_of_target_eq {f₁ f₂ : E} (hne : f₁ ≠ f₂)
+    (ht : N.graph.target f₁ = N.graph.target f₂) : ∃ C', IsCycle N.graph C' ∧ f₁ ∈ C' ∧ f₂ ∈ C' := by
+  have := hN.1.finite_arcs
+  have hcyc : ∀ {a b}, N.graph.Reaches a b → N.graph.Adj b a → False := fun h hab =>
+    hN.1.acyclic _ (Relation.TransGen.tail' h hab)
+  have hw₁ : N.graph.Walks {f₁}ᶜ N.root (N.graph.source f₂) :=
+    walks_of_reaches_of_forall (hN.1.root_reaches _) fun f _ hf hf₁ => by
+      rw [Set.mem_singleton_iff.1 hf₁] at hf
+      exact hcyc hf ⟨f₂, rfl, ht.symm⟩
+  have hw₂ : N.graph.Walks {f₁}ᶜ N.root (N.graph.source f₁) :=
+    walks_of_reaches_of_forall (hN.1.root_reaches _) fun f _ hf hf₁ => by
+      rw [Set.mem_singleton_iff.1 hf₁] at hf
+      exact hcyc hf ⟨f₁, rfl, rfl⟩
+  have hw : N.graph.Walks {f₁}ᶜ (N.graph.target f₁) (N.graph.source f₁) :=
+    (Relation.ReflTransGen.single ⟨f₂, fun h => hne (Set.mem_singleton_iff.1 h).symm,
+      Or.inr ⟨rfl, ht.symm⟩⟩).trans ((N.graph.walks_symm hw₁).trans hw₂)
+  obtain ⟨C', hC', hf₁C, -⟩ := exists_isCycle_of_walks (F := {f₁}ᶜ) (by simp) hw
+  have h2' : N.graph.indegree (N.graph.target f₁) = 2 :=
+    le_antisymm (hN.indegree_le_two _) (two_le_indegree_of_two_targets hN hne rfl ht.symm)
+  exact ⟨C', hC', hf₁C, (lemma3 hN h1 hC').2.1 _ (target_mem_cycleNodes hf₁C) h2' f₂ ht.symm⟩
+
+omit hC hv h2 in
+/-- **Below a vertex `z` that is not a lower node of a cycle with another node of indegree two, the
+vertices are entered only from below `z`**: an arc into a vertex below `z`, other than `z`, leaves a
+vertex below `z`. Otherwise its target has a second arc from below `z`, and the cycle through the two
+arcs (`exists_isCycle_of_target_eq`) has its top below `z`: going up the path from `z`, every node of
+the cycle but its top is entered by edges of the cycle only, and `z` is not such a node. The top is
+above the source of the arc, which would then be below `z`. -/
+theorem reaches_source_of_below {z : V}
+    (hz : ∀ C', IsCycle N.graph C' → z ∈ cycleNodes N.graph C' →
+      (∀ g, N.graph.target g = z → g ∈ C') →
+        ∀ q ∈ cycleNodes N.graph C', N.graph.indegree q = 2 → q = z)
+    {e : E} (he : N.graph.Reaches z (N.graph.target e)) (hne : N.graph.target e ≠ z) :
+    N.graph.Reaches z (N.graph.source e) := by
+  by_contra hu
+  rcases Relation.ReflTransGen.cases_tail he with h | ⟨s, hzs, e', hs, ht⟩
+  · exact hne h
+  have hee' : e ≠ e' := fun h => hu (by rw [h, hs]; exact hzs)
+  obtain ⟨C', hC', heC, he'C⟩ := exists_isCycle_of_target_eq hN h1 hee' ht.symm
+  have hw2 : N.graph.indegree (N.graph.target e) = 2 :=
+    le_antisymm (hN.indegree_le_two _) (two_le_indegree_of_two_targets hN hee' rfl ht)
+  obtain ⟨a, -, hareach, -, hE, -⟩ := h1.exists_top hN.1 hC'
+  have key : ∀ y, N.graph.Reaches z y → y ∈ cycleNodes N.graph C' → N.graph.Reaches z a := by
+    intro y hy
+    induction hy with
+    | refl =>
+      intro hzC
+      by_cases hza : z = a
+      · rw [hza]
+        exact .refl
+      · exact absurd (hz C' hC' hzC (fun g hg => hE z hzC hza g hg) _ (target_mem_cycleNodes heC)
+          hw2) hne
+    | @tail y y' hzy hyy' ih =>
+      intro hy'C
+      obtain ⟨g, hgs, hgt⟩ := hyy'
+      by_cases hya : y' = a
+      · rw [← hya]
+        exact hzy.tail ⟨g, hgs, hgt⟩
+      · exact ih (hgs ▸ source_mem_cycleNodes (hE y' hy'C hya g hgt))
+  exact hu ((key s hzs (hs ▸ source_mem_cycleNodes he'C)).trans
+    (hareach _ (source_mem_cycleNodes heC)))
+
 omit hC hv in
 /-- **Below a hybrid node, the vertices are entered only at it**: an arc into a vertex below the
-hybrid node `v` of a binary level-1 network, other than `v`, leaves a vertex below `v`. Otherwise the
-vertex entered would be a hybrid node whose cycle passes through `v`, a second cycle at `v`. -/
+hybrid node `v` of a binary level-1 network, other than `v`, leaves a vertex below `v`
+(`reaches_source_of_below`: `v` is on no cycle with another hybrid node, by Lemma 3). -/
 theorem reaches_source_of_below_hybrid {e : E} (he : N.graph.Reaches v (N.graph.target e))
     (hne : N.graph.target e ≠ v) : N.graph.Reaches v (N.graph.source e) := by
-  sorry
+  have := hN.1.finite_arcs
+  exact reaches_source_of_below hN h1 (fun C' hC' hvC _ q hq hq2 =>
+    (lemma3 hN h1 hC').1.unique ⟨hq, hq2⟩ ⟨hvC, h2⟩) he hne
 
 omit hN h1 hC hv h2 in
 /-- The vertices below a vertex whose only child arc is `c`: the vertex itself, or below `c`. -/

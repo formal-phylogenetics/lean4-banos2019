@@ -79,7 +79,9 @@ the four taxa none above it. -/
 theorem inducesCycleType_cases {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     {C : Set E} {v : V} {n k : ℕ} (hC : InducesCycleType Q C v n k) :
     (n = 2 ∧ 1 ≤ k ∧ k ≤ 3) ∨ (n = 3 ∧ (k = 1 ∨ k = 2)) ∨ (n = 4 ∧ k = 1) := by
-  sorry
+  obtain ⟨h, hk, hn⟩ := add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hC
+  rw [hQ.card_taxa] at h
+  omega
 
 omit [Fintype V] in
 /-- Every cycle of `Q⊕` induces a cycle of `Q⁻`, with the hybrid node of the cycle (Lemma 3). -/
@@ -93,8 +95,8 @@ theorem exists_inducesCycleType_of_isCycle {Q : RootedNetwork V E X} {θ : Metri
 induce distinct cycles of `Q⁻`). -/
 theorem eq_of_inducesCycleType_three_two {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) {C C' : Set E} {v v' : V} (hC : InducesCycleType Q C v 3 2)
-    (hC' : InducesCycleType Q C' v' 3 2) : C = C' := by
-  sorry
+    (hC' : InducesCycleType Q C' v' 3 2) : C = C' :=
+  eq_of_inducesCycleType_three_two_of_card hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hC hC'
 
 /-! ### The networks of Corollary 2 and of Lemmas 9 and 10 -/
 
