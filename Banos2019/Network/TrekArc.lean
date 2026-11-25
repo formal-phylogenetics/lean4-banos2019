@@ -115,11 +115,16 @@ or `Py` is in one of five places: on `Py` between `a` and `b⁺` (case 1); on `P
 (case 5). In cases 1–4 the trek is built directly; in case 5 two new paths have fewer common nodes
 below `e`, and `IH` applies.
 
-The paper excludes `w = a` and `w = b⁺` since the network is binary; the constructions of cases 3
-and 5 apply to them, and the case split below includes them there. Case 4 on `Px` is built as case 3,
-and case 4 on `Py` as case 1, with `a` replaced by the node of `A` right above `w`. In case 5 the
-paper takes `w` on `Px` without loss of generality when `w` is on one path only; the case `w` on
-`Py` only is not symmetric to it, but the construction of case 5 (i) applies to it unchanged. -/
+The trek of case 1 has top `a`, and that of case 4 with `w` on `Py` only has top the node of `A`
+right above `w`; this node is `a` in case 1, and both cases are built with it. Case 4 with `w` on
+`Px` (case 4 (i), and case 4 (ii) with `w` on `Px`) is built as case 3, with top `w`.
+
+Departure from the paper: the paper excludes `w = a` and `w = b⁺` because the network is binary, and
+in case 5 (ii) it takes `w` on `Px` without loss of generality; here `w = a` falls in case 3, `w = b⁺`
+in case 5 (i), and `w` on `Py` only in case 5 (ii) is built as case 5 (i) (replace `Py` by `Py` to
+`w`, `P*` to `c`, and `Py` from `c`); the constructions apply unchanged to these nodes, and case 5 (ii)
+with `w` on `Py` only is not symmetric to the case on `Px`, the paths `Px` and `Py` playing different
+roles (one passes through `e`, the other avoids its child). -/
 theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic)
     {m X₀ Y₀ Z₀ : V} {e : E} {Sx Sy Ss : Set V} {Px Py Ps : Set E}
     (hPx : IsDPath G m X₀ Sx Px) (he : e ∈ Px) (hPy : IsDPath G m Y₀ Sy Py)

@@ -11,7 +11,7 @@ that are neither taxa nor in `P`. This module shows that a chain is determined b
 edges (`IsChain.eq_of_mem`), and gives the ends of a chain (`IsChainOf.chainEnds_eq`). From these,
 an isomorphism of `suppressExcept G P` with a network `R` is given by a bijection of the kept nodes
 with the nodes of `R` and, for each edge of `R`, a chain of `G` with the same ends and the same
-hybrid edges (`nonempty_sdIso_suppressExcept`, `nonempty_sdMetricIso_suppress`).
+hybrid edges (`exists_sdIso_suppressExcept`, `nonempty_sdMetricIso_suppress`).
 
 * `IsUTrail`: a path of the undirected graph through distinct nodes, given edge by edge, and
   `IsUTrail.isChain`: such a path whose inner nodes are suppressed and whose ends are not is a chain.

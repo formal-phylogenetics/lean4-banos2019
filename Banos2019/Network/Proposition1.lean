@@ -6,15 +6,23 @@ public import Banos2019.Network.AncestralSuppress
 /-!
 # Proposition 1: `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic
 
-The proof of Proposition 1 (Appendix): `K`, the network of the edges of `N⁻` on simple treks between
-taxa of `Z`, has the edges of the LSA network of `Z` (`mem_trekEdges_iff`, by Lemma 17); suppressing
-its nodes of degree two gives the network obtained from `N⁺_Z` by suppressing `LSA(Z)` and its other
-nodes of degree two. The edges of both are the chains of the ancestral network on `Z` below `LSA(Z)`,
-the two chains out of `LSA(Z)` merged into one.
+The proof of Proposition 1 (Appendix). `K`, the network of the edges of `N⁻` on simple treks between
+taxa of `Z`, has as edges the arcs of `N` below `LSA(Z)` and above a taxon of `Z` (`mem_trekEdges_iff`,
+from Lemma 17): the paper's `M' = K`, or `M⁻ = K` when `LSA(Z) = LSA(X)`. Suppressing the nodes of
+degree two of `K` gives `(N⁺_Z)⁻`: the nodes kept on both sides are the nodes strictly below `LSA(Z)`
+that are not chain nodes of the ancestral network on `Z`, and the edges on both sides are the chains of
+the ancestral network below `LSA(Z)`, the two chains out of `LSA(Z)` merged into one (through
+`LSA(Z)`, or through the edge of `N⁻` out of the child of `rootTreeArc` when `LSA(Z) = LSA(X)`).
+
+The network `N⁺_Z` enters through `IsContraction`, so that the argument applies to `inducedRooted`
+(`Banos2019.Network.Induced`).
 
 * `trekNet`: `K` with its nodes; `valH`, `valK`: its nodes and edges in `N`.
-* `isBranch_trekNet_iff`: the nodes of `K` kept by suppression are the nodes below `LSA(Z)` other than
-  `LSA(Z)` that are not chain nodes of the ancestral network.
+* `isBranch_trekNet_iff`, `not_isBranch_trekNet_lsa`: the nodes of `K` kept by suppression.
+* `mem_range_valR`, `mem_range_valRE`, `valR_source`, `valR_target`, `semidirectedR_isDirected_iff`:
+  `(N⁺_Z)⁻` in the terms of `N`.
+* `chainOfR`, `exists_chainTrail`: the chain of `K` of an edge of `(N⁺_Z)⁻`.
+* `nonempty_sdIso_trekNet`, `nonempty_sdMetricIso_trekNet`: the isomorphisms.
 -/
 
 @[expose] public noncomputable section
