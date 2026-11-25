@@ -14,13 +14,15 @@ without hybrid edges that its reductions produce: the quartet trees, and the net
 root of outdegree one. This file identifies the network multispecies coalescent on such a network with
 the multispecies coalescent on a species tree.
 
-For a phylogenetic network `N` with no hybrid arc:
+For a phylogenetic network `N` with no hybrid arc, valid parameters `θ` and at least two taxa:
 
 * `treeCluster N v`: the taxa below the vertex `v`; `treeClusters N`, the clusters of all vertices, form
   a hierarchy (`isHierarchy_treeClusters`).
 * `treeLength N θ A`: the sum of the lengths of the arcs into the vertices with cluster `A`, the length of
   the edge above `A` once the nodes of indegree one and outdegree one are suppressed.
-* `treeSpeciesTree`: the species tree with these clusters and lengths.
+* `treeSpeciesTree`: the species tree with these clusters and lengths;
+  `treeSpeciesTree_unrootedLength`: the length of a split of its unrooted tree is the total length of
+  the arcs that induce the split.
 * `geneTreeDist_eq_rootedDist`: the network multispecies coalescent on `N`, for any inheritance
   correlation `ρ ≥ 0`, is the multispecies coalescent on `treeSpeciesTree`; `nmscCF_eq_quartetProb`: the
   concordance factors of `N` are the quartet probabilities of `treeSpeciesTree`.
@@ -210,6 +212,28 @@ def treeSpeciesTree (N : RootedNetwork V E X) (hN : N.IsPhylogenetic)
 @[simp] theorem treeSpeciesTree_length (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
     {θ : MetricData E} (hθ : N.IsMetric θ) :
     (treeSpeciesTree N hN ht hθ).length = treeLength N θ := rfl
+
+/-- The length of the split `A | Aᶜ` of the unrooted species tree is the total length of the arcs
+into the vertices with cluster `A` or `Aᶜ` (other than `univ`). -/
+theorem treeSpeciesTree_unrootedLength (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
+    {θ : MetricData E} (hθ : N.IsMetric θ) (A : Finset X) :
+    (treeSpeciesTree N hN ht hθ).unrootedLength A =
+      ∑ e with treeCluster N (N.graph.target e) ≠ univ ∧
+        (treeCluster N (N.graph.target e) = A ∨ treeCluster N (N.graph.target e) = Aᶜ),
+        θ.length e := by
+  unfold SpeciesTree.unrootedLength
+  rw [treeSpeciesTree_clusters, treeSpeciesTree_length]
+  unfold treeLength
+  rw [← Finset.sum_fiberwise_of_maps_to (g := fun e => treeCluster N (N.graph.target e))
+    (t := (treeClusters N).filter fun C => C ≠ univ ∧ (C = A ∨ C = Aᶜ))
+    fun e he => mem_filter.2 ⟨mem_treeClusters.2 ⟨_, rfl⟩, (mem_filter.1 he).2⟩]
+  refine sum_congr rfl fun C hC => sum_congr ?_ fun _ _ => rfl
+  ext e
+  simp only [mem_filter, mem_univ, true_and]
+  constructor
+  · rintro rfl
+    exact ⟨(mem_filter.1 hC).2, rfl⟩
+  · exact fun h => h.2
 
 end Tree
 
