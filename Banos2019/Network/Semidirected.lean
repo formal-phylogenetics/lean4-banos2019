@@ -19,10 +19,10 @@ the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric
 * `suppress` (Section 2.3, Figure 3): suppressing every node of degree two. The edges of the result
   are the maximal chains through nodes of degree two (other than taxa); a chain is a hybrid edge,
   directed toward one of its ends, when it contains a hybrid edge and all its hybrid edges point toward
-  that end. Suppressing the inner nodes one at a time by the rules of Figure 3 gives the same result on
-  every chain whose hybrid edges enter its ends, which are the chains of the networks the paper
-  suppresses; on a chain with hybrid edges in both directions inside it, the result of one-at-a-time
-  suppression depends on the order, and the rule here is one choice.
+  that end. When every hybrid edge of a chain enters an end of the chain, as in all the networks the
+  paper suppresses, this is the result of suppressing the inner nodes one at a time by the rules of
+  Figure 3, in any order. On other chains, one-at-a-time suppression may depend on the order or differ
+  from this rule.
 * `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and metric.
 -/
 

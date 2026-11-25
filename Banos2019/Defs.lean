@@ -20,8 +20,8 @@ The definitions that the Challenge states its theorems with, between the markers
 (formalize-math-paper, `references/palomar.md`, Section 2).
 
 This module imports exactly what the Challenge imports: Lean, Mathlib, and nothing from this
-project, from `Phylogenetics` or from any other repository of the collection. The library proves
-that these definitions agree with those of `Phylogenetics` that it uses (`Banos2019.Bridge`). -/
+project, from `Phylogenetics` or from any other repository of the collection. The Solution's proofs
+rest on the agreement of these definitions with those of `Phylogenetics` that the library uses. -/
 
 -- BEGIN SHARED DEFINITIONS
 
@@ -81,10 +81,6 @@ def nodes (C : Set E) : Set V := {u | ∃ e ∈ C, G.source e = u ∨ G.target e
 def IsLevelOne : Prop :=
   ∀ C C', G.IsCycle C → G.IsCycle C' → (C ∩ C').Nonempty → C = C'
 
-/-- Two nodes are joined by a walk of the undirected graph avoiding the edges `D`. -/
-def Walks (D : Set E) : V → V → Prop :=
-  Relation.ReflTransGen fun u w => ∃ e ∉ D, G.Joins e u w
-
 end Digraph
 
 /-- A rooted network on the taxa `X`. -/
@@ -108,7 +104,9 @@ def IsHybridEdge (e : E) : Prop := N.graph.indegree (N.graph.target e) = 2
 /-- **Definition 1**: a *binary rooted phylogenetic network*: finite, acyclic, with a root of indegree
 `0` and outdegree `2`, leaves of indegree `1` and outdegree `0` labelled injectively by the taxa, and
 every other node a tree node (indegree `1`, outdegree `2`) or a hybrid node (indegree `2`, outdegree
-`1`). -/
+`1`). Definition 1 also asks for a connected graph and a bijective labelling of the leaves; both follow:
+every node but the root has a parent, so going up from any node ends at the root, and a node of
+outdegree `0` is a labelled leaf. -/
 def IsBinaryNetwork : Prop :=
   Finite V ∧ Finite E ∧ Finite X ∧ N.graph.IsAcyclic ∧
     N.graph.indegree N.root = 0 ∧ N.graph.outdegree N.root = 2 ∧
@@ -128,15 +126,15 @@ def IsMetric (θ : Params E) : Prop :=
       θ.inheritance e + θ.inheritance f = 1
 
 /-- Every directed path from the root to `u` passes through `w`. -/
-def AvoidsNone (u w : V) : Prop :=
+def OnEveryRootPath (u w : V) : Prop :=
   ¬ (N.root ≠ w ∧ u ≠ w ∧
     Relation.ReflTransGen (fun a b => N.graph.Adj a b ∧ a ≠ w ∧ b ≠ w) N.root u)
 
 /-- **Definition 4**: `v` is the *lowest stable ancestor* (LSA) of the taxa `Z`: it lies on every
 directed path from the root to a taxon of `Z`, and every other such node is above it. -/
 def IsLSA (Z : Set X) (v : V) : Prop :=
-  (∀ z ∈ Z, N.AvoidsNone (N.leaf z) v) ∧
-    ∀ w, (∀ z ∈ Z, N.AvoidsNone (N.leaf z) w) → N.graph.Reaches w v
+  (∀ z ∈ Z, N.OnEveryRootPath (N.leaf z) v) ∧
+    ∀ w, (∀ z ∈ Z, N.OnEveryRootPath (N.leaf z) w) → N.graph.Reaches w v
 
 /-- The LSA of all the taxa (when it exists, which it does for a binary rooted network with taxa). -/
 def lsa : V := @Classical.epsilon V ⟨N.root⟩ (N.IsLSA Set.univ)
@@ -232,7 +230,9 @@ def suppressExcept (P : Set V) : SDNetwork {u // G.IsBranch P u} {c : Set E // G
   IsDirected c := (G.chainRep P c.2).PointsForward ∨ (G.chainRep P c.2).PointsBackward
   leaf x := ⟨G.leaf x, Or.inr (Or.inl ⟨x, rfl⟩)⟩
 
-/-- Suppressing all nodes of degree two but the taxa. -/
+/-- Suppressing all nodes of degree two but the taxa. In the networks that the paper suppresses (`N⁻`,
+`(N⁻)_Z`, `Ñ`), every hybrid edge of a chain enters an end of the chain, and then this rule is the result
+of applying Figure 3 to the inner nodes one at a time, in any order. -/
 abbrev suppress := G.suppressExcept ∅
 
 /-- The parameters after suppression: a chain has the sum of the lengths of its edges and the product
@@ -253,9 +253,6 @@ def IsPath (u w : V) (P : Set E) (S : Set V) : Prop :=
   ∃ (k : ℕ) (v : Fin (k + 1) → V) (e : Fin k → E),
     (∀ i : Fin k, G.Step (e i) (v i.castSucc) (v i.succ)) ∧ Function.Injective v ∧
       v 0 = u ∧ v (Fin.last k) = w ∧ Set.range e = P ∧ Set.range v = S
-
-/-- The taxon `x` descends from `v`: a semidirected path leads from `v` to `x`. -/
-def DescendsFrom (v : V) (x : X) : Prop := ∃ P S, G.IsPath v (G.leaf x) P S
 
 /-- **Definition 9**: a *simple trek* from `x` to `y` with top `t`: semidirected paths from `t` to `x`
 and to `y` meeting only at `t`; `P₁`, `P₂` are their edges. -/
@@ -292,7 +289,10 @@ def contract (Q : Set E → Prop) :
   leaf x := Quot.mk _ (G.leaf x)
 
 /-- **The network `Ñ` of Theorem 4**: contract the 2- and 3-cycles, forget the direction of the hybrid
-edges of 4-cycles, and suppress the nodes of degree two this leaves. -/
+edges of 4-cycles, and suppress the nodes of degree two this leaves. The paper's statement does not
+mention the last step, and its `Ñ` (Figure 23) has no node of degree two. Contracting a 2-cycle leaves
+one, and how many there are is not identifiable (`2₁`- and `2₃`-cycles do not change the concordance
+factors, Corollary 2); without the suppression Theorem 4 would be false. -/
 def tilde :=
   let H := G.contract fun C => C.ncard ≤ 3
   let H' : SDNetwork _ _ X :=
