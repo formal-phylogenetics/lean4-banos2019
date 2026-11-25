@@ -245,6 +245,232 @@ theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
     have hty : t * K = y := by rw [ht]; field_simp
     refine Prod.ext ?_ (Prod.ext ?_ ?_) <;> simp only <;> rw [← hty, hK] <;> ring
 
+/-- The concordance factors of equation (9) lie on the open segment: `CF_{AB|CD} + 2 CF_{AC|BD} = 1`
+and `0 < CF_{AC|BD} < 5/12`, the maximum `5/12` being approached at `γ = 1/2`. -/
+theorem fig18_bounds {γ x₁ x₂ x₃ x₄ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) (h₁ : 0 < x₁) (h₁' : x₁ < 1)
+    (h₂ : 0 < x₂) (h₂' : x₂ < 1) (h₃ : 0 < x₃) (h₃' : x₃ < 1) (h₄ : 0 < x₄) (h₄' : x₄ < 1) :
+    let X := (1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) + 2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
+      γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄))
+    let Y := (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
+      γ ^ 2 * (1 / 3 * (x₁ * x₄))
+    X + 2 * Y = 1 ∧ 0 < Y ∧ 1 / 6 < X := by
+  intro X Y
+  have hγ' : 0 < 1 - γ := by linarith
+  have e : X + 2 * Y = 1 := by simp only [X, Y]; ring
+  have hY : 0 < Y := by
+    simp only [Y]
+    have : 0 < 1 - 1 / 3 * x₃ := by linarith
+    positivity
+  have p₁ : x₁ * x₂ < 1 := by nlinarith
+  have p₄ : x₁ * x₄ < 1 := by nlinarith
+  have p₃ : x₁ * (1 - 1 / 3 * x₃) < 1 := by nlinarith
+  have hY' : Y < 5 / 12 := by
+    simp only [Y]
+    have a₁ : (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) < (1 - γ) ^ 2 * (1 / 3) := by
+      have : 0 < (1 - γ) ^ 2 := by positivity
+      nlinarith
+    have a₂ : γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) < γ * (1 - γ) := by
+      have : 0 < γ * (1 - γ) := by positivity
+      nlinarith
+    have a₃ : γ ^ 2 * (1 / 3 * (x₁ * x₄)) < γ ^ 2 * (1 / 3) := by
+      have : 0 < γ ^ 2 := by positivity
+      nlinarith
+    nlinarith [sq_nonneg (2 * γ - 1)]
+  exact ⟨e, hY, by linarith⟩
+
+/-- Concordance factors `(X, Y, Y)` with `X > 1/6`, `Y ≥ 0`, `X + 2Y = 1` on the quartet trees
+`ab|cd, ac|bd, ad|bc` lie on the open segment for the cherry `{a, b}`. -/
+theorem onSegment_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
+    {p : QuartetTree X → ℝ} {x y : ℝ} (h₁ : p (quartetTree a b c d h) = x)
+    (h₂ : p (quartetTree a c b d (distinct4_acbd h)) = y)
+    (h₃ : p (quartetTree a d b c (distinct4_adbc h)) = y) (hx : 1 / 6 < x) (hy : 0 ≤ y)
+    (hs : x + 2 * y = 1) : OnSegment p {a, b} := by
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_eq, hX])
+  have hall : ∀ q : QuartetTree X, q = quartetTree a b c d h ∨
+      q = quartetTree a c b d (distinct4_acbd h) ∨ q = quartetTree a d b c (distinct4_adbc h) := by
+    intro q
+    have : q ∈ treesOn ({a, b, c, d} : Finset X) := by
+      rw [mem_treesOn, huniv]
+      exact eq_univ_of_card _ (by rw [q.card_taxa, hX])
+    rw [treesOn_eq_triple h] at this
+    simpa using this
+  obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
+  have n₂ : ({a, b} : Finset X) ∉ (quartetTree a c b d (distinct4_acbd h)).val := by
+    simp only [quartetTree_val_eq, mem_insert, mem_singleton, not_or]
+    refine ⟨fun e => ?_, fun e => ?_⟩
+    · have : b ∈ ({a, c} : Finset X) := e ▸ by simp
+      simp [Ne.symm hab, hbc] at this
+    · have : a ∈ ({b, d} : Finset X) := e ▸ by simp
+      simp [hab, had] at this
+  have n₃ : ({a, b} : Finset X) ∉ (quartetTree a d b c (distinct4_adbc h)).val := by
+    simp only [quartetTree_val_eq, mem_insert, mem_singleton, not_or]
+    refine ⟨fun e => ?_, fun e => ?_⟩
+    · have : b ∈ ({a, d} : Finset X) := e ▸ by simp
+      simp [Ne.symm hab, hbd] at this
+    · have : a ∈ ({b, c} : Finset X) := e ▸ by simp
+      simp [hab, hac] at this
+  refine ⟨fun q hq => ?_, fun r r' hr hr' => ?_, fun q => ?_, ?_⟩
+  · rcases hall q with rfl | rfl | rfl
+    · rwa [h₁]
+    · exact absurd hq n₂
+    · exact absurd hq n₃
+  · have hval : ∀ r : QuartetTree X, ({a, b} : Finset X) ∉ r.val → p r = y := fun r hr => by
+      rcases hall r with rfl | rfl | rfl
+      · exact absurd (by simp) hr
+      · exact h₂
+      · exact h₃
+    rw [hval r hr, hval r' hr']
+  · rcases hall q with rfl | rfl | rfl
+    · rw [h₁]; linarith
+    · rw [h₂]; exact hy
+    · rw [h₃]; exact hy
+  · rw [← huniv, treesOn_eq_triple h, sum_insert (by simp [quartetTree_abcd_ne_acbd h,
+      quartetTree_abcd_ne_adbc h]), sum_pair (quartetTree_acbd_ne_adbc h), h₁, h₂, h₃]
+    linarith
+
+/-- The concordance factors on the open segment for a pair of taxa lie in `I`. -/
+theorem mem_segmentsI_of_onSegment (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
+    {p : QuartetTree X → ℝ} {A : Finset X} (hA : #A = 2) (hp : OnSegment p A) :
+    (p (quartetTree a b c d h), p (quartetTree a c b d (distinct4_acbd h)),
+      p (quartetTree a d b c (distinct4_adbc h))) ∈ segmentsI := by
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_eq, hX])
+  have hsum := hp.2.2.2
+  rw [← huniv, treesOn_eq_triple h, sum_insert (by simp [quartetTree_abcd_ne_acbd h,
+    quartetTree_abcd_ne_adbc h]), sum_pair (quartetTree_acbd_ne_adbc h)] at hsum
+  refine ⟨⟨hp.2.2.1 _, hp.2.2.1 _, hp.2.2.1 _, by simp only; linarith⟩, ?_⟩
+  -- the quartet tree with the cherry `A` is one of the three
+  let qA := quartetOfCherry univ A (by rw [card_univ, hX]) (subset_univ A) hA
+  have hqA : A ∈ qA.val := by simp [qA]
+  have hmem : qA ∈ treesOn ({a, b, c, d} : Finset X) := by
+    rw [mem_treesOn, huniv]
+    exact eq_univ_of_card _ (by rw [qA.card_taxa, hX])
+  rw [treesOn_eq_triple h] at hmem
+  have hne : ∀ r : QuartetTree X, r ≠ qA → A ∉ r.val := fun r hr hAr =>
+    hr (quartetTree_eq_of_mem (by
+      rw [eq_univ_of_card r.taxa (by rw [r.card_taxa, hX]),
+        eq_univ_of_card qA.taxa (by rw [qA.card_taxa, hX])]) hAr hqA)
+  simp only [mem_insert, mem_singleton] at hmem
+  rcases hmem with e | e | e
+  · left
+    refine ⟨hp.1 _ (e ▸ hqA), hp.2.1 _ _ (hne _ ?_) (hne _ ?_)⟩
+    · rw [e]; exact (quartetTree_abcd_ne_acbd h).symm
+    · rw [e]; exact (quartetTree_abcd_ne_adbc h).symm
+  · right; left
+    refine ⟨hp.1 _ (e ▸ hqA), hp.2.1 _ _ (hne _ ?_) (hne _ ?_)⟩
+    · rw [e]; exact quartetTree_abcd_ne_acbd h
+    · rw [e]; exact (quartetTree_acbd_ne_adbc h).symm
+  · right; right
+    refine ⟨hp.1 _ (e ▸ hqA), hp.2.1 _ _ (hne _ ?_) (hne _ ?_)⟩
+    · rw [e]; exact quartetTree_abcd_ne_adbc h
+    · rw [e]; exact quartetTree_acbd_ne_adbc h
+
+/-- **The induction of the proof of Proposition 7**: if `Q⁻` has a `3₂`-cycle with the taxa `A` below
+its hybrid node, and no `2₁`- or `2₃`-cycle, its concordance factors lie on the open segment for `A`.
+With no other cycle, `Q⁻` is the network of Figure 18 (equation (9)); otherwise the other cycles are
+`2₂`- and `3₁`-cycles (Lemmas 5 and 6), and Lemmas 9 and 10 write the concordance factors as a
+convex combination of those of networks with the same `3₂`-cycle and one cycle fewer. -/
+theorem onSegment_of_threeTwo (n : ℕ) :
+    ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
+      IsLSAQuartet Q θ → numCycles Q = n → ∀ A : Finset X, #A = 2 → HasCycleWith Q 3 ↑A →
+      (¬ ∃ C v, InducesCycleType Q C v 2 1) → (¬ ∃ C v, InducesCycleType Q C v 2 3) →
+      OnSegment (cf Q θ) A := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro V' E' _ _ Q θ hQ hn A hA h32 h21 h23
+  obtain ⟨C₀, v₀, hC₀, hD₀⟩ := h32
+  rw [Set.ncard_coe_finset, hA] at hC₀
+  have hC₀c : C₀ ∈ {C | IsCycle Q.graph C} := hC₀.1
+  by_cases hone : numCycles Q = 1
+  · -- the only cycle: Figure 18, equation (9)
+    have hall : ∀ C, IsCycle Q.graph C → C = C₀ := by
+      obtain ⟨C₁, hC₁⟩ := Set.ncard_eq_one.1 hone
+      intro C hC
+      have e₁ : C ∈ ({C₁} : Set (Set E')) := hC₁ ▸ hC
+      have e₀ : C₀ ∈ ({C₁} : Set (Set E')) := hC₁ ▸ hC₀c
+      rw [Set.mem_singleton_iff] at e₁ e₀
+      rw [e₁, e₀]
+    obtain ⟨a', b', hab, rfl⟩ := Finset.card_eq_two.1 hA
+    rw [Finset.coe_pair] at hD₀
+    obtain ⟨c', d', h4, len, γ, hlen, hγ₀, hγ₁, hiso⟩ := exists_fig18 hQ hC₀ hall hab hD₀
+    have h9 := example5 h4 hQ len γ hiso
+    simp only [CF, Prod.mk.injEq] at h9
+    obtain ⟨e₁, e₂, e₃⟩ := h9
+    have hx : ∀ i, 0 < Real.exp (-len i) ∧ Real.exp (-len i) < 1 := fun i =>
+      ⟨Real.exp_pos _, Real.exp_lt_one_iff.2 (by linarith [hlen i])⟩
+    obtain ⟨hs, hY, hX'⟩ := fig18_bounds hγ₀ hγ₁ (hx 4).1 (hx 4).2 (hx 7).1 (hx 7).2 (hx 5).1
+      (hx 5).2 (hx 6).1 (hx 6).2
+    exact onSegment_of_triple hQ.card_taxa h4 e₁ e₂ e₃ hX' hY.le hs
+  · -- another cycle `C`, a `2₂`- or a `3₁`-cycle
+    have hlt : 1 < numCycles Q := by
+      have : numCycles Q ≠ 0 := fun h0 => by
+        have := (Set.ncard_eq_zero (finite_setOf_isCycle Q.graph)).1 h0
+        exact (this ▸ hC₀c : C₀ ∈ (∅ : Set (Set E')))
+      omega
+    obtain ⟨C, hC, hCC₀⟩ : ∃ C, IsCycle Q.graph C ∧ C ≠ C₀ := by
+      obtain ⟨C₁, hC₁, C₂, hC₂, hne⟩ := (Set.one_lt_ncard (finite_setOf_isCycle Q.graph)).1 hlt
+      by_cases h : C₁ = C₀
+      · exact ⟨C₂, hC₂, fun e => hne (h.trans e.symm)⟩
+      · exact ⟨C₁, hC₁, h⟩
+    obtain ⟨v, m, k, hCt⟩ := exists_inducesCycleType_of_isCycle hQ hC
+    obtain ⟨h₁, h₂, hne, hh₁, hh₂, hyb⟩ := exists_hybrid_edges hCt
+    obtain ⟨hγ₀, hγ₁⟩ := inheritance_mem_Ioo hQ.binary hQ.metric hyb
+    -- the `3₂`-cycle and the absence of `2₁`-, `2₃`-cycles stay
+    have keep : ∀ {V'' E'' : Type} {Q' : RootedNetwork V'' E'' X}, SameCyclesBut Q' Q (· = C) →
+        HasCycleWith Q' 3 ↑A ∧ (¬ ∃ C v, InducesCycleType Q' C v 2 1) ∧
+          ¬ ∃ C v, InducesCycleType Q' C v 2 3 := fun hs =>
+      ⟨(hs 3 ↑A).2 ⟨C₀, v₀, fun e => hCC₀ e.symm, by rwa [Set.ncard_coe_finset, hA], hD₀⟩,
+        hs.not_exists h21, hs.not_exists h23⟩
+    rcases inducesCycleType_cases hQ hCt with ⟨rfl, hk₁, hk₃⟩ | ⟨rfl, hk⟩ | ⟨rfl, rfl⟩
+    · have hk : k = 2 := by
+        rcases (by omega : k = 1 ∨ k = 2 ∨ k = 3) with rfl | rfl | rfl
+        · exact absurd ⟨C, v, hCt⟩ h21
+        · rfl
+        · exact absurd ⟨C, v, hCt⟩ h23
+      subst hk
+      -- Lemma 9
+      obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, hlt₁, hs₁, -⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inl hCt) hh₂
+      obtain ⟨V₂, E₂, _, _, Q₂, θ₂, hQ₂, hcf₂, hlt₂, hs₂, -⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inl hCt) hh₁
+      obtain ⟨V₀, E₀, _, _, Q₀, θ₀, hQ₀, hcf₀, hlt₀, hs₀, -⟩ :=
+        exists_lsaQuartet_contractRooted hQ hCt
+      obtain ⟨k₁, k₁', k₁''⟩ := keep hs₁
+      obtain ⟨k₂, k₂', k₂''⟩ := keep hs₂
+      obtain ⟨k₀, k₀', k₀''⟩ := keep hs₀
+      have t₁ := ih _ (hn ▸ hlt₁) hQ₁ rfl A hA k₁ k₁' k₁''
+      have t₂ := ih _ (hn ▸ hlt₂) hQ₂ rfl A hA k₂ k₂' k₂''
+      have t₀ := ih _ (hn ▸ hlt₀) hQ₀ rfl A hA k₀ k₀' k₀''
+      have hcfQ : cf Q θ = fun q => θ.inheritance h₁ ^ 2 * cf Q₁ θ₁ q +
+          (1 - θ.inheritance h₁) ^ 2 * cf Q₂ θ₂ q +
+          2 * θ.inheritance h₁ * (1 - θ.inheritance h₁) * cf Q₀ θ₀ q := by
+        funext q
+        rw [lemma9 hQ hCt hne hh₁ hh₂ q, hcf₁, hcf₂, hcf₀]
+      rw [hcfQ]
+      have : 0 < 1 - θ.inheritance h₁ := by linarith
+      exact OnSegment.add₃ t₁ t₂ t₀ (by positivity) (by positivity) (by positivity) (by ring)
+    · rcases hk with rfl | rfl
+      · -- Lemma 10
+        obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, hlt₁, hs₁, -⟩ :=
+          exists_lsaQuartet_deleteArc hQ (Or.inr hCt) hh₂
+        obtain ⟨V₂, E₂, _, _, Q₂, θ₂, hQ₂, hcf₂, hlt₂, hs₂, -⟩ :=
+          exists_lsaQuartet_deleteArc hQ (Or.inr hCt) hh₁
+        obtain ⟨k₁, k₁', k₁''⟩ := keep hs₁
+        obtain ⟨k₂, k₂', k₂''⟩ := keep hs₂
+        have t₁ := ih _ (hn ▸ hlt₁) hQ₁ rfl A hA k₁ k₁' k₁''
+        have t₂ := ih _ (hn ▸ hlt₂) hQ₂ rfl A hA k₂ k₂' k₂''
+        have hcfQ : cf Q θ = fun q => θ.inheritance h₁ * cf Q₁ θ₁ q +
+            (1 - θ.inheritance h₁) * cf Q₂ θ₂ q := by
+          funext q
+          rw [lemma10 hQ (Or.inr hCt) hne hh₁ hh₂ q, hcf₁, hcf₂]
+        rw [hcfQ]
+        exact OnSegment.add t₁ t₂ hγ₀ (by linarith) (by ring)
+      · -- a second `3₂`-cycle is the first (Lemma 6)
+        exact absurd (eq_of_inducesCycleType_three_two hQ hCt hC₀) hCC₀
+    · -- a 4-cycle and a 3-cycle (Lemma 5)
+      obtain ⟨D₄, hD₄⟩ := (inducesCycleType_iff hQ 4 1).1 ⟨C, v, hCt⟩
+      obtain ⟨D₃, hD₃⟩ := (inducesCycleType_iff hQ 3 2).1 ⟨C₀, v₀, hC₀⟩
+      exact absurd hD₃.2.1 ((lemma5 hQ).2.2.1 ⟨D₄, hD₄.1, hD₄.2.1⟩ D₃ hD₃.1)
+
 /-- **Proposition 7** (`prop:3c2`): if `Q⁻` has a `3₂`-cycle, `CF(Q)` lies in `I`; and every point of `I`
 off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim for every
 point of `I`. Its proof shows that the image is the union of the three open segments, which do not
@@ -257,8 +483,37 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
         ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q : RootedNetwork V' E' X)
           (θ : MetricData E'), IsLSAQuartet Q θ ∧ (∃ C v, InducesCycleType Q C v 3 2) ∧
             CF Q θ a b c d habcd = p := by
-  refine ⟨fun hQ h32 => ?_, fun p hp hp₁ hp₂ hp₃ => ?_⟩
-  · sorry
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  refine ⟨fun {Q θ} hQ h32 => ?_, fun p hp hp₁ hp₂ hp₃ => ?_⟩
+  · -- the `3₂`-cycle, with the taxa `a', b'` below its hybrid node
+    obtain ⟨C, v, hC⟩ := h32
+    obtain ⟨a', b', hab, hD⟩ := Set.ncard_eq_two.1 hC.2.2.2.2
+    -- Corollary 2: suppress the `2₁`- and `2₃`-cycles
+    obtain ⟨V', E', _, _, Q', θ', hQ', hcf', hsame, -⟩ := exists_lsaQuartet_of_corollary2 hQ
+    have hnot : ∀ C' v', InducesCycleType Q C' v' 2 1 ∨ InducesCycleType Q C' v' 2 3 →
+        IsTwoOneOrThree Q C' := fun C' v' h => ⟨v', h⟩
+    have h32' : HasCycleWith Q' 3 ↑({a', b'} : Finset X) := by
+      refine (hsame 3 _).2 ⟨C, v, ?_, ?_, ?_⟩
+      · rintro ⟨v', h | h⟩ <;> have := h.2.2.2.1 <;> have := hC.2.2.2.1 <;> omega
+      · rw [Finset.coe_pair, Set.ncard_pair hab]
+        exact hC
+      · rw [Finset.coe_pair]
+        exact hD
+    have h21 : ¬ ∃ C v, InducesCycleType Q' C v 2 1 := by
+      rintro ⟨C', v', hC'⟩
+      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC')
+      rw [hC'.2.2.2.2] at hC''
+      exact hn (hnot _ _ (Or.inl hC''))
+    have h23 : ¬ ∃ C v, InducesCycleType Q' C v 2 3 := by
+      rintro ⟨C', v', hC'⟩
+      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC')
+      rw [hC'.2.2.2.2] at hC''
+      exact hn (hnot _ _ (Or.inr hC''))
+    -- Lemmas 9 and 10, by induction: the concordance factors lie on the segment for `{a', b'}`
+    have hseg := onSegment_of_threeTwo _ hQ' rfl _ (card_pair hab) h32' h21 h23
+    rw [hcf', ← corollary2 hQ] at hseg
+    exact mem_segmentsI_of_onSegment hX habcd (card_pair hab) hseg
   · -- the network of Figure 18, with the taxa below its hybrid node in the cherry of the large
     -- concordance factor, and parameters on the segment
     obtain ⟨x, y, z⟩ := p
