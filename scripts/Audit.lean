@@ -228,6 +228,7 @@ import all Banos2019.Basic.Logic.RelationSymm
 import all Banos2019.Basic.MeasureTheory.SumCoordsNull
 import all Banos2019.Basic.Order.FiniteTotal
 import all Banos2019.Bridge.Examples
+import all Banos2019.Bridge.Figures
 import all Banos2019.Bridge.Generic
 import all Banos2019.Bridge.Invariance
 import all Banos2019.Bridge.Model

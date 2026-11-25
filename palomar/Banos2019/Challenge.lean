@@ -37,15 +37,17 @@ edges, and suppresses `LSA(X)`; suppressing a node of degree two merges its two 
 *induced unrooted network* `(N⁻)_s` on four taxa `s` (Definition 10) keeps the edges of `N⁻` on simple
 treks between taxa of `s` and suppresses the nodes of degree two. `Ñ` (Theorem 4) is `N⁻` with its
 2- and 3-cycles contracted, the hybrid edges of its 4-cycles undirected, and the nodes of degree two
-left by the contraction suppressed.
+left by the contraction suppressed. The published statement of Theorem 4 omits the suppression, which
+Theorem 4 needs: contracting a 2-cycle leaves a node of degree two, and its place on an edge does not
+show in the concordance factors (`2₁`- and `2₃`-cycles do not change them, Corollary 2). The statement
+of the arXiv version says "suppressing all 2- and 3-cycles".
 
 * `theorem3` (Theorem 3): for generic parameters, four taxa satisfy the Big Cycle property exactly when
   their induced unrooted network has a 4-cycle.
 * `theorem4` (Theorem 4, the main result): for generic parameters, the orderings of the quartet
   concordance factors of a level-1 network identify `Ñ`, up to isomorphism: there is a property of the
   parameters, holding for generic parameters of every binary level-1 network, such that two such
-  networks on the same taxa with such parameters and the same orderings have isomorphic `Ñ`. The networks have at least two
-  taxa, which Definition 5 needs.
+  networks on the same taxa with such parameters and the same orderings have isomorphic `Ñ`.
 * `proposition5` (Proposition 5): two binary level-1 metric LSA quartet networks (on four taxa, rooted
   at the LSA of the taxa) that induce isomorphic metric unrooted networks have the same concordance
   factors.
@@ -61,8 +63,10 @@ Further theorems check the definitions against known facts:
 * `not_forGenericParams_false`: the metric parameters of a binary network do not form a null set, so
   "for generic parameters" in Theorems 3 and 4 is not satisfied vacuously.
 * `example6`, `example7` (Examples 6 and 7): the networks of Figures 18 (a `3₂`-cycle) and 17 (a
-  4-cycle), with the parameters of the paper, have the concordance factors `32/98, 33/98, 33/98` in
-  some order.
+  4-cycle), `fig18Network` and `fig17Network`, with the parameters of the paper, have the concordance
+  factors `32/98, 33/98, 33/98` in some order.
+* `fig17_fig18_unrooted`, `fig17_fig18_tilde`: `N⁻` of Figure 17 has a 4-cycle and `N⁻` of Figure 18
+  none; their networks `Ñ` are not isomorphic.
 -/
 
 -- BEGIN SHARED DEFINITIONS
@@ -495,6 +499,37 @@ taxa in the same way. -/
 def SameOrdering {X : Type*} [DecidableEq X] (p p' : QuartetTree X → ℝ) : Prop :=
   ∀ q r : QuartetTree X, q.taxa = r.taxa → (p q ≤ p r ↔ p' q ≤ p' r)
 
+/-! ## The networks of Figures 17 and 18
+
+Two rooted networks on the taxa `0, 1, 2, 3`, at the leaves `0, 1, 2, 3`, each rooted at the node `8`
+on one of its hybrid edges, which the root halves. The edges `0, 1, 2, 3` are the pendant edges, of
+length one. -/
+
+/-- **Figure 17**, a 4-cycle: the taxa `0, 1, 2, 3` are below the nodes `4, 5, 6, 7` of the cycle; the
+edge `4` joins `7` to `4`, the edge `5` joins `4` to `5`, and the hybrid edges into the hybrid node `6`
+are the edge `6` from `5` and the edges `7`, `8` from `7` through the root `8`. -/
+def fig17Network : Network (Fin 9) (Fin 9) (Fin 4) :=
+  ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
+
+/-- The parameters of Figure 17: the edges `4` and `5` have lengths `t₁` and `t₂`; the hybrid edges into
+`6` have inheritance probabilities `γ` (from `5`) and `1 - γ` (from `7`) and length one (the root
+halves the one from `7`). -/
+def fig17Params (t₁ t₂ γ : ℝ) : Params (Fin 9) :=
+  ⟨![1, 1, 1, 1, t₁, t₂, 1, 1 / 2, 1 / 2], ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
+
+/-- **Figure 18**, a `3₂`-cycle: the taxa `0, 1` are below the node `4`, which is below the hybrid
+node `5` by the edge `4`; the taxa `2` and `3` are below the nodes `6` and `7`, which the edge `5` joins;
+the hybrid edges into `5` are the edge `7` from `6` and the edges `6`, `8` from `7` through the root
+`8`. -/
+def fig18Network : Network (Fin 9) (Fin 9) (Fin 4) :=
+  ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
+
+/-- The parameters of Figure 18: the edge `4` has length `t₁`, the edge `5` length `t₃`; the hybrid
+edge into `5` from `6` has length `t₂` and inheritance probability `1 - γ`, the one from `7` length `t₄`
+(halved by the root) and inheritance probability `γ`. -/
+def fig18Params (t₁ t₂ t₃ t₄ γ : ℝ) : Params (Fin 9) :=
+  ⟨![1, 1, 1, 1, t₁, t₃, t₄ / 2, t₂, t₄ / 2], ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
+
 end Banos2019.Model
 
 end
@@ -517,8 +552,11 @@ theorem theorem3 {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] [DecidableE
 /-- **Theorem 4**: for generic numerical parameters, the collection of orderings of the quartet
 concordance factors identifies `Ñ`: a property `G` of the parameters of each network holds for generic
 parameters, and two binary level-1 networks on the same taxa, with parameters satisfying `G` and the same
-orderings of concordance factors, have isomorphic networks `Ñ`. -/
-theorem theorem4 {X : Type} [Fintype X] [DecidableEq X] [Nontrivial X] :
+orderings of concordance factors, have isomorphic networks `Ñ`. Both networks must satisfy `G`: a
+network with a `3₂`-cycle (Figure 18) near the parameters of Example 6 and the network of Figure 17 at
+the non-generic parameters of Example 7, with the taxa `1` and `2` exchanged, have the same orderings,
+and their networks `Ñ` are not isomorphic (`fig17_fig18_tilde`). -/
+theorem theorem4 {X : Type} [Fintype X] [DecidableEq X] :
     ∃ G : ∀ (V E : Type) [Fintype V] [Fintype E], Network V E X → Params E → Prop,
       (∀ (V E : Type) [Fintype V] [Fintype E] (N : Network V E X),
         N.IsBinaryNetwork → N.graph.IsLevelOne → N.ForGenericParams (G V E N)) ∧
@@ -574,46 +612,50 @@ theorem not_forGenericParams_false {V E X : Type*} [Fintype E] (N : Network V E 
     (hN : N.IsBinaryNetwork) : ¬ N.ForGenericParams fun _ => False := by
   sorry
 
-/-- **Example 6** (a check of the definitions): the network of Figure 18, with a `3₂`-cycle, rooted on
-one of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`; the node `4` of `0, 1`
-is below the hybrid node `5` (edge of length `t₁ = -log(6/7)`); the node `7` of `3` joins the node `6`
-of `2` (length `t₃ = -log(1/14)`); the hybrid edges into `5` come from `6` (length `t₂ = -log(6/7)`)
-and from `7` (length `t₄ = -log(13/14)`, which the root `8` halves), each of inheritance probability
-`1/2`; the pendant edges have length one. It is a binary level-1 metric network rooted at the LSA of its
-taxa, and its concordance factors are `32/98` for `01|23` and `33/98` for `02|13` and `03|12`: the Cycle
-property holds and the Big Cycle property does not. -/
+/-- **Example 6** (a check of the definitions): the network of Figure 18, with a `3₂`-cycle, with the
+parameters of the paper: `t₁ = t₂ = -log(6/7)`, `t₃ = -log(1/14)`, `t₄ = -log(13/14)`, `γ = 1/2`. It is
+a binary level-1 metric network rooted at the LSA of its taxa, its concordance factors are `32/98` for
+`01|23` and `33/98` for `02|13` and `03|12`, and its four taxa do not satisfy the Big Cycle property. -/
 theorem example6 :
-    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
-      ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
-    let θ : Params (Fin 9) :=
-      ⟨![1, 1, 1, 1, -Real.log (6 / 7), -Real.log (1 / 14), -Real.log (13 / 14) / 2,
-          -Real.log (6 / 7), -Real.log (13 / 14) / 2], ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
-    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
-      ∀ q : QuartetTree (Fin 4),
-        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 32 / 98) ∧
-        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 33 / 98) ∧
-        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+    let θ := fig18Params (-Real.log (6 / 7)) (-Real.log (6 / 7)) (-Real.log (1 / 14))
+      (-Real.log (13 / 14)) (1 / 2)
+    fig18Network.IsBinaryNetwork ∧ fig18Network.graph.IsLevelOne ∧
+      fig18Network.IsLSA Set.univ fig18Network.root ∧ fig18Network.IsMetric θ ∧
+      (∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → fig18Network.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → fig18Network.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → fig18Network.cf θ q = 33 / 98)) ∧
+      ¬ BigCycleOn (fig18Network.cf θ) univ := by
   sorry
 
-/-- **Example 7** (a check of the definitions): the network of Figure 17, with a 4-cycle, rooted on one
-of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`, below the nodes `4, 5, 6, 7`
-of the cycle; `7` joins `4` (length `t₁ = -log(48/49)`), `4` joins `5` (length `t₂ = -log(48/49)`), and the
-hybrid edges into `6` come from `5` and from `7` (the latter halved by the root `8`), each of length one
-and inheritance probability `1/2`; the pendant edges have length one. It is a binary level-1 metric
-network rooted at the LSA of its taxa, and its concordance factors are `33/98` for `01|23` and `03|12`
-and `32/98` for `02|13`. The paper prints `32/98` for `AB|CD` and `33/98` for `AC|BD` and `AD|BC`: those
-are the values with the taxa `1` and `2` exchanged. -/
+/-- **Example 7** (a check of the definitions): the network of Figure 17, with a 4-cycle, with
+`t₁ = t₂ = -log(48/49)` and `γ = 1/2`, as in the paper, which gives no lengths for the hybrid edges: they
+have length one here, and do not change the concordance factors, since at most one lineage crosses them.
+It is a binary level-1 metric network rooted at the LSA of its taxa, and its concordance factors are
+`33/98` for `01|23` and `03|12` and `32/98` for `02|13`. The paper prints `32/98` for `AB|CD` and `33/98`
+for `AC|BD` and `AD|BC`: those are the values with the taxa `1` and `2` exchanged. -/
 theorem example7 :
-    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
-      ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
-    let θ : Params (Fin 9) :=
-      ⟨![1, 1, 1, 1, -Real.log (48 / 49), -Real.log (48 / 49), 1, 1 / 2, 1 / 2],
-        ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
-    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+    let θ := fig17Params (-Real.log (48 / 49)) (-Real.log (48 / 49)) (1 / 2)
+    fig17Network.IsBinaryNetwork ∧ fig17Network.graph.IsLevelOne ∧
+      fig17Network.IsLSA Set.univ fig17Network.root ∧ fig17Network.IsMetric θ ∧
       ∀ q : QuartetTree (Fin 4),
-        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 33 / 98) ∧
-        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 32 / 98) ∧
-        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+        (q.1 = {{0, 1}, {2, 3}} → fig17Network.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → fig17Network.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → fig17Network.cf θ q = 33 / 98) := by
+  sorry
+
+/-- **`N⁻` keeps the cycles of size at least four** (a check of the definitions): `N⁻` of Figure 17 has
+a 4-cycle, and `N⁻` of Figure 18 has none, its cycle of four edges passing through the root. -/
+theorem fig17_fig18_unrooted :
+    (∃ C, fig17Network.unrooted.graph.IsCycle C ∧ C.ncard = 4) ∧
+      ¬ ∃ C, fig18Network.unrooted.graph.IsCycle C ∧ C.ncard = 4 := by
+  sorry
+
+/-- **`Ñ` distinguishes a 4-cycle from a `3₂`-cycle** (a check of the definitions): the networks `Ñ` of
+Figures 18 and 17 are not isomorphic. `Ñ` of Figure 18, whose 3-cycle is contracted, has no cycle; `Ñ`
+of Figure 17 keeps the 4-cycle. -/
+theorem fig17_fig18_tilde :
+    ¬ Nonempty (SDIso fig18Network.unrooted.tilde fig17Network.unrooted.tilde) := by
   sorry
 
 end Banos2019Challenge

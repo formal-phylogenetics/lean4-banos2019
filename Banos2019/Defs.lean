@@ -453,6 +453,37 @@ taxa in the same way. -/
 def SameOrdering {X : Type*} [DecidableEq X] (p p' : QuartetTree X → ℝ) : Prop :=
   ∀ q r : QuartetTree X, q.taxa = r.taxa → (p q ≤ p r ↔ p' q ≤ p' r)
 
+/-! ## The networks of Figures 17 and 18
+
+Two rooted networks on the taxa `0, 1, 2, 3`, at the leaves `0, 1, 2, 3`, each rooted at the node `8`
+on one of its hybrid edges, which the root halves. The edges `0, 1, 2, 3` are the pendant edges, of
+length one. -/
+
+/-- **Figure 17**, a 4-cycle: the taxa `0, 1, 2, 3` are below the nodes `4, 5, 6, 7` of the cycle; the
+edge `4` joins `7` to `4`, the edge `5` joins `4` to `5`, and the hybrid edges into the hybrid node `6`
+are the edge `6` from `5` and the edges `7`, `8` from `7` through the root `8`. -/
+def fig17Network : Network (Fin 9) (Fin 9) (Fin 4) :=
+  ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
+
+/-- The parameters of Figure 17: the edges `4` and `5` have lengths `t₁` and `t₂`; the hybrid edges into
+`6` have inheritance probabilities `γ` (from `5`) and `1 - γ` (from `7`) and length one (the root
+halves the one from `7`). -/
+def fig17Params (t₁ t₂ γ : ℝ) : Params (Fin 9) :=
+  ⟨![1, 1, 1, 1, t₁, t₂, 1, 1 / 2, 1 / 2], ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
+
+/-- **Figure 18**, a `3₂`-cycle: the taxa `0, 1` are below the node `4`, which is below the hybrid
+node `5` by the edge `4`; the taxa `2` and `3` are below the nodes `6` and `7`, which the edge `5` joins;
+the hybrid edges into `5` are the edge `7` from `6` and the edges `6`, `8` from `7` through the root
+`8`. -/
+def fig18Network : Network (Fin 9) (Fin 9) (Fin 4) :=
+  ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
+
+/-- The parameters of Figure 18: the edge `4` has length `t₁`, the edge `5` length `t₃`; the hybrid
+edge into `5` from `6` has length `t₂` and inheritance probability `1 - γ`, the one from `7` length `t₄`
+(halved by the root) and inheritance probability `γ`. -/
+def fig18Params (t₁ t₂ t₃ t₄ γ : ℝ) : Params (Fin 9) :=
+  ⟨![1, 1, 1, 1, t₁, t₃, t₄ / 2, t₂, t₄ / 2], ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
+
 end Banos2019.Model
 
 end
