@@ -15,8 +15,8 @@ its leaves; the results below prove both, for `T` the tree of cycles of
   has no cycle.
 * `ArisesFrom w C`: the node `w` of `T` is the class of the nodes of `Ñ` coming from the cycle `C`
   of `N⁻`. `exists_arisesFrom_of_isLeafNode_unrooted`: every leaf of `T` (`IsLeafNode`, a node with
-  at most one edge) arises from a cycle of `N⁻` of size at least four; a node of `T` arises from each
-  such cycle (`exists_arisesFrom_unrooted`).
+  at most one edge) arises from a cycle of `N⁻` of size at least four; a node of `T` arises from
+  each such cycle (`exists_arisesFrom_unrooted`).
 * `IsFourNetworkBlock`: a `v`-block whose taxa are in one 4-network block.
   `isLeafNode_iff_fourNetworkBlocks_unrooted`: a node of `T` arising from a cycle `C_v` of size at
   least four is a leaf exactly when all the `v`-blocks but one are 4-network blocks. The proof of

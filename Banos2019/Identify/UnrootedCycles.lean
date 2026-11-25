@@ -6,9 +6,10 @@ public import Banos2019.Network.CycleFacts
 /-!
 # The cycles of `N⁻` (Baños 2019, Sections 3 and 8)
 
-* `unrooted_isLevelOne`: `N⁻` is level-1 (connected: `unrooted_isConnected`, Quartet/Correspondence).
-* `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has exactly
-  one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
+* `unrooted_isLevelOne`: `N⁻` is level-1 (connected: `unrooted_isConnected`,
+  Quartet/Correspondence).
+* `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has
+  exactly one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
 * `exists_walks_compl_cycleNodes`: in a connected graph, every node is joined to a node of a cycle
   by a walk avoiding the cycle.
 * `card_four_of_ne`, `injOn_four`: sets of four elements.
@@ -72,8 +73,8 @@ variable {N : RootedNetwork V E X}
 
 variable [Finite E]
 
-/-- **`N⁻` is level-1**: two cycles sharing an edge share its ends, and two cycles with a common node
-are the same (Lemma 3). -/
+/-- **`N⁻` is level-1**: two cycles sharing an edge share its ends, and two cycles with a common
+node are the same (Lemma 3). -/
 theorem unrooted_isLevelOne (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) : IsLevelOne (unrooted N hN hX).graph := by
   rintro C C' hC hC' ⟨f, hf, hf'⟩
@@ -83,7 +84,8 @@ theorem unrooted_isLevelOne (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.gr
 variable {hN : IsBinaryRootedNetwork N} {hX : Nontrivial X}
 
 /-- **A cycle of `N⁻` has a hybrid node** (Lemma 3). -/
-theorem exists_isHybridNodeOf (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) :
+theorem exists_isHybridNodeOf (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) :
     ∃ v, IsHybridNodeOf (unrooted N hN hX) C v := by
   obtain ⟨⟨v, ⟨-, h₁, h₂, hne, hd₁, hd₂, ht₁, ht₂⟩, -⟩, h2, -⟩ := lemma3_unrooted hN h1 hX hC
   obtain ⟨v, hv, -⟩ := (lemma3_unrooted hN h1 hX hC).1
@@ -97,7 +99,8 @@ theorem IsHybridNodeOf.mem_cycleNodes {V' E' X' : Type*} {G : SemidirectedNetwor
   exact ⟨g, hg, Or.inr hgt⟩
 
 /-- **A cycle of `N⁻` has only one hybrid node** (Lemma 3). -/
-theorem IsHybridNodeOf.eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v v'}
+theorem IsHybridNodeOf.eq (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {v v'}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (hv' : IsHybridNodeOf (unrooted N hN hX) C v') :
     v = v' := by
   obtain ⟨v₀, -, huniq⟩ := (lemma3_unrooted hN h1 hX hC).1
@@ -107,7 +110,8 @@ theorem IsHybridNodeOf.eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (u
   rw [key v hv, key v' hv']
 
 /-- **A hybrid node of `N⁻` lies on only one cycle** (Lemma 3). -/
-theorem IsHybridNodeOf.cycle_eq (h1 : IsLevelOne N.graph) {C C' : Set _} (hC : IsCycle (unrooted N hN hX).graph C)
+theorem IsHybridNodeOf.cycle_eq (h1 : IsLevelOne N.graph) {C C' : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C)
     (hC' : IsCycle (unrooted N hN hX).graph C') {v} (hv : IsHybridNodeOf (unrooted N hN hX) C v)
     (hv' : IsHybridNodeOf (unrooted N hN hX) C' v) : C = C' :=
   (lemma3_unrooted hN h1 hX hC).2.2 C' hC' ⟨v, hv.mem_cycleNodes, hv'.mem_cycleNodes⟩

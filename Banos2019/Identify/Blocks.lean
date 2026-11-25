@@ -7,15 +7,15 @@ public import Banos2019.Identify.HybridBlock
 
 Removing the edges of a cycle `C` of `N⁻` leaves one connected component through each node of `C`,
 and each component holds at least one taxon: the blocks of `C` are the taxa of these components, one
-block for each node of `C`, and the block of the hybrid node is the set of taxa descending from it. The
-proofs of Sections 8 and 9 use these facts throughout, without stating them.
+block for each node of `C`, and the block of the hybrid node is the set of taxa descending from it.
+The proofs of Sections 8 and 9 use these facts throughout, without stating them.
 
 * `blockNode G C x`: the node of `C` whose block contains `x`; `sameBlock_iff_blockNode_eq`,
   `exists_blockNode_eq`, `blockNode_eq_iff_descendsFrom`.
-* `separatesQuartet_iff`: the cycle `C` separates `s` when `blockNode` is injective on `s` and sends a
-  taxon of `s` to the hybrid node; `four_le_ncard_of_separatesQuartet`.
-* `exists_separatesQuartet_of_not_sameBlock`: two taxa in different blocks of a cycle of size at least
-  four are in a set of four taxa that the cycle separates.
+* `separatesQuartet_iff`: the cycle `C` separates `s` when `blockNode` is injective on `s` and sends
+  a taxon of `s` to the hybrid node; `four_le_ncard_of_separatesQuartet`.
+* `exists_separatesQuartet_of_not_sameBlock`: two taxa in different blocks of a cycle of size at
+  least four are in a set of four taxa that the cycle separates.
 -/
 
 @[expose] public noncomputable section
@@ -33,7 +33,8 @@ variable {N : RootedNetwork V E X} [Finite E] {hN : IsBinaryRootedNetwork N} {hX
 
 /-- The node of the cycle `C` whose block contains the taxon `x`. -/
 def blockNode {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (x : X') : V' :=
-  @Classical.epsilon V' ⟨G.leaf x⟩ fun u => u ∈ cycleNodes G.graph C ∧ x ∈ nodeBlock G.graph G.leaf C u
+  @Classical.epsilon V' ⟨G.leaf x⟩
+    fun u => u ∈ cycleNodes G.graph C ∧ x ∈ nodeBlock G.graph G.leaf C u
 
 omit [Finite E] in
 theorem blockNode_spec {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (x : X) :
@@ -51,15 +52,17 @@ theorem blockNode_mem {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (x :
   (blockNode_spec hC x).1
 
 /-- The block of `x` is that of the node `blockNode C x` only. -/
-theorem eq_blockNode (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
-    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) {x : X}
+theorem eq_blockNode (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C)
+    {u} (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) {x : X}
     (hx : x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u) :
     u = blockNode (unrooted N hN hX) C x :=
   (unrooted_isLevelOne hN h1 hX).eq_of_walks_compl hC hu (blockNode_mem hC x)
     (hx.trans (DirectedMultigraph.walks_symm _ (blockNode_spec hC x).2))
 
-/-- **Two taxa are in the same block of `C` exactly when their blocks are those of the same node.** -/
-theorem sameBlock_iff_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (x y : X) :
+/-- **Two taxa are in the same block of `C` exactly when their blocks are those of the same node.**
+-/
+theorem sameBlock_iff_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) (x y : X) :
     SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y ↔
       blockNode (unrooted N hN hX) C x = blockNode (unrooted N hN hX) C y := by
   constructor
@@ -72,13 +75,16 @@ theorem sameBlock_iff_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : I
     exact (DirectedMultigraph.walks_symm _ hx).trans hy
 
 /-- **Every node of a cycle is the node of the block of a taxon.** -/
-theorem exists_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
-    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) : ∃ x, blockNode (unrooted N hN hX) C x = u := by
+theorem exists_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {u}
+    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) : ∃ x, blockNode
+    (unrooted N hN hX) C x = u := by
   obtain ⟨x, hx⟩ := nodeBlock_nonempty_unrooted h1 hC hu
   exact ⟨x, (eq_blockNode h1 hC hu hx).symm⟩
 
 /-- **A taxon is in the block of the hybrid node exactly when it descends from it.** -/
-theorem blockNode_eq_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v}
+theorem blockNode_eq_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x : X) :
     blockNode (unrooted N hN hX) C x = v ↔ DescendsFrom (unrooted N hN hX) v x := by
   rw [← mem_nodeBlock_iff_descendsFrom h1 hC hv]
@@ -90,7 +96,8 @@ theorem blockNode_eq_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _} (hC 
 
 /-- **The cycle `C` separates `s`** when the nodes of the blocks of the taxa of `s` are distinct and
 one of them is the hybrid node. -/
-theorem separatesQuartet_iff (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v}
+theorem separatesQuartet_iff (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (s : Finset X) :
     SeparatesQuartet (unrooted N hN hX) C v s ↔
       Set.InjOn (blockNode (unrooted N hN hX) C) s ∧
@@ -103,14 +110,15 @@ theorem separatesQuartet_iff (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle
   · rintro ⟨hinj, hx⟩
     exact ⟨hC, hv, fun x hx y hy hne h => hne (hinj hx hy h), hx⟩
 
-/-- **Two taxa in different blocks of a cycle of size at least four are in a set of four taxa that the
-cycle separates**: add taxa from two more blocks, one of them the hybrid block when neither taxon is in
-it. -/
+/-- **Two taxa in different blocks of a cycle of size at least four are in a set of four taxa that
+the cycle separates**: add taxa from two more blocks, one of them the hybrid block when neither
+taxon is in it. -/
 theorem exists_separatesQuartet_of_not_sameBlock [DecidableEq X] (h1 : IsLevelOne N.graph)
     {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) {x y : X}
     (hxy : ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y) :
-    ∃ c d, #({x, y, c, d} : Finset X) = 4 ∧ SeparatesQuartet (unrooted N hN hX) C v {x, y, c, d} := by
+    ∃ c d, #({x, y, c, d} : Finset X) = 4 ∧ SeparatesQuartet (unrooted N hN hX) C v
+      {x, y, c, d} := by
   rw [sameBlock_iff_blockNode_eq h1 hC] at hxy
   set β := blockNode (unrooted N hN hX) C
   have hne : ∀ {a b : X}, β a ≠ β b → a ≠ b := fun h h' => h (h' ▸ rfl)

@@ -131,8 +131,8 @@ theorem exists_displays_displayedSides_of_isBinary {N : RootedNetwork V E X}
 
 /-- **In the parameters of a parent choice, with positive lengths, a quartet tree displayed by the
 tree of the choice has a larger concordance factor than its alternatives** (with independent
-inheritance, `ρ = 0`): the network then behaves as the tree of the choice, in which an arc of positive
-length separates the two cherries of the quartet tree. -/
+inheritance, `ρ = 0`): the network then behaves as the tree of the choice, in which an arc of
+positive length separates the two cherries of the quartet tree. -/
 theorem nmscCF_choiceMetric_alternative_lt {N : RootedNetwork V E X} (hN : N.IsPhylogenetic)
     (c : N.ParentChoice) {θ : MetricData E} (hℓ : ∀ f, 0 < θ.length f) {r : QuartetTree X}
     (hd : Displays (N.displayedSides c) r) {r' : QuartetTree X} (hr' : r' ∈ r.alternatives) :
@@ -170,7 +170,8 @@ theorem forGenericParams_nonDegenerateCF {N : RootedNetwork V E X}
   let c₀ : N.ParentChoice := fun v => (hpar v).some
   let θ₁ : MetricData E := ⟨fun _ => 1, fun _ => 0⟩
   refine (forGenericParams_iInter (ι := {s : Finset X // #s = 4})
-    (P := fun s θ => IsMetricNetwork N θ → ∃ q ∈ treesOn s.1, ∃ r ∈ treesOn s.1, cf N θ q ≠ cf N θ r)
+    (P := fun s θ => IsMetricNetwork N θ → ∃ q ∈ treesOn s.1, ∃ r ∈
+      treesOn s.1, cf N θ q ≠ cf N θ r)
     fun s => ?_).mono fun θ h hθ s hs => h ⟨s, hs⟩ hθ
   -- the quartet tree on `s` displayed by the tree of `c₀`, and an alternative
   obtain ⟨r, hr, hd⟩ := exists_displays_displayedSides_of_isBinary hN c₀ s.2

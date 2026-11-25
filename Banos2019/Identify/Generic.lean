@@ -23,6 +23,7 @@ variable {V E X : Type*} [Fintype E] {N : RootedNetwork V E X}
 theorem ForGenericParams.and {P Q : MetricData E → Prop} (hP : ForGenericParams N P)
     (hQ : ForGenericParams N Q) : ForGenericParams N fun θ => P θ ∧ Q θ :=
   (forGenericParams_iInter (ι := Bool) (P := fun b => if b then P else Q)
-    (fun b => by cases b <;> simpa)).mono fun θ hθ => ⟨by simpa using hθ true, by simpa using hθ false⟩
+    (fun b => by cases b <;> simpa)).mono
+    fun θ hθ => ⟨by simpa using hθ true, by simpa using hθ false⟩
 
 end Banos2019

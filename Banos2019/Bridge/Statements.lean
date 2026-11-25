@@ -7,13 +7,13 @@ public import Banos2019.Identifiability
 # The statements of record, on the Challenge's definitions
 
 `Banos2019.Model.theorem3`, `theorem4`, `proposition5` are the theorems of the Challenge
-(`palomar/Banos2019/Challenge.lean`), stated on the definitions of `Banos2019.Defs` and proved from the
-library's `Banos2019.theorem3`, `Banos2019.theorem4`, `Banos2019.proposition5` through the bridges of
-`Banos2019.Bridge`. The library's Theorem 4 assumes two taxa; with at most one, `theorem4` holds
-because `Ñ` is then the leaf of the taxon alone (`Network.isPoint_unrooted`). `lsa_isLSA` and
-`root_reaches` are two of the Challenge's checks of its definitions; the others are in
-`Banos2019.Bridge.Examples`, `Banos2019.Bridge.Generic` and `Banos2019.Bridge.Figures`. The Solution
-restates them.
+(`palomar/Banos2019/Challenge.lean`), stated on the definitions of `Banos2019.Defs` and proved from
+the library's `Banos2019.theorem3`, `Banos2019.theorem4`, `Banos2019.proposition5` through the
+bridges of `Banos2019.Bridge`. The library's Theorem 4 assumes two taxa; with at most one,
+`theorem4` holds because `Ñ` is then the leaf of the taxon alone (`Network.isPoint_unrooted`).
+`lsa_isLSA` and `root_reaches` are two of the Challenge's checks of its definitions; the others are
+in `Banos2019.Bridge.Examples`, `Banos2019.Bridge.Generic` and `Banos2019.Bridge.Figures`. The
+Solution restates them.
 -/
 
 @[expose] public noncomputable section
@@ -27,7 +27,8 @@ theorem theorem3 {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] [DecidableE
     (N : Network V E X) (hN : N.IsBinaryNetwork) (h1 : N.graph.IsLevelOne) (s : Finset X)
     (hs : #s = 4) :
     N.ForGenericParams fun θ =>
-      BigCycleOn (N.cf θ) s ↔ ∃ C, (N.unrooted.induced (s : Set X)).graph.IsCycle C ∧ C.ncard = 4 := by
+      BigCycleOn (N.cf θ) s ↔ ∃ C, (N.unrooted.induced (s : Set X)).graph.IsCycle C ∧
+        C.ncard = 4 := by
   have hb := N.isBinaryNetwork_iff.mp hN
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
   classical
@@ -46,10 +47,12 @@ theorem theorem4_of_nontrivial {X : Type} [Fintype X] [DecidableEq X] [Nontrivia
         (N₁ : Network V₁ E₁ X) (N₂ : Network V₂ E₂ X),
         N₁.IsBinaryNetwork → N₂.IsBinaryNetwork → N₁.graph.IsLevelOne → N₂.graph.IsLevelOne →
         ∀ θ₁ θ₂, N₁.IsMetric θ₁ → N₂.IsMetric θ₂ → G V₁ E₁ N₁ θ₁ → G V₂ E₂ N₂ θ₂ →
-          SameOrdering (N₁.cf θ₁) (N₂.cf θ₂) → Nonempty (SDIso N₁.unrooted.tilde N₂.unrooted.tilde) := by
+          SameOrdering (N₁.cf θ₁) (N₂.cf θ₂) →
+            Nonempty (SDIso N₁.unrooted.tilde N₂.unrooted.tilde) := by
   obtain ⟨G, hgen, hid⟩ := Banos2019.theorem4 (X := X) inferInstance
   refine ⟨fun V E _ _ N θ => G V E N.toRooted θ.toMetric, fun V E _ _ N hN h1 => ?_, ?_⟩
-  · exact N.forGenericParams_of hN (fun θ _ h => h) (hgen V E N.toRooted (N.isBinaryNetwork_iff.mp hN)
+  · exact N.forGenericParams_of hN (fun θ _ h => h)
+      (hgen V E N.toRooted (N.isBinaryNetwork_iff.mp hN)
       ((N.graph.isLevelOne_iff).mp h1))
   · intro V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hso
     have hb₁ := N₁.isBinaryNetwork_iff.mp hN₁
@@ -65,9 +68,9 @@ theorem theorem4_of_nontrivial {X : Type} [Fintype X] [DecidableEq X] [Nontrivia
 
 /-! ### Theorem 4 with at most one taxon
 
-A binary network has a taxon (going down from the root ends at a leaf). With one taxon, the LSA of the
-taxa is its leaf, below which there is nothing: `N⁻`, and then `Ñ`, is the leaf alone, without edges, so
-any two of them are isomorphic. -/
+A binary network has a taxon (going down from the root ends at a leaf). With one taxon, the LSA of
+the taxa is its leaf, below which there is nothing: `N⁻`, and then `Ñ`, is the leaf alone, without
+edges, so any two of them are isomorphic. -/
 
 section Point
 
@@ -149,8 +152,8 @@ theorem Network.isPoint_unrooted [Subsingleton X] {N : Network V E X} (hN : N.Is
 end Point
 
 /-- **Theorem 4**, on the Challenge's definitions. With at least two taxa, it is the library's
-(`theorem4_of_nontrivial`). A binary network has a taxon, and with one taxon any two networks `Ñ` are
-the leaf alone, so isomorphic: `G` is then any property, here the true one. -/
+(`theorem4_of_nontrivial`). A binary network has a taxon, and with one taxon any two networks `Ñ`
+are the leaf alone, so isomorphic: `G` is then any property, here the true one. -/
 theorem theorem4 {X : Type} [Fintype X] [DecidableEq X] :
     ∃ G : ∀ (V E : Type) [Fintype V] [Fintype E], Network V E X → Params E → Prop,
       (∀ (V E : Type) [Fintype V] [Fintype E] (N : Network V E X),
@@ -159,7 +162,8 @@ theorem theorem4 {X : Type} [Fintype X] [DecidableEq X] :
         (N₁ : Network V₁ E₁ X) (N₂ : Network V₂ E₂ X),
         N₁.IsBinaryNetwork → N₂.IsBinaryNetwork → N₁.graph.IsLevelOne → N₂.graph.IsLevelOne →
         ∀ θ₁ θ₂, N₁.IsMetric θ₁ → N₂.IsMetric θ₂ → G V₁ E₁ N₁ θ₁ → G V₂ E₂ N₂ θ₂ →
-          SameOrdering (N₁.cf θ₁) (N₂.cf θ₂) → Nonempty (SDIso N₁.unrooted.tilde N₂.unrooted.tilde) := by
+          SameOrdering (N₁.cf θ₁) (N₂.cf θ₂) →
+            Nonempty (SDIso N₁.unrooted.tilde N₂.unrooted.tilde) := by
   by_cases hX : Nontrivial X
   · exact theorem4_of_nontrivial
   rw [not_nontrivial_iff_subsingleton] at hX
@@ -178,10 +182,12 @@ theorem proposition5 {V E V' E' X : Type*} [Fintype V] [Fintype E] [Fintype V'] 
     (Q' : Network V' E' X) (θ' : Params E') (hQ : Q.IsBinaryNetwork) (hQ' : Q'.IsBinaryNetwork)
     (h1 : Q.graph.IsLevelOne) (h1' : Q'.graph.IsLevelOne) (hr : Q.IsLSA Set.univ Q.root)
     (hr' : Q'.IsLSA Set.univ Q'.root) (hθ : Q.IsMetric θ) (hθ' : Q'.IsMetric θ')
-    (hiso : Nonempty (SDMetricIso Q.unrooted (Q.unrootedParams θ) Q'.unrooted (Q'.unrootedParams θ'))) :
+    (hiso : Nonempty (SDMetricIso Q.unrooted (Q.unrootedParams θ) Q'.unrooted
+        (Q'.unrootedParams θ'))) :
     Q.cf θ = Q'.cf θ' := by
   have hL : IsLSAQuartet Q.toRooted θ.toMetric :=
-    ⟨Q.isBinaryNetwork_iff.mp hQ, (Q.graph.isLevelOne_iff).mp h1, hr, hX, (Q.isMetric_iff hQ θ).mp hθ⟩
+    ⟨Q.isBinaryNetwork_iff.mp hQ, (Q.graph.isLevelOne_iff).mp h1, hr, hX,
+      (Q.isMetric_iff hQ θ).mp hθ⟩
   have hL' : IsLSAQuartet Q'.toRooted θ'.toMetric :=
     ⟨Q'.isBinaryNetwork_iff.mp hQ', (Q'.graph.isLevelOne_iff).mp h1', hr', hX,
       (Q'.isMetric_iff hQ' θ').mp hθ'⟩

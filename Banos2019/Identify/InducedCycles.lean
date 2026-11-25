@@ -6,10 +6,11 @@ public import Banos2019.Identify.TildeDefs
 # The networks induced on a set of taxa (Baños 2019, proof of Theorem 4)
 
 The induction step of Theorem 4 applies the induction hypothesis to the networks `N⁻_{S_i ∪ {s_j}}`
-induced on sets of taxa. As for quartets (Section 5, `quartetUnrooted`), the induced network on `Y` is
-taken as `(N⊕_Y)⁻`, the unrooted network of the induced LSA network `N⊕_Y` (`inducedLSA`), which is a
-binary rooted network on the taxa of `Y`. Its concordance factors are those of `N` on `Y` (Theorem 2),
-its cycles are those that the cycles of `N⁻` induce on `Y`, and the conditions of Theorem 4 pass to it.
+induced on sets of taxa. As for quartets (Section 5, `quartetUnrooted`), the induced network on `Y`
+is taken as `(N⊕_Y)⁻`, the unrooted network of the induced LSA network `N⊕_Y` (`inducedLSA`), which
+is a binary rooted network on the taxa of `Y`. Its concordance factors are those of `N` on `Y`
+(Theorem 2), its cycles are those that the cycles of `N⁻` induce on `Y`, and the conditions of
+Theorem 4 pass to it.
 
 * `inducedLSA_isLevelOne`, `inducedLSA_isMetricNetwork`, `cf_inducedLSA`.
 * `goodParams_inducedLSA`, `sameOrdering_inducedLSA`.
@@ -32,9 +33,9 @@ The cycles are compared as in `Banos2019.Identify.QuartetCycles` for four taxa:
 * `exists_unrooted_cycle_of_induced`, `exists_induced_cycle_of_unrooted`: a cycle of `(N⊕_Y)⁻` comes
   from the cycle of `N⁻` with the same hybrid node, and a cycle of `N⁻` whose hybrid node is above a
   taxon of `Y` and not above another induces a cycle of `(N⊕_Y)⁻`.
-* `separatesQuartet_induced_iff`, `exists_separatesQuartet_induced_iff`: the sets of four taxa of `Y`
-  separated by a cycle of `(N⊕_Y)⁻` are those separated by the cycle of `N⁻` with the same hybrid
-  node.
+* `separatesQuartet_induced_iff`, `exists_separatesQuartet_induced_iff`: the sets of four taxa of
+  `Y` separated by a cycle of `(N⊕_Y)⁻` are those separated by the cycle of `N⁻` with the same
+  hybrid node.
 -/
 
 @[expose] public noncomputable section
@@ -131,8 +132,8 @@ theorem allocationFactor_iso (ht : ∀ e, N₂.graph.target (eE e) = eV (N₁.gr
 theorem historyWeight_iso (hs : ∀ e, N₂.graph.source (eE e) = eV (N₁.graph.source e))
     (ht : ∀ e, N₂.graph.target (eE e) = eV (N₁.graph.target e)) (hr : N₂.root = eV N₁.root)
     (hl : ∀ x, N₂.leaf (eX x) = eV (N₁.leaf x))
-    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e) (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e)
-    (bot top : E₁ → Finset (Finset X₁)) :
+    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e)
+    (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e) (bot top : E₁ → Finset (Finset X₁)) :
     historyWeight N₂ θ₂ ρ (isoForests eE eX bot) (isoForests eE eX top) =
       historyWeight N₁ θ₁ ρ bot top := by
   unfold historyWeight
@@ -147,8 +148,8 @@ theorem historyWeight_iso (hs : ∀ e, N₂.graph.source (eE e) = eV (N₁.graph
 theorem geneTreeDist_iso (hs : ∀ e, N₂.graph.source (eE e) = eV (N₁.graph.source e))
     (ht : ∀ e, N₂.graph.target (eE e) = eV (N₁.graph.target e)) (hr : N₂.root = eV N₁.root)
     (hl : ∀ x, N₂.leaf (eX x) = eV (N₁.leaf x))
-    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e) (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e)
-    (G : Finset (Finset X₁)) :
+    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e)
+    (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e) (G : Finset (Finset X₁)) :
     geneTreeDist N₂ θ₂ ρ (relabelFamily eX G) = geneTreeDist N₁ θ₁ ρ G := by
   unfold geneTreeDist
   let Φ : (E₁ → Finset (Finset X₁)) ≃ (E₂ → Finset (Finset X₂)) :=
@@ -162,8 +163,8 @@ theorem geneTreeDist_iso (hs : ∀ e, N₂.graph.source (eE e) = eV (N₁.graph.
     kingmanAbsorption_relabelFamily]
 
 omit [Fintype X₁] [Fintype X₂] in
-/-- A family of clusters displays a quartet tree exactly when its relabelling displays the relabelled
-quartet tree. -/
+/-- A family of clusters displays a quartet tree exactly when its relabelling displays the
+relabelled quartet tree. -/
 theorem displays_relabelFamily (T : Finset (Finset X₁)) (q : QuartetTree X₁) :
     Displays (relabelFamily eX T) (q.map eX.injective) ↔ Displays T q := by
   have hm : ∀ A : Finset X₁, A.map eX.toEmbedding = A.image eX := fun A => map_eq_image _ _
@@ -178,7 +179,8 @@ along a bijection of the taxa. -/
 theorem nmscCF_iso (hs : ∀ e, N₂.graph.source (eE e) = eV (N₁.graph.source e))
     (ht : ∀ e, N₂.graph.target (eE e) = eV (N₁.graph.target e)) (hr : N₂.root = eV N₁.root)
     (hl : ∀ x, N₂.leaf (eX x) = eV (N₁.leaf x))
-    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e) (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e)
+    (hθl : ∀ e, θ₂.length (eE e) = θ₁.length e)
+    (hθi : ∀ e, θ₂.inheritance (eE e) = θ₁.inheritance e)
     (q : QuartetTree X₁) : nmscCF N₂ θ₂ ρ (q.map eX.injective) = nmscCF N₁ θ₁ ρ q := by
   unfold nmscCF
   rw [← (relabelFamilyEquiv eX).sum_comp]
@@ -398,12 +400,12 @@ theorem unrootedCycleArcs_eq_image_induced {C' : Set _}
     rfl⟩
 
 include h1 in
-/-- **The blocks of `(N⊕_Y)⁻` are the traces on `Y` of the blocks of `N⁻`**: for a cycle of `(N⊕_Y)⁻`
-and the cycle of `N⁻` with the same hybrid node, the block of a taxon of `Y` is that of the same node of
-`N` in both. A node other than the top of its cycle has the taxa below its arc off the cycle as
-block (`exists_reaches_offCycle_of_mem_nodeBlock`, `mem_nodeBlock_of_reaches_offCycle`); these
-arcs are those of `N⊕_Y` and their first arcs in `N`, and the tops of the two cycles are the same
-node. -/
+/-- **The blocks of `(N⊕_Y)⁻` are the traces on `Y` of the blocks of `N⁻`**: for a cycle of
+`(N⊕_Y)⁻` and the cycle of `N⁻` with the same hybrid node, the block of a taxon of `Y` is that of
+the same node of `N` in both. A node other than the top of its cycle has the taxa below its arc off
+the cycle as block (`exists_reaches_offCycle_of_mem_nodeBlock`,
+`mem_nodeBlock_of_reaches_offCycle`); these arcs are those of `N⊕_Y` and their first arcs in `N`,
+and the tops of the two cycles are the same node. -/
 theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N hN Y hY).graph C')
     {w} (hw : IsHybridNodeOf (inducedLSAUnrooted N hN Y hY) C' w) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {v : SemidirectedVertex hN.1 hX}
@@ -538,7 +540,8 @@ theorem inducedNode_injective : Function.Injective (inducedNode hN hY) :=
 include h1 in
 /-- Two taxa of `Y` are in the same block of the cycle of `N⁻` exactly when they are in the same
 block of the cycle of `(N⊕_Y)⁻` with the same hybrid node. -/
-theorem blockNode_eq_iff_induced {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N hN Y hY).graph C')
+theorem blockNode_eq_iff_induced {C' : Set _}
+    (hC' : IsCycle (inducedLSAUnrooted N hN Y hY).graph C')
     {w} (hw : IsHybridNodeOf (inducedLSAUnrooted N hN Y hY) C' w) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {v : SemidirectedVertex hN.1 hX}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (hwv : inducedNode hN hY w = v.1.1) {x y : X}
@@ -573,8 +576,8 @@ end InducedCorrespondence
 
 section InducedSeparation
 
-/-- **A cycle of size at least four separates a set of four taxa**: a taxon of the hybrid block and a
-taxon of another block, with taxa of two more blocks. -/
+/-- **A cycle of size at least four separates a set of four taxa**: a taxon of the hybrid block and
+a taxon of another block, with taxa of two more blocks. -/
 theorem exists_separatesQuartet_of_four_le {V' E' X' : Type*} [DecidableEq X'] [Finite E']
     {M : RootedNetwork V' E' X'} {hM : IsBinaryRootedNetwork M} {hX' : Nontrivial X'}
     (h1 : IsLevelOne M.graph) {C : Set _} (hC : IsCycle (unrooted M hM hX').graph C)
@@ -638,10 +641,11 @@ theorem exists_unrooted_cycle_of_induced {C' : Set _} {w}
 
 omit [Finite E] in
 include h1 in
-/-- **A cycle of `N⁻` whose hybrid node is above a taxon of `Y` and not above another induces a cycle
-of `(N⊕_Y)⁻`** with the same hybrid node: the two parents of the hybrid node are below `LSA(Y)`, so
-the hybrid node is a hybrid node of `N⊕_Y`. -/
-theorem exists_induced_cycle_of_unrooted {C : Set _} {v : SemidirectedVertex hN.1 hX} (hv : IsHybridNodeOf (unrooted N hN hX) C v) {x₀ y₀ : X}
+/-- **A cycle of `N⁻` whose hybrid node is above a taxon of `Y` and not above another induces a
+cycle of `(N⊕_Y)⁻`** with the same hybrid node: the two parents of the hybrid node are below
+`LSA(Y)`, so the hybrid node is a hybrid node of `N⊕_Y`. -/
+theorem exists_induced_cycle_of_unrooted {C : Set _} {v : SemidirectedVertex hN.1 hX}
+    (hv : IsHybridNodeOf (unrooted N hN hX) C v) {x₀ y₀ : X}
     (hx₀ : x₀ ∈ Y) (hy₀ : y₀ ∈ Y) (hvx : N.graph.Reaches v.1.1 (N.leaf x₀))
     (hvy : ¬ N.graph.Reaches v.1.1 (N.leaf y₀)) :
     ∃ C' w, IsCycle (inducedLSAUnrooted N hN Y hY).graph C' ∧
@@ -782,7 +786,8 @@ theorem inducedLSA_isMetricNetwork (hN : IsBinaryRootedNetwork N) {θ : MetricDa
     ⟨e.1, Finset.mem_filter.mpr ⟨@Finset.mem_univ _ (Fintype.ofFinite _) _, Or.inl rfl⟩⟩
 
 /-- **The concordance factors of the induced network are those of `N`** (Theorem 2). -/
-theorem cf_inducedLSA (hN : IsBinaryRootedNetwork N) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {Y : Set X} (hY : Y.Nontrivial) (q : QuartetTree Y) :
+theorem cf_inducedLSA (hN : IsBinaryRootedNetwork N) {θ : MetricData E} (hθ : IsMetricNetwork N θ)
+    {Y : Set X} (hY : Y.Nontrivial) (q : QuartetTree Y) :
     cf (inducedLSA N hN.1 Y hY) (inducedMetric hN.1 Y hY.nonempty θ) q =
       cf N θ (q.map Subtype.val_injective) := by
   have hL := lsaNetwork_isPhylogenetic hN.1 hY
@@ -790,7 +795,8 @@ theorem cf_inducedLSA (hN : IsBinaryRootedNetwork N) {θ : MetricData E} (hθ : 
   have hθL : (lsaNetwork hN.1 Y hY.nonempty).IsMetric
       (belowMetric (lsa hN.1 Y hY.nonempty) Y θ) := isMetric_belowMetric hN.1 hst hθ.1
   have hm : inducedMetric hN.1 Y hY.nonempty θ =
-      (lsaNetwork hN.1 Y hY.nonempty).suppressMetric (belowMetric (lsa hN.1 Y hY.nonempty) Y θ) := by
+      (lsaNetwork hN.1 Y hY.nonempty).suppressMetric
+      (belowMetric (lsa hN.1 Y hY.nonempty) Y θ) := by
     unfold inducedMetric
     dsimp only
     congr
@@ -822,7 +828,8 @@ theorem goodParams_inducedLSA (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.
     exact ⟨q₀, hq₀, r₀, hr₀, by rw [hcf]; exact hqr⟩
 
 /-- **The same orderings on `X` give the same orderings on `Y`.** -/
-theorem sameOrdering_inducedLSA {V' E' : Type} [Fintype V'] [Fintype E'] {N' : RootedNetwork V' E' X}
+theorem sameOrdering_inducedLSA {V' E' : Type} [Fintype V'] [Fintype E']
+    {N' : RootedNetwork V' E' X}
     (hN : IsBinaryRootedNetwork N) (hN' : IsBinaryRootedNetwork N') {θ : MetricData E}
     {θ' : MetricData E'} (hθ : IsMetricNetwork N θ) (hθ' : IsMetricNetwork N' θ')
     (h : SameOrdering (cf N θ) (cf N' θ')) {Y : Set X}
@@ -846,7 +853,8 @@ theorem bigCycleCount_inducedLSA_le (hN : IsBinaryRootedNetwork N) (h1 : IsLevel
   have h1Y := isLevelOne_inducedLSA_graph hN.1 h1 hY
   -- the cycle of `N⁻` with the hybrid node of a cycle of `(N⊕_Y)⁻`
   let f : Set (SemidirectedArc (inducedLSA_isBinaryRootedNetwork hN hY).1
-      (inducedLSA_isBinaryRootedNetwork hN hY).2 hY.coe_sort) → Set (SemidirectedArc hN.1 hN.2 hX) :=
+      (inducedLSA_isBinaryRootedNetwork hN hY).2 hY.coe_sort) →
+      Set (SemidirectedArc hN.1 hN.2 hX) :=
     fun C' => Classical.epsilon fun C => ∃ w v,
       IsHybridNodeOf (inducedLSAUnrooted N hN Y hY) C' w ∧ IsCycle (unrooted N hN hX).graph C ∧
         IsHybridNodeOf (unrooted N hN hX) C v ∧ inducedNode hN hY w = v.1.1
@@ -858,7 +866,8 @@ theorem bigCycleCount_inducedLSA_le (hN : IsBinaryRootedNetwork N) (h1 : IsLevel
     obtain ⟨C, v, hC, hv, hwv⟩ := exists_unrooted_cycle_of_induced hN h1 hX hY hw
     exact Classical.epsilon_spec (p := fun C => ∃ w v,
       IsHybridNodeOf (inducedLSAUnrooted N hN Y hY) C' w ∧ IsCycle (unrooted N hN hX).graph C ∧
-        IsHybridNodeOf (unrooted N hN hX) C v ∧ inducedNode hN hY w = v.1.1) ⟨C, w, v, hw, hC, hv, hwv⟩
+        IsHybridNodeOf (unrooted N hN hX) C v ∧ inducedNode hN hY w =
+        v.1.1) ⟨C, w, v, hw, hC, hv, hwv⟩
   unfold bigCycleCount
   refine Set.ncard_le_ncard_of_injOn f ?_ ?_ (Set.toFinite _)
   · rintro C' ⟨hC', hC'4⟩

@@ -6,11 +6,12 @@ public import Banos2019.Identify.QuartetCycles
 # The blocks and the order of the cycles from `S` (Baños 2019, proofs of Lemmas 14, 15 and 16)
 
 For parameters at which the statement of Lemma 12 holds, the 4-network blocks of `N⁻` are a function
-of `S` (`lemma14_core`). For metric parameters at which it holds, the blocks, the size and the hybrid
-block of the cycle `C_v` of `N⁻` whose hybrid node a set `s ∈ S` determines are functions of `S` and
-`s` (`lemma15_core`), and, given such functions, which of its blocks are adjacent is a function of
-the comparisons of the concordance factors of quartet trees on the same four taxa (`lemma16_core`).
-Lemmas 14, 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for generic parameters.
+of `S` (`lemma14_core`). For metric parameters at which it holds, the blocks, the size and the
+hybrid block of the cycle `C_v` of `N⁻` whose hybrid node a set `s ∈ S` determines are functions of
+`S` and `s` (`lemma15_core`), and, given such functions, which of its blocks are adjacent is a
+function of the comparisons of the concordance factors of quartet trees on the same four taxa
+(`lemma16_core`). Lemmas 14, 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for
+generic parameters.
 
 * `bcSets`: the set `S`.
 * `complementBlock` (`Y_a`): the construction of the proof of Lemma 14 from `S`.
@@ -60,11 +61,11 @@ def IsHybridTaxon (S : Set (Finset X)) (s : Finset X) (t : X) : Prop :=
 def SameBlockFour (S : Set (Finset X)) (s : Finset X) (x y : X) : Prop :=
   ∃ t ∈ s, x ∈ extensions S (s.erase t) ∧ y ∈ extensions S (s.erase t)
 
-/-- The blocks when `k_v ≥ 5` (proof of Lemma 15). Let `a` be the taxon of `s` in the hybrid block, `d`
-another taxon of `s`, `T = s ∖ {d}`, and `c ∈ T` other than `a`. A taxon `y ∉ Z_T` is in the block of
-the `g ∈ T` for which `{y} ∪ s ∖ {g} ∈ S` (the paper's `{y, u, w, d}`); two taxa `x, y ∈ Z_T` are in the
-same block when `{x, y} ∪ T ∖ {c} ∉ S` (the steps for `y ∉ Z_T`, applied to `T ∪ {x}` in place of
-`s`). -/
+/-- The blocks when `k_v ≥ 5` (proof of Lemma 15). Let `a` be the taxon of `s` in the hybrid block,
+`d` another taxon of `s`, `T = s ∖ {d}`, and `c ∈ T` other than `a`. A taxon `y ∉ Z_T` is in the
+block of the `g ∈ T` for which `{y} ∪ s ∖ {g} ∈ S` (the paper's `{y, u, w, d}`); two taxa
+`x, y ∈ Z_T` are in the same block when `{x, y} ∪ T ∖ {c} ∉ S` (the steps for `y ∉ Z_T`, applied to
+`T ∪ {x}` in place of `s`). -/
 def SameBlockFive (S : Set (Finset X)) (s : Finset X) (x y : X) : Prop :=
   ∃ a d c, d ∈ s ∧ c ∈ s.erase d ∧ a ≠ d ∧ c ≠ a ∧ IsHybridTaxon S s a ∧
     ((x ∉ extensions S (s.erase d) ∧ y ∉ extensions S (s.erase d) ∧
@@ -82,8 +83,8 @@ def blockRelation (S : Set (Finset X)) (s : Finset X) (x y : X) : Prop :=
 def blockCount (S : Set (Finset X)) (s : Finset X) : ℕ :=
   if ExtensionsDisjoint S s then 4 else (Set.range fun x => {y | blockRelation S s x y}).ncard
 
-/-- The hybrid block of the cycle determined by `s` when it has size at least five, from `S`: the set
-`Z_{s ∖ {a}}` of the taxon `a` of `s` in the hybrid block (proof of Lemma 15). -/
+/-- The hybrid block of the cycle determined by `s` when it has size at least five, from `S`: the
+set `Z_{s ∖ {a}}` of the taxon `a` of `s` in the hybrid block (proof of Lemma 15). -/
 def hybridBlock (S : Set (Finset X)) (s : Finset X) : Set X :=
   {x | ∃ t, IsHybridTaxon S s t ∧ x ∈ extensions S (s.erase t)}
 
@@ -97,7 +98,8 @@ theorem determines_congr {hN : IsBinaryRootedNetwork N} {s s' : Finset X} (h : s
   subst h
   rfl
 
-/-- **A set of `S` sharing three taxa with a set of `S` that determines `v` determines `v`** (Lemma 13). -/
+/-- **A set of `S` sharing three taxa with a set of `S` that determines `v` determines `v`** (Lemma
+13). -/
 theorem determines_insert_erase (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : s ∈ bcSets N θ) {t : X}
     (ht : t ∈ s) {e : X} (he : insert e (s.erase t) ∈ bcSets N θ) {v : V}
@@ -137,7 +139,8 @@ theorem mem_bcSets_insert_erase_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevel
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) {s : Finset X} (hs : s ∈ bcSets N θ)
     (hdet : Determines hN s hs.1 v.1.1) {t : X} (ht : t ∈ s) (e : X) :
     insert e (s.erase t) ∈ bcSets N θ ↔
-      #(insert e (s.erase t)) = 4 ∧ SeparatesQuartet (unrooted N hN hX) C v (insert e (s.erase t)) := by
+      #(insert e (s.erase t)) = 4 ∧ SeparatesQuartet (unrooted N hN hX) C v
+        (insert e (s.erase t)) := by
   constructor
   · intro he
     obtain ⟨C', hsep⟩ := (determines_iff_separatesQuartet hN h1 hX he.1 v).1
@@ -148,8 +151,8 @@ theorem mem_bcSets_insert_erase_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevel
     exact (hS _ h4).2 ⟨C, v, four_le_ncard_of_separatesQuartet h1 hC hv h4 hsep, hsep⟩
 
 /-- **`Z_{s ∖ {t}}` in terms of the blocks** (proof of Lemma 15): for `s ∈ S` determining the hybrid
-node `v` of `C_v`, with `a ∈ s` in the hybrid block, a taxon `e` is in `Z_{s ∖ {t}}` exactly when its
-block is not that of a taxon of `s ∖ {t}`, and is the hybrid block if `t = a`. -/
+node `v` of `C_v`, with `a ∈ s` in the hybrid block, a taxon `e` is in `Z_{s ∖ {t}}` exactly when
+its block is not that of a taxon of `s ∖ {t}`, and is the hybrid block if `t = a`. -/
 theorem mem_extensions_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) {θ : MetricData E} (hθ : IsMetricNetwork N θ)
     (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
@@ -247,10 +250,11 @@ theorem lemma14_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
     exact hsep.2.2.1 x hxs y hys (Ne.symm hyx)
       (hsb.mono (Set.subset_sUnion_of_mem (show C ∈ cyclesOfSizeAtLeast _ 4 from ⟨hsep.1, hC4⟩)))
 
-/-- **The blocks, the size and the hybrid block of a cycle from `S`** (Lemma 15 at given parameters):
-for metric parameters at which the statement of Lemma 12 holds and `s ∈ S` determining the hybrid
-node `w` of the cycle `C_w` of `N⁻`, `blockRelation S s` gives the blocks of `C_w`, `blockCount S s`
-its size and, when the size is at least five, `hybridBlock S s` its hybrid block. -/
+/-- **The blocks, the size and the hybrid block of a cycle from `S`** (Lemma 15 at given
+parameters): for metric parameters at which the statement of Lemma 12 holds and `s ∈ S` determining
+the hybrid node `w` of the cycle `C_w` of `N⁻`, `blockRelation S s` gives the blocks of `C_w`,
+`blockCount S s` its size and, when the size is at least five, `hybridBlock S s` its hybrid block.
+-/
 theorem lemma15_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ)
@@ -289,7 +293,8 @@ theorem lemma15_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
   obtain ⟨hqa, hq⟩ := hmem q (by simp)
   obtain ⟨hra, hr⟩ := hmem r (by simp)
   rcases hC4.eq_or_lt with h4 | h5
-  · -- `k_v = 4`: the blocks are the images of the four taxa of `s`, and `Z_{s ∖ {t}}` is that of `t`
+  · -- `k_v = 4`: the blocks are the images of the four taxa of `s`, and `Z_{s ∖ {t}}` is that of
+    -- `t`
     have hnodes : cycleNodes (unrooted N hN hX).graph C = β '' ↑s :=
       (Set.eq_of_subset_of_ncard_le hsub (by rw [ncard_cycleNodes hC, ← h4, himg])
         (Set.toFinite _)).symm
@@ -390,7 +395,8 @@ theorem lemma15_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
           · left
             rw [hxg, hga, hβa]
           · exact Or.inr hga
-    -- two taxa `x, y ∈ Z_{s ∖ {d}}`: `{x, y} ∪ (s ∖ {d}) ∖ {c} ∈ S` exactly when their blocks differ
+    -- two taxa `x, y ∈ Z_{s ∖ {d}}`: `{x, y} ∪ (s ∖ {d}) ∖ {c} ∈ S` exactly when their blocks
+    -- differ
     have hcase₂ : ∀ d ∈ s, d ≠ a → ∀ c ∈ s.erase d, c ≠ a → ∀ x y,
         x ∈ extensions S (s.erase d) → y ∈ extensions S (s.erase d) →
         (insert y (insert x ((s.erase d).erase c)) ∈ S ↔ β y ≠ β x) := by
@@ -481,7 +487,8 @@ theorem lemma15_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
 /-! ### The order of the blocks from the orderings (proof of Lemma 16) -/
 
 /-- The sets of four taxa with the Big Cycle property, read from the comparisons `R` of the
-concordance factors of quartet trees on the same four taxa: no two of their trees compare both ways. -/
+concordance factors of quartet trees on the same four taxa: no two of their trees compare both ways.
+-/
 def bcSetsOf (R : QuartetTree X → QuartetTree X → Prop) : Set (Finset X) :=
   {s | #s = 4 ∧ ∀ q ∈ treesOn s, ∀ r ∈ treesOn s, q ≠ r → ¬ (R q r ∧ R r q)}
 
@@ -491,17 +498,17 @@ def IsBCQuartetOf (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X) 
   q ∈ treesOn s ∧ ∀ r ∈ treesOn s, r ≠ q → R q r ∧ ¬ R r q
 
 /-- The test of Proposition 11 for the blocks of `x` and `y` (proof of Lemma 16), read from the
-comparisons `R` and the blocks `Bl`: `x` and `y` are in different blocks, and `q^BC_{xyzz'} ≠ xy|zz'`
-for all `z, z'` such that `x, y, z, z'` are in four distinct blocks. -/
+comparisons `R` and the blocks `Bl`: `x` and `y` are in different blocks, and
+`q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that `x, y, z, z'` are in four distinct blocks. -/
 def AdjacencyTest (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (x y : X) : Prop :=
   ¬ Bl x y ∧ ∀ z z' (h : Distinct4 x y z z'), ¬ Bl x z → ¬ Bl x z' → ¬ Bl y z → ¬ Bl y z' →
     ¬ Bl z z' → ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h)
 
-/-- A step of the order of the blocks around the cycle (proof of Lemma 16), read from the comparisons
-`R` and the blocks `Bl`. With `a` in the hybrid block `A₁`, `p` in a block `A_p` adjacent to `A₁`, and
-`F` the taxa of the blocks already placed, the block of `t` is the next one when `t` is neither in `F`
-nor in `A_p`, and `q^BC_{atpx} ≠ at|xp` for every taxon `x` in none of `F`, `A_p` and the block of
-`t`. -/
+/-- A step of the order of the blocks around the cycle (proof of Lemma 16), read from the
+comparisons `R` and the blocks `Bl`. With `a` in the hybrid block `A₁`, `p` in a block `A_p`
+adjacent to `A₁`, and `F` the taxa of the blocks already placed, the block of `t` is the next one
+when `t` is neither in `F` nor in `A_p`, and `q^BC_{atpx} ≠ at|xp` for every taxon `x` in none of
+`F`, `A_p` and the block of `t`. -/
 def IsNextBlock (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (a p : X)
     (F : Set X) (t : X) : Prop :=
   t ∉ F ∧ ¬ Bl p t ∧ ∀ x (h : Distinct4 a t x p), x ∉ F → ¬ Bl p x → ¬ Bl t x →
@@ -525,8 +532,8 @@ def IsInBlockAt (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X →
   | m + 2, t => IsNextBlock Bl R a p (placedBlocks Bl R a p q m) t
 
 /-- The block of `y` follows that of `x` in the order `A₁, A_q, …, A_p` of the `k` blocks around the
-cycle, from the hybrid block `A₁` of `a` (proof of Lemma 16): they are the `i`-th and the `(i + 1)`-th
-blocks, or the `(k - 2)`-th block and `A_p`, or `A_p` and `A₁`. -/
+cycle, from the hybrid block `A₁` of `a` (proof of Lemma 16): they are the `i`-th and the
+`(i + 1)`-th blocks, or the `(k - 2)`-th block and `A_p`, or `A_p` and `A₁`. -/
 def FollowsBlock (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X → Prop) (k : ℕ)
     (a p q x y : X) : Prop :=
   (∃ i, IsInBlockAt Bl R a p q i x ∧ IsInBlockAt Bl R a p q (i + 1) y) ∨
@@ -534,12 +541,14 @@ def FollowsBlock (Bl : X → X → Prop) (R : QuartetTree X → QuartetTree X �
 
 /-- The adjacent blocks of the cycle determined by `s`, read from the comparisons `R` and from the
 blocks `B`, the size `K` and the hybrid block `H` given by `S` (proof of Lemma 16). For a cycle of
-size four, `x` and `y` pass the test of Proposition 11 (`AdjacencyTest`). For a larger cycle, with `a`
-in the hybrid block `A₁`, the taxa `p` and `q` in different blocks pass that test with `a`, so that
-their blocks `A_p` and `A_q` are the two blocks adjacent to `A₁`; the blocks are ordered from `A₁` and
-`A_q` by the test of `IsNextBlock`, and the blocks of `x` and `y` are consecutive in this order. -/
+size four, `x` and `y` pass the test of Proposition 11 (`AdjacencyTest`). For a larger cycle, with
+`a` in the hybrid block `A₁`, the taxa `p` and `q` in different blocks pass that test with `a`, so
+that their blocks `A_p` and `A_q` are the two blocks adjacent to `A₁`; the blocks are ordered from
+`A₁` and `A_q` by the test of `IsNextBlock`, and the blocks of `x` and `y` are consecutive in this
+order. -/
 def adjacencyOf (B : Set (Finset X) → Finset X → X → X → Prop) (K : Set (Finset X) → Finset X → ℕ)
-    (H : Set (Finset X) → Finset X → Set X) (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X)
+    (H : Set (Finset X) → Finset X → Set X)
+    (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X)
     (x y : X) : Prop :=
   (K (bcSetsOf R) s = 4 ∧ AdjacencyTest (B (bcSetsOf R) s) R x y) ∨
     (K (bcSetsOf R) s ≠ 4 ∧ ∃ a ∈ H (bcSetsOf R) s, ∃ p q,
@@ -627,8 +636,8 @@ theorem isBCQuartetOf_cf (s : Finset X) (q : QuartetTree X) :
     exact ⟨⟨hqr, h.le⟩, fun ⟨_, h'⟩ => not_le.2 h h'⟩
 
 /-- **Proposition 11 for a set of four taxa that `C_v` separates**: `q^BC ≠ xy|zz'` exactly when the
-blocks of `x` and `y` are joined along `C_v` avoiding those of `z` and `z'`. The 4-cycle of `Q⁻_{xyzz'}`
-is the cycle induced by `C_v`, with the same order of the blocks. -/
+blocks of `x` and `y` are joined along `C_v` avoiding those of `z` and `z'`. The 4-cycle of
+`Q⁻_{xyzz'}` is the cycle induced by `C_v`, with the same order of the blocks. -/
 theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
     (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
@@ -668,10 +677,10 @@ theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : 
   rw [herase, hcoe] at hadj
   exact (not_congr h11).trans (not_not.trans hadj)
 
-/-- **The test of Proposition 11 gives the blocks adjacent to the hybrid block, and the adjacent blocks
-of a cycle of size four.** Two taxa `x` and `y`, with `x` in the hybrid block of `C_w` or `C_w` of size
-four, pass `AdjacencyTest` exactly when their blocks are adjacent: the sets of four taxa in distinct
-blocks that contain them are then the sets that `C_w` separates. -/
+/-- **The test of Proposition 11 gives the blocks adjacent to the hybrid block, and the adjacent
+blocks of a cycle of size four.** Two taxa `x` and `y`, with `x` in the hybrid block of `C_w` or
+`C_w` of size four, pass `AdjacencyTest` exactly when their blocks are adjacent: the sets of four
+taxa in distinct blocks that contain them are then the sets that `C_w` separates. -/
 theorem adjacencyTest_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
     (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
@@ -757,10 +766,11 @@ theorem adjacentBlocks_iff_index_finRotate {hN : IsBinaryRootedNetwork N} {hX : 
       exact Or.symm (hcyc.joins (ι y))
 
 /-- **The test of the step of the order (Proposition 11)**: with the nodes of `C_w` listed as
-`v 0 = w, v 1, …, v n`, `a` in the hybrid block, `p` in the block of `v n`, and `t`, `x` in two other
-distinct blocks, `q^BC_{atpx} = at|xp` exactly when the block of `x` comes before that of `t` from
-`v 1`. The blocks of `a` and `t` are joined avoiding those of `x` and `p` exactly along `v 0, …, v (ι t)`,
-which avoids `x` when it comes after `t`; otherwise `x` and `p` cut the cycle between `a` and `t`. -/
+`v 0 = w, v 1, …, v n`, `a` in the hybrid block, `p` in the block of `v n`, and `t`, `x` in two
+other distinct blocks, `q^BC_{atpx} = at|xp` exactly when the block of `x` comes before that of `t`
+from `v 1`. The blocks of `a` and `t` are joined avoiding those of `x` and `p` exactly along
+`v 0, …, v (ι t)`, which avoids `x` when it comes after `t`; otherwise `x` and `p` cut the cycle
+between `a` and `t`. -/
 theorem isBCQuartetOf_cf_iff_lt (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
     (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
@@ -785,7 +795,8 @@ theorem isBCQuartetOf_cf_iff_lt (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne 
     rw [← hcyc.injective_node.eq_iff, hι]
     exact ⟨eq_blockNode h1 hC (hmem i), by intro h; rw [h]; exact (blockNode_spec hC s).2⟩
   have hβ : ∀ {u u' : X}, (ι u : ℕ) ≠ ι u' →
-      blockNode (unrooted N hN hX) (Set.range e) u ≠ blockNode (unrooted N hN hX) (Set.range e) u' :=
+      blockNode (unrooted N hN hX) (Set.range e) u ≠ blockNode (unrooted N hN hX)
+      (Set.range e) u' :=
     fun hne heq => hne (by rw [← hι, ← hι] at heq; rw [hcyc.injective_node heq])
   have ha' : (ι a : ℕ) = 0 := by rw [ha, Fin.val_zero]
   have hp' : (ι p : ℕ) = n := by rw [hp, Fin.val_last]
@@ -823,11 +834,11 @@ theorem isBCQuartetOf_cf_iff_lt (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne 
     omega
 
 /-- **The order of the blocks from the hybrid block** (proof of Lemma 16): with the nodes of `C_w`
-listed as `v 0 = w, v 1, …, v n`, `a` in the hybrid block, `q` in the block of `v 1` and `p` in that of
-`v n`, the `i`-th block of the order that `IsNextBlock` builds is the block of `v i` (for `i < n`), so
-the block of `y` follows that of `x` exactly when `ι y` follows `ι x`. When the blocks of
-`v 0, …, v (m + 1)` are placed, the block of `v (m + 2)` passes the test of `IsNextBlock`, and a block
-further on fails it at a taxon of the block of `v (m + 2)` (`isBCQuartetOf_cf_iff_lt`). -/
+listed as `v 0 = w, v 1, …, v n`, `a` in the hybrid block, `q` in the block of `v 1` and `p` in that
+of `v n`, the `i`-th block of the order that `IsNextBlock` builds is the block of `v i` (for
+`i < n`), so the block of `y` follows that of `x` exactly when `ι y` follows `ι x`. When the blocks
+of `v 0, …, v (m + 1)` are placed, the block of `v (m + 2)` passes the test of `IsNextBlock`, and a
+block further on fails it at a taxon of the block of `v (m + 2)` (`isBCQuartetOf_cf_iff_lt`). -/
 theorem followsBlock_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
     (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
@@ -928,19 +939,19 @@ theorem followsBlock_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph
 
 end Comparisons
 
-/-- **The adjacent blocks of a cycle from the comparisons of concordance factors** (Lemma 16 at given
-parameters): for metric parameters at which the statement of Lemma 12 holds, `s ∈ S` determining
-the hybrid node `w` of the cycle `C_w` of `N⁻`, and functions `B`, `K`, `H` of `S` and `s` giving the
-blocks, the size and the hybrid block of `C_w` (the conclusion of Lemma 15), `adjacencyOf B K H`
-applied to the comparisons of the concordance factors of quartet trees on the same four taxa gives
-the adjacent blocks of `C_w`.
+/-- **The adjacent blocks of a cycle from the comparisons of concordance factors** (Lemma 16 at
+given parameters): for metric parameters at which the statement of Lemma 12 holds, `s ∈ S`
+determining the hybrid node `w` of the cycle `C_w` of `N⁻`, and functions `B`, `K`, `H` of `S` and
+`s` giving the blocks, the size and the hybrid block of `C_w` (the conclusion of Lemma 15),
+`adjacencyOf B K H` applied to the comparisons of the concordance factors of quartet trees on the
+same four taxa gives the adjacent blocks of `C_w`.
 
 For `C_w` of size four, the sets of four taxa in distinct blocks are the sets that `C_w` separates,
-and Proposition 11 gives the adjacent blocks (`adjacencyTest_iff`). For a larger cycle, with the nodes
-of `C_w` listed as `v 0 = w, v 1, …, v n`, the test of Proposition 11 with a taxon `a` of the hybrid
-block gives the two blocks adjacent to it, those of `v 1` and `v n`; listing the cycle the other way
-if needed, `q` is in the block of `v 1` and `p` in that of `v n`, and the order that `IsNextBlock`
-builds is that of `v 0, v 1, …, v n` (`followsBlock_iff`). -/
+and Proposition 11 gives the adjacent blocks (`adjacencyTest_iff`). For a larger cycle, with the
+nodes of `C_w` listed as `v 0 = w, v 1, …, v n`, the test of Proposition 11 with a taxon `a` of the
+hybrid block gives the two blocks adjacent to it, those of `v 1` and `v n`; listing the cycle the
+other way if needed, `q` is in the block of `v 1` and `p` in that of `v n`, and the order that
+`IsNextBlock` builds is that of `v 0, v 1, …, v n` (`followsBlock_iff`). -/
 theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ)
@@ -997,7 +1008,8 @@ theorem lemma16_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V 
       (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) a p ↔ ι p = 1 ∨ ι p = Fin.last n) := by
     intro a p ha
     rw [adjacencyTest_iff hN h1 hX hθ hS hC hC4 hw hBβ (Or.inr (by rw [← hι, ha, h0])),
-      adjacentBlocks_iff_index_finRotate h1 hC hcyc hrange hι, ha, finRotate_apply_zero, eq_comm (a := 0),
+      adjacentBlocks_iff_index_finRotate h1 hC hcyc hrange hι, ha, finRotate_apply_zero,
+      eq_comm (a := 0),
       (finRotate (n + 1)).injective.eq_iff' (finRotate_last (n := n))]
   have hpq : ∀ p q, ¬ B (bcSets N θ) s p q ↔ ι p ≠ ι q := fun p q => by
     rw [hBβ, ← hι, ← hι, hcyc.injective_node.eq_iff]

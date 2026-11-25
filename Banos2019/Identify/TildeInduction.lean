@@ -11,39 +11,39 @@ public import Banos2019.Identify.SameData
 # The induction of Theorem 4 (Baños 2019, Section 8)
 
 The claim of the induction is Theorem 4 for `m` cycles of size at least four (`TildeDetermined m`,
-`Identify/TildeDefs.lean`): two networks with parameters satisfying `GoodParams` and the same orderings
-of concordance factors, the first with `m` cycles of size at least four in `N⁻`, have isomorphic
-networks `Ñ`. Each case of the proof (`tilde_sdIso_of_data`) uses the data that the orderings give for
-the two networks: for each cycle of size at least four of `N₁⁻`, a cycle of `N₂⁻` with the same
-blocks, adjacent blocks and hybrid block (`SameCycleData`), and the same 4-network blocks
-(`SameFourNetworkBlocks`). It applies the claim to networks induced on sets of taxa, whose data are
-read from their own orderings (`sameCycleData_of_sameOrdering`,
+`Identify/TildeDefs.lean`): two networks with parameters satisfying `GoodParams` and the same
+orderings of concordance factors, the first with `m` cycles of size at least four in `N⁻`, have
+isomorphic networks `Ñ`. Each case of the proof (`tilde_sdIso_of_data`) uses the data that the
+orderings give for the two networks: for each cycle of size at least four of `N₁⁻`, a cycle of `N₂⁻`
+with the same blocks, adjacent blocks and hybrid block (`SameCycleData`), and the same 4-network
+blocks (`SameFourNetworkBlocks`). It applies the claim to networks induced on sets of taxa, whose
+data are read from their own orderings (`sameCycleData_of_sameOrdering`,
 `sameFourNetworkBlocks_of_sameOrdering`: Lemmas 14, 15 and 16 at their parameters). The claim holds
 for every `m` (`tildeDetermined`), by strong induction on `m`.
 
 * No cycle of size at least four: `tildeDetermined_zero` (`Identify/TildeBase.lean`).
-* One cycle `C` of size at least four: `tilde_sdIso_one_of_sameCycleData`, `tildeDeterminedOneCycle`.
-  The tree of each block `P` of `C` with at least two taxa is joined to the node of `P`: `Ñ` is the
-  gluing of the network `Ñ` of the network induced on `P ∪ {q}` (a tree; `q ∉ P`), at its leaf `q`,
-  to the network `Ñ` of the network induced on `Pᶜ ∪ {x}` (`x ∈ P`), at its leaf `x`. The blocks are
-  taken one at a time, by induction on the number of blocks with at least two taxa
-  (`nontrivialBlocks`), of which the network induced on `Pᶜ ∪ {x}` has fewer
+* One cycle `C` of size at least four: `tilde_sdIso_one_of_sameCycleData`,
+  `tildeDeterminedOneCycle`. The tree of each block `P` of `C` with at least two taxa is joined to
+  the node of `P`: `Ñ` is the gluing of the network `Ñ` of the network induced on `P ∪ {q}` (a tree;
+  `q ∉ P`), at its leaf `q`, to the network `Ñ` of the network induced on `Pᶜ ∪ {x}` (`x ∈ P`), at
+  its leaf `x`. The blocks are taken one at a time, by induction on the number of blocks with at
+  least two taxa (`nontrivialBlocks`), of which the network induced on `Pᶜ ∪ {x}` has fewer
   (`ncard_nontrivialBlocks_inducedLSA_lt`). With none left, `Ñ` is the cycle with one taxon at each
   node, given by the data (`tilde_sdIso_of_singletonBlocks`).
 * More cycles: `tilde_sdIso_of_lt_of_data`. A leaf of the tree of cycles of `Ñ₁` arises from a cycle
-  `C₁` all of whose blocks but that of a node `u₁` are 4-network blocks (`exists_leaf_bigCycle`). The
-  cycle `C₂` of `N₂⁻` with the same blocks gives a leaf of the tree of cycles of `Ñ₂`, and its node
-  `u₂` with the block of `u₁` (`exists_isLeafNode_counterpart`, from the same 4-network blocks). The
-  two networks split at `u₁` and `u₂` into networks with fewer cycles of size at least four
-  (`tilde_sdIso_of_leafCycle`).
+  `C₁` all of whose blocks but that of a node `u₁` are 4-network blocks (`exists_leaf_bigCycle`).
+  The cycle `C₂` of `N₂⁻` with the same blocks gives a leaf of the tree of cycles of `Ñ₂`, and its
+  node `u₂` with the block of `u₁` (`exists_isLeafNode_counterpart`, from the same 4-network
+  blocks). The two networks split at `u₁` and `u₂` into networks with fewer cycles of size at least
+  four (`tilde_sdIso_of_leafCycle`).
 
 In both cases `Ñ` of `N₁` and of `N₂` are the gluings of the networks `Ñ` of the pieces
 (`tilde_sdIso_glue`), and isomorphic pieces glue to isomorphic networks (`glue_congr`,
 `tilde_sdIso_of_pieces`). The pieces satisfy the conditions of Theorem 4 (`goodParams_inducedLSA`,
 `sameOrdering_inducedLSA`, `Identify/InducedCycles.lean`).
 
-* `bigCycleCount_inducedLSA_insert_compl_le_one`, `bigCycleCount_inducedLSA_insert_lt`: the numbers of
-  cycles of size at least four of the two pieces.
+* `bigCycleCount_inducedLSA_insert_compl_le_one`, `bigCycleCount_inducedLSA_insert_lt`: the numbers
+  of cycles of size at least four of the two pieces.
 * `isFourNetworkBlock_blockNode_iff`: for two networks with the same 4-network blocks, blocks of two
   cycles with the same taxa are both 4-network blocks or neither.
 -/
@@ -81,8 +81,8 @@ theorem not_separatesQuartet_of_subset_insert {V' E' X' : Type*} [DecidableEq X'
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
 
 omit [Fintype X] [DecidableEq X] [Fintype V] in
-/-- The taxa of the block of the node of a cycle whose block contains `x` are those in the same block
-as `x`. -/
+/-- The taxa of the block of the node of a cycle whose block contains `x` are those in the same
+block as `x`. -/
 theorem mem_nodeBlock_blockNode_iff {N : RootedNetwork V E X} {hN : IsBinaryRootedNetwork N}
     {hX : Nontrivial X} (h1 : IsLevelOne N.graph) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) (x z : X) :
@@ -98,9 +98,9 @@ theorem mem_nodeBlock_blockNode_iff {N : RootedNetwork V E X} {hN : IsBinaryRoot
     exact (blockNode_spec hC z).2
 
 omit [Fintype V] in
-/-- **The piece on `Pᶜ ∪ {s₂}` has at most one cycle of size at least four** when every cycle of size
-at least four of `N⁻` other than `C` has the taxa outside `P` in one of its blocks: only `C` can
-separate four of its taxa. -/
+/-- **The piece on `Pᶜ ∪ {s₂}` has at most one cycle of size at least four** when every cycle of
+size at least four of `N⁻` other than `C` has the taxa outside `P` in one of its blocks: only `C`
+can separate four of its taxa. -/
 theorem bigCycleCount_inducedLSA_insert_compl_le_one {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
     {P : Finset X}
@@ -110,7 +110,8 @@ theorem bigCycleCount_inducedLSA_insert_compl_le_one {N : RootedNetwork V E X}
     bigCycleCount (unrooted (inducedLSA N hN.1 _ hY) (inducedLSA_isBinaryRootedNetwork hN hY)
       hY.coe_sort) ≤ 1 := by
   refine (bigCycleCount_inducedLSA_le hN h1 hX hY).trans ?_
-  refine (Set.ncard_le_ncard (t := {C}) ?_ (Set.finite_singleton C)).trans (Set.ncard_singleton C).le
+  refine (Set.ncard_le_ncard (t := {C}) ?_ (Set.finite_singleton C)).trans
+    (Set.ncard_singleton C).le
   rintro C' ⟨hC', s, hsY, hs4, v, hsep⟩
   by_contra hne
   rw [Set.mem_singleton_iff] at hne
@@ -119,8 +120,8 @@ theorem bigCycleCount_inducedLSA_insert_compl_le_one {N : RootedNetwork V E X}
   simpa only [coe_insert, coe_compl] using hsY
 
 omit [Fintype X] [Fintype V] in
-/-- **The piece on `P ∪ {s₁}` has fewer cycles of size at least four than `N⁻`** when the taxa of `P`
-are in one block of the cycle `C` of size at least four: `C` separates no four of its taxa. -/
+/-- **The piece on `P ∪ {s₁}` has fewer cycles of size at least four than `N⁻`** when the taxa of
+`P` are in one block of the cycle `C` of size at least four: `C` separates no four of its taxa. -/
 theorem bigCycleCount_inducedLSA_insert_lt {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
     (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) {P : Finset X}
@@ -160,9 +161,9 @@ theorem nonempty_sdIso_tilde_inducedLSA {k : ℕ} (hk : TildeDetermined k) {V' E
     (goodParams_inducedLSA hN₂ h1₂ hX hθ₂ hG₂ hY)
     (sameOrdering_inducedLSA hN₁ hN₂ hθ₁ hθ₂ hord hY) hcount
 
-/-- **Gluing the pieces**: for nodes `u₁`, `u₂` of cycles of `N₁⁻` and `N₂⁻` with the same block `P`,
-if the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` are isomorphic, so are
-the networks `Ñ` of `N₁` and `N₂`. -/
+/-- **Gluing the pieces**: for nodes `u₁`, `u₂` of cycles of `N₁⁻` and `N₂⁻` with the same block
+`P`, if the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` are isomorphic, so
+are the networks `Ñ` of `N₁` and `N₂`. -/
 theorem tilde_sdIso_of_pieces {V' E' : Type} [Fintype V'] [Fintype E'] {N₁ : RootedNetwork V E X}
     {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁) (hN₂ : IsBinaryRootedNetwork N₂)
     (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph) (hX : Nontrivial X) {C₁ : Set _}
@@ -197,11 +198,11 @@ theorem tilde_sdIso_of_pieces {V' E' : Type} [Fintype V'] [Fintype E'] {N₁ : R
 
 /-- **The step of the induction of Theorem 4**: let `u₁` be a node of a cycle `C₁` of size at least
 four of `N₁⁻` and `u₂` a node of a cycle `C₂` of `N₂⁻`, both with the block `P`, and `s₂ ∈ P`,
-`s₁ ∉ P` two taxa, such that every other cycle of size at least four of `N₁⁻` has the taxa outside `P`
-in one of its blocks. If the networks induced on `Pᶜ ∪ {s₂}` (at most one cycle of size at least
-four) and on `P ∪ {s₁}` (fewer cycles of size at least four than `N₁⁻`) have isomorphic networks `Ñ`,
-so have `N₁` and `N₂`: `Ñ` of each network is the gluing at its node `uᵢ` of the networks `Ñ` of its
-pieces (`tilde_sdIso_of_pieces`). -/
+`s₁ ∉ P` two taxa, such that every other cycle of size at least four of `N₁⁻` has the taxa outside
+`P` in one of its blocks. If the networks induced on `Pᶜ ∪ {s₂}` (at most one cycle of size at least
+four) and on `P ∪ {s₁}` (fewer cycles of size at least four than `N₁⁻`) have isomorphic networks
+`Ñ`, so have `N₁` and `N₂`: `Ñ` of each network is the gluing at its node `uᵢ` of the networks `Ñ`
+of its pieces (`tilde_sdIso_of_pieces`). -/
 theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
     {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
     (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph)
@@ -244,9 +245,9 @@ theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
 
 /-! ### One cycle of size at least four -/
 
-/-- **Classes of an equivalence relation on a subset**: when `Y` holds one element `x` of a class with
-at least two elements and all the elements of the other classes, the classes of the relation on `Y`
-with at least two elements are the other classes of `R` with at least two elements, so there are
+/-- **Classes of an equivalence relation on a subset**: when `Y` holds one element `x` of a class
+with at least two elements and all the elements of the other classes, the classes of the relation on
+`Y` with at least two elements are the other classes of `R` with at least two elements, so there are
 fewer of them than there are of `R`. -/
 theorem ncard_nontrivialClasses_subtype_lt {α : Type*} [Finite α] (R : α → α → Prop)
     (hrefl : ∀ a, R a a) (hsymm : ∀ a b, R a b → R b a) (htrans : ∀ a b c, R a b → R b c → R a c)
@@ -294,7 +295,8 @@ only cycle of size at least four of `N⁻`, `P` the block of `x`, with at least 
 `Y = Pᶜ ∪ {x}`. A cycle `C'` of size at least four of `(N⊕_Y)⁻` comes from a cycle of `N⁻` with the
 same hybrid node (`exists_unrooted_cycle_of_induced`), which separates the same four taxa
 (`separatesQuartet_induced_iff`), so has size at least four and is `C`. The blocks of `C'` are the
-traces on `Y` of those of `C` (`blockNode_eq_iff_induced`): those of `C` other than `P`, and `{x}`. -/
+traces on `Y` of those of `C` (`blockNode_eq_iff_induced`): those of `C` other than `P`, and `{x}`.
+-/
 theorem ncard_nontrivialBlocks_inducedLSA_lt {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
     (honly : ∀ C' ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4, C' = C) {x : X}
@@ -334,8 +336,8 @@ theorem ncard_nontrivialBlocks_inducedLSA_lt {N : RootedNetwork V E X}
     (fun a b => SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C₀ a b) (fun _ => .refl)
     (fun _ _ h => DirectedMultigraph.walks_symm _ h) (fun _ _ _ h h' => h.trans h') hYx hP
 
-/-- **The claim of the case of one cycle**, for `j` blocks with at least two taxa: two binary level-1
-networks on the same taxa, with parameters satisfying `GoodParams` and the same orderings of
+/-- **The claim of the case of one cycle**, for `j` blocks with at least two taxa: two binary
+level-1 networks on the same taxa, with parameters satisfying `GoodParams` and the same orderings of
 concordance factors, the first with one cycle of size at least four in `N⁻`, which has `j` blocks
 with at least two taxa, have isomorphic networks `Ñ`. -/
 def TildeDeterminedOneCycle (j : ℕ) : Prop :=
@@ -351,17 +353,17 @@ def TildeDeterminedOneCycle (j : ℕ) : Prop :=
 
 /-- **One cycle of size at least four** (proof of Theorem 4, TeX l. 1182–1184): let `C₁` be the only
 cycle of size at least four of `N₁⁻`, with `j` blocks of at least two taxa, and `C₂` the cycle of
-`N₂⁻` with the same blocks, adjacent blocks and, for size at least five, hybrid block, which the data
-give (Lemmas 15 and 16). When the blocks are single taxa, `Ñ₁` and `Ñ₂` are this cycle with a taxon at
-each node (`tilde_sdIso_of_singletonBlocks`). Otherwise let `P` be a block with at least two taxa, the
-block of the node `u` of `C₁`, with `x ∈ P`, and `q ∉ P`. The network induced on `P ∪ {q}` has no
-cycle of size at least four, so its networks `Ñ` for `N₁` and `N₂` are isomorphic
+`N₂⁻` with the same blocks, adjacent blocks and, for size at least five, hybrid block, which the
+data give (Lemmas 15 and 16). When the blocks are single taxa, `Ñ₁` and `Ñ₂` are this cycle with a
+taxon at each node (`tilde_sdIso_of_singletonBlocks`). Otherwise let `P` be a block with at least
+two taxa, the block of the node `u` of `C₁`, with `x ∈ P`, and `q ∉ P`. The network induced on
+`P ∪ {q}` has no cycle of size at least four, so its networks `Ñ` for `N₁` and `N₂` are isomorphic
 (`tildeDetermined_zero`): this is the tree of `P` with the outgroup `q`. A cycle of size at least
 four of the network induced on `Pᶜ ∪ {x}` is `C₁` with `P` replaced by `x`, with fewer blocks of at
-least two taxa (`ncard_nontrivialBlocks_inducedLSA_lt`), so the claim for fewer blocks applies to that
-network (`tildeDetermined_zero` without such a cycle). `Ñ` is the gluing of the first network `Ñ`, at
-its leaf `q`, to the second, at its leaf `x`, which joins the root of the tree of `P` to `u` by an
-edge (`tilde_sdIso_glue`, `glue_congr`). -/
+least two taxa (`ncard_nontrivialBlocks_inducedLSA_lt`), so the claim for fewer blocks applies to
+that network (`tildeDetermined_zero` without such a cycle). `Ñ` is the gluing of the first network
+`Ñ`, at its leaf `q`, to the second, at its leaf `x`, which joins the root of the tree of `P` to `u`
+by an edge (`tilde_sdIso_glue`, `glue_congr`). -/
 theorem tilde_sdIso_one_of_sameCycleData {j : ℕ} (ih : ∀ i < j, TildeDeterminedOneCycle i)
     {V' E' : Type} [Fintype V'] [Fintype E'] {N₁ : RootedNetwork V E X}
     {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁) (hN₂ : IsBinaryRootedNetwork N₂)
@@ -394,7 +396,8 @@ theorem tilde_sdIso_one_of_sameCycleData {j : ℕ} (ih : ∀ i < j, TildeDetermi
   obtain ⟨x, y, hxy, hne⟩ := hsing
   -- the block `P` of `x`, which contains `y`, the nodes of `C₁` and `C₂` with this block, and a
   -- taxon `q` of another block
-  set P := univ.filter fun z => SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x z
+  set P :=
+    univ.filter fun z => SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x z
   have hP : ∀ z, z ∈ P ↔ SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x z :=
     fun z => by simp [P]
   have hP₁ : ∀ z, z ∈ P ↔ z ∈ nodeBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁
@@ -424,7 +427,8 @@ theorem tilde_sdIso_one_of_sameCycleData {j : ℕ} (ih : ∀ i < j, TildeDetermi
     have hYx : ∀ z, z ∈ ((insert x Pᶜ : Finset X) : Set X) ↔
         z = x ∨ ¬ SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x z :=
       fun z => by simp [hP]
-    have hPnt : {z | SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x z}.Nontrivial :=
+    have hPnt : {z | SameBlock (unrooted N₁ hN₁ hX).graph
+      (unrooted N₁ hN₁ hX).leaf C₁ x z}.Nontrivial :=
       ⟨x, .refl, y, hxy, hne⟩
     have hle := bigCycleCount_inducedLSA_insert_compl_le_one hN₁ h1₁ hX (C := C₁) (P := P)
       (fun C' hC' hne' => absurd (honly C' hC') hne') x hZ₁
@@ -478,14 +482,14 @@ theorem isFourNetworkBlock_blockNode_iff {V' E' : Type} [Fintype E'] {N₁ : Roo
     mem_nodeBlock_blockNode_iff h1₂ hC₂, hsame, hF]
 
 omit [Fintype X] [DecidableEq X] [Fintype V] in
-/-- **The counterpart of a leaf cycle is a leaf cycle** (proof of Theorem 4, TeX l.1186): let `C₁` be
-a cycle of size at least four of `N₁⁻` all of whose blocks but that of its node `u₁` are 4-network
-blocks, the block of `u₁` not being one, and `C₂` a cycle of size at least four of `N₂⁻` with the
-same blocks, the two networks having the same 4-network blocks. The blocks of `C₂` other than the one
-with the taxa of the block of `u₁` have the taxa of blocks of other nodes of `C₁`, so they are
-4-network blocks (`isFourNetworkBlock_blockNode_iff`), and the node of the tree of cycles of `Ñ₂`
-arising from `C₂` is a leaf (`isLeafNode_iff_fourNetworkBlocks_unrooted`). This leaf gives a node
-`u₂` of `C₂` all of whose other blocks are 4-network blocks
+/-- **The counterpart of a leaf cycle is a leaf cycle** (proof of Theorem 4, TeX l.1186): let `C₁`
+be a cycle of size at least four of `N₁⁻` all of whose blocks but that of its node `u₁` are
+4-network blocks, the block of `u₁` not being one, and `C₂` a cycle of size at least four of `N₂⁻`
+with the same blocks, the two networks having the same 4-network blocks. The blocks of `C₂` other
+than the one with the taxa of the block of `u₁` have the taxa of blocks of other nodes of `C₁`, so
+they are 4-network blocks (`isFourNetworkBlock_blockNode_iff`), and the node of the tree of cycles
+of `Ñ₂` arising from `C₂` is a leaf (`isLeafNode_iff_fourNetworkBlocks_unrooted`). This leaf gives a
+node `u₂` of `C₂` all of whose other blocks are 4-network blocks
 (`fourNetworkBlocks_of_isLeafNode_unrooted`); the block of `u₂` has the taxa of the block of `u₁`,
 the only block of `C₂` that is not a 4-network block. -/
 theorem exists_isLeafNode_counterpart {V' E' : Type} [Fintype V'] [Fintype E']
@@ -535,15 +539,15 @@ theorem exists_isLeafNode_counterpart {V' E' : Type} [Fintype V'] [Fintype E']
   rw [hus, mem_nodeBlock_blockNode_iff h1₁ hC₁.1, mem_nodeBlock_blockNode_iff h1₂ hC₂.1, hsame]
 
 /-- **More cycles** (proof of Theorem 4, TeX l. 1186–1190): for `m ≥ 2` cycles of size at least
-four, a leaf of the tree of cycles of `Ñ₁` arises from a cycle `C₁` all of whose blocks but that of a
-node `u₁`, `P`, are 4-network blocks, and every other cycle of size at least four has the taxa outside
-`P` in one of its blocks (`exists_leaf_bigCycle`). The data give the cycle `C₂` of `N₂⁻` with the
-same blocks (Lemma 15) and the same 4-network blocks (Lemma 14); so the node of the tree of cycles of
-`Ñ₂` arising from `C₂` is a leaf, and its node `u₂` whose block is not a 4-network block has the
-block `P` (`exists_isLeafNode_counterpart`). Both networks split at these nodes into the networks `Ñ`
-of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` (`s₂ ∈ P`, `s₁ ∉ P`). The first has at most
-one cycle of size at least four, the second fewer than `m`, since `C₁` meets its taxa in two blocks;
-the induction hypothesis applies to both. -/
+four, a leaf of the tree of cycles of `Ñ₁` arises from a cycle `C₁` all of whose blocks but that of
+a node `u₁`, `P`, are 4-network blocks, and every other cycle of size at least four has the taxa
+outside `P` in one of its blocks (`exists_leaf_bigCycle`). The data give the cycle `C₂` of `N₂⁻`
+with the same blocks (Lemma 15) and the same 4-network blocks (Lemma 14); so the node of the tree of
+cycles of `Ñ₂` arising from `C₂` is a leaf, and its node `u₂` whose block is not a 4-network block
+has the block `P` (`exists_isLeafNode_counterpart`). Both networks split at these nodes into the
+networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` (`s₂ ∈ P`, `s₁ ∉ P`). The
+first has at most one cycle of size at least four, the second fewer than `m`, since `C₁` meets its
+taxa in two blocks; the induction hypothesis applies to both. -/
 theorem tilde_sdIso_of_lt_of_data {m : ℕ} (hm : 2 ≤ m) (ih : ∀ k < m, TildeDetermined k)
     {V' E' : Type} [Fintype V'] [Fintype E'] {N₁ : RootedNetwork V E X}
     {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁) (hN₂ : IsBinaryRootedNetwork N₂)
@@ -557,8 +561,8 @@ theorem tilde_sdIso_of_lt_of_data {m : ℕ} (hm : 2 ≤ m) (ih : ∀ k < m, Tild
     Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by
   -- a leaf of the tree of cycles of `Ñ₁`: the cycle `C₁` and its node `u₁`
   obtain ⟨C₁, u₁, hC₁, hu₁, hblock₁, hnot₁, hleaf⟩ := exists_leaf_bigCycle hN₁ h1₁ hX (hc ▸ hm)
-  -- the cycle `C₂` of `N₂⁻` with the same blocks, a leaf of the tree of cycles of `Ñ₂`, and its node
-  -- `u₂` with the block of `u₁`
+  -- the cycle `C₂` of `N₂⁻` with the same blocks, a leaf of the tree of cycles of `Ñ₂`, and its
+  -- node `u₂` with the block of `u₁`
   obtain ⟨v₁, hv₁⟩ := exists_isHybridNodeOf h1₁ hC₁.1
   obtain ⟨C₂, v₂, hC₂, -, -, hsame, -, -⟩ := hD C₁ hC₁ v₁ hv₁
   obtain ⟨-, -, -, u₂, hu₂, -, hu₁₂⟩ :=

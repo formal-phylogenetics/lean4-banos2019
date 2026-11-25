@@ -9,11 +9,11 @@ Theorem 4 is proved by induction on the number of cycles of size at least four o
 
 * `bigCycleCount`: the number of cycles of size at least four.
 * `NonDegenerateCF`: on every set of four taxa, the three concordance factors are not all equal.
-* `GoodParams`: the generic conditions that the proof uses: the statement of Lemma 12 for every set of
-  four taxa, and `NonDegenerateCF`.
+* `GoodParams`: the generic conditions that the proof uses: the statement of Lemma 12 for every set
+  of four taxa, and `NonDegenerateCF`.
 * `TildeDetermined m`: for networks `N₁`, `N₂` on the same taxa, with parameters satisfying
-  `GoodParams` and the same orderings of concordance factors, and `m` cycles of size at least four in
-  `N₁⁻`, the networks `Ñ₁` and `Ñ₂` are isomorphic.
+  `GoodParams` and the same orderings of concordance factors, and `m` cycles of size at least four
+  in `N₁⁻`, the networks `Ñ₁` and `Ñ₂` are isomorphic.
 -/
 
 @[expose] public noncomputable section

@@ -10,13 +10,13 @@ public import Banos2019.Identify.TreeOfCycles
 * `exists_not_isFourNetworkBlock_of_ne`: for two cycles of size at least four, the block of the node
   of the first toward the second is not a 4-network block, and the second has all the taxa outside
   it in one of its blocks.
-* `exists_leaf_bigCycle`: when `N⁻` has at least two cycles of size at least four, one of them, `C_v`,
-  is a leaf of the tree of cycles: all its `v`-blocks but that of a node `u` are 4-network blocks, the
-  block of `u` is not, and every other such cycle has all the taxa outside the block of `u` in one of
-  its blocks.
-* `tilde_sdIso_of_singletonBlocks`: two networks each with a cycle of size at least four whose blocks
-  are single taxa, with the same adjacent blocks and, for size at least five, the same hybrid block,
-  have isomorphic networks `Ñ`.
+* `exists_leaf_bigCycle`: when `N⁻` has at least two cycles of size at least four, one of them,
+  `C_v`, is a leaf of the tree of cycles: all its `v`-blocks but that of a node `u` are 4-network
+  blocks, the block of `u` is not, and every other such cycle has all the taxa outside the block of
+  `u` in one of its blocks.
+* `tilde_sdIso_of_singletonBlocks`: two networks each with a cycle of size at least four whose
+  blocks are single taxa, with the same adjacent blocks and, for size at least five, the same hybrid
+  block, have isomorphic networks `Ñ`.
 
 The second rests on a description of `Ñ` when the blocks of a cycle `C` of size at least four are
 single taxa, for a semidirected network with the properties of `N⁻` that it uses
@@ -1143,8 +1143,8 @@ blocks.
 
 `C` and `C'` have no common node (Lemma 3), so `C'` lies in the component of a node `w` of `C` once
 the edges of `C` are removed, and every taxon outside the block of `w` is in the block of the node
-`u'` of `C'` toward `C` (`walks_compl_of_not_walks_compl`). The block of `w` contains the taxa of the
-blocks of the other nodes of `C'`, at least two of them, which `C'` separates. -/
+`u'` of `C'` toward `C` (`walks_compl_of_not_walks_compl`). The block of `w` contains the taxa of
+the blocks of the other nodes of `C'`, at least two of them, which `C'` separates. -/
 theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C C' : Set _}
     (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)
@@ -1191,8 +1191,8 @@ theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
     (htb.trans ((G.graph.walks_symm hab).trans (G.graph.walks_symm hta))))
 
 omit [Fintype X] [DecidableEq X] in
-/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size at
-least four, one of them, `C`, has a node `u` such that the blocks of the other nodes of `C` are
+/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size
+at least four, one of them, `C`, has a node `u` such that the blocks of the other nodes of `C` are
 4-network blocks and that of `u` is not, and every other cycle of size at least four has all the
 taxa outside the block of `u` in one of its blocks.
 
@@ -1256,10 +1256,12 @@ theorem tilde_sdIso_of_singletonBlocks {V' E' : Type} [Fintype V'] [Fintype E']
     (hX : Nontrivial X) {C₁ : Set _} {C₂ : Set _} {v₁ v₂}
     (hC₁ : C₁ ∈ cyclesOfSizeAtLeast (unrooted N₁ hN₁ hX).graph 4)
     (hC₂ : C₂ ∈ cyclesOfSizeAtLeast (unrooted N₂ hN₂ hX).graph 4)
-    (hv₁ : IsHybridNodeOf (unrooted N₁ hN₁ hX) C₁ v₁) (hv₂ : IsHybridNodeOf (unrooted N₂ hN₂ hX) C₂ v₂)
+    (hv₁ : IsHybridNodeOf (unrooted N₁ hN₁ hX) C₁ v₁)
+    (hv₂ : IsHybridNodeOf (unrooted N₂ hN₂ hX) C₂ v₂)
     (hs₁ : ∀ x y, SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x y → x = y)
     (hs₂ : ∀ x y, SameBlock (unrooted N₂ hN₂ hX).graph (unrooted N₂ hN₂ hX).leaf C₂ x y → x = y)
-    (hadj : ∀ x y, AdjacentBlocks (unrooted N₁ hN₁ hX) C₁ x y ↔ AdjacentBlocks (unrooted N₂ hN₂ hX) C₂ x y)
+    (hadj : ∀ x y, AdjacentBlocks (unrooted N₁ hN₁ hX) C₁ x y ↔
+        AdjacentBlocks (unrooted N₂ hN₂ hX) C₂ x y)
     (hhyb : 5 ≤ C₁.ncard → ∀ x, DescendsFrom (unrooted N₁ hN₁ hX) v₁ x ↔
       DescendsFrom (unrooted N₂ hN₂ hX) v₂ x) :
     Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by

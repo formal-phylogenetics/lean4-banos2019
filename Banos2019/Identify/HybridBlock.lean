@@ -8,8 +8,8 @@ public import Banos2019.Identify.UnrootedCycles
 Removing the edges of a cycle `C` of `N⁻` leaves one component through each node of `C`.
 
 * `nodeBlock_nonempty_unrooted`: the component of every node of `C` holds a taxon.
-* `mem_nodeBlock_iff_descendsFrom`: the taxa of the component of the hybrid node are those descending
-  from it.
+* `mem_nodeBlock_iff_descendsFrom`: the taxa of the component of the hybrid node are those
+  descending from it.
 
 The proofs pass between `N⁻` and `N`: the nodes of `N⁻` are the vertices of `N` strictly below
 `LSA(X)`, and its edges the arcs of `N` below `LSA(X)` other than `rootTreeArc`, the edge leaving
@@ -583,8 +583,8 @@ variable {N : RootedNetwork V E X} [Finite E] {hN : IsBinaryRootedNetwork N} {hX
 
 /-- **Every node of a cycle of `N⁻` has a taxon in its block**: what hangs from the node, off the
 cycle, ends at taxa. -/
-theorem nodeBlock_nonempty_unrooted (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
-    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) :
+theorem nodeBlock_nonempty_unrooted (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {u} (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) :
     (nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u).Nonempty := by
   obtain ⟨v, hv⟩ := exists_isHybridNodeOf h1 hC
   -- the hybrid node: a taxon below it descends from it
@@ -643,7 +643,8 @@ theorem nodeBlock_nonempty_unrooted (h1 : IsLevelOne N.graph) {C : Set _} (hC : 
 
 /-- **The block of the hybrid node is the set of taxa descending from it**: a semidirected path from
 the hybrid node leaves it by its child edge and does not come back to the cycle. -/
-theorem mem_nodeBlock_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v}
+theorem mem_nodeBlock_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x : X) :
     x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C v ↔
       DescendsFrom (unrooted N hN hX) v x :=
