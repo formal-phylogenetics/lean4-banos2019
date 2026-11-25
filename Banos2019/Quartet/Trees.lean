@@ -426,12 +426,12 @@ theorem parentCluster_treeCluster (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHy
 /-- The singleton lineages injected at the vertices of a network correspond along a bijection of the
 vertices that matches the leaves. -/
 theorem taxaInj_congr {V' E' : Type*} [Fintype V'] [Fintype E'] {K' : RootedNetwork V' E' X}
-    (fV : V' ≃ V) (hleaf : ∀ x, K.leaf x = fV (K'.leaf x)) (v : V') :
-    NMSC.taxaInj K univ (fV v) = NMSC.taxaInj K' univ v := by
+    {f : V' → V} (hf : Function.Injective f) (hleaf : ∀ x, K.leaf x = f (K'.leaf x)) (v : V') :
+    NMSC.taxaInj K univ (f v) = NMSC.taxaInj K' univ v := by
   unfold NMSC.taxaInj
   congr 1
   refine filter_congr fun x _ => ?_
-  rw [hleaf x, fV.injective.eq_iff]
+  rw [hleaf x, hf.eq_iff]
 
 /-- **A tree without nodes of indegree one and outdegree one, whose root has outdegree at least two,
 is the network of its hierarchy** (up to the names of the vertices and arcs), so the two have the same
@@ -503,9 +503,295 @@ theorem geneTreeDist_eq_hierarchyNetwork_of_two_le (hK : K.IsPhylogenetic)
     NMSC.injDist_eq_sum_rootDist, NMSC.injDist_eq_sum_rootDist]
   refine sum_congr rfl fun F _ => ?_
   rw [NMSC.rootDist_congr fV fE hs ht' hroot' hlen hinh' (NMSC.taxaInj K univ) F]
-  simp only [taxaInj_congr fV hleaf]
+  simp only [taxaInj_congr fV.injective hleaf]
   rfl
 
+/-- The network with one vertex and no arc: the upper part of a network whose root has outdegree
+one. -/
+def pointNetwork (X : Type*) : RootedNetwork Unit Empty X where
+  graph := { source := Empty.elim, target := Empty.elim }
+  root := ()
+  leaf _ := ()
+
+/-- The parameters of `pointNetwork`. -/
+def pointMetric : MetricData Empty := ⟨Empty.elim, Empty.elim⟩
+
+/-- On the network with one vertex, the forest at the root is the injected forest. -/
+theorem rootDist_pointNetwork (ρ : ℝ) (inj : Unit → Finset (Finset X)) (F : Finset (Finset X)) :
+    NMSC.rootDist (pointNetwork X) pointMetric ρ inj F = if inj () = F then 1 else 0 := by
+  unfold NMSC.rootDist NMSC.injWeight NMSC.arriving
+  simp [pointNetwork]
+
+/-- The law at the root of a network with valid injected forests is carried by forests. -/
+theorem isForest_of_rootDist_ne_zero {V' E' : Type*} [Fintype V'] [Fintype E']
+    {K' : RootedNetwork V' E' X} (hK' : K'.IsPhylogenetic) {θ' : MetricData E'} {ρ : ℝ}
+    {inj : V' → Finset (Finset X)} (hinj : NMSC.ValidInj inj) {F : Finset (Finset X)}
+    (h : NMSC.rootDist K' θ' ρ inj F ≠ 0) : IsForest F := by
+  unfold NMSC.rootDist at h
+  obtain ⟨bot, -, hb⟩ := exists_ne_zero_of_sum_ne_zero h
+  obtain ⟨top, -, htop⟩ := exists_ne_zero_of_sum_ne_zero hb
+  have hF : NMSC.arriving K' inj top K'.root = F := by
+    by_contra hne
+    rw [ite_eq_right hne, mul_zero] at htop
+    exact htop rfl
+  rw [← hF]
+  exact (NMSC.good_arriving_root hK' hinj (left_ne_zero_of_mul htop)).1.1
+
+/-- **A tree without nodes of indegree one and outdegree one, whose root has outdegree one, is the
+network of its hierarchy below one arc from the root**, and the population on that arc does not change
+the gene tree. -/
+theorem geneTreeDist_eq_hierarchyNetwork_of_eq_one (hK : K.IsPhylogenetic)
+    (ht : ∀ e, ¬ K.IsHybridArc e) (hc : ∀ v, ¬ K.IsChainVertex v) {θ : MetricData E}
+    (hinh : ∀ e, θ.inheritance e = 1) (hX : 2 ≤ Fintype.card X)
+    (hroot : K.graph.outdegree K.root = 1) {ρ : ℝ} (hρ : 0 ≤ ρ) (G : Finset (Finset X)) :
+    geneTreeDist K θ ρ G =
+      geneTreeDist (hierarchyNetwork (treeClusters K) (isHierarchy_treeClusters hK ht))
+        (hierarchyMetric (treeClusters K) (treeLength K θ)) ρ G := by
+  set H := treeClusters K
+  have hH := isHierarchy_treeClusters hK ht
+  have hHN := hierarchyNetwork_isPhylogenetic H hH hX
+  obtain ⟨p, hp⟩ := (K.graph.outdegree_eq_one_iff _).1 hroot
+  have hp0 : K.graph.source p = K.root := (hp p).2 rfl
+  have hsrc : ∀ e, e ≠ p → K.graph.source e ≠ K.root := fun e he h => he ((hp e).1 h)
+  -- the child of the root has all the taxa below it
+  have hcp : treeCluster K (K.graph.target p) = univ := by
+    refine eq_univ_of_forall fun x => mem_treeCluster.2 ?_
+    rcases Relation.ReflTransGen.cases_head (hK.root_reaches (K.leaf x)) with h | ⟨c, ⟨f, hf, rfl⟩, hcx⟩
+    · exact absurd h.symm (leaf_ne_root hK x)
+    · rwa [(hp f).1 hf] at hcx
+  have hmem : ∀ v, treeCluster K v ∈ H := fun v => mem_treeClusters.2 ⟨v, rfl⟩
+  -- the vertices: the root, and the others as their clusters
+  let ψ : V → Unit ⊕ HierarchyVertex H := fun v =>
+    if v = K.root then .inl () else .inr ⟨treeCluster K v, hmem v⟩
+  have hψr : ψ K.root = .inl () := ite_eq_left rfl
+  have hψv : ∀ v, v ≠ K.root → ψ v = .inr ⟨treeCluster K v, hmem v⟩ := fun v hv => ite_eq_right hv
+  have hψ : Function.Bijective ψ := by
+    refine ⟨fun u v h => ?_, fun y => ?_⟩
+    · by_cases hu : u = K.root <;> by_cases hv : v = K.root
+      · rw [hu, hv]
+      · rw [hu, hψr, hψv v hv] at h
+        exact absurd h Sum.inl_ne_inr
+      · rw [hv, hψr, hψv u hu] at h
+        exact absurd h Sum.inr_ne_inl
+      · rw [hψv u hu, hψv v hv] at h
+        exact treeCluster_injOn hK ht hc (Or.inl hu) (Or.inl hv)
+          (congrArg Subtype.val (Sum.inr_injective h))
+    · rcases y with ⟨⟩ | ⟨A, hA⟩
+      · exact ⟨K.root, hψr⟩
+      · obtain ⟨v, rfl⟩ := mem_treeClusters.1 hA
+        by_cases hv : v = K.root
+        · refine ⟨K.graph.target p, ?_⟩
+          rw [hψv _ (NMSC.target_ne_root hK p)]
+          congr 2
+          rw [hcp, hv, treeCluster_root hK]
+        · exact ⟨v, hψv v hv⟩
+  -- the arcs: the arc from the root, and the others as the clusters of their targets
+  let φ : E → Empty ⊕ Unit ⊕ HierarchyArc H := fun e =>
+    if h : e = p then .inr (.inl ()) else
+      .inr (.inr ⟨⟨treeCluster K (K.graph.target e), hmem _⟩,
+        treeCluster_target_ne_univ hK ht hc (Or.inl (hsrc e h))⟩)
+  have hφp : φ p = .inr (.inl ()) := dite_eq_left rfl
+  have hφe : ∀ e (h : e ≠ p), φ e = .inr (.inr ⟨⟨treeCluster K (K.graph.target e), hmem _⟩,
+      treeCluster_target_ne_univ hK ht hc (Or.inl (hsrc e h))⟩) := fun e h => dite_eq_right h
+  have hinjT : ∀ e f, e ≠ p → f ≠ p →
+      treeCluster K (K.graph.target e) = treeCluster K (K.graph.target f) → e = f :=
+    fun e f _ _ h => arc_eq_of_target_eq ht (treeCluster_injOn hK ht hc
+      (Or.inl (NMSC.target_ne_root hK e)) (Or.inl (NMSC.target_ne_root hK f)) h)
+  have hφ : Function.Bijective φ := by
+    refine ⟨fun e f h => ?_, fun y => ?_⟩
+    · by_cases he : e = p <;> by_cases hf : f = p
+      · rw [he, hf]
+      · rw [he, hφp, hφe f hf] at h
+        exact absurd (Sum.inr_injective h) Sum.inl_ne_inr
+      · rw [hf, hφp, hφe e he] at h
+        exact absurd (Sum.inr_injective h) Sum.inr_ne_inl
+      · rw [hφe e he, hφe f hf] at h
+        exact hinjT e f he hf (congrArg (fun a : HierarchyArc H => a.val.val)
+          (Sum.inr_injective (Sum.inr_injective h)))
+    · rcases y with y | ⟨⟩ | a
+      · exact y.elim
+      · exact ⟨p, hφp⟩
+      · obtain ⟨v, hv⟩ := mem_treeClusters.1 a.val.2
+        have hvr : v ≠ K.root := fun h => a.2 (by rw [← hv, h, treeCluster_root hK])
+        obtain ⟨e, he⟩ := (K.graph.one_le_indegree_iff v).1 (hK.nonroot_indegree v hvr)
+        have hep : e ≠ p := fun h => a.2 (by rw [← hv, ← he, h, hcp])
+        refine ⟨e, ?_⟩
+        rw [hφe e hep]
+        exact congrArg (fun b => Sum.inr (Sum.inr b)) (Subtype.ext (Subtype.ext (by
+          show treeCluster K (K.graph.target e) = a.val.val
+          rw [he, hv])))
+  let fV := (Equiv.ofBijective ψ hψ).symm
+  let fE := (Equiv.ofBijective φ hφ).symm
+  have hψfV : ∀ y, ψ (fV y) = y := (Equiv.ofBijective ψ hψ).apply_symm_apply
+  have hφfE : ∀ y, φ (fE y) = y := (Equiv.ofBijective φ hφ).apply_symm_apply
+  have hfV0 : fV (.inl ()) = K.root := by
+    apply hψ.1
+    rw [hψfV, hψr]
+  have hfEp : fE (.inr (.inl ())) = p := by
+    apply hφ.1
+    rw [hφfE, hφp]
+  have hfEa : ∀ a, fE (.inr (.inr a)) ≠ p ∧
+      treeCluster K (K.graph.target (fE (.inr (.inr a)))) = a.val.val := by
+    intro a
+    have h := hφfE (.inr (.inr a))
+    by_cases hep : fE (.inr (.inr a)) = p
+    · rw [hep, hφp] at h
+      exact absurd (Sum.inr_injective h) Sum.inl_ne_inr
+    · rw [hφe _ hep] at h
+      exact ⟨hep, congrArg (fun b : HierarchyArc H => b.val.val)
+        (Sum.inr_injective (Sum.inr_injective h))⟩
+  have hfVv : ∀ v, v ≠ K.root → ∀ y, ψ v = y → fV y = v := fun v _ y h => by
+    rw [← h]
+    exact (Equiv.ofBijective ψ hψ).symm_apply_apply v
+  have hg : NMSC.IsGlued K θ (pointNetwork X) pointMetric (hierarchyNetwork H hH)
+      (hierarchyMetric H (treeLength K θ)) fV fE (fun _ => ()) (fun _ => θ.length p) :=
+    { source₀ := fun e => e.elim
+      target₀ := fun e => e.elim
+      sourceP := fun u => by
+        cases u
+        rw [hfEp, hp0]
+        exact hfV0.symm
+      targetP := fun u => by
+        cases u
+        rw [hfEp]
+        refine (hfVv _ (NMSC.target_ne_root hK p) _ ?_).symm
+        rw [hψv _ (NMSC.target_ne_root hK p)]
+        congr 2
+      source₁ := fun a => by
+        obtain ⟨hep, hcl⟩ := hfEa a
+        refine (hfVv _ (hsrc _ hep) _ ?_).symm
+        rw [hψv _ (hsrc _ hep)]
+        congr 2
+        show treeCluster K (K.graph.source (fE (.inr (.inr a)))) = parentCluster H a.val.val
+        rw [← hcl, parentCluster_treeCluster hK ht hc (Or.inl (hsrc _ hep))]
+      target₁ := fun a => by
+        obtain ⟨-, hcl⟩ := hfEa a
+        refine (hfVv _ (NMSC.target_ne_root hK _) _ ?_).symm
+        rw [hψv _ (NMSC.target_ne_root hK _)]
+        congr 2
+      root := hfV0.symm
+      not_target_root := fun a h => a.2 (congrArg Subtype.val h)
+      length₀ := fun e => e.elim
+      lengthP := fun u => by
+        cases u
+        rw [hfEp]
+      length₁ := fun a => by
+        obtain ⟨hep, hcl⟩ := hfEa a
+        show θ.length (fE (.inr (.inr a))) = treeLength K θ a.val.val
+        unfold treeLength
+        have hsingle : ∀ f ∈ univ.filter (fun f => treeCluster K (K.graph.target f) = a.val.val),
+            f ≠ fE (.inr (.inr a)) → θ.length f = 0 := by
+          intro f hf hfne
+          exfalso
+          apply hfne
+          have hf' := (mem_filter.1 hf).2
+          have hfp : f ≠ p := fun h => a.2 (by rw [← hf', h, hcp])
+          exact hinjT f _ hfp hep (hf'.trans hcl.symm)
+        exact (Finset.sum_eq_single_of_mem (fE (.inr (.inr a))) (mem_filter.2 ⟨mem_univ _, hcl⟩)
+          hsingle).symm
+      inheritance₀ := fun e => e.elim
+      inheritance₁ := fun a => hinh _ }
+  have hleaf : ∀ x, K.leaf x = fV (.inr ((hierarchyNetwork H hH).leaf x)) := fun x => by
+    refine (hfVv _ (leaf_ne_root hK x) _ ?_).symm
+    rw [hψv _ (leaf_ne_root hK x)]
+    congr 2
+    exact treeCluster_leaf hK x
+  have hlow : NMSC.lowerInj fV (NMSC.taxaInj K univ) = NMSC.taxaInj (hierarchyNetwork H hH) univ := by
+    funext v
+    exact taxaInj_congr (f := fun v => fV (.inr v)) (fV.injective.comp Sum.inr_injective) hleaf v
+  have hup : ∀ t : Finset (Finset X),
+      NMSC.upperInj fV (fun _ : Unit => ()) (NMSC.taxaInj K univ) (fun _ : Unit => t) () = t := by
+    intro t
+    unfold NMSC.upperInj NMSC.taxaInj
+    rw [hfV0]
+    have h0 : (univ.filter fun x => x ∈ (univ : Finset X) ∧ K.leaf x = K.root) = ∅ :=
+      filter_eq_empty_iff.2 fun x _ h => leaf_ne_root hK x h.2
+    rw [h0, image_empty, empty_union]
+    simp
+  have h1 : θ.inheritance (fE (.inr (.inl ()))) = 1 := hinh _
+  rw [NMSC.geneTreeDist_eq_injDist hK, NMSC.geneTreeDist_eq_injDist hHN,
+    NMSC.injDist_eq_sum_rootDist, NMSC.injDist_eq_sum_rootDist]
+  simp only [hg.rootDist_eq_unit hρ h1, rootDist_pointNetwork, hup, hlow, mul_ite, mul_one, mul_zero,
+    sum_ite_eq', mem_univ, ite_true]
+  simp only [sum_mul, mul_assoc]
+  rw [sum_comm]
+  refine sum_congr rfl fun F₁ _ => ?_
+  rw [← mul_sum]
+  by_cases hR : NMSC.rootDist (hierarchyNetwork H hH) (hierarchyMetric H (treeLength K θ)) ρ
+      (NMSC.taxaInj (hierarchyNetwork H hH) univ) F₁ = 0
+  · rw [hR, zero_mul, zero_mul]
+  · rw [kingmanTransition_mul_kingmanAbsorption
+      (isForest_of_rootDist_ne_zero hHN (NMSC.validInj_taxaInj univ) hR)]
+
+/-- **A tree without nodes of indegree one and outdegree one carries the multispecies coalescent of
+its hierarchy**, with the lengths of its arcs. -/
+theorem geneTreeDist_eq_forestDist_of_reduced (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc e)
+    (hc : ∀ v, ¬ K.IsChainVertex v) {θ : MetricData E} (hinh : ∀ e, θ.inheritance e = 1)
+    (hX : 2 ≤ Fintype.card X) {ρ : ℝ} (hρ : 0 ≤ ρ) (G : Finset (Finset X)) :
+    geneTreeDist K θ ρ G = forestDist (treeClusters K) (treeLength K θ) id univ G := by
+  rw [forestDist_univ_eq_geneTreeDist (isHierarchy_treeClusters hK ht) id (treeLength K θ) hρ G]
+  by_cases hroot : 2 ≤ K.graph.outdegree K.root
+  · exact geneTreeDist_eq_hierarchyNetwork_of_two_le hK ht hc hinh hX hroot ρ G
+  · have h0 : K.graph.outdegree K.root ≠ 0 := fun h => by
+      obtain ⟨x, hx⟩ := (hK.leaves _).1 h
+      exact leaf_ne_root hK x hx
+    exact geneTreeDist_eq_hierarchyNetwork_of_eq_one hK ht hc hinh hX (by omega) hρ G
+
 end Reduced
+
+/-! ### The species tree of a network without hybrid arcs -/
+
+section Main
+
+variable {N : RootedNetwork V E X}
+
+/-- **The network multispecies coalescent on a network without hybrid arcs is the multispecies
+coalescent on its species tree**, for every inheritance correlation `ρ ≥ 0`: nodes of indegree one and
+outdegree one (`NMSC.geneTreeDist_suppress`), a root of outdegree one, and the names of the vertices
+and arcs do not matter. -/
+theorem geneTreeDist_eq_rootedDist (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
+    {θ : MetricData E} (hθ : N.IsMetric θ) (hX : 2 ≤ Fintype.card X) {ρ : ℝ} (hρ : 0 ≤ ρ)
+    (G : Finset (Finset X)) :
+    geneTreeDist N θ ρ G = (treeSpeciesTree N hN ht hθ).rootedDist id G := by
+  rw [← NMSC.geneTreeDist_suppress hN hθ.isNormalized hρ G,
+    geneTreeDist_eq_forestDist_of_reduced (suppress_isPhylogenetic hN)
+      (suppress_not_isHybridArc hN ht) (suppress_not_isChainVertex hN)
+      (suppressMetric_inheritance ht hθ) hX hρ G,
+    treeClusters_suppress hN, show treeLength (N.suppress hN) (N.suppressMetric θ) = treeLength N θ
+      from funext (treeLength_suppress hN θ)]
+  rfl
+
+/-- **The concordance factors of a network without hybrid arcs are the quartet probabilities of its
+species tree** (Allman, Degnan, Rhodes 2011), for every inheritance correlation `ρ ≥ 0`; Baños 2019
+uses `ρ = 0`. With the nodes of indegree one and outdegree one allowed, this covers the quartet trees
+of Section 4 and the networks `Q₁⊕`, `Q₂⊕`, `Q₀⊕` of Section 5 without cycles. -/
+theorem nmscCF_eq_quartetProb (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
+    {θ : MetricData E} (hθ : N.IsMetric θ) (hX : 2 ≤ Fintype.card X) {ρ : ℝ} (hρ : 0 ≤ ρ)
+    (q : QuartetTree X) :
+    nmscCF N θ ρ q = External.AllmanDegnanRhodes2011.quartetProb (treeSpeciesTree N hN ht hθ) q := by
+  unfold nmscCF External.AllmanDegnanRhodes2011.quartetProb SpeciesTree.unrootedDist
+  simp only [geneTreeDist_eq_rootedDist hN ht hθ hX hρ]
+  set σ := treeSpeciesTree N hN ht hθ
+  have h : ∀ T : Finset (Finset X),
+      (if Displays T q then ∑ G, (if unroot G = T then σ.rootedDist id G else 0) else 0) =
+        ∑ G, if unroot G = T then (if Displays (unroot G) q then σ.rootedDist id G else 0)
+          else 0 := by
+    intro T
+    by_cases hT : Displays T q
+    · rw [ite_eq_left hT]
+      refine sum_congr rfl fun G _ => ?_
+      by_cases hG : unroot G = T
+      · rw [ite_eq_left hG, ite_eq_left hG, ite_eq_left (hG ▸ hT)]
+      · rw [ite_eq_right hG, ite_eq_right hG]
+    · rw [ite_eq_right hT]
+      refine (sum_eq_zero fun G _ => ?_).symm
+      by_cases hG : unroot G = T
+      · rw [ite_eq_left hG, ite_eq_right (hG ▸ hT)]
+      · rw [ite_eq_right hG]
+  rw [sum_congr rfl fun T _ => h T, sum_comm]
+  refine sum_congr rfl fun G _ => ?_
+  rw [sum_ite_eq, ite_eq_left (mem_univ _)]
+
+end Main
 
 end Banos2019

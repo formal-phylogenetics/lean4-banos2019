@@ -23,6 +23,12 @@ the rooted one `T⁺` by `SpeciesTree.SameRootedMetricTree`.
 | `proposition4` | Proposition 4: the same for species trees that need not be binary. | Stated in Section 5 and cited in Lemmas 7 and 9. |
 | `unrootedDist_eq_of_sameUnrootedMetricTree` | On four taxa, two species trees with the same `T⁻`, binary or not, have the same distribution: the root placement does not matter. | Section 4 ("the quartet concordance factors do not depend on the root placement [1]"), and the proofs of Lemmas 7 and 9 and Proposition 5, where the citation of Propositions 3 and 4 is used in this form: in Lemma 7 for the two rootings `Q₁⊕`, `Q₂⊕` given `K' = 0`, in Lemma 9 for the trees `T_d`, `T_c` and `Q₀⊕` given `K_y = 2`, in Proposition 5 for the base case of two trees with the same unrooted metric tree. |
 
+The paper applies these statements to rooted networks without hybrid edges (the quartet trees, and the
+networks of Section 5 once their cycles are removed), which may have nodes of indegree one and
+outdegree one. `Banos2019.nmscCF_eq_quartetProb` (`Banos2019/Quartet/Trees.lean`) identifies the
+concordance factors of such a network with `quartetProb` of its species tree
+`Banos2019.treeSpeciesTree`.
+
 ## Where the proofs come from
 
 The four statements are stated here with `sorry`. Allman, Degnan and Rhodes 2011 is formalized in
