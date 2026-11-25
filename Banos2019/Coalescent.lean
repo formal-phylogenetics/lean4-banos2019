@@ -12,12 +12,12 @@ library's `Phylogenetics.geneTreeDist N θ 0`, and the concordance factor of a q
 
 * `quartetTree a b c d`: the quartet tree `ab|cd`.
 * `CF` (Definition 14): `CF_abcd = (CF_{AB|CD}, CF_{AC|BD}, CF_{AD|BC})`.
-* `SameOrdering` (Definition 15): two families of concordance factors order the quartet trees on each
-  set of four taxa in the same way.
+* `SameOrdering` (Definition 15): two families of concordance factors order the quartet trees on
+  each set of four taxa in the same way.
 * `IsTreelikeOn`, `CyclePropertyOn` (Definition 16), `BigCycleOn` (Definition 17), `IsBCQuartet`
-  (`q^BC`), stated for a function on quartet trees and a set of four taxa. For a set `s` without four
-  elements there is no quartet tree on `s`, so `IsTreelikeOn` is false and the two properties are true:
-  every statement that uses them is about a set of four taxa.
+  (`q^BC`), stated for a function on quartet trees and a set of four taxa. For a set `s` without
+  four elements there is no quartet tree on `s`, so `IsTreelikeOn` is false and the two properties
+  are true: every statement that uses them is about a set of four taxa.
 * `ForGenericParams`: a property of the numerical parameters holds outside a null set
   (`RootedNetwork.IsGenericNull`).
 -/
@@ -69,18 +69,19 @@ theorem distinct4_adbc {a b c d : X} (h : Distinct4 a b c d) : Distinct4 a d b c
 
 variable [Fintype V] [Fintype E] [Fintype X]
 
-/-- **Definition 14**: the quartet concordance factors `CF_abcd = (CF_{AB|CD}, CF_{AC|BD}, CF_{AD|BC})`
-under the network multispecies coalescent on the metric rooted network `(N, θ)`: the probabilities that
-the gene tree displays `ab|cd`, `ac|bd`, `ad|bc`. -/
+/-- **Definition 14**: the quartet concordance factors
+`CF_abcd = (CF_{AB|CD}, CF_{AC|BD}, CF_{AD|BC})` under the network multispecies coalescent on the
+metric rooted network `(N, θ)`: the probabilities that the gene tree displays `ab|cd`, `ac|bd`,
+`ad|bc`. -/
 def CF (N : RootedNetwork V E X) (θ : MetricData E) (a b c d : X) (h : Distinct4 a b c d) :
     ℝ × ℝ × ℝ :=
   (nmscCF N θ 0 (quartetTree a b c d h), nmscCF N θ 0 (quartetTree a c b d (distinct4_acbd h)),
     nmscCF N θ 0 (quartetTree a d b c (distinct4_adbc h)))
 
 omit [Fintype V] [Fintype E] in
-/-- **Definition 15**: the concordance factors `p` and `p'` have the same *ordering* on every set of four
-taxa: for any two quartet trees on the same four taxa, `p` orders them as `p'` does. The ordering of
-`CF_abcd` is the decreasing order of its entries, ties included. -/
+/-- **Definition 15**: the concordance factors `p` and `p'` have the same *ordering* on every set of
+four taxa: for any two quartet trees on the same four taxa, `p` orders them as `p'` does. The
+ordering of `CF_abcd` is the decreasing order of its entries, ties included. -/
 def SameOrdering (p p' : QuartetTree X → ℝ) : Prop :=
   ∀ q r : QuartetTree X, q.taxa = r.taxa → (p q ≤ p r ↔ p' q ≤ p' r)
 
@@ -96,8 +97,8 @@ concordance factors on `s` are not treelike, that is, the two smallest values ar
 def CyclePropertyOn (p : QuartetTree X → ℝ) (s : Finset X) : Prop := ¬ IsTreelikeOn p s
 
 omit [Fintype V] [Fintype E] in
-/-- **Definition 17** (`bigcycle`): the set `s` of four taxa satisfies the *Big Cycle property* (`BC`):
-the three concordance factors on `s` are different. -/
+/-- **Definition 17** (`bigcycle`): the set `s` of four taxa satisfies the *Big Cycle property*
+(`BC`): the three concordance factors on `s` are different. -/
 def BigCycleOn (p : QuartetTree X → ℝ) (s : Finset X) : Prop :=
   ∀ q ∈ treesOn s, ∀ r ∈ treesOn s, q ≠ r → p q ≠ p r
 
@@ -110,8 +111,8 @@ def IsBCQuartet (p : QuartetTree X → ℝ) (s : Finset X) (q : QuartetTree X) :
 abbrev cf (N : RootedNetwork V E X) (θ : MetricData E) : QuartetTree X → ℝ := nmscCF N θ 0
 
 /-- "For generic numerical parameters, `P` holds": the parameters violating `P` form a null set
-(`RootedNetwork.IsGenericNull`: Lebesgue measure in the coordinates given by the edge lengths and, at
-each hybrid node, the inheritance probability of one of its two hybrid edges). -/
+(`RootedNetwork.IsGenericNull`: Lebesgue measure in the coordinates given by the edge lengths and,
+at each hybrid node, the inheritance probability of one of its two hybrid edges). -/
 def ForGenericParams (N : RootedNetwork V E X) (P : MetricData E → Prop) : Prop :=
   N.IsGenericNull {θ | ¬ P θ}
 

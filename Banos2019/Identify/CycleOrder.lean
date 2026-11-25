@@ -1,15 +1,16 @@
 module
 
 public import Banos2019.Identify.Blocks
+public import Banos2019.Basic.Data.Finset.Card
 
 /-!
 # The order of the blocks around a cycle of `N⁻` (Baños 2019, Lemma 16)
 
-* `blockNodes`, `JoinedAvoiding`: the blocks of `x` and `y` are joined along `C` avoiding the blocks of
-  the taxa `T`.
-* `adjacentBlocks_iff_forall_joinedAvoiding`: two blocks of a cycle of size at least four are adjacent
-  exactly when they are so joined, avoiding the other two blocks, for every set of four taxa separated
-  by the cycle that contains them.
+* `blockNodes`, `JoinedAvoiding`: the blocks of `x` and `y` are joined along `C` avoiding the blocks
+  of the taxa `T`.
+* `adjacentBlocks_iff_forall_joinedAvoiding`: two blocks of a cycle of size at least four are
+  adjacent exactly when they are so joined, avoiding the other two blocks, for every set of four
+  taxa separated by the cycle that contains them.
 * `IsCycleOf.eq_or_eq_of_joins`, `IsCycleOf.ne_of_joins`, `IsCycle.exists_isCycleOf_apply_zero`,
   `IsCycleOf.mem_image_Ioo_iff_of_reflTransGen`: the ends of the edges of a cycle, reading a cycle
   from a given node, and walks along a cycle that avoid two of its nodes.
@@ -119,8 +120,8 @@ def blockNodes {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E'
     Set V' :=
   {u | u ∈ cycleNodes G.graph C ∧ ∃ x ∈ T, x ∈ nodeBlock G.graph G.leaf C u}
 
-/-- The blocks of `x` and `y` are *joined along `C` avoiding the blocks of `T`*: in the cycle `C` with
-the nodes of the blocks of the taxa of `T` removed, the nodes of the blocks of `x` and `y` are
+/-- The blocks of `x` and `y` are *joined along `C` avoiding the blocks of `T`*: in the cycle `C`
+with the nodes of the blocks of the taxa of `T` removed, the nodes of the blocks of `x` and `y` are
 connected. -/
 def JoinedAvoiding {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (T : Set X')
     (x y : X') : Prop :=
@@ -131,11 +132,11 @@ def JoinedAvoiding {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Se
 
 /-- **Two blocks of a cycle of size at least four are adjacent exactly when they are joined avoiding
 the other two blocks of every set of four taxa that the cycle separates and that contains them.**
-Adjacent blocks are joined by their edge. Two blocks that are not adjacent leave a node on each of the
-two arcs of the cycle between them, the hybrid node among them when it is not one of the two; taxa in
-the blocks of these nodes separate them. -/
-theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOne N.graph) {C : Set _}
-    (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard) {v}
+Adjacent blocks are joined by their edge. Two blocks that are not adjacent leave a node on each of
+the two arcs of the cycle between them, the hybrid node among them when it is not one of the two;
+taxa in the blocks of these nodes separate them. -/
+theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOne N.graph)
+    {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x y : X) :
     AdjacentBlocks (unrooted N hN hX) C x y ↔
       ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y ∧
@@ -241,14 +242,15 @@ theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOn
       have hhlt := h.isLt
       rcases Nat.lt_trichotomy (h : ℕ) m with hhm | hhm | hhm
       · by_cases hh0 : (h : ℕ) = 0
-        · refine ⟨⟨1, by omega⟩, ⟨m + 1, by omega⟩, by simp, by simp only; omega, by simp only; omega,
-            Or.inl ?_⟩
+        · refine ⟨⟨1, by omega⟩,
+            ⟨m + 1, by omega⟩, by simp, by simp only; omega, by simp only; omega, Or.inl ?_⟩
           rw [← hh, show h = 0 from Fin.ext (by rw [hh0, Fin.val_zero])]
         · exact ⟨h, ⟨m + 1, by omega⟩, by omega, hhm, by simp only; omega, Or.inr (Or.inl hh.symm)⟩
       · refine ⟨⟨1, by omega⟩, ⟨m + 1, by omega⟩, by simp, by simp only; omega, by simp only; omega,
           Or.inr (Or.inr (Or.inl ?_))⟩
         rw [← hh, Fin.ext hhm]
-      · exact ⟨⟨1, by omega⟩, h, by simp, by simp only; omega, hhm, Or.inr (Or.inr (Or.inr hh.symm))⟩
+      · exact
+          ⟨⟨1, by omega⟩, h, by simp, by simp only; omega, hhm, Or.inr (Or.inr (Or.inr hh.symm))⟩
     obtain ⟨z, hz⟩ := exists_blockNode_eq h1 hC (hmemv a)
     obtain ⟨z', hz'⟩ := exists_blockNode_eq h1 hC (hmemv b)
     have hxz : blockNode (unrooted N hN hX) C x ≠ blockNode (unrooted N hN hX) C z := by
@@ -266,10 +268,10 @@ theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOn
     have hzz' : blockNode (unrooted N hN hX) C z ≠ blockNode (unrooted N hN hX) C z' := by
       rw [hz, hz']
       exact hvne _ _ (by omega)
-    have hcard := card_four_of_ne (hβne hxy) (hβne hxz) (hβne hxz') (hβne hyz) (hβne hyz')
+    have hcard := Finset.card_four_of_ne (hβne hxy) (hβne hxz) (hβne hxz') (hβne hyz) (hβne hyz')
       (hβne hzz')
     have hsep : SeparatesQuartet (unrooted N hN hX) C v {x, y, z, z'} := by
-      refine (separatesQuartet_iff h1 hC hv _).2 ⟨injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
+      refine (separatesQuartet_iff h1 hC hv _).2 ⟨Finset.injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
       rcases hhyb with hv0 | hva | hvm | hvb
       · exact ⟨x, by simp, h0.symm.trans hv0.symm⟩
       · exact ⟨z, by simp, hz.trans hva.symm⟩

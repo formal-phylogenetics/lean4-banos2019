@@ -8,8 +8,8 @@ public import Mathlib.Algebra.BigOperators.Finprod
 
 The library's `Phylogenetics.SemidirectedNetwork` records each edge with its two ends in some order;
 for a hybrid edge (`IsDirected`) the order is the direction, for a tree edge it has no meaning. The
-semidirected network `N⁻` of a binary rooted network (Definition 5) and its metric (Definition 6) are
-the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric`.
+semidirected network `N⁻` of a binary rooted network (Definition 5) and its metric (Definition 6)
+are the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric`.
 
 * `SDStep`, `IsSDPathOf`, `IsSDPath`: semidirected paths, which follow a hybrid edge only in its
   direction and a tree edge either way, through distinct nodes.
@@ -18,13 +18,13 @@ the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric
 * `trekEdges`, `restrict`: the edges on simple treks between taxa of `Z`, and the network they form.
 * `suppress` (Section 2.3, Figure 3): suppressing every node of degree two. The edges of the result
   are the maximal chains through nodes of degree two (other than taxa); a chain is a hybrid edge,
-  directed toward one of its ends, when it contains a hybrid edge and all its hybrid edges point toward
-  that end. When every hybrid edge of a chain enters an end of the chain, as in all the networks the
-  paper suppresses, this is the result of suppressing the inner nodes one at a time by the rules of
-  Figure 3, in any order. On other chains, one-at-a-time suppression may depend on the order or differ
-  from this rule.
-* `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and metric;
-  `symm`, `trans`: their inverses and compositions.
+  directed toward one of its ends, when it contains a hybrid edge and all its hybrid edges point
+  toward that end. When every hybrid edge of a chain enters an end of the chain, as in all the
+  networks the paper suppresses, this is the result of suppressing the inner nodes one at a time by
+  the rules of Figure 3, in any order. On other chains, one-at-a-time suppression may depend on the
+  order or differ from this rule.
+* `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and
+  metric; `symm`, `trans`: their inverses and compositions.
 -/
 
 @[expose] public noncomputable section
@@ -60,8 +60,8 @@ def IsSDPath (u w : V) (P : Set E) (S : Set V) : Prop :=
 def DescendsFrom (v : V) (x : X) : Prop :=
   ∃ P S, IsSDPath G v (G.leaf x) P S
 
-/-- **Definition 9**: a *trek* from `x` to `y` with top `t`: a semidirected path from `t` to `x` (edges
-`P₁`, nodes `S₁`) and one from `t` to `y` (edges `P₂`, nodes `S₂`). -/
+/-- **Definition 9**: a *trek* from `x` to `y` with top `t`: a semidirected path from `t` to `x`
+(edges `P₁`, nodes `S₁`) and one from `t` to `y` (edges `P₂`, nodes `S₂`). -/
 def IsTrek (x y t : V) (P₁ P₂ : Set E) (S₁ S₂ : Set V) : Prop :=
   IsSDPath G t x P₁ S₁ ∧ IsSDPath G t y P₂ S₂
 
@@ -97,7 +97,8 @@ section Suppress
 /-- The degree of a node: the number of edge ends at it, counting parallel edges separately. -/
 def degree (G : DirectedMultigraph V E) (u : V) : ℕ := G.indegree u + G.outdegree u
 
-/-- The nodes kept by suppression: those of degree other than two, the taxa, and the nodes of `P`. -/
+/-- The nodes kept by suppression: those of degree other than two, the taxa, and the nodes of `P`.
+-/
 def IsBranch (G : SemidirectedNetwork V E X) (P : Set V) (u : V) : Prop :=
   degree G.graph u ≠ 2 ∨ (∃ x, G.leaf x = u) ∨ u ∈ P
 
@@ -130,8 +131,8 @@ def chainRep (G : SemidirectedNetwork V E X) (P : Set V) {c : Set E} (hc : IsCha
   let h := Classical.choose_spec (Classical.choose_spec (Classical.choose_spec hc))
   ⟨_, _, _, h.1, h.2⟩
 
-/-- The chain, in its order, points toward its last node: it has a hybrid edge, and every hybrid edge
-of it enters the next node along the order. -/
+/-- The chain, in its order, points toward its last node: it has a hybrid edge, and every hybrid
+edge of it enters the next node along the order. -/
 def ChainRep.PointsForward {G : SemidirectedNetwork V E X} {P : Set V} {c : Set E}
     (r : ChainRep G P c) : Prop :=
   (∃ i, G.IsDirected (r.e i)) ∧ ∀ i, G.IsDirected (r.e i) → G.graph.target (r.e i) = r.p i.succ
@@ -143,11 +144,11 @@ def ChainRep.PointsBackward {G : SemidirectedNetwork V E X} {P : Set V} {c : Set
 
 open Classical in
 /-- Suppressing the nodes of degree two other than the taxa and the nodes of `P`. The nodes are the
-others; the edges are the chains, each from its first node to its last, reversed when it points toward
-its first node. A chain is a hybrid edge when it points toward one of its ends. On a chain with one
-inner node this is Figure 3 (`x → z — y`, `x — z → y`, `x → z → y` give `x → y`; `x → z ← y`,
-`x ← z → y`, `x — z — y` give `x — y`); on longer chains whose hybrid edges enter their ends it is the
-result of applying Figure 3 one node at a time, in any order. -/
+others; the edges are the chains, each from its first node to its last, reversed when it points
+toward its first node. A chain is a hybrid edge when it points toward one of its ends. On a chain
+with one inner node this is Figure 3 (`x → z — y`, `x — z → y`, `x → z → y` give `x → y`;
+`x → z ← y`, `x ← z → y`, `x — z — y` give `x — y`); on longer chains whose hybrid edges enter their
+ends it is the result of applying Figure 3 one node at a time, in any order. -/
 def suppressExcept (G : SemidirectedNetwork V E X) (P : Set V) :
     SemidirectedNetwork {u // IsBranch G P u} {c : Set E // IsChain G P c} X where
   graph :=
@@ -165,8 +166,8 @@ def suppressExcept (G : SemidirectedNetwork V E X) (P : Set V) :
 /-- **Suppressing all nodes of degree two** (Section 2.3, Figure 3), the taxa excepted. -/
 abbrev suppress (G : SemidirectedNetwork V E X) := suppressExcept G ∅
 
-/-- The parameters of the suppressed network: a chain has the sum of the lengths of its edges and the
-product of the inheritance probabilities of its hybrid edges. -/
+/-- The parameters of the suppressed network: a chain has the sum of the lengths of its edges and
+the product of the inheritance probabilities of its hybrid edges. -/
 def suppressMetric (G : SemidirectedNetwork V E X) (θ : MetricData E) :
     MetricData {c : Set E // IsChain G ∅ c} where
   length c := ∑ᶠ f ∈ c.1, θ.length f
@@ -178,9 +179,9 @@ section Iso
 
 variable {V' E' : Type*}
 
-/-- An *isomorphism* of leaf-labelled semidirected networks: bijections of the nodes and of the edges
-that keep the ends of each edge, which edges are hybrid and the direction of the hybrid edges, and the
-labels of the taxa. -/
+/-- An *isomorphism* of leaf-labelled semidirected networks: bijections of the nodes and of the
+edges that keep the ends of each edge, which edges are hybrid and the direction of the hybrid edges,
+and the labels of the taxa. -/
 structure SDIso (G : SemidirectedNetwork V E X) (G' : SemidirectedNetwork V' E' X) where
   vert : V ≃ V'
   edge : E ≃ E'

@@ -13,30 +13,30 @@ The proofs of Lemmas 7–11 condition on the number of lineages at a node of a q
 module gives the network multispecies coalescent the corresponding decomposition, for any network.
 
 A vertex `r` is a *cut vertex* (`IsCut`) when it is not above the root and the vertices below it are
-entered only at `r`. The network is then glued (`NMSC.IsGlued`) from its part `cutUpper` not below `r`
-and its part `cutLower` below `r`, rooted at `r`, along the arcs into `r` (`isGlued_cut`).
+entered only at `r`. The network is then glued (`NMSC.IsGlued`) from its part `cutUpper` not below
+`r` and its part `cutLower` below `r`, rooted at `r`, along the arcs into `r` (`isGlued_cut`).
 
 * `isGlued_sum_mul_eq`: gluing, with a function of the forests at the tops of the joining arcs.
-* `rootDist_eq_sum_cut`, `cherryMass_eq_sum_cut`: the *Markov property at a cut vertex*: the process is
-  the mixture, over the law of the forest `F` arriving at `r` (the law at the root of `cutLower`), of
-  the process with `F` injected at `r` and nothing else below `r` (`cutInj`).
+* `rootDist_eq_sum_cut`, `cherryMass_eq_sum_cut`: the *Markov property at a cut vertex*: the process
+  is the mixture, over the law of the forest `F` arriving at `r` (the law at the root of
+  `cutLower`), of the process with `F` injected at `r` and nothing else below `r` (`cutInj`).
 * `sum_mul_arc`, `rootDist_eq_sum_arc`: the *Markov property at the arc `c`* into a cut vertex: the
-  law `arcLaw` of the forest at the top of `c`, and the process with that forest at the source of `c`
-  (`NMSC.liftInj`), which is the process of `cutUpper` (`sum_rootDist_liftInj`).
+  law `arcLaw` of the forest at the top of `c`, and the process with that forest at the source of
+  `c` (`NMSC.liftInj`), which is the process of `cutUpper` (`sum_rootDist_liftInj`).
 * `good_of_rootDist_cutLower_ne_zero`, `good_of_arcLaw_ne_zero`, `sum_rootDist_cutLower`,
   `rootDist_cutLower_of_one`: the support and the mass of these laws.
-* `cf_eq_sum_jointCF`, `jointCF_eq_sum_arc`, `probLineages_eq_sum_arc`: for the number `K` of lineages
-  at the top of `c`, `CF = ∑ₖ P(K = k) CF(· | K = k)` (`jointCF`), and `P(K = k)` and
+* `cf_eq_sum_jointCF`, `jointCF_eq_sum_arc`, `probLineages_eq_sum_arc`: for the number `K` of
+  lineages at the top of `c`, `CF = ∑ₖ P(K = k) CF(· | K = k)` (`jointCF`), and `P(K = k)` and
   `P(K = k) CF(· | K = k)` from `arcLaw`.
 * Four taxa: `cf_eq_cherryMass`; `cherryMass_eq_quartetValue`, `cherryMass_liftInj`,
-  `jointCF_eq_sum_quartetValue`: three lineages in a forest at a vertex and the fourth taxon elsewhere
-  give `NMSC.quartetValue` (a cluster of two lineages decides the quartet tree, otherwise `1/3` by
-  exchangeability); `cf_eq_of_one_below`: one taxon below a cut vertex.
+  `jointCF_eq_sum_quartetValue`: three lineages in a forest at a vertex and the fourth taxon
+  elsewhere give `NMSC.quartetValue` (a cluster of two lineages decides the quartet tree, otherwise
+  `1/3` by exchangeability); `cf_eq_of_one_below`: one taxon below a cut vertex.
 * `geneTreeDist_deleteArc`, `cf_deleteArc`: deleting an arc of inheritance `0` (`Q₁⊕`, `Q₂⊕`);
   `cf_eq_mixture`: with a single taxon below a hybrid node, `CF = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`.
 
-The law at the root of `cutLower` depends only on the part below `r`, so two networks with isomorphic
-parts below cut vertices have the same law there (`NMSC.rootDist_congr`;
+The law at the root of `cutLower` depends only on the part below `r`, so two networks with
+isomorphic parts below cut vertices have the same law there (`NMSC.rootDist_congr`;
 `Banos2019.Quartet.Contract` for `Q₀⊕` and `Q₁⊕`).
 -/
 
@@ -50,11 +50,6 @@ namespace Banos2019
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
 /-! ### Histories with a forest at the root only -/
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-theorem ne_zero_of_ite_ne_zero' {p : Prop} [Decidable p] {a : ℝ} (h : (if p then a else 0) ≠ 0) :
-    p :=
-  by_contra fun hp => h (ite_eq_right hp)
 
 section AtRoot
 
@@ -77,15 +72,15 @@ theorem eq_empty_of_allocationFactor_empty_ne_zero {θ : MetricData E'} {ρ : �
     {e : E'} (he : M.graph.target e = v) : b e = ∅ := by
   unfold allocationFactor at h
   obtain ⟨a, -, ha⟩ := exists_ne_zero_of_sum_ne_zero h
-  have hc := (ne_zero_of_ite_ne_zero' ha) ⟨e, he⟩
+  have hc := (ite_ne_right_iff.1 ha).1 ⟨e, he⟩
   rw [hc]
   ext A
   simp [mem_forestBelow]
 
 variable {M}
 
-/-- **Only the root receives a forest**: in a finite acyclic network whose arcs do not enter the root,
-a history of nonzero weight carries the empty forest on every arc. -/
+/-- **Only the root receives a forest**: in a finite acyclic network whose arcs do not enter the
+root, a history of nonzero weight carries the empty forest on every arc. -/
 theorem eq_empty_of_injWeight_atRoot_ne_zero (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
     (hroot : ∀ e, M.graph.target e ≠ M.root) {θ : MetricData E'} {ρ : ℝ} {F : Finset (Finset X)}
     {b t : E' → Finset (Finset X)} (h : injWeight M θ ρ (atRoot M F) b t ≠ 0) (e : E') :
@@ -116,7 +111,7 @@ theorem eq_empty_of_injWeight_atRoot_ne_zero (hacyc : ∀ v, ¬ Relation.TransGe
     have hk : kingmanTransition (θ.length e) (b e) (t e) ≠ 0 :=
       prod_ne_zero_iff.1 (right_ne_zero_of_mul hv) e (mem_arcsInto.2 he)
     rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-    exact ⟨hb, ne_zero_of_ite_ne_zero' hk⟩
+    exact ⟨hb, (ite_ne_right_iff.1 hk).1⟩
 
 /-- **The law at the root when only the root receives a forest** `F`: the forest `F` itself. -/
 theorem rootDist_atRoot (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
@@ -306,7 +301,8 @@ def cutArcs (ι : P ≃ {e // N.graph.target e = r}) :
     · by_cases h' : N.graph.target e = r
       · change Sum.elim Subtype.val (Sum.elim (fun p => (ι p).1) Subtype.val)
           (if h : N.graph.Reaches r (N.graph.target e) then
-            if h' : N.graph.target e = r then .inr (.inl (ι.symm ⟨e, h'⟩)) else .inr (.inr ⟨e, h, h'⟩)
+            if h' : N.graph.target e = r then .inr (.inl
+              (ι.symm ⟨e, h'⟩)) else .inr (.inr ⟨e, h, h'⟩)
           else .inl ⟨e, h⟩) = e
         rw [dite_eq_left h, dite_eq_left h']
         simp
@@ -391,18 +387,20 @@ theorem cutLower_acyclic (hN : N.IsPhylogenetic) (hc : IsCut N r) (v : {w // N.g
 variable {N r}
 
 /-- **The Markov property at a cut vertex.** The law at the root is the mixture, over the law of the
-forest `F` arriving at the cut vertex `r` (the law at the root of `cutLower`), of the law at the root
-when `F` is injected at `r` and nothing else below `r`. -/
+forest `F` arriving at the cut vertex `r` (the law at the root of `cutLower`), of the law at the
+root when `F` is injected at `r` and nothing else below `r`. -/
 theorem rootDist_eq_sum_cut (hN : N.IsPhylogenetic) (hc : IsCut N r) (θ : MetricData E) (ρ : ℝ)
     (inj : V → Finset (Finset X)) (F : Finset (Finset X)) :
     rootDist N θ ρ inj F =
-      ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ (lowerInj (cutVertices N r) inj) F₁ *
+      ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ
+        (lowerInj (cutVertices N r) inj) F₁ *
         rootDist N θ ρ (cutInj N r inj F₁) F := by
   let ι : {e // N.graph.target e = r} ≃ {e // N.graph.target e = r} := Equiv.refl _
   have hg := isGlued_cut N r hN hc θ ι
   let AF : Finset (Finset X) → ({e // N.graph.target e = r} → Finset (Finset X)) → ℝ :=
     fun F b => allocationFactor N θ ρ F r fun e => if h : N.graph.target e = r then b ⟨e, h⟩ else ∅
-  have hAF : ∀ F bot, allocationFactor N θ ρ F ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
+  have hAF : ∀ F bot, allocationFactor N θ ρ F
+    ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
       AF F fun p => bot (cutArcs N r ι (.inr (.inl p))) := by
     intro F bot
     refine allocationFactor_congr fun e he => ?_
@@ -439,7 +437,8 @@ theorem rootDist_eq_sum_cut (hN : N.IsPhylogenetic) (hc : IsCut N r) (θ : Metri
 theorem cherryMass_eq_sum_cut (hN : N.IsPhylogenetic) (hc : IsCut N r) (θ : MetricData E) (ρ : ℝ)
     (inj : V → Finset (Finset X)) (q : QuartetTree X) :
     cherryMass N θ ρ inj q =
-      ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ (lowerInj (cutVertices N r) inj) F₁ *
+      ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ
+        (lowerInj (cutVertices N r) inj) F₁ *
         cherryMass N θ ρ (cutInj N r inj F₁) q := by
   unfold cherryMass
   simp only [mul_sum]
@@ -463,13 +462,15 @@ lineages injected below `r`. -/
 theorem good_of_rootDist_cutLower_ne_zero (hN : N.IsPhylogenetic) (hc : IsCut N r)
     {θ : MetricData E} {ρ : ℝ} {inj : V → Finset (Finset X)} (hinj : ValidInj inj)
     {F₁ : Finset (Finset X)}
-    (h : rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ (lowerInj (cutVertices N r) inj) F₁ ≠ 0) :
+    (h : rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ
+        (lowerInj (cutVertices N r) inj) F₁ ≠ 0) :
     IsGoodForest F₁ ∧ ∀ x, x ∈ lineages F₁ ↔ ∃ u, N.graph.Reaches r u ∧ x ∈ lineages (inj u) := by
   unfold rootDist at h
   obtain ⟨b₁, -, hb⟩ := exists_ne_zero_of_sum_ne_zero h
   obtain ⟨t₁, -, ht⟩ := exists_ne_zero_of_sum_ne_zero hb
   have hw := left_ne_zero_of_mul ht
-  have harr : arriving (cutLower N r hc) (lowerInj (cutVertices N r) inj) t₁ (cutLower N r hc).root =
+  have harr : arriving (cutLower N r hc) (lowerInj (cutVertices N r) inj) t₁
+    (cutLower N r hc).root =
       F₁ := by
     by_contra hne
     rw [ite_eq_right hne, mul_zero] at ht
@@ -548,11 +549,13 @@ theorem sum_rootDist_liftInj (hN : N.IsPhylogenetic) (hc : IsCut N r) (hcr : N.g
         (upperInj (cutVertices N r) (cutSource N r hN (unitArc hcr huniq)) inj fun _ => t) F *
           Φ F := by
   have hg := isGlued_cut N r hN hc θ (unitArc hcr huniq)
-  have hAF : ∀ F bot, allocationFactor N θ ρ F ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
+  have hAF : ∀ F bot, allocationFactor N θ ρ F
+    ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
       (fun F (b : Unit → Finset (Finset X)) => if b () = F then (1 : ℝ) else 0) F
         fun p => bot (cutArcs N r (unitArc hcr huniq) (.inr (.inl p))) :=
     fun F bot => allocationFactor_of_unique_arc hρ hcr huniq h1 F bot
-  have h := isGlued_sum_mul_eq hg (ρ := ρ) (liftInj N c inj t) (AF := fun F b => if b () = F then (1 : ℝ) else 0) hAF (fun _ => 1) Φ
+  have h := isGlued_sum_mul_eq hg (ρ := ρ) (liftInj N c inj t)
+    (AF := fun F b => if b () = F then (1 : ℝ) else 0) hAF (fun _ => 1) Φ
   simp only [one_mul] at h
   rw [sum_rootDist_mul, h]
   have hlow : lowerInj (cutVertices N r) (liftInj N c inj t) = atRoot (cutLower N r hc) ∅ := by
@@ -606,11 +609,13 @@ theorem sum_mul_arc (hN : N.IsPhylogenetic) (hc : IsCut N r) (hcr : N.graph.targ
       injWeight N θ ρ inj bot top * (Ψ (top c) * Φ (arriving N inj top N.root)) =
       ∑ t, arcLaw N r hc θ ρ c inj t * (Ψ t * ∑ F, rootDist N θ ρ (liftInj N c inj t) F * Φ F) := by
   have hg := isGlued_cut N r hN hc θ (unitArc hcr huniq)
-  have hAF : ∀ F bot, allocationFactor N θ ρ F ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
+  have hAF : ∀ F bot, allocationFactor N θ ρ F
+    ((cutVertices N r) (.inr (cutLower N r hc).root)) bot =
       (fun F (b : Unit → Finset (Finset X)) => if b () = F then (1 : ℝ) else 0) F
         fun p => bot (cutArcs N r (unitArc hcr huniq) (.inr (.inl p))) :=
     fun F bot => allocationFactor_of_unique_arc hρ hcr huniq h1 F bot
-  have h := isGlued_sum_mul_eq hg (ρ := ρ) inj (AF := fun F b => if b () = F then (1 : ℝ) else 0) hAF (fun tP => Ψ (tP ())) Φ
+  have h := isGlued_sum_mul_eq hg (ρ := ρ) inj (AF := fun F b => if b () = F then (1 : ℝ) else 0)
+    hAF (fun tP => Ψ (tP ())) Φ
   refine h.trans ?_
   simp only [sum_rootDist_liftInj hN hc hcr huniq h1 hρ]
   unfold arcLaw
@@ -632,7 +637,8 @@ theorem sum_mul_arc (hN : N.IsPhylogenetic) (hc : IsCut N r) (hcr : N.graph.targ
 theorem rootDist_eq_sum_arc (hN : N.IsPhylogenetic) (hc : IsCut N r) (hcr : N.graph.target c = r)
     (huniq : ∀ g, N.graph.target g = r → g = c) {θ : MetricData E} (h1 : θ.inheritance c = 1)
     {ρ : ℝ} (hρ : 0 ≤ ρ) (inj : V → Finset (Finset X)) (F : Finset (Finset X)) :
-    rootDist N θ ρ inj F = ∑ t, arcLaw N r hc θ ρ c inj t * rootDist N θ ρ (liftInj N c inj t) F := by
+    rootDist N θ ρ inj F = ∑ t, arcLaw N r hc θ ρ c inj t * rootDist N θ ρ
+      (liftInj N c inj t) F := by
   have h := sum_mul_arc hN hc hcr huniq h1 hρ inj (fun _ => 1) fun F' => if F' = F then 1 else 0
   simp only [one_mul] at h
   unfold rootDist
@@ -682,7 +688,8 @@ theorem sum_rootDist_eq_one (hN : N.IsPhylogenetic) {θ : MetricData E} (hθ : N
 theorem sum_rootDist_cutLower (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : MetricData E}
     (hθ : N.IsMetric θ) {ρ : ℝ} (hρ : 0 ≤ ρ ∧ ρ ≤ 1) {inj : V → Finset (Finset X)}
     (hinj : ValidInj inj) :
-    ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ (lowerInj (cutVertices N r) inj) F₁ = 1 := by
+    ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ
+      (lowerInj (cutVertices N r) inj) F₁ = 1 := by
   have h := congrArg (fun f => ∑ F, f F) (funext (rootDist_eq_sum_cut hN hc θ ρ inj))
   simp only at h
   rw [sum_rootDist_eq_one hN hθ hρ hinj, sum_comm] at h
@@ -753,7 +760,8 @@ theorem rootDist_cutLower_of_one (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : 
       obtain ⟨A, hA, hdA⟩ := mem_lineages.1 ((hlin d).2 rfl)
       exact hg.singleton_mem hA hdA
   have hsum := sum_rootDist_cutLower hN hc hθ ⟨le_rfl, zero_le_one⟩ (validInj_taxaInj (N := N) univ)
-  rw [Finset.sum_eq_single {{d}} (fun F _ hF => by_contra fun h => hF (hsupp F h)) (by simp)] at hsum
+  rw [Finset.sum_eq_single {{d}} (fun F _ hF => by_contra fun h => hF (hsupp F h))
+    (by simp)] at hsum
   split_ifs with h
   · rw [h, hsum]
   · by_contra h'
@@ -797,8 +805,8 @@ theorem cf_eq_sum_jointCF (N : RootedNetwork V E X) (θ : MetricData E) (c : E) 
     _ = _ := sum_comm
 
 /-- `P(K = k) · CF(N | K = k)` for the number `K` of lineages at the top of the only arc `c` into a
-cut vertex: the law of the forest at the top of `c`, and the process with that forest at the source of
-`c`. -/
+cut vertex: the law of the forest at the top of `c`, and the process with that forest at the source
+of `c`. -/
 theorem jointCF_eq_sum_arc (hN : N.IsPhylogenetic) (hc : IsCut N r) (hcr : N.graph.target c = r)
     (huniq : ∀ g, N.graph.target g = r → g = c) {θ : MetricData E} (h1 : θ.inheritance c = 1)
     (k : ℕ) (q : QuartetTree X) :
@@ -896,9 +904,9 @@ theorem cf_eq_cherryMass (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ) (hX : Fin
     (q : QuartetTree X) : cf N θ q = cherryMass N θ 0 (taxaInj N univ) q := by
   rw [cf, nmscCF_eq_cherryMass hN hθ ⟨le_rfl, zero_le_one⟩, taxa_eq_univ hX]
 
-/-- **Three lineages in a forest at a vertex, the fourth taxon elsewhere**: a cluster of two lineages
-of the forest decides the quartet tree; without one, the three quartet trees are equally likely, by
-exchangeability of the three lineages. -/
+/-- **Three lineages in a forest at a vertex, the fourth taxon elsewhere**: a cluster of two
+lineages of the forest decides the quartet tree; without one, the three quartet trees are equally
+likely, by exchangeability of the three lineages. -/
 theorem cherryMass_eq_quartetValue (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ)
     (hρ : 0 ≤ ρ ∧ ρ ≤ 1) (hX : Fintype.card X = 4) {inj : V → Finset (Finset X)}
     (hinj : ValidInj inj) {w : V} {d : X} (hlin : lineages (inj w) = univ.erase d)
@@ -1011,7 +1019,8 @@ forest `t` is at the top of `p`. -/
 def upperLaw (hN : N.IsPhylogenetic) {r : V} (hc : IsCut N r) {p : E} (hpr : N.graph.target p = r)
     (huniq : ∀ g, N.graph.target g = r → g = p) (θ : MetricData E) (t F : Finset (Finset X)) : ℝ :=
   rootDist (cutUpper N r hc) (cutUpperMetric N r θ) 0
-    (upperInj (cutVertices N r) (cutSource N r hN (unitArc hpr huniq)) (taxaInj N univ) fun _ => t) F
+    (upperInj (cutVertices N r) (cutSource N r hN (unitArc hpr huniq))
+      (taxaInj N univ) fun _ => t) F
 
 /-- **One taxon `d` below a cut vertex `r` with the only arc `p` into it**: the concordance factors
 are those of the part above `r`, with the single lineage of `d` at the top of `p` after the
@@ -1032,7 +1041,8 @@ theorem cf_eq_of_one_below (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ) (hX : F
     congr 1
     rw [rootDist_eq_sum_arc hN hc hpr huniq h1 le_rfl]
     refine sum_congr rfl fun t _ => ?_
-    have hlaw : arcLaw N r hc θ 0 p (taxaInj N univ) t = kingmanTransition (θ.length p) {{d}} t := by
+    have hlaw : arcLaw N r hc θ 0 p (taxaInj N univ) t =
+      kingmanTransition (θ.length p) {{d}} t := by
       unfold arcLaw
       simp only [rootDist_cutLower_of_one hN hc hθ hd, ite_mul, one_mul, zero_mul, sum_ite_eq',
         mem_univ, ite_true]
@@ -1174,7 +1184,7 @@ theorem eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero (hN : N.IsPhylo
   have hb : bot h = ∅ := by
     unfold allocationFactor at ha
     obtain ⟨a, -, ha'⟩ := exists_ne_zero_of_sum_ne_zero ha
-    have hP := ne_zero_of_ite_ne_zero' ha'
+    have hP := (ite_ne_right_iff.1 ha').1
     have hW := ha'
     rw [ite_eq_left hP] at hW
     simp only [allocationWeight_rho_zero] at hW
@@ -1186,10 +1196,10 @@ theorem eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero (hN : N.IsPhylo
     exact prod_ne_zero_iff.1 hW r (mem_univ _) (by rw [har, h0])
   refine ⟨hb, ?_⟩
   rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-  exact (ne_zero_of_ite_ne_zero' hk)
+  exact (ite_ne_right_iff.1 hk).1
 
-/-- **Deleting an arc of inheritance `0`** does not change the gene tree distribution, at correlation
-`0`: no lineage takes the arc. -/
+/-- **Deleting an arc of inheritance `0`** does not change the gene tree distribution, at
+correlation `0`: no lineage takes the arc. -/
 theorem geneTreeDist_deleteArc (hN : N.IsPhylogenetic) {θ : MetricData E} (h0 : θ.inheritance h = 0)
     {θ' : MetricData {e // e ≠ h}} (hlen : ∀ e, θ'.length e = θ.length e.1)
     (hinh : ∀ e, θ'.inheritance e = θ.inheritance e.1) (G : Finset (Finset X)) :
@@ -1252,7 +1262,8 @@ theorem inheritance_add_eq_one {θ : MetricData E} (hθ : N.IsMetric θ) {v : V}
   have hs : univ.filter (fun e => N.graph.target e = v) = {h₁, h₂} := by
     ext f
     simp only [mem_filter, mem_univ, true_and, mem_insert, mem_singleton]
-    exact ⟨mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂ f, by rintro (rfl | rfl) <;> assumption⟩
+    exact ⟨mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂
+      f, by rintro (rfl | rfl) <;> assumption⟩
   rw [hs, sum_pair hne] at h
   exact h
 

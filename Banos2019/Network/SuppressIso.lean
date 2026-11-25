@@ -14,7 +14,8 @@ with the nodes of `R` and, for each edge of `R`, a chain of `G` with the same en
 hybrid edges (`exists_sdIso_suppressExcept`, `nonempty_sdMetricIso_suppress`).
 
 * `IsUTrail`: a path of the undirected graph through distinct nodes, given edge by edge, and
-  `IsUTrail.isChain`: such a path whose inner nodes are suppressed and whose ends are not is a chain.
+  `IsUTrail.isChain`: such a path whose inner nodes are suppressed and whose ends are not is a
+  chain.
 -/
 
 @[expose] public noncomputable section
@@ -269,7 +270,8 @@ theorem IsChainOf.linked {k : ℕ} {p : Fin (k + 1) → V} {e : Fin k → E}
         · exact Or.inl h₁
         · exact Or.inr h₂
   have hk : 0 < k := h.pos
-  exact (Relation.ReflTransGen.symm_of_symm (fun _ _ => chainLink_symm) (h0 i.val i.isLt)).trans (h0 j.val j.isLt)
+  exact (Relation.ReflTransGen.symm_of_symm (fun _ _ => chainLink_symm) (h0 i.val i.isLt)).trans
+    (h0 j.val j.isLt)
 
 /-- **A chain is the set of edges linked to any one of its edges.** -/
 theorem IsChain.eq_setOf [Finite E] {c : Set E} (hc : IsChain G P c) {g : E} (hg : g ∈ c) :
@@ -392,11 +394,11 @@ theorem IsChainOf.pointsTo {G : SemidirectedNetwork V E X} {P : Set V} {k : ℕ}
         · exact absurd hb (h.inner _ h0 hl)
     · exact h₂
 
-/-- **An isomorphism of a suppressed network**, from a bijection `φ` of the kept nodes with the nodes
-of `R` and, for each edge `f` of `R`, a chain `chainOf f` of `G`, such that every edge of `G` is on
-the chain of exactly one edge `ψ g` of `R`; the ends of the chain of `f` are the ends of `f`; `f` is
-hybrid exactly when its chain has a hybrid edge, and the hybrid edges of the chain enter the target of
-`f`. -/
+/-- **An isomorphism of a suppressed network**, from a bijection `φ` of the kept nodes with the
+nodes of `R` and, for each edge `f` of `R`, a chain `chainOf f` of `G`, such that every edge of `G`
+is on the chain of exactly one edge `ψ g` of `R`; the ends of the chain of `f` are the ends of `f`;
+`f` is hybrid exactly when its chain has a hybrid edge, and the hybrid edges of the chain enter the
+target of `f`. -/
 theorem exists_sdIso_suppressExcept [Finite E] {G : SemidirectedNetwork V E X} {P : Set V}
     {R : SemidirectedNetwork V' E' X} (φ : {u // IsBranch G P u} ≃ V') (chainOf : E' → Set E)
     (hchain : ∀ f, IsChain G P (chainOf f)) (ψ : E → E') (hψ : ∀ g, g ∈ chainOf (ψ g))
@@ -475,7 +477,8 @@ theorem exists_sdIso_suppressExcept [Finite E] {G : SemidirectedNetwork V E X} {
       · exact Or.inl ⟨⟨i, hgd⟩, hpts.1 h⟩
     · rintro (⟨⟨i, hi⟩, -⟩ | ⟨⟨i, hi⟩, -⟩) <;> exact ⟨r.e i, hr ▸ ⟨i, rfl⟩, hi⟩
   · -- the ends
-    change Joins R.graph f (φ (if r.PointsBackward then _ else _)) (φ (if r.PointsBackward then _ else _))
+    change Joins R.graph f (φ (if r.PointsBackward then _ else _))
+      (φ (if r.PointsBackward then _ else _))
     split_ifs
     · rcases hs_end with h | h
       · have h' := ht_end.resolve_left (fun h'' => hst (h.trans h''.symm))
@@ -526,8 +529,8 @@ theorem exists_sdIso_suppressExcept [Finite E] {G : SemidirectedNetwork V E X} {
       exact ⟨(hφs _ _ h'.symm).symm, (hφt _ _ h.symm).symm⟩
 
 /-- **A metric isomorphism of a suppressed network**: as `exists_sdIso_suppressExcept`, when the
-length of each edge of `R` is the sum of the lengths of its chain, and the inheritance probability of
-a hybrid edge of `R` is the product of those of the hybrid edges of its chain. -/
+length of each edge of `R` is the sum of the lengths of its chain, and the inheritance probability
+of a hybrid edge of `R` is the product of those of the hybrid edges of its chain. -/
 theorem nonempty_sdMetricIso_suppress [Finite E] {G : SemidirectedNetwork V E X}
     {R : SemidirectedNetwork V' E' X} (θ : MetricData E) (θ' : MetricData E')
     (φ : {u // IsBranch G ∅ u} ≃ V') (chainOf : E' → Set E)

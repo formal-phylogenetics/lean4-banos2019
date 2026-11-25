@@ -9,11 +9,11 @@ public import Banos2019.Identify.BlocksFromS
 Two networks on the same taxa have the *same cycle data* (`SameCycleData`) when every cycle of size
 at least four of `N₁⁻` has a counterpart in `N₂⁻` with the same size, the same blocks, the same
 adjacent blocks and, for size at least five, the same hybrid block; they have the *same 4-network
-blocks* (`SameFourNetworkBlocks`) when two taxa are in one 4-network block of `N₁⁻` exactly when they
-are in one 4-network block of `N₂⁻`. The proof of Theorem 4 reads the cycle data from the orderings
-of the concordance factors by Lemmas 15 and 16 (TeX l. 1182 for one cycle, l. 1186 for more), and the
-4-network blocks by Lemma 14 (TeX l. 1186). Every network of the induction, the networks induced on
-sets of taxa included, has its data read from its own orderings.
+blocks* (`SameFourNetworkBlocks`) when two taxa are in one 4-network block of `N₁⁻` exactly when
+they are in one 4-network block of `N₂⁻`. The proof of Theorem 4 reads the cycle data from the
+orderings of the concordance factors by Lemmas 15 and 16 (TeX l. 1182 for one cycle, l. 1186 for
+more), and the 4-network blocks by Lemma 14 (TeX l. 1186). Every network of the induction, the
+networks induced on sets of taxa included, has its data read from its own orderings.
 
 * `GivesFourNetworkBlocks`, `GivesBlocks`, `GivesAdjacency`: the conclusions of Lemmas 14, 15 and 16
   at given parameters, for given functions of `S` and of the comparisons of concordance factors.
@@ -22,9 +22,9 @@ sets of taxa included, has its data read from its own orderings.
   at parameters where the conclusions of Lemma 14, and of Lemmas 15 and 16, hold for the same
   functions, have the same 4-network blocks and the same cycle data.
 * `givesFourNetworkBlocks_of_goodParams`, `givesBlocks_of_goodParams`,
-  `givesAdjacency_of_goodParams`: at parameters satisfying `GoodParams`, which contains the statement
-  of Lemma 12, the conclusions of Lemmas 14, 15 and 16 hold for the functions of their proofs
-  (`lemma14_core`, `lemma15_core`, `lemma16_core`).
+  `givesAdjacency_of_goodParams`: at parameters satisfying `GoodParams`, which contains the
+  statement of Lemma 12, the conclusions of Lemmas 14, 15 and 16 hold for the functions of their
+  proofs (`lemma14_core`, `lemma15_core`, `lemma16_core`).
 * `sameFourNetworkBlocks_of_sameOrdering`, `sameCycleData_of_sameOrdering`: so two networks with
   parameters satisfying `GoodParams` and the same orderings have the same 4-network blocks and the
   same cycle data.
@@ -79,9 +79,10 @@ def GivesBlocks (B : Set (Finset X) → Finset X → X → X → Prop) (K : Set 
         K (bcSets N θ) s = C.ncard ∧
         (5 ≤ C.ncard → H (bcSets N θ) s = {x | DescendsFrom (unrooted N hN hX) w x})
 
-/-- **The conclusion of Lemma 16** at the parameters `θ`, for the function `A`: for every set `s ∈ S`
-determining the hybrid node `w` of a cycle `C_w` of `N⁻`, `A`, applied to the comparisons of the
-concordance factors of quartet trees on the same four taxa, gives the adjacent blocks of `C_w`. -/
+/-- **The conclusion of Lemma 16** at the parameters `θ`, for the function `A`: for every set
+`s ∈ S` determining the hybrid node `w` of a cycle `C_w` of `N⁻`, `A`, applied to the comparisons of
+the concordance factors of quartet trees on the same four taxa, gives the adjacent blocks of `C_w`.
+-/
 def GivesAdjacency (A : (QuartetTree X → QuartetTree X → Prop) → Finset X → X → X → Prop)
     {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X)
     (θ : MetricData E) : Prop :=
@@ -116,9 +117,9 @@ theorem sameFourNetworkBlocks_of_gives {V' E' : Type} [Fintype V'] [Fintype E']
   rw [← h14₁ hθ₁ x y, ← h14₂ hθ₂ x y, bcSets_eq_of_sameOrdering hord]
 
 /-- **Lemmas 15 and 16 give the same cycle data**: for two networks with parameters satisfying
-`GoodParams` and the same orderings of concordance factors, at which the conclusions of Lemmas 15 and
-16 hold for the same functions, a cycle `C₁` of size at least four of `N₁⁻` separates a set `s` of
-four taxa, which has the Big Cycle property (Lemma 12); `s` is in the same set `S` for `N₂`, so a
+`GoodParams` and the same orderings of concordance factors, at which the conclusions of Lemmas 15
+and 16 hold for the same functions, a cycle `C₁` of size at least four of `N₁⁻` separates a set `s`
+of four taxa, which has the Big Cycle property (Lemma 12); `s` is in the same set `S` for `N₂`, so a
 cycle `C₂` of `N₂⁻` separates it, and `s` determines the hybrid nodes of both (Section 7). The
 functions of Lemmas 15 and 16, applied to the same `S`, `s` and comparisons, give the data of both
 cycles. -/

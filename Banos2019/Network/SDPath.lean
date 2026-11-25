@@ -9,8 +9,8 @@ public import Banos2019.Network.SemidirectedDesc
 step by step; it is `IsSDPath` (`IsSDPathOf.isSDP`). In a semidirected network in which two edges
 entering a node are hybrid (`IsSDP.shape`), such a path first goes against the direction of tree
 edges and then follows the directions; and a simple trek of semidirected paths gives a simple trek
-of directed paths (`exists_dtrek_of_sdtrek`). This is the argument of the proof of Proposition 1 that
-the edges of a trek of `N⁻` are first traversed "uphill" and then "downhill".
+of directed paths (`exists_dtrek_of_sdtrek`). This is the argument of the proof of Proposition 1
+that the edges of a trek of `N⁻` are first traversed "uphill" and then "downhill".
 -/
 
 @[expose] public noncomputable section
@@ -130,14 +130,16 @@ theorem IsDPath.uncons {H : DirectedMultigraph V E} (hA : H.IsAcyclic) {u w : V}
   cases h with
   | nil => exact absurd he (Set.notMem_empty e)
   | @cons e₀ _ S' P' h' =>
-    have hu : H.source e₀ ∉ S' := fun hm => not_reaches_target_source_of_isAcyclic hA e₀ (h'.reaches_of_mem hm).1
+    have hu : H.source e₀ ∉ S' :=
+      fun hm => not_reaches_target_source_of_isAcyclic hA e₀ (h'.reaches_of_mem hm).1
     rcases Set.mem_insert_iff.mp he with rfl | he
     · exact ⟨S', P', h', rfl, rfl, hu⟩
     · exact absurd (hs ▸ (h'.ends_mem he).1) hu
 
 /-- **The pullback of a directed path** along injective maps of nodes and edges that keep the ends
 of the edges of the path. -/
-theorem IsDPath.pullback {V' E' : Type*} {H : DirectedMultigraph V E} {H' : DirectedMultigraph V' E'}
+theorem IsDPath.pullback {V' E' : Type*} {H : DirectedMultigraph V E}
+    {H' : DirectedMultigraph V' E'}
     (fv : V' → V) (fe : E' → E) (hfv : Function.Injective fv) (hfe : Function.Injective fe)
     {u w : V} {S : Set V} {P : Set E} (h : IsDPath H u w S P)
     (hP : ∀ e ∈ P, ∃ e', fe e' = e ∧ H.source e = fv (H'.source e') ∧

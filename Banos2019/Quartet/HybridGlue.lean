@@ -16,8 +16,9 @@ and `h₂` injected at their sources, and nothing at or below `v` (`hybInj`).
 * `cherryMass_hybInj_withPair`: the process with nothing at `v` does not depend on the inheritance
   probabilities of `h₁`, `h₂`.
 * `cherryMass_eq_sum_arc`: the Markov property at an arc, for the mass of a quartet tree.
-* `hybridPoly_eq`: with at most two roots in `G`, the mass is `γ² P(1) + (1 - γ)² P(0) + 2γ(1 - γ) Z`
-  when the two ways of splitting two roots between `h₁` and `h₂` give `Z`.
+* `hybridPoly_eq`: with at most two roots in `G`, the mass is
+  `γ² P(1) + (1 - γ)² P(0) + 2γ(1 - γ) Z` when the two ways of splitting two roots between `h₁` and
+  `h₂` give `Z`.
 -/
 
 @[expose] public noncomputable section
@@ -150,7 +151,8 @@ variable (hN : N.IsPhylogenetic) (hc : IsCut N v) (hne : h₁ ≠ h₂) (hh₁ :
 include hN hc hne hh₁ hh₂ hpar
 
 /-- **The split of the forest at a hybrid node**, for the law at the root: the forest `G` at `v`
-(with nothing below `v`) splits between `h₁` and `h₂`, each root taking `h₁` with probability `γ`. -/
+(with nothing below `v`) splits between `h₁` and `h₂`, each root taking `h₁` with probability `γ`.
+-/
 theorem rootDist_cutInj_hybrid {θ : MetricData E} {γ : ℝ} (hγ₁ : θ.inheritance h₁ = γ)
     (hγ₂ : θ.inheritance h₂ = 1 - γ) (inj : V → Finset (Finset X)) (G F : Finset (Finset X)) :
     rootDist N θ 0 (cutInj N v inj G) F =
@@ -295,7 +297,8 @@ theorem forestBelow_empty_right (F : Finset (Finset X)) : forestBelow F ∅ = �
 def hybridPoly (G : Finset (Finset X)) (ℓ₁ ℓ₂ : ℝ) (W : Finset (Finset X) → Finset (Finset X) → ℝ)
     (γ : ℝ) : ℝ :=
   ∑ A ∈ (roots G).powerset, γ ^ #A * (1 - γ) ^ #(roots G \ A) * ∑ t₁, ∑ t₂,
-    kingmanTransition ℓ₁ (forestBelow G A) t₁ * kingmanTransition ℓ₂ (forestBelow G (roots G \ A)) t₂ *
+    kingmanTransition ℓ₁ (forestBelow G A) t₁ * kingmanTransition ℓ₂
+    (forestBelow G (roots G \ A)) t₂ *
       W t₁ t₂
 
 theorem kingmanTransition_forestBelow_singleton {G : Finset (Finset X)} (hG : IsGoodForest G)
@@ -304,9 +307,9 @@ theorem kingmanTransition_forestBelow_singleton {G : Finset (Finset X)} (hG : Is
   kingmanTransition_of_card_roots_le_one (isGoodForest_forestBelow hG).1
     (card_roots_forestBelow_singleton_le hR) ℓ t
 
-/-- **The split of a forest with at most two roots** (Lemmas 9 and 11): if a single root, kept or not,
-gives `Z` either way, and the two ways of sending two roots to different arcs give `Z`, then the
-polynomial is `γ² P(1) + (1 - γ)² P(0) + 2γ(1 - γ) Z`. -/
+/-- **The split of a forest with at most two roots** (Lemmas 9 and 11): if a single root, kept or
+not, gives `Z` either way, and the two ways of sending two roots to different arcs give `Z`, then
+the polynomial is `γ² P(1) + (1 - γ)² P(0) + 2γ(1 - γ) Z`. -/
 theorem hybridPoly_eq {G : Finset (Finset X)} (hG : IsGoodForest G) (h2 : #(roots G) ≤ 2)
     (ℓ₁ ℓ₂ : ℝ) (W : Finset (Finset X) → Finset (Finset X) → ℝ) (Z : ℝ)
     (h0 : G = ∅ → W ∅ ∅ = Z) (h1 : #(roots G) = 1 → W G ∅ = Z ∧ W ∅ G = Z)
@@ -576,7 +579,7 @@ section Valid
 
 variable {N : RootedNetwork V E X} {v : V} {h₁ h₂ : E}
 
-omit [Fintype V] [Fintype E] in
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- **The forests at the sources of the hybrid arcs make a valid injection** when they are binary
 forests on disjoint sets of lineages that no other vertex carries, at distinct vertices carrying
 nothing else. -/
@@ -620,6 +623,7 @@ theorem validInj_hybInj {inj : V → Finset (Finset X)} (hinj : ValidInj inj)
 
 end Valid
 
+omit [Fintype X] in
 /-- **Singletons do not change `quartetValue`**: they are neither clusters of two lineages nor
 cherries. -/
 theorem quartetValue_union_of_card_eq_one (q : QuartetTree X) {S F : Finset (Finset X)}

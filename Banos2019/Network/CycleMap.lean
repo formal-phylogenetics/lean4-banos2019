@@ -5,9 +5,9 @@ public import Banos2019.Network.Cycle
 /-!
 # Cycles under maps of graphs
 
-A map of the nodes and a map of the edges of two directed multigraphs that keep the ends of the edges
-of a cycle carry the cycle to a cycle (`IsCycle.image`); conversely, a cycle whose edges and nodes are
-images comes from a cycle (`IsCycle.preimage`).
+A map of the nodes and a map of the edges of two directed multigraphs that keep the ends of the
+edges of a cycle carry the cycle to a cycle (`IsCycle.image`); conversely, a cycle whose edges and
+nodes are images comes from a cycle (`IsCycle.preimage`).
 -/
 
 @[expose] public noncomputable section

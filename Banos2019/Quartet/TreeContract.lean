@@ -30,8 +30,8 @@ section Tree
 
 variable [Fintype V] [Fintype E] [Fintype X] {N : RootedNetwork V E X}
 
-/-- **The cut edges of a network without hybrid arcs are the splits of its clusters**: the arc into a
-node `v` separates the taxa below `v` from the others. -/
+/-- **The cut edges of a network without hybrid arcs are the splits of its clusters**: the arc into
+a node `v` separates the taxa below `v` from the others. -/
 theorem hasCutSplit_iff_mem_unroot_treeClusters (hN : N.IsPhylogenetic)
     (ht : ∀ e, ¬ N.IsHybridArc e) {A : Finset X} (hA : A.Nonempty) (hA' : Aᶜ.Nonempty) :
     N.HasCutSplit ↑A ↔ A ∈ unroot (treeClusters N) := by
@@ -107,9 +107,9 @@ theorem hasCutSplit_iff_mem_unroot_treeClusters (hN : N.IsPhylogenetic)
       rw [hv, coe_compl, hasCutSplit_compl] at this
       exact this
 
-/-- **A network without hybrid arcs on four taxa, whose nodes have at most two children but the root,
-which has at most three, has a cluster of two taxa**: a lowest node `u` with at least two taxa below
-it has one child per taxon below it. -/
+/-- **A network without hybrid arcs on four taxa, whose nodes have at most two children but the
+root, which has at most three, has a cluster of two taxa**: a lowest node `u` with at least two taxa
+below it has one child per taxon below it. -/
 theorem exists_card_two_mem_treeClusters (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
     (hX : Fintype.card X = 4) (hdeg : ∀ v, v ≠ N.root → N.graph.outdegree v ≤ 2)
     (hroot : N.graph.outdegree N.root ≤ 3) : ∃ A ∈ treeClusters N, #A = 2 := by
@@ -130,7 +130,8 @@ theorem exists_card_two_mem_treeClusters (hN : N.IsPhylogenetic) (ht : ∀ e, ¬
     exact hmin _ (show 2 ≤ #(treeCluster N (N.graph.target f)) by omega) (.single ⟨f, hf, rfl⟩)
   -- the taxa below `u` are those below its children
   have hunion : treeCluster N u =
-      (univ.filter fun f => N.graph.source f = u).biUnion fun f => treeCluster N (N.graph.target f) := by
+      (univ.filter fun f => N.graph.source f = u).biUnion
+      fun f => treeCluster N (N.graph.target f) := by
     ext x
     simp only [mem_biUnion, mem_filter, mem_univ, true_and, mem_treeCluster]
     constructor

@@ -7,15 +7,15 @@ public import Banos2019.Network.DirectedPath
 
 The case analysis of the proof of Lemma 17 (Appendix, `lem::trekmrca`), on a finite acyclic graph
 whose reachability is the partial order `≤`. An arc `e` lies on a path `Px` from `m` to `a`; a path
-`Py` from `m` to `b` avoids the child of `e`. When every node strictly below `m` is avoided by a path
-from `m` to `a` or to `b`, as when `m` is the LSA of two taxa `a` and `b`, there is a simple trek
-through `e` from `a` to `b`, with its nodes below `m` (`trek_of_config`).
+`Py` from `m` to `b` avoids the child of `e`. When every node strictly below `m` is avoided by a
+path from `m` to `a` or to `b`, as when `m` is the LSA of two taxa `a` and `b`, there is a simple
+trek through `e` from `a` to `b`, with its nodes below `m` (`trek_of_config`).
 
-The paper's notation: `A` and `B` are the nodes common to `Px` and `Py` above and below `e`, with `a`
-the lowest node of `A` and `b⁻`, `b⁺` (`bm`, `bp`) the lowest and highest nodes of `B`; `P*` is a path
-from `m` to `a` or `b` avoiding `b⁻`, `c` the first node of `P*` below `b⁻` on `Px` or `Py`, and `w`
-the last node of `P*` above `b⁻` on `Px` or `Py`. The induction on `|B|` replaces the paper's choice of
-`Px` and `Py` with `|B|` minimal.
+The paper's notation: `A` and `B` are the nodes common to `Px` and `Py` above and below `e`, with
+`a` the lowest node of `A` and `b⁻`, `b⁺` (`bm`, `bp`) the lowest and highest nodes of `B`; `P*` is
+a path from `m` to `a` or `b` avoiding `b⁻`, `c` the first node of `P*` below `b⁻` on `Px` or `Py`,
+and `w` the last node of `P*` above `b⁻` on `Px` or `Py`. The induction on `|B|` replaces the
+paper's choice of `Px` and `Py` with `|B|` minimal.
 
 * `HasTrekThrough`: the conclusion.
 * `trek_of_not_below`: the case where the child of `e` is not above `b`.
@@ -55,8 +55,9 @@ theorem HasTrekThrough.symm {m a b : V} {e : E} (h : HasTrekThrough G m a b e) :
 variable [PartialOrder V]
 
 /-- A part of a path, in the reachability order. -/
-theorem IsDPath.segment_le (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic) {u w : V} {S : Set V}
-    {P : Set E} (h : IsDPath G u w S P) {a b : V} (ha : a ∈ S) (hb : b ∈ S) (hab : a ≤ b) :
+theorem IsDPath.segment_le (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic) {u w : V}
+    {S : Set V} {P : Set E} (h : IsDPath G u w S P) {a b : V} (ha : a ∈ S) (hb : b ∈ S)
+    (hab : a ≤ b) :
     ∃ P', IsDPath G a b {s | s ∈ S ∧ a ≤ s ∧ s ≤ b} P' ∧ P' ⊆ P ∧
       ∀ e ∈ P, a ≤ G.source e → G.target e ≤ b → e ∈ P' := by
   obtain ⟨P', h', hsub, hP⟩ := h.segment hA ha hb ((hle a b).mpr hab)
@@ -77,8 +78,8 @@ theorem hasTrekThrough_of_subset (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) {m a
 
 variable [Finite V]
 
-/-- **Lemma 17, the case where `b` is not below `e`**: the lowest node `u` common to the two paths is
-above `e`, and the parts of the paths from `u` form the trek. -/
+/-- **Lemma 17, the case where `b` is not below `e`**: the lowest node `u` common to the two paths
+is above `e`, and the parts of the paths from `u` form the trek. -/
 theorem trek_of_not_below (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic)
     {m X₀ Y₀ : V} {e : E} {Sx Sy : Set V} {Px Py : Set E} (hPx : IsDPath G m X₀ Sx Px)
     (he : e ∈ Px) (hPy : IsDPath G m Y₀ Sy Py) (hY : ¬ G.target e ≤ Y₀) :
@@ -107,21 +108,22 @@ theorem trek_of_not_below (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsA
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
 
-/-- **Lemma 17, the five cases on the position of `w`** (Figures 25–27). `Px` passes through `e`, `Py`
-avoids its child, `bm` (`b⁻`) is the lowest node of `B`, `P*` avoids `bm`, and `c` is the first node of
-`P*` strictly below `bm` on `Px` or `Py`; it is on `Py`. The last node `w` of `P*` above `bm` on `Px`
-or `Py` is neither `a` nor `b⁺`, since the network is binary (`hout`: at most two arcs leave a node;
-`hhyb`: two arcs leaving a node entered by two arcs are the same). So it is in one of five places: on
-`Py` above `b⁺` and below `a` (case 1); on `Px` above `b⁺` and below `e` (case 2); on `Px` above `e`
-and below `a` (case 3); above `a` (case 4); above `b⁻` and below `b⁺` (case 5). In cases 1–4 the trek is
-built directly; in case 5 two new paths have fewer common nodes below `e`, and `IH` applies.
+/-- **Lemma 17, the five cases on the position of `w`** (Figures 25–27). `Px` passes through `e`,
+`Py` avoids its child, `bm` (`b⁻`) is the lowest node of `B`, `P*` avoids `bm`, and `c` is the first
+node of `P*` strictly below `bm` on `Px` or `Py`; it is on `Py`. The last node `w` of `P*` above
+`bm` on `Px` or `Py` is neither `a` nor `b⁺`, since the network is binary (`hout`: at most two arcs
+leave a node; `hhyb`: two arcs leaving a node entered by two arcs are the same). So it is in one of
+five places: on `Py` above `b⁺` and below `a` (case 1); on `Px` above `b⁺` and below `e` (case 2);
+on `Px` above `e` and below `a` (case 3); above `a` (case 4); above `b⁻` and below `b⁺` (case 5). In
+cases 1–4 the trek is built directly; in case 5 two new paths have fewer common nodes below `e`, and
+`IH` applies.
 
-In case 4 (ii) the top of the trek is the node `a'` of `A` right above `w` (Figure 27, left): one path
-follows the path among `Px`, `Py` that avoids `w` from `a'` to `a`, then `Px` through `e` to `x`; the
-other follows the path containing `w` from `a'` to `w`, then `P*` to `c` and `Py` to `y`. In case
-5 (ii) with `w` on `Px`, the paper's second path contains "the edges in `Px` that are above `a` but
-below `b`" (TeX l. 1270); no node is above `a` and below `b`, and the path is formed with the edges of
-`Px` between `b` and `w`, which is the evident intent (a misprint of the paper).
+In case 4 (ii) the top of the trek is the node `a'` of `A` right above `w` (Figure 27, left): one
+path follows the path among `Px`, `Py` that avoids `w` from `a'` to `a`, then `Px` through `e` to
+`x`; the other follows the path containing `w` from `a'` to `w`, then `P*` to `c` and `Py` to `y`.
+In case 5 (ii) with `w` on `Px`, the paper's second path contains "the edges in `Px` that are above
+`a` but below `b`" (TeX l. 1270); no node is above `a` and below `b`, and the path is formed with
+the edges of `Px` between `b` and `w`, which is the evident intent (a misprint of the paper).
 
 Departure from the paper: in case 5 (ii) the paper takes `w` on `Px` without loss of generality; the
 case `w` on `Py` only is not symmetric to it, the paths `Px` and `Py` playing different roles (one
@@ -240,8 +242,8 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
   -- the trek with top `a'`, the node of `A` right above `w`, for `w` on `Px` only (case 4 (ii) on
-  -- `Px`): one path along `Py` to `a` and `Px` through `e`, the other along `Px` to `w`, `P*` to `c`
-  -- and `Py` to `y`
+  -- `Px`): one path along `Py` to `a` and `Px` through `e`, the other along `Px` to `w`, `P*` to
+  -- `c` and `Py` to `y`
   have cons4x : ∀ a', a' ∈ Sx → a' ∈ Sy → a' ≤ w →
       (∀ v ∈ Sx, v ∈ Sy → v ≤ G.source e → v ≤ w → v ≤ a') → w ∈ Sx → w ∉ Sy → w ≤ a →
       HasTrekThrough G m X₀ Y₀ e := by
@@ -309,9 +311,9 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
       · exact Or.inl h
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
-  -- case 5 (ii) with `w` on `Px`: exchange the parts of `Px` and `Py` between `b` and `b'`; the second
-  -- path takes the edges of `Px` between `b` and `w` (the paper's "above `a` but below `b`" is a
-  -- misprint)
+  -- case 5 (ii) with `w` on `Px`: exchange the parts of `Px` and `Py` between `b` and `b'`; the
+  -- second path takes the edges of `Px` between `b` and `w` (the paper's "above `a` but below `b`"
+  -- is a misprint)
   have cons5x : w ∈ Sx → G.target e ≤ w → w ∉ Sy → bp ≤ w → HasTrekThrough G m X₀ Y₀ e := by
     intro hwx htw hwy hbpw
     obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := Set.Finite.exists_greatest_of_total
@@ -375,7 +377,8 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
         exact ⟨⟨hvx, hvy⟩, hv.2⟩
       · have := (hsub bm h.1.1 h.1.2 h.2).2.2
         exact hwb' (by order)
-  -- case 5 (i), and 5 (ii) with `w` on `Py`: replace `Py` by `Py` to `w`, `P*` to `c`, `Py` from `c`
+  -- case 5 (i), and 5 (ii) with `w` on `Py`: replace `Py` by `Py` to `w`, `P*` to `c`, `Py` from
+  -- `c`
   have cons5y : w ∈ Sy → bp ≤ w → HasTrekThrough G m X₀ Y₀ e := by
     intro hwy hbpw
     obtain ⟨Q, hQ, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hwy (my w hwy).1
@@ -629,7 +632,8 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
         have := hbm_low v ⟨⟨hvx, hvy⟩, htv⟩
         exact ⟨⟨Or.inl ⟨hvx, (mx v hvx).1, this⟩, Or.inl ⟨hvy, (my v hvy).1, this⟩⟩, htv⟩
     refine HasTrekThrough.symm (trek_mainStep hle hA hout hhyb (hQ₁.append hQ₂)
-      (Or.inl (hQ₁e e he (mx _ hsrcx).1 hbm)) (hQ₃.append hQ₄) ?_ (Or.inl ⟨hbmx, (mx bm hbmx).1, le_rfl⟩)
+      (Or.inl (hQ₁e e he (mx _ hsrcx).1 hbm)) (hQ₃.append hQ₄) ?_
+      (Or.inl ⟨hbmx, (mx bm hbmx).1, le_rfl⟩)
       (Or.inl ⟨hbmy, (my bm hbmy).1, le_rfl⟩) hbm ?_ hPs hbs hcs
       (Or.inr ⟨hcx, hbc, (mx c hcx).2⟩) ?_ hbc hcb ?_ ?_)
     · rintro (⟨h, -⟩ | ⟨-, hbt, -⟩)

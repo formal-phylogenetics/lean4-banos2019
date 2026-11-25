@@ -10,9 +10,9 @@ public import Banos2019.Network.Suppress
 An isomorphism `φ` of rooted networks keeps binarity, level-1, the LSA network property and the
 metrics. When the two networks are binary and their roots are the LSAs of their taxa, it gives an
 isomorphism of their metric unrooted networks (`RootedNetworkIso.nonempty_sdMetricIso`): the nodes
-and edges of `N⁻` are those of `N` but the root and the arc `e₀` merged at the root, and `φ` maps them
-to those of `N'⁻`, after exchanging the two arcs at the root of `N'` when `φ e₀` is not the arc that
-`N'⁻` merges (`unrootedArcMap`). Renaming the nodes and arcs by `Fin` (`finCopy`) gives such an
+and edges of `N⁻` are those of `N` but the root and the arc `e₀` merged at the root, and `φ` maps
+them to those of `N'⁻`, after exchanging the two arcs at the root of `N'` when `φ e₀` is not the arc
+that `N'⁻` merges (`unrootedArcMap`). Renaming the nodes and arcs by `Fin` (`finCopy`) gives such an
 isomorphism onto a network on `Type`.
 -/
 
@@ -55,10 +55,12 @@ include φ in
 theorem isBinaryRootedNetwork (hN : IsBinaryRootedNetwork N) : IsBinaryRootedNetwork N' :=
   ⟨φ.isPhylogenetic hN.1, φ.isBinary hN.2⟩
 
-theorem source_symm (e' : E') : N.graph.source (φ.arc.symm e') = φ.vert.symm (N'.graph.source e') := by
+theorem source_symm (e' : E') : N.graph.source (φ.arc.symm e') =
+    φ.vert.symm (N'.graph.source e') := by
   rw [Equiv.eq_symm_apply, ← φ.source, Equiv.apply_symm_apply]
 
-theorem target_symm (e' : E') : N.graph.target (φ.arc.symm e') = φ.vert.symm (N'.graph.target e') := by
+theorem target_symm (e' : E') : N.graph.target (φ.arc.symm e') =
+    φ.vert.symm (N'.graph.target e') := by
   rw [Equiv.eq_symm_apply, ← φ.target, Equiv.apply_symm_apply]
 
 include φ in
@@ -133,15 +135,16 @@ does not map the arc `e₀` that `N⁻` merges onto the one that `N'⁻` merges.
 def unrootedArcMap : E ≃ E' :=
   φ.arc.trans (Equiv.swap (φ.arc (sdRootArc hN.1 hN.2 hX)) (sdRootArc hN'.1 hN'.2 hX))
 
-include hl hl' in
+omit [Fintype E] [Fintype E'] in
 /-- The arcs at the root of `N'` are the images of those at the root of `N`. -/
-theorem eq_or_eq_of_source_root (e : E) (he : N.graph.source e = N.root) {e' : E'}
+theorem eq_or_eq_of_source_root (e : E) {e' : E'}
     (he' : N'.graph.source e' = N'.root) (hne : e' ≠ φ.arc e) :
     ∃ f, f ≠ e ∧ N.graph.source f = N.root ∧ e' = φ.arc f := by
   refine ⟨φ.arc.symm e', fun h => hne (by rw [← h, Equiv.apply_symm_apply]), ?_,
     (Equiv.apply_symm_apply _ _).symm⟩
   rw [φ.source_symm, he', φ.root, Equiv.symm_apply_apply]
 
+omit [Fintype E] [Fintype E'] in
 include hl hl' in
 /-- **Isomorphic rooted networks have isomorphic unrooted networks**: binary networks whose roots
 are the LSAs of their taxa, isomorphic by `φ` with the same lengths and inheritance probabilities,
@@ -188,7 +191,7 @@ theorem nonempty_sdMetricIso {θ : MetricData E} {θ' : MetricData E'}
   have hτ : ∀ e, e ≠ e₀ → τ e = if φ.arc e = e₀' then φ.arc e₀ else φ.arc e := by
     intro e he
     show Equiv.swap (φ.arc e₀) e₀' (φ.arc e) = _
-    rw [Equiv.swap_apply_def, if_neg (fun h => he (φ.arc.injective h))]
+    rw [Equiv.swap_apply_def, ite_eq_right (fun h => he (φ.arc.injective h))]
   have hφr : φ.vert N.root = N'.root := φ.root.symm
   -- the three kinds of edges
   have hA : ∀ e, e ≠ e₀ → N.graph.source e ≠ N.root →
@@ -198,13 +201,13 @@ theorem nonempty_sdMetricIso {θ : MetricData E} {θ' : MetricData E'}
       rw [φ.source, ← hφr]
       exact fun h => hs (φ.vert.injective h)
     refine ⟨?_, hs'⟩
-    rw [hτ e he, if_neg]
+    rw [hτ e he, ite_eq_right]
     intro h
     exact hs' (h ▸ he₀')
   have hB : ∀ e, e ≠ e₀ → N.graph.source e = N.root → φ.arc e ≠ e₀' →
       τ e = φ.arc e ∧ e₀' = φ.arc e₀ := by
     intro e he hs hne
-    refine ⟨by rw [hτ e he, if_neg hne], ?_⟩
+    refine ⟨by rw [hτ e he, ite_eq_right hne], ?_⟩
     have hs₀ : N.graph.source (φ.arc.symm e₀') = N.root := by
       rw [φ.source_symm, he₀', ← hφr, Equiv.symm_apply_apply]
     rcases hroot2 e₀ e (Ne.symm he) he₀ hs _ hs₀ with h | h
@@ -212,7 +215,7 @@ theorem nonempty_sdMetricIso {θ : MetricData E} {θ' : MetricData E'}
     · exact absurd (by rw [← h, Equiv.apply_symm_apply]) hne
   have hC : ∀ e, e ≠ e₀ → φ.arc e = e₀' → τ e = φ.arc e₀ ∧ N.graph.source e = N.root := by
     intro e he heq
-    refine ⟨by rw [hτ e he, if_pos heq], φ.vert.injective ?_⟩
+    refine ⟨by rw [hτ e he, ite_eq_left heq], φ.vert.injective ?_⟩
     rw [← φ.source, heq, he₀', hφr]
   -- the nodes and the edges
   have hV : ∀ v, (N.graph.Reaches (lsa hN.1 Set.univ Set.univ_nonempty) v ∧
@@ -257,19 +260,19 @@ theorem nonempty_sdMetricIso {θ : MetricData E} {θ' : MetricData E'}
     · by_cases hne : φ.arc e = e₀'
       · obtain ⟨hτe, -⟩ := hC e (hne₀ g) hne
         refine Or.inr ⟨?_, ?_, hne⟩
-        · rw [hτe, if_pos (by rw [φ.source, he₀, hφr])]
+        · rw [hτe, ite_eq_left (by rw [φ.source, he₀, hφr])]
           show N'.graph.target e₀' = _
           rw [← hne, φ.target]
-        · rw [if_pos hs, hτe, φ.target]
+        · rw [ite_eq_left hs, hτe, φ.target]
       · obtain ⟨hτe, h₀⟩ := hB e (hne₀ g) hs hne
         refine Or.inl ⟨?_, ?_, hτe⟩
-        · rw [hτe, if_pos (by rw [φ.source, hs, hφr]), if_pos hs]
+        · rw [hτe, ite_eq_left (by rw [φ.source, hs, hφr]), ite_eq_left hs]
           show N'.graph.target e₀' = _
           rw [h₀, φ.target]
         · rw [hτe, φ.target]
     · obtain ⟨hτe, hs'⟩ := hA e (hne₀ g) hs
       refine Or.inl ⟨?_, ?_, hτe⟩
-      · rw [hτe, if_neg hs', if_neg hs, φ.source]
+      · rw [hτe, ite_eq_right hs', ite_eq_right hs, φ.source]
       · rw [hτe, φ.target]
   have hdir : ∀ g, G'.IsDirected (edge g) ↔ G.IsDirected g := by
     intro g
@@ -311,15 +314,15 @@ theorem nonempty_sdMetricIso {θ : MetricData E} {θ' : MetricData E'}
     by_cases hs : N.graph.source e = N.root
     · by_cases hne : φ.arc e = e₀'
       · obtain ⟨hτe, -⟩ := hC e (hne₀ g) hne
-        rw [hτe, if_pos (by rw [φ.source, he₀, hφr]), if_pos hs, hlen]
+        rw [hτe, ite_eq_left (by rw [φ.source, he₀, hφr]), ite_eq_left hs, hlen]
         show θ.length e₀ + θ'.length e₀' = θ.length e + θ.length e₀
         rw [← hne, hlen, add_comm]
       · obtain ⟨hτe, h₀⟩ := hB e (hne₀ g) hs hne
-        rw [hτe, if_pos (by rw [φ.source, hs, hφr]), if_pos hs]
+        rw [hτe, ite_eq_left (by rw [φ.source, hs, hφr]), ite_eq_left hs]
         show θ'.length (φ.arc e) + θ'.length e₀' = θ.length e + θ.length e₀
         rw [h₀, hlen, hlen]
     · obtain ⟨hτe, hs'⟩ := hA e (hne₀ g) hs
-      rw [hτe, if_neg hs', if_neg hs, hlen]
+      rw [hτe, ite_eq_right hs', ite_eq_right hs, hlen]
   · rw [semidirectedMetric_inheritance, semidirectedMetric_inheritance, hedge, (hdirτ g hd).1,
       hinh]
 

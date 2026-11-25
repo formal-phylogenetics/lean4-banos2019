@@ -7,13 +7,13 @@ public import Phylogenetics.Tree.Splits
 # The quartet tree displayed by an unrooted tree on four taxa
 
 Allman, Degnan and Rhodes 2011 give the probabilities of the unrooted gene trees on four taxa, the
-trees `treeOfClusters {B}` with the split `B | Bᶜ`, `#B = 2`. Baños 2019 uses them as the probabilities
-that the gene tree displays a quartet tree (`Phylogenetics.Displays`). On four taxa the two agree: the
-unrooted tree with the split `C | Cᶜ` displays the quartet tree `r` exactly when it is the unrooted tree
-of the split of `r`.
+trees `treeOfClusters {B}` with the split `B | Bᶜ`, `#B = 2`. Baños 2019 uses them as the
+probabilities that the gene tree displays a quartet tree (`Phylogenetics.Displays`). On four taxa
+the two agree: the unrooted tree with the split `C | Cᶜ` displays the quartet tree `r` exactly when
+it is the unrooted tree of the split of `r`.
 
-* `mem_treeOfClusters_singleton_iff`, `treeOfClusters_compl`: the sides of the splits of the unrooted
-  tree with one nontrivial split.
+* `mem_treeOfClusters_singleton_iff`, `treeOfClusters_compl`: the sides of the splits of the
+  unrooted tree with one nontrivial split.
 * `treeOfClusters_eq_iff`: on four taxa, two such trees are equal when their splits are.
 * `displays_treeOfClusters_iff`: on four taxa, the quartet tree it displays.
 -/

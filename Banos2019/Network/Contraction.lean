@@ -6,10 +6,10 @@ public import Banos2019.Network.SemidirectedDesc
 # Contracting the edge at the root
 
 `IsContraction S C ι κ`: the rooted network `C` is `S` with its root and the arc at the root removed
-when the root has outdegree one (Definition 7, step 3), its nodes and arcs given by injective maps `ι`
-and `κ` into those of `S`. Then `C` and `S` have the same paths between nodes of `C`
-(`IsContraction.reaches_iff`), the same stable ancestors (`IsContraction.isStableAncestor_iff`), so the
-same LSA (`IsContraction.lsa_eq`), and the same indegrees away from the root of `C`
+when the root has outdegree one (Definition 7, step 3), its nodes and arcs given by injective maps
+`ι` and `κ` into those of `S`. Then `C` and `S` have the same paths between nodes of `C`
+(`IsContraction.reaches_iff`), the same stable ancestors (`IsContraction.isStableAncestor_iff`), so
+the same LSA (`IsContraction.lsa_eq`), and the same indegrees away from the root of `C`
 (`IsContraction.indegree_eq`).
 -/
 
@@ -21,9 +21,10 @@ namespace Banos2019
 
 variable {VS ES VC EC Y : Type*}
 
-/-- `C` is `S` with the arc at the root contracted when the root has outdegree one: the nodes and arcs
-of `C` are, through `ι` and `κ`, those of `S` other than the root and its arc in that case; the ends of
-the arcs and the taxa are kept, and the root of `C` is that of `S`, or its child in that case. -/
+/-- `C` is `S` with the arc at the root contracted when the root has outdegree one: the nodes and
+arcs of `C` are, through `ι` and `κ`, those of `S` other than the root and its arc in that case; the
+ends of the arcs and the taxa are kept, and the root of `C` is that of `S`, or its child in that
+case. -/
 structure IsContraction (S : RootedNetwork VS ES Y) (C : RootedNetwork VC EC Y) (ι : VC → VS)
     (κ : EC → ES) : Prop where
   inj_v : Function.Injective ι

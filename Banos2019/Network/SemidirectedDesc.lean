@@ -9,8 +9,8 @@ public import Phylogenetics.NMSC.InducedParams
 
 The nodes of `semidirected M` are the nodes of `M` strictly below the LSA `ℓ` of all the taxa, and
 its edges are the arcs of `M` below `ℓ` other than `rootTreeArc`. An edge keeps its target; its
-source is its source in `M`, or the child of `rootTreeArc` for the other arc out of `ℓ`; it is hybrid
-when it is a hybrid arc of `M`.
+source is its source in `M`, or the child of `rootTreeArc` for the other arc out of `ℓ`; it is
+hybrid when it is a hybrid arc of `M`.
 
 * `sdVert`, `sdArc`: the node and the arc of `M` of a node and an edge of `semidirected M`, with
   their images (`mem_range_sdVert`, `mem_range_sdArc`) and the ends, hybrid edges and taxa
@@ -128,7 +128,8 @@ theorem semidirectedMetric_inheritance (θ : MetricData E) (g : SemidirectedArc 
 def sdVertEquiv : SemidirectedVertex hM hX ≃
     {v : V // M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) v ∧
       v ≠ lsa hM Set.univ Set.univ_nonempty} :=
-  Equiv.ofInjectiveSubtype (sdVert hM hX) (sdVert_injective hM hX) _ fun v => (mem_range_sdVert hM hX v).symm
+  Equiv.ofInjectiveSubtype (sdVert hM hX)
+    (sdVert_injective hM hX) _ fun v => (mem_range_sdVert hM hX v).symm
 
 /-- The edges of `semidirected M`, as the arcs of `M` below the LSA other than `sdRootArc`. -/
 def sdArcEquiv : SemidirectedArc hM hB hX ≃

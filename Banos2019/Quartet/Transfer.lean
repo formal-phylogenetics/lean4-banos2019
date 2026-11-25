@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.Reduction
 public import Banos2019.Network.Suppress
+public import Banos2019.Basic.Data.Finset.Image
 
 /-!
 # Quartet trees on four taxa, and the quartet networks of a network
@@ -11,8 +12,8 @@ public import Banos2019.Network.Suppress
   property, treelikeness and `q^BC` in terms of the three concordance factors.
 * `treesOn_eq_image`, `bigCycleOn_comp_map_iff`, `isTreelikeOn_comp_map_iff`: a set `s` of four taxa
   and the taxa `↥s` of a quartet network on `s` have the same quartet trees.
-* `isLSAQuartet_quartetLSA`: `Q⊕_s`, with the parameters it inherits, is an LSA quartet network;
-  `cf_quartetLSA`: its concordance factors are those of `N` on `s` (Theorem 2).
+* `cf_quartetLSA`: the concordance factors of `Q⊕_s`, an LSA quartet network with the parameters it
+  inherits (`quartetLSA_isLSAQuartet`), are those of `N` on `s` (Theorem 2).
 -/
 
 @[expose] public noncomputable section
@@ -53,13 +54,15 @@ theorem quartetTree_taxa_eq_insert (h : Distinct4 a b c d) :
   tauto
 
 /-- `ab|cd` is `cd|ab`, `ba|cd`, … -/
-theorem quartetTree_eq_of_val_eq {a' b' c' d' : X} (h : Distinct4 a b c d) (h' : Distinct4 a' b' c' d')
+theorem quartetTree_eq_of_val_eq {a' b' c' d' : X} (h : Distinct4 a b c d)
+    (h' : Distinct4 a' b' c' d')
     (hv : ({{a, b}, {c, d}} : Finset (Finset X)) = {{a', b'}, {c', d'}}) :
     quartetTree a b c d h = quartetTree a' b' c' d' h' :=
   Subtype.ext hv
 
 /-- Two quartet trees on the same four taxa are equal when they have a common cherry. -/
-theorem quartetTree_eq_of_taxa_eq_of_mem {q r : QuartetTree X} (hqr : q.taxa = r.taxa) {B : Finset X}
+theorem quartetTree_eq_of_taxa_eq_of_mem {q r : QuartetTree X}
+    (hqr : q.taxa = r.taxa) {B : Finset X}
     (hq : B ∈ q.val) (hr : B ∈ r.val) : q = r :=
   QuartetTree.eq_of_taxa_eq_of_mem hqr hq hr
 
@@ -143,7 +146,8 @@ theorem treesOn_eq_triple (h : Distinct4 a b c d) :
     rcases hxq with rfl | rfl | rfl | rfl
     · exact absurd rfl hxa
     · left
-      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq_insert]) (hBe ▸ hB) (by simp)
+      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq_insert])
+        (hBe ▸ hB) (by simp)
     · right; left
       exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by
         rw [hr, quartetTree_taxa_eq_insert]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
@@ -160,7 +164,8 @@ theorem bigCycleOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d
     BigCycleOn p {a, b, c, d} ↔
       p (quartetTree a b c d h) ≠ p (quartetTree a c b d (distinct4_acbd h)) ∧
         p (quartetTree a b c d h) ≠ p (quartetTree a d b c (distinct4_adbc h)) ∧
-        p (quartetTree a c b d (distinct4_acbd h)) ≠ p (quartetTree a d b c (distinct4_adbc h)) := by
+        p (quartetTree a c b d (distinct4_acbd h)) ≠
+          p (quartetTree a d b c (distinct4_adbc h)) := by
   have n1 := quartetTree_abcd_ne_acbd h
   have n2 := quartetTree_abcd_ne_adbc h
   have n3 := quartetTree_acbd_ne_adbc h
@@ -174,7 +179,8 @@ theorem bigCycleOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d
     rcases hq with rfl | rfl | rfl <;> rcases hr with rfl | rfl | rfl <;>
       first | exact absurd rfl hqr | assumption | exact Ne.symm ‹_›
 
-/-- Treelikeness on four distinct taxa: the two smallest of the three concordance factors are equal. -/
+/-- Treelikeness on four distinct taxa: the two smallest of the three concordance factors are equal.
+-/
 theorem isTreelikeOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d) :
     IsTreelikeOn p {a, b, c, d} ↔
       let x := p (quartetTree a b c d h)
@@ -218,11 +224,13 @@ theorem isTreelikeOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c
       · exact hxy.le
       · exact hxz
 
-/-- `q^BC = ac|bd` on four distinct taxa: the concordance factor of `ac|bd` is the smallest, strictly. -/
+/-- `q^BC = ac|bd` on four distinct taxa: the concordance factor of `ac|bd` is the smallest,
+strictly. -/
 theorem isBCQuartet_acbd_iff (p : QuartetTree X → ℝ) (h : Distinct4 a b c d) :
     IsBCQuartet p {a, b, c, d} (quartetTree a c b d (distinct4_acbd h)) ↔
       p (quartetTree a c b d (distinct4_acbd h)) < p (quartetTree a b c d h) ∧
-        p (quartetTree a c b d (distinct4_acbd h)) < p (quartetTree a d b c (distinct4_adbc h)) := by
+        p (quartetTree a c b d (distinct4_acbd h)) <
+          p (quartetTree a d b c (distinct4_adbc h)) := by
   have n1 := quartetTree_abcd_ne_acbd h
   have n3 := quartetTree_acbd_ne_adbc h
   unfold IsBCQuartet
@@ -262,25 +270,21 @@ section Subtype
 
 variable {X : Type*} [Fintype X] [DecidableEq X] (s : Finset X) [DecidableEq (s : Set X)]
 
-omit [DecidableEq (s : Set X)] [Fintype X] in
-theorem image_val_univ_finsetCoe : (univ : Finset (s : Set X)).image Subtype.val = s := by
-  ext x
-  simp
-
 /-- The quartet trees on `s` are the images of the quartet trees on all of `↥s`. -/
 theorem treesOn_eq_image :
-    treesOn s = (treesOn (univ : Finset (s : Set X))).image (QuartetTree.map Subtype.val_injective) := by
+    treesOn s = (treesOn (univ : Finset (s : Set X))).image
+      (QuartetTree.map Subtype.val_injective) := by
   ext q
   simp only [mem_treesOn, mem_image]
   constructor
   · intro hq
     obtain ⟨q₀, rfl⟩ := QuartetTree.exists_map_eq Subtype.val_injective q
-      (by rw [hq, image_val_univ_finsetCoe])
+      (by rw [hq, Finset.image_val_univ_coe])
     refine ⟨q₀, ?_, rfl⟩
     apply image_injective Subtype.val_injective
-    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, image_val_univ_finsetCoe]
+    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, Finset.image_val_univ_coe]
   · rintro ⟨q₀, hq₀, rfl⟩
-    rw [QuartetTree.map_taxa, hq₀, image_val_univ_finsetCoe]
+    rw [QuartetTree.map_taxa, hq₀, Finset.image_val_univ_coe]
 
 theorem bigCycleOn_comp_map_iff (p : QuartetTree X → ℝ) :
     BigCycleOn (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) ↔
@@ -298,9 +302,11 @@ theorem isTreelikeOn_comp_map_iff (p : QuartetTree X → ℝ) :
   unfold IsTreelikeOn
   rw [treesOn_eq_image s]
   simp only [exists_mem_image, forall_mem_image]
-  refine exists_congr fun q => and_congr_right fun _ => exists_congr fun r => and_congr_right fun _ => ?_
+  refine exists_congr
+    fun q => and_congr_right fun _ => exists_congr fun r => and_congr_right fun _ => ?_
   exact and_congr ⟨fun H e => H (QuartetTree.map_injective Subtype.val_injective e),
-    fun H e => H (congrArg _ e)⟩ (and_congr_right fun _ => ⟨fun H u hu => H u hu, fun H u hu => H hu⟩)
+    fun H e => H (congrArg _ e)⟩ (and_congr_right fun _ =>
+      ⟨fun H u hu => H u hu, fun H u hu => H hu⟩)
 
 theorem isBCQuartet_comp_map_iff (p : QuartetTree X → ℝ) (q : QuartetTree (s : Set X)) :
     IsBCQuartet (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) q ↔
@@ -321,74 +327,11 @@ theorem cyclePropertyOn_comp_map_iff (p : QuartetTree X → ℝ) :
 
 end Subtype
 
-/-! ### `Q⊕_s` is an LSA quartet network -/
+/-! ### The concordance factors of `Q⊕_s` -/
 
 section Induced
 
-variable {V E X : Type*}
-
-/-- A path avoiding a kept vertex `w` gives a path of the suppressed network avoiding `w`, from the end
-of the chain of its first vertex. -/
-theorem suppress_reflTransGen_avoiding {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
-    (w : {v // ¬ M.IsChainVertex v}) {a b : V} (hb : ¬ M.IsChainVertex b) (hbw : b ≠ w.1)
-    (h : Relation.ReflTransGen (fun x y => M.graph.Adj x y ∧ x ≠ w.1 ∧ y ≠ w.1) a b) :
-    Relation.ReflTransGen (fun x y => (M.suppress hM).graph.Adj x y ∧ x ≠ w ∧ y ≠ w)
-        ⟨chainEnd hM a, not_isChainVertex_chainEnd hM a⟩ ⟨b, hb⟩ ∧
-      chainEnd hM a ≠ w.1 :=
-  reflTransGen_avoiding_suppress hM w hb hbw h
-
-/-- A stable ancestor of the suppressed network is one of the network. -/
-theorem suppress_isStableAncestor {M : RootedNetwork V E X} (hM : M.IsPhylogenetic) {Y : Set X}
-    {w : {v // ¬ M.IsChainVertex v}} (hw : (M.suppress hM).IsStableAncestor Y w) :
-    M.IsStableAncestor Y w.1 :=
-  isStableAncestor_of_suppress hM hw
-
-/-- A stable ancestor of the part below the LSA is one of the network. -/
-theorem lsaNetwork_isStableAncestor {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
-    (hY : Y.Nonempty) {w : N.belowVertices (lsa hN Y hY) Y}
-    (hw : (lsaNetwork hN Y hY).IsStableAncestor Set.univ w) : N.IsStableAncestor Y w.1 :=
-  isStableAncestor_of_lsaNetwork hN hY hw
-
-/-- **The induced network is an LSA network**: its root is the LSA of its taxa. -/
-theorem inducedNetwork_isLSANetwork {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
-    (hY : Y.Nontrivial) : (inducedNetwork hN Y hY).IsLSANetwork :=
-  isLSANetwork_inducedNetwork hN hY
-
-variable [Fintype V] [Fintype E] [Fintype X]
-
-/-- The parameters of `Q⊕_s` inherited from `N`. -/
-abbrev quartetLSAMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
-    (hs : #s = 4) (θ : MetricData E) :=
-  inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ
-
-omit [Fintype V] [Fintype X] in
-/-- The parameters that `Q⊕_s` inherits from a metric are a metric: every edge, a chain of edges of
-`N`, has positive length. -/
-theorem quartetLSA_isMetricNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4) :
-    IsMetricNetwork (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) :=
-  isMetricNetwork_quartetLSA hN hθ hs
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-/-- `Q⊕_s` is the LSA network of its taxa. -/
-theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    {s : Finset X} (hs : #s = 4) : (quartetLSA N hN.1 s hs).IsLSANetwork :=
-  isLSANetwork_quartetLSA hN hs
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-/-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of edges
-of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
-theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
-    IsLevelOne (quartetLSA N hN.1 s hs).graph :=
-  isLevelOne_quartetLSA hN h1 hs
-
-omit [Fintype V] [Fintype X] in
-/-- **`Q⊕_s` is an LSA quartet network.** -/
-theorem isLSAQuartet_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
-    (hs : #s = 4) : IsLSAQuartet (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) :=
-  quartetLSA_isLSAQuartet hN h1 hθ hs
+variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
 /-- The concordance factors of `Q⊕_s` are those of `N` on `s` (**Theorem 2**). -/
 theorem cf_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)

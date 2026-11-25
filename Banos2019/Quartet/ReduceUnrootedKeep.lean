@@ -2,23 +2,26 @@ module
 
 public import Banos2019.Quartet.ReduceUnrooted
 public import Banos2019.Network.SuppressMetric
+public import Banos2019.Basic.Data.Set.Card
+public import Banos2019.Basic.Algebra.BigOperators.Finprod
 
 /-!
 # The unrooted network of a reduced network, with the top node kept
 
 `keepRootSD M hP` is `M` with its tree arcs undirected and, when the root has outdegree one, without
 the root and its arc. Its *top* node, the root or its child, has degree two. For `M` satisfying
-`IsReducible` whose reduced network `reduceNet M` is an LSA network, and whose root, when of outdegree
-one, has a child that is not a chain node, the unrooted network of `reduceNet M` is `keepRootSD M hP`
-with its nodes of degree two suppressed (`nonempty_sdMetricIso_suppress_keepRootSD`): the top node and
-the chain nodes.
+`IsReducible` whose reduced network `reduceNet M` is an LSA network, and whose root, when of
+outdegree one, has a child that is not a chain node, the unrooted network of `reduceNet M` is
+`keepRootSD M hP` with its nodes of degree two suppressed
+(`nonempty_sdMetricIso_suppress_keepRootSD`): the top node and the chain nodes.
 
 * `keepRootTop`: the top node, the node of `M` of the root of `reduceNet M`
   (`keepRootTop_eq_root`, `keepRootTop_eq_target`); `isBranch_keepRootSD_iff`: the nodes kept by the
   suppression are those that are neither chain nodes nor the top node.
-* `keepRootChainOf`: the arcs of `M` on the chain of an edge of the unrooted network of `reduceNet M`,
-  a trail of `keepRootSD M` between the nodes of its ends (`exists_isUTrail_keepRootChainOf`), on
-  which every arc lies exactly once (`exists_mem_keepRootChainOf`, `eq_of_mem_keepRootChainOf`).
+* `keepRootChainOf`: the arcs of `M` on the chain of an edge of the unrooted network of
+  `reduceNet M`, a trail of `keepRootSD M` between the nodes of its ends
+  (`exists_isUTrail_keepRootChainOf`), on which every arc lies exactly once
+  (`exists_mem_keepRootChainOf`, `eq_of_mem_keepRootChainOf`).
 -/
 
 @[expose] public noncomputable section
@@ -136,7 +139,8 @@ theorem isUTrail_keepRootSD_chainFrom {a : V} (ha : ¬ (a = M.root ∧ M.graph.o
         · rw [Set.mem_singleton_iff.1 hs]
           exact ⟨hay.tail ⟨hy, f, hfs, hft⟩, .refl⟩
 
-/-- The chain of `M` from a node of `keepRootSD M hP`, to its end, as a trail of `keepRootSD M hP`. -/
+/-- The chain of `M` from a node of `keepRootSD M hP`, to its end, as a trail of `keepRootSD M hP`.
+-/
 theorem exists_isUTrail_keepRootSD_chainEnd {t : V}
     (ht : ¬ (t = M.root ∧ M.graph.outdegree M.root = 1)) :
     ∃ (hE : ¬ (chainEnd hP t = M.root ∧ M.graph.outdegree M.root = 1))
@@ -161,36 +165,13 @@ theorem exists_isUTrail_keepRootSD_chainEnd {t : V}
 
 end Trail
 
-/-- The number of elements of a subtype satisfying `q`, when `q` implies the predicate of the
-subtype. -/
-theorem ncard_subtype_keepRoot {p q : E → Prop} (h : ∀ e, q e → p e) :
-    {e : {e // p e} | q e.1}.ncard = {e | q e}.ncard := by
-  rw [← Set.ncard_image_of_injective _ Subtype.val_injective]
-  congr 1
-  ext e
-  exact ⟨fun ⟨e', he', hee'⟩ => hee' ▸ he', fun he => ⟨⟨e, h e he⟩, he, rfl⟩⟩
-
-/-- A sum over the elements of a subtype satisfying `p`, when `p` implies the predicate of the
-subtype. -/
-theorem finsum_mem_subtype_keepRoot [Fintype E] {q p : E → Prop} (hpq : ∀ e, p e → q e)
-    (F : E → ℝ) : ∑ᶠ f ∈ {f : {e // q e} | p f.1}, F f.1 = ∑ e ∈ univ.filter p, F e := by
-  have himg : Subtype.val '' {f : {e // q e} | p f.1} = ↑(univ.filter p) := by
-    ext e
-    simp only [Set.mem_image, Set.mem_ofPred_eq, Finset.coe_filter, Finset.mem_univ, true_and]
-    constructor
-    · rintro ⟨f, hf, rfl⟩
-      exact hf
-    · intro he
-      exact ⟨⟨e, hpq e he⟩, he, rfl⟩
-  rw [← finsum_mem_image (g := Subtype.val) Subtype.val_injective.injOn, himg,
-    finsum_mem_coe_finset]
-
 section KeepAux
 
 variable [Fintype V] [Fintype E] {M : RootedNetwork V E X} {θ : MetricData E}
 
 /-- The *top node* of `M`: the node of `M` of the root of `reduceNet M`, which is the root of `M`
-when the root has outdegree two, and the end of the chain from its child when it has outdegree one. -/
+when the root has outdegree two, and the end of the chain from its child when it has outdegree one.
+-/
 def keepRootTop (M : RootedNetwork V E X) (hP : M.IsPhylogenetic) : V :=
   (finContractVertex (M.suppress hP) (reduceNet M hP).root).1
 
@@ -281,7 +262,7 @@ theorem isBranch_keepRootSD_iff (hb : IsBinaryRootedNetwork (reduceNet M hM.phyl
       ext e
       exact Subtype.ext_iff
     rw [this]
-    exact ncard_subtype_keepRoot (q := fun e => M.graph.source e = u.1) fun e he => by
+    exact Set.ncard_setOf_subtype_of_imp (q := fun e => M.graph.source e = u.1) fun e he => by
       rw [he]
       exact u.2
   have hin : u.1 ≠ keepRootTop M hP →
@@ -293,7 +274,7 @@ theorem isBranch_keepRootSD_iff (hb : IsBinaryRootedNetwork (reduceNet M hM.phyl
       ext e
       exact Subtype.ext_iff
     rw [this]
-    refine ncard_subtype_keepRoot (q := fun e => M.graph.target e = u.1) fun e he => ?_
+    refine Set.ncard_setOf_subtype_of_imp (q := fun e => M.graph.target e = u.1) fun e he => ?_
     rintro ⟨hs, h1⟩
     exact hT (he.symm.trans (keepRootTop_eq_target hM hc h1 hs).symm)
   have hinT : u.1 = keepRootTop M hP → (keepRootSD M hP).graph.indegree u = 0 := by
@@ -370,7 +351,8 @@ omit hc in
 `keepRootSD M`. -/
 theorem reduceArc_keepRoot (g : SemidirectedArc hb.1 hb.2 hX) :
     ¬ (M.graph.source (reduceArc hM hb hX g) = M.root ∧ M.graph.outdegree M.root = 1) := fun h =>
-  (hM.isContraction.range_e _).1 ⟨_, rfl⟩ ⟨Subtype.ext h.1, (suppress_outdegree hM.phylo _).trans h.2⟩
+  (hM.isContraction.range_e _).1 ⟨_, rfl⟩
+    ⟨Subtype.ext h.1, (suppress_outdegree hM.phylo _).trans h.2⟩
 
 include hl in
 theorem exists_reduceArc_eq_keepRoot {e : E} (he : ¬ M.IsChainVertex (M.graph.source e))
@@ -618,25 +600,6 @@ theorem eq_of_mem_keepRootChainOf {f : KeepRootArc M} {g g' : SemidirectedArc hb
       ((source_reduceArc_eq_keepRootTop_iff hM hb hX hl g').1 hgr')
 
 omit hc in
-/-- The chain of `reduceRootArc` has no hybrid arc: it is the arc that the unrooted network of
-`reduceNet M` merges, a tree arc. -/
-theorem not_isHybridArc_keepRoot_of_isOnChain {f : E}
-    (hf : M.IsOnChain (reduceRootArc hM hb hX) f) : ¬ M.IsHybridArc f := by
-  have hP := hM.phylo
-  have htwo := hM.two
-  intro hh
-  have hlast := NMSC.eq_lastArc hP hf (fun hc => by
-    unfold IsHybridArc at hh
-    rw [hc.1] at hh
-    omega)
-  have ht := (sdRootArc_spec hb.1 hb.2 hX).2
-  rw [hlast] at hh
-  have := (isHybridArc_reduceNet_iff hP htwo (sdRootArc hb.1 hb.2 hX)).2 hh
-  unfold IsTreeArc at ht
-  unfold IsHybridArc at this
-  omega
-
-omit hc in
 /-- **A hybrid arc on the chain of an edge is the last arc of the chain of the arc of the edge.** -/
 theorem eq_lastArc_of_mem_keepRootChainOf {g : SemidirectedArc hb.1 hb.2 hX}
     {f : KeepRootArc M} (hf : f ∈ keepRootChainOf hM hb hX g) (hh : M.IsHybridArc f.1) :
@@ -646,7 +609,7 @@ theorem eq_lastArc_of_mem_keepRootChainOf {g : SemidirectedArc hb.1 hb.2 hX}
       unfold IsHybridArc at hh
       rw [hc.1] at hh
       omega)
-  · exact absurd hh (not_isHybridArc_keepRoot_of_isOnChain hM hb hX hf)
+  · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX hf)
 
 omit hc in
 /-- The last arc of the chain of the arc of an edge is an arc of `keepRootSD M`. -/
@@ -700,7 +663,7 @@ theorem length_eq_finsum_keepRootChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     have hdisj : Disjoint (univ.filter (M.IsOnChain ε)) (univ.filter (M.IsOnChain e₀)) :=
       Finset.disjoint_filter.2 fun x _ h₁ h₂ => hεe₀
         (IsOnChain.unique h₁ h₂ (not_isChainVertex_source_reduceArc hM hb hX g) hc₀)
-    rw [finsum_mem_subtype_keepRoot (p := fun e => M.IsOnChain ε e ∨ M.IsOnChain e₀ e)
+    rw [finsum_mem_setOf_subtype_of_imp (p := fun e => M.IsOnChain ε e ∨ M.IsOnChain e₀ e)
       (fun e h => h.elim (hk hkε) (hk hk₀)) θ.length, ← Finset.sum_union hdisj]
     refine Finset.sum_congr ?_ fun _ _ => rfl
     ext x
@@ -713,7 +676,7 @@ theorem length_eq_finsum_keepRootChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       exact ⟨fun h => h.resolve_right fun h' => hroot h'.1, Or.inl⟩
     rw [hset]
     change _ = ∑ᶠ f ∈ {f : KeepRootArc M | M.IsOnChain ε f.1}, θ.length f.1
-    rw [finsum_mem_subtype_keepRoot (p := fun e => M.IsOnChain ε e) (fun e h => hk hkε h)
+    rw [finsum_mem_setOf_subtype_of_imp (p := fun e => M.IsOnChain ε e) (fun e h => hk hkε h)
       θ.length]
 
 omit hc in
@@ -750,8 +713,8 @@ variable [Fintype V] [Fintype E] {M : RootedNetwork V E X} {θ : MetricData E}
 
 /-- **The unrooted network of `reduceNet M` is `keepRootSD M` with its nodes of degree two
 suppressed**: its nodes are the nodes of `M` other than the root, the top node and the chain nodes;
-an edge is the chain of `M` of its arc, and the merged edge at the root the two chains out of the top
-node. -/
+an edge is the chain of `M` of its arc, and the merged edge at the root the two chains out of the
+top node. -/
 theorem nonempty_sdMetricIso_suppress_keepRootSD (hM : IsReducible M θ)
     (hb : IsBinaryRootedNetwork (reduceNet M hM.phylo)) (hX : Nontrivial X)
     (hl : (reduceNet M hM.phylo).IsLSANetwork)

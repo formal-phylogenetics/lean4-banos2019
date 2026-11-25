@@ -2,18 +2,19 @@ module
 
 public import Banos2019.Bridge.Model
 public import Banos2019.Quartet.Trees
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # Equation (1) on an explicit quartet tree, on the Challenge's definitions
 
-The balanced rooted quartet tree `((0,1),(2,3))`: the root `0` has the children `1` and `2`, the node `1`
-the leaves `3, 4` of the taxa `0, 1`, the node `2` the leaves `5, 6` of the taxa `2, 3`. Its root edges
-have lengths `t₁` and `t₂`, so its unrooted internal edge has length `t₁ + t₂`, and its pendant edges have
-length one. It is a binary metric network of the Challenge (`balanced_isBinaryNetwork`,
-`balanced_isMetric`), and its concordance factors are those of equation (1) (`equation1_balanced`), by
-the library's identification of the coalescent on a network without hybrid edges with the multispecies
-coalescent on its species tree (`nmscCF_eq_quartetProb`) and equation (1) of Allman, Degnan and Rhodes
-2011 (`External.AllmanDegnanRhodes2011.equation1`).
+The balanced rooted quartet tree `((0,1),(2,3))`: the root `0` has the children `1` and `2`, the
+node `1` the leaves `3, 4` of the taxa `0, 1`, the node `2` the leaves `5, 6` of the taxa `2, 3`.
+Its root edges have lengths `t₁` and `t₂`, so its unrooted internal edge has length `t₁ + t₂`, and
+its pendant edges have length one. It is a binary metric network of the Challenge
+(`balanced_isBinaryNetwork`, `balanced_isMetric`), and its concordance factors are those of equation
+(1) (`equation1_balanced`), by the library's identification of the coalescent on a network without
+hybrid edges with the multispecies coalescent on its species tree (`nmscCF_eq_quartetProb`) and
+equation (1) of Allman, Degnan and Rhodes 2011 (`External.AllmanDegnanRhodes2011.equation1`).
 -/
 
 @[expose] public noncomputable section
@@ -30,21 +31,17 @@ abbrev balancedTree : Network (Fin 7) (Fin 6) (Fin 4) :=
 inheritance probability one. -/
 abbrev balancedParams (t₁ t₂ : ℝ) : Params (Fin 6) := ⟨![t₁, t₂, 1, 1, 1, 1], fun _ => 1⟩
 
-theorem ncard_setOf_fin {n : ℕ} (p : Fin n → Prop) [DecidablePred p] :
-    {a | p a}.ncard = (univ.filter p).card := by
-  rw [Set.ncard_eq_toFinset_card', Set.toFinset_ofPred]
-
 theorem balanced_indegree (v : Fin 7) :
     balancedTree.graph.indegree v = if v = 0 then 0 else 1 := by
   unfold Digraph.indegree
-  rw [ncard_setOf_fin]
+  rw [Set.ncard_setOf_eq_card_filter]
   revert v
   decide
 
 theorem balanced_outdegree (v : Fin 7) :
     balancedTree.graph.outdegree v = if v.1 < 3 then 2 else 0 := by
   unfold Digraph.outdegree
-  rw [ncard_setOf_fin]
+  rw [Set.ncard_setOf_eq_card_filter]
   revert v
   decide
 
@@ -127,12 +124,14 @@ theorem balanced_isMetric {t₁ t₂ : ℝ} (h₁ : 0 < t₁) (h₂ : 0 < t₂) 
     rw [balanced_indegree]
     revert e
     decide
-  refine ⟨fun e => ?_, fun _ _ => rfl, fun e he => absurd he (hh e), fun e _ _ he => absurd he (hh e)⟩
+  refine ⟨fun e => ?_, fun _ _ => rfl, fun e he => absurd he (hh e), fun e _ _ he =>
+    absurd he (hh e)⟩
   fin_cases e <;> simp [h₁, h₂]
 
 /-- **Equation (1)** on the balanced quartet tree. -/
 theorem equation1_balanced (t₁ t₂ : ℝ) (h₁ : 0 < t₁) (h₂ : 0 < t₂) :
-    let N : Network (Fin 7) (Fin 6) (Fin 4) := ⟨⟨![0, 0, 1, 1, 2, 2], ![1, 2, 3, 4, 5, 6]⟩, 0, ![3, 4, 5, 6]⟩
+    let N : Network (Fin 7) (Fin 6) (Fin 4) :=
+        ⟨⟨![0, 0, 1, 1, 2, 2], ![1, 2, 3, 4, 5, 6]⟩, 0, ![3, 4, 5, 6]⟩
     let θ : Params (Fin 6) := ⟨![t₁, t₂, 1, 1, 1, 1], fun _ => 1⟩
     N.IsBinaryNetwork ∧ N.IsMetric θ ∧
       ∀ q : QuartetTree (Fin 4),

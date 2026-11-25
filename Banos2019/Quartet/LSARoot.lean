@@ -13,9 +13,9 @@ node.
   taxa is above `w`.
 * `isLSANetwork_of_target_ne`: in a binary level-1 network whose two root arcs have distinct
   targets, the root is the LSA of the taxa. A lower stable ancestor `w` would be below both children
-  of the root; a child `c` of the root with a single parent has two children, both above `w`, and the
-  paths from them to `w` close two cycles through the arc `c → y₁`, one through the root arc into `c`
-  and one not.
+  of the root; a child `c` of the root with a single parent has two children, both above `w`, and
+  the paths from them to `w` close two cycles through the arc `c → y₁`, one through the root arc
+  into `c` and one not.
 -/
 
 @[expose] public noncomputable section
@@ -114,7 +114,8 @@ theorem false_of_isStableAncestor_of_root_arcs [Finite E] (hN : IsBinaryRootedNe
         (Relation.ReflTransGen.single ⟨⟨a, ha, rfl⟩, hwr.symm, hwc.symm⟩).tail
           ⟨⟨g, hgc, rfl⟩, hwc.symm, hyw⟩⟩
   -- a node below a child of `c` is not above `c` or the root
-  have hyc : ∀ g, N.graph.source g = c → ∀ f, N.graph.Reaches (N.graph.target g) (N.graph.source f) →
+  have hyc : ∀ g, N.graph.source g = c → ∀ f, N.graph.Reaches (N.graph.target g)
+    (N.graph.source f) →
       N.graph.source f ≠ c ∧ N.graph.source f ≠ N.root := by
     intro g hgc f hf
     constructor
@@ -193,11 +194,12 @@ theorem false_of_isStableAncestor_of_root_arcs [Finite E] (hN : IsBinaryRootedNe
     · exact hf₁
   exact haD₁ ((h1 D₁ D₂ hD₁ hD₂ ⟨g₁, hg₁D₁, hg₁D₂⟩) ▸ haD₂)
 
-/-- **The root of a binary level-1 network whose two root arcs end at distinct nodes is the LSA of the
-taxa.** One child of the root has a single parent: if each had a second parent, each would be below
-the other. A stable ancestor of the taxa other than the root would contradict
+/-- **The root of a binary level-1 network whose two root arcs end at distinct nodes is the LSA of
+the taxa.** One child of the root has a single parent: if each had a second parent, each would be
+below the other. A stable ancestor of the taxa other than the root would contradict
 `false_of_isStableAncestor_of_root_arcs`. -/
-theorem isLSANetwork_of_target_ne [Finite E] (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+theorem isLSANetwork_of_target_ne [Finite E] (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph)
     (hroot : ∀ a₁ a₂, a₁ ≠ a₂ → N.graph.source a₁ = N.root → N.graph.source a₂ = N.root →
       N.graph.target a₁ ≠ N.graph.target a₂) :
     N.IsLSANetwork := by

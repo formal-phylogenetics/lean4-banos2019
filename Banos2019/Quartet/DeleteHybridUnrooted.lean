@@ -50,7 +50,8 @@ theorem nonempty_sdMetricIso_deleteHybridEdge_unrootAt
       {v : V // v ≠ (deleteArc Q (sdArc hQ.1 hQ.2 hX h)).root} :=
     Equiv.ofBijective (fun u => ⟨sdVert hQ.1 hX u, hvne u⟩)
       ⟨fun u u' huu => sdVert_injective hQ.1 hX
-        (congrArg (fun z : {v : V // v ≠ (deleteArc Q (sdArc hQ.1 hQ.2 hX h)).root} => z.1) huu), fun v => by
+        (congrArg (fun z : {v : V // v ≠ (deleteArc Q (sdArc hQ.1 hQ.2 hX h)).root} =>
+          z.1) huu), fun v => by
         obtain ⟨u, hu⟩ := exists_sdVert_of_ne hQ.1 hX hr v.2
         exact ⟨u, Subtype.ext hu⟩⟩
   -- the edges

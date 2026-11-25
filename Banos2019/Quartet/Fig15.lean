@@ -5,17 +5,17 @@ public import Banos2019.Quartet.Concrete
 /-!
 # Figure 15 as an LSA quartet network (Example 2)
 
-The `2₂`-cycle of Figure 15 is the unrooted network of the LSA quartet network `q15 a b c`: the nodes
-`0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`, `7` that of `c` and `d`; `5`
-and the hybrid node `6` above `7` are the nodes of the cycle; the root `8` has the hybrid edge `8 → 6`
-and the tree edge `8 → 5`, which the unrooted network merges into the hybrid edge `5 → 6` of Figure 15.
-`inducesNetwork_q15`, with the figures in `Banos2019.Quartet.Examples`, shows that the unrooted network
-of `q15 a b c` is Figure 15.
+The `2₂`-cycle of Figure 15 is the unrooted network of the LSA quartet network `q15 a b c`: the
+nodes `0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`, `7` that of `c`
+and `d`; `5` and the hybrid node `6` above `7` are the nodes of the cycle; the root `8` has the
+hybrid edge `8 → 6` and the tree edge `8 → 5`, which the unrooted network merges into the hybrid
+edge `5 → 6` of Figure 15. `inducesNetwork_q15`, with the figures in `Banos2019.Quartet.Examples`,
+shows that the unrooted network of `q15 a b c` is Figure 15.
 
-* `isLSAQuartet_q15`, `inducesCycleType_q15`: `q15 a b c` with the parameters `q15Metric len γ` is an
-  LSA quartet network with a `2₂`-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.
-* `cf_deleteArc_q15_seven`, `cf_deleteArc_q15_six`, `cf_contractRooted_q15`: the networks `Q₁⊕`, `Q₂⊕`,
-  `Q₀⊕` of Lemma 9 are trees, with the internal edges `ab|cd` of lengths `t₁ + t₂ + t₄`,
+* `isLSAQuartet_q15`, `inducesCycleType_q15`: `q15 a b c` with the parameters `q15Metric len γ` is
+  an LSA quartet network with a `2₂`-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.
+* `cf_deleteArc_q15_seven`, `cf_deleteArc_q15_six`, `cf_contractRooted_q15`: the networks `Q₁⊕`,
+  `Q₂⊕`, `Q₀⊕` of Lemma 9 are trees, with the internal edges `ab|cd` of lengths `t₁ + t₂ + t₄`,
   `t₁ + t₂ + t₃` and `t₁ + t₂` (equation (1)).
 -/
 
@@ -37,8 +37,8 @@ variable {X : Type*} [DecidableEq X]
 def q15 (a b c : X) : RootedNetwork (Fin 9) (Fin 9) X :=
   ⟨⟨q15Src, q15Tgt⟩, 8, quartetLeaf9 a b c⟩
 
-/-- The parameters of `q15`: those of Figure 15, the length `len 7` of the merged hybrid edge shared by
-the two edges at the root. -/
+/-- The parameters of `q15`: those of Figure 15, the length `len 7` of the merged hybrid edge shared
+by the two edges at the root. -/
 def q15Metric (len : Fin 8 → ℝ) (γ : ℝ) : MetricData (Fin 9) :=
   ⟨![len 0, len 1, len 2, len 3, len 4, len 5, len 6, len 7 / 2, len 7 / 2],
     ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
@@ -75,20 +75,13 @@ theorem deleteArc_q15_indegree (h v : Fin 9) :
 
 variable [Fintype X]
 
-theorem q15_leaf_injective (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
-    Function.Injective (quartetLeaf9 a b c) := by
-  intro x y hxy
-  rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl <;>
-    rcases eq_or_of_distinct4_of_card_eq hX h y with rfl | rfl | rfl | rfl <;>
-    simp only [quartetLeaf9_a, quartetLeaf9_b h, quartetLeaf9_c h, quartetLeaf9_d h] at hxy <;>
-    first | rfl | exact absurd hxy (by decide)
-
 theorem q15_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
     (q15 a b c).IsPhylogenetic where
   finite_vertices := inferInstance
   finite_arcs := inferInstance
   finite_taxa := inferInstance
-  acyclic := DirectedMultigraph.isAcyclic_of_rank _ (fun v : Fin 9 => ![4, 4, 4, 4, 2, 1, 2, 3, 0] v)
+  acyclic := DirectedMultigraph.isAcyclic_of_rank _
+    (fun v : Fin 9 => ![4, 4, 4, 4, 2, 1, 2, 3, 0] v)
     (by show ∀ e, ![4, 4, 4, 4, 2, 1, 2, 3, 0] (q15Src e) < ![4, 4, 4, 4, 2, 1, 2, 3, 0] (q15Tgt e)
         decide)
   root_reaches v := by
@@ -118,7 +111,7 @@ theorem q15_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
   nonroot_indegree v hv := by
     rw [q15_indegree]
     fin_cases v <;> first | decide | exact absurd rfl hv
-  leaf_injective := q15_leaf_injective hX h
+  leaf_injective := quartetLeaf9_injective hX h
   leaf_indegree x := by
     rw [q15_indegree]
     have := quartetLeaf9_mem (a := a) (b := b) (c := c) x
@@ -177,9 +170,9 @@ theorem q15_isCycle : IsCycle (q15 a b c).graph ↑q15Cycle := by
     · rintro (rfl | rfl | rfl)
       exacts [⟨1, rfl⟩, ⟨2, rfl⟩, ⟨0, rfl⟩]
 
-/-- **The only cycle of `q15`**: the edges to the leaves are on no cycle, then neither are the edges to
-the nodes `4` and `7` above two leaves, and the three edges left, with at most two at each node, form
-one. -/
+/-- **The only cycle of `q15`**: the edges to the leaves are on no cycle, then neither are the edges
+to the nodes `4` and `7` above two leaves, and the three edges left, with at most two at each node,
+form one. -/
 theorem q15_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q15 a b c).graph C) : C = ↑q15Cycle := by
   have hloop : ∀ f, (q15 a b c).graph.source f ≠ (q15 a b c).graph.target f := by
     show ∀ f, q15Src f ≠ q15Tgt f
@@ -219,7 +212,8 @@ theorem q15_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q15 a b c).graph C) : C = 
     · exact .refl
   have hsrc : ∀ f ∈ q15Cycle, q15Src f = 5 ∨ q15Src f = 8 := by decide
   have hconn : ∀ f ∈ (↑q15Cycle : Set (Fin 9)),
-      (q15 a b c).graph.Walks ↑q15Cycle ((q15 a b c).graph.source f₀) ((q15 a b c).graph.source f) :=
+      (q15 a b c).graph.Walks ↑q15Cycle ((q15 a b c).graph.source f₀)
+      ((q15 a b c).graph.source f) :=
     fun f hf => ((q15 a b c).graph.walks_symm (hw _ (hsrc f₀ (hsub hf₀)))).trans
       (hw _ (hsrc f (by simpa using hf)))
   exact hsub.antisymm (hC.superset_of_ncard_incident_le hloop hsub hdeg (source_mem_cycleNodes hf₀)
@@ -229,7 +223,8 @@ theorem q15_isLevelOne : IsLevelOne (q15 a b c).graph := fun _ _ hC hC' _ =>
   (q15_cycle_eq hC).trans (q15_cycle_eq hC').symm
 
 /-- The nodes of the cycle of `q15`. -/
-theorem q15_cycleNodes : cycleNodes (q15 a b c).graph ↑q15Cycle = ↑({5, 6, 8} : Finset (Fin 9)) := by
+theorem q15_cycleNodes : cycleNodes (q15 a b c).graph ↑q15Cycle =
+    ↑({5, 6, 8} : Finset (Fin 9)) := by
   ext y
   have key : ∀ y : Fin 9, (∃ e ∈ q15Cycle, q15Src e = y ∨ q15Tgt e = y) ↔
       y ∈ ({5, 6, 8} : Finset (Fin 9)) := by decide
@@ -252,7 +247,8 @@ theorem q15_isLSANetwork (h : Distinct4 a b c d) : (q15 a b c).IsLSANetwork := b
     refine hw a (Set.mem_univ _) ?_
     rw [hla]
     exact ⟨Ne.symm hne, Ne.symm hw0, ((Relation.ReflTransGen.single
-      ⟨⟨8, rfl, rfl⟩, Ne.symm hne, Ne.symm hw5⟩).tail ⟨⟨4, rfl, rfl⟩, Ne.symm hw5, Ne.symm hw4⟩).tail
+      ⟨⟨8, rfl, rfl⟩, Ne.symm hne, Ne.symm hw5⟩).tail
+      ⟨⟨4, rfl, rfl⟩, Ne.symm hw5, Ne.symm hw4⟩).tail
         ⟨⟨0, rfl, rfl⟩, Ne.symm hw4, Ne.symm hw0⟩⟩
   · -- the path `8 → 6 → 7 → 2` to `c` avoids `w`
     have hw6 : w ≠ 6 := fun e => h672 (Or.inl e)
@@ -261,7 +257,8 @@ theorem q15_isLSANetwork (h : Distinct4 a b c d) : (q15 a b c).IsLSANetwork := b
     refine hw c (Set.mem_univ _) ?_
     rw [hlc]
     exact ⟨Ne.symm hne, Ne.symm hw2, ((Relation.ReflTransGen.single
-      ⟨⟨7, rfl, rfl⟩, Ne.symm hne, Ne.symm hw6⟩).tail ⟨⟨5, rfl, rfl⟩, Ne.symm hw6, Ne.symm hw7⟩).tail
+      ⟨⟨7, rfl, rfl⟩, Ne.symm hne, Ne.symm hw6⟩).tail
+      ⟨⟨5, rfl, rfl⟩, Ne.symm hw6, Ne.symm hw7⟩).tail
         ⟨⟨2, rfl, rfl⟩, Ne.symm hw7, Ne.symm hw2⟩⟩
 
 /-! ### The parameters -/
@@ -285,7 +282,8 @@ theorem q15Metric_isMetricNetwork {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i
   have hpos : ∀ e, 0 < (q15Metric len γ).length e := by
     intro e
     fin_cases e <;> simp [q15Metric, hlen]
-  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩,
+  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_,
+    fun v hv => ?_⟩,
     hpos⟩
   · rw [q15_isTreeArc_iff] at he
     fin_cases e <;> simp_all [q15Metric]
@@ -398,7 +396,8 @@ theorem cf_deleteArc_q15_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d)
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 7} => q15Tgt f.1 = q15Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q15 a b c) 7).IsMetric (deleteArcMetric (q15 a b c) 7 (q15Metric len γ)) := by
+  have hθ : (deleteArc (q15 a b c) 7).IsMetric
+    (deleteArcMetric (q15 a b c) 7 (q15Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 7) (h' := 6) (by decide)
       rfl (by rw [q15_indegree]; show #(univ.filter fun e => q15Tgt e = 6) = 2; decide)
   have hD : ∀ u w, (deleteArc (q15 a b c) 7).graph.Reaches u w ↔ w ∈ q15Desc u :=
@@ -446,7 +445,8 @@ theorem cf_deleteArc_q15_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 6} => q15Tgt f.1 = q15Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q15 a b c) 6).IsMetric (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) := by
+  have hθ : (deleteArc (q15 a b c) 6).IsMetric
+    (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 6) (h' := 7) (by decide)
       rfl (by rw [q15_indegree]; show #(univ.filter fun e => q15Tgt e = 6) = 2; decide)
   have hD : ∀ u w, (deleteArc (q15 a b c) 6).graph.Reaches u w ↔ w ∈ q15DescSix u :=
@@ -511,7 +511,8 @@ theorem cf_contractRooted_q15 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) 
   intro x
   have hQ := isLSAQuartet_q15 hX h hlen hγ₀ hγ₁
   have hC : IsCycle (q15 a b c).graph ↑q15Cycle := q15_isCycle
-  obtain ⟨t, hK⟩ := isContractible_of_cycle hQ.binary hQ.levelOne hC (v := 6) ⟨6, by decide, Or.inr rfl⟩
+  obtain ⟨t, hK⟩ := isContractible_of_cycle hQ.binary hQ.levelOne hC (v := 6)
+    ⟨6, by decide, Or.inr rfl⟩
     (by rw [q15_indegree]; decide)
   have hN := hK.isPhylogenetic hQ.binary.1
   have hθ := hK.isMetric hQ.metric.1

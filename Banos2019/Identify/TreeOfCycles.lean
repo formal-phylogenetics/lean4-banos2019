@@ -15,8 +15,8 @@ its leaves; the results below prove both, for `T` the tree of cycles of
   has no cycle.
 * `ArisesFrom w C`: the node `w` of `T` is the class of the nodes of `Ñ` coming from the cycle `C`
   of `N⁻`. `exists_arisesFrom_of_isLeafNode_unrooted`: every leaf of `T` (`IsLeafNode`, a node with
-  at most one edge) arises from a cycle of `N⁻` of size at least four; a node of `T` arises from each
-  such cycle (`exists_arisesFrom_unrooted`).
+  at most one edge) arises from a cycle of `N⁻` of size at least four; a node of `T` arises from
+  each such cycle (`exists_arisesFrom_unrooted`).
 * `IsFourNetworkBlock`: a `v`-block whose taxa are in one 4-network block.
   `isLeafNode_iff_fourNetworkBlocks_unrooted`: a node of `T` arising from a cycle `C_v` of size at
   least four is a leaf exactly when all the `v`-blocks but one are 4-network blocks. The proof of
@@ -86,12 +86,6 @@ theorem walks_mono_of_reach {F F' : Set E} {a b : V} (h : G.Walks F a b)
     rcases hj with ⟨h, -⟩ | ⟨-, h⟩
     · exact Or.inl h
     · exact Or.inr h
-
-/-- An edge on a cycle has its ends joined without it. -/
-theorem walks_compl_of_mem_isCycle {C : Set E} (hC : IsCycle G C) {e : E} (he : e ∈ C) :
-    G.Walks {e}ᶜ (G.source e) (G.target e) :=
-  walks_mono (fun f (hf : f ∈ C \ {e}) => hf.2)
-    (hC.walks_sdiff_singleton he (source_mem_cycleNodes he) (target_mem_cycleNodes he))
 
 /-- An edge whose ends are joined without it lies on a cycle. -/
 theorem exists_isCycle_of_walks_compl {e : E} (h : G.Walks {e}ᶜ (G.source e) (G.target e)) :
@@ -394,18 +388,6 @@ section Restrict
 
 variable {W F X : Type*} {H : SemidirectedNetwork W F X} {K : Set F} {Z : Set X}
 
-/-- A walk of the restricted network is a walk of the network. -/
-theorem restrict_walks_val {F' : Set K} {a b : keptNodes H K Z}
-    (h : (restrict H K Z).graph.Walks F' a b) : H.graph.Walks (Subtype.val '' F') a.1 b.1 := by
-  induction h with
-  | refl => exact .refl
-  | @tail c d _ hst ih =>
-    obtain ⟨f, hf, hj⟩ := hst
-    refine ih.tail ⟨f.1, ⟨f, hf, rfl⟩, ?_⟩
-    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
-    · exact Or.inl ⟨congrArg Subtype.val h₁, congrArg Subtype.val h₂⟩
-    · exact Or.inr ⟨congrArg Subtype.val h₁, congrArg Subtype.val h₂⟩
-
 /-- A walk of the network on kept edges between kept nodes is a walk of the restricted network. -/
 theorem restrict_walks_of_walks {F' : Set F} (hF' : F' ⊆ K) {a b : W} (h : H.graph.Walks F' a b)
     (ha : a ∈ keptNodes H K Z) (hb : b ∈ keptNodes H K Z) :
@@ -435,16 +417,16 @@ theorem exists_isCycle_of_restrict_walks {e : K}
       ((restrict H K Z).graph.target e)) : ∃ C, IsCycle H.graph C ∧ e.1 ∈ C :=
   exists_isCycle_of_walks_compl (walks_mono (by
     rintro _ ⟨f, hf, rfl⟩ h
-    exact hf (Subtype.ext (Set.mem_singleton_iff.1 h))) (restrict_walks_val h))
+    exact hf (Subtype.ext (Set.mem_singleton_iff.1 h))) (walks_val_of_restrict _ h))
 
 /-- A walk of the restricted network on edges of its cycles is a walk of the network on edges of its
 cycles. -/
 theorem restrict_walks_cycleEdges {a b : keptNodes H K Z}
     (h : (restrict H K Z).graph.Walks {e | ∃ C, IsCycle (restrict H K Z).graph C ∧ e ∈ C} a b) :
     H.graph.Walks {e | ∃ C, IsCycle H.graph C ∧ e ∈ C} a.1 b.1 := by
-  refine walks_mono ?_ (restrict_walks_val h)
+  refine walks_mono ?_ (walks_val_of_restrict _ h)
   rintro _ ⟨e, ⟨C, hC, heC⟩, rfl⟩
-  exact exists_isCycle_of_restrict_walks (walks_compl_of_mem_isCycle hC heC)
+  exact exists_isCycle_of_restrict_walks (IsCycle.walks_compl_singleton hC heC)
 
 /-- **A cycle with kept edges is a cycle of the restricted network.** -/
 theorem isCycleOf_restrict {k : ℕ} {v : Fin k → W} {e : Fin k → F}
@@ -638,7 +620,7 @@ theorem suppressExcept_walks_cycleEdges [Finite F] {a b : {u // IsBranch K P u}}
     K.graph.Walks {e | ∃ C, IsCycle K.graph C ∧ e ∈ C} a.1 b.1 :=
   suppressExcept_walks_val (F' := {d | ∃ C, IsCycle (suppressExcept K P).graph C ∧ d ∈ C})
     (fun _ ⟨_, hC, hdC⟩ _ hg =>
-      exists_isCycle_of_suppressExcept_walks _ (walks_compl_of_mem_isCycle hC hdC) hg) h
+      exists_isCycle_of_suppressExcept_walks _ (IsCycle.walks_compl_singleton hC hdC) hg) h
 
 /-- An edge between two distinct kept nodes is a chain by itself. -/
 theorem isChain_singleton {g : F} {a b : W} (hj : Joins K.graph g a b) (ha : IsBranch K P a)
@@ -776,7 +758,7 @@ theorem exists_isCycle_of_coreSuppressed_walks
       ((coreSuppressed H).graph.target d)) {g : pendantCore H.graph} (hg : g ∈ d.1) :
     ∃ C, IsCycle H.graph C ∧ g.1 ∈ C := by
   obtain ⟨C, hC, hgC⟩ := exists_isCycle_of_suppressExcept_walks d h hg
-  exact exists_isCycle_of_restrict_walks (walks_compl_of_mem_isCycle hC hgC)
+  exact exists_isCycle_of_restrict_walks (IsCycle.walks_compl_singleton hC hgC)
 
 /-- A chain of the suppressed core with an edge on no cycle of `H` is an edge of the tree of cycles:
 it lies on no cycle. -/
@@ -785,7 +767,7 @@ theorem forall_notMem_of_coreSuppressed (d : {c // IsChain (coreNet H) (coreCycl
     ∀ C, IsCycle (coreSuppressed H).graph C → True → d ∉ C := by
   intro C hC _ hdC
   obtain ⟨D, hD, hgD⟩ := exists_isCycle_of_coreSuppressed_walks d
-    (walks_compl_of_mem_isCycle hC hdC) hg
+    (IsCycle.walks_compl_singleton hC hdC) hg
   exact hgC D hD hgD
 
 variable [Finite W] (hloop : ∀ e, H.graph.source e ≠ H.graph.target e)
@@ -926,7 +908,7 @@ theorem IsCycleOf.mem_cycleNodes {V' E' : Type*} {H : DirectedMultigraph V' E'} 
 theorem not_isCycle_of_isTree {V' E' : Type*} {H : DirectedMultigraph V' E'} (hH : H.IsTree)
     (C : Set E') : ¬ IsCycle H C := by
   rintro ⟨k, v, e, hc, rfl⟩
-  exact hH.2 (e ⟨0, hc.pos⟩) (walks_compl_of_mem_isCycle ⟨k, v, e, hc, rfl⟩ ⟨_, rfl⟩)
+  exact hH.2 (e ⟨0, hc.pos⟩) (IsCycle.walks_compl_singleton ⟨k, v, e, hc, rfl⟩ ⟨_, rfl⟩)
 
 /-- A walk of the network is a walk of the network with its 2- and 3-cycles contracted, on its
 edges off those cycles. -/
@@ -977,9 +959,9 @@ theorem forall_notMem_tilde_of_mem [Finite E] {c : {c // IsChain (tildeContracte
     ∀ C', IsCycle (tildeNetwork G).graph C' → c ∉ C' := by
   intro C' hC' hcC'
   obtain ⟨C₀, hC₀, hgC₀⟩ := exists_isCycle_of_suppressExcept_walks (K := tildeContracted G)
-    (P := ∅) c (walks_compl_of_mem_isCycle hC' hcC') hg
+    (P := ∅) c (IsCycle.walks_compl_singleton hC' hcC') hg
   obtain ⟨D, hD, hgD⟩ :=
-    exists_mem_cycle_of_tildeContracted_walks (walks_compl_of_mem_isCycle hC₀ hgC₀)
+    exists_mem_cycle_of_tildeContracted_walks (IsCycle.walks_compl_singleton hC₀ hgC₀)
   exact hgc D hD hgD
 
 variable [Finite V] [Finite E] (hG : IsUnrootedLevelOne G)
@@ -1013,9 +995,9 @@ theorem exists_isCycle_big_of_mem_cycleNodes_tilde
   obtain ⟨c, hc, hcw⟩ := hw
   obtain ⟨g, hg, hgw⟩ := exists_mem_incident_of_tildeNetwork hcw
   obtain ⟨C₀, hC₀, hgC₀⟩ := exists_isCycle_of_suppressExcept_walks (K := tildeContracted G)
-    (P := ∅) c (walks_compl_of_mem_isCycle hC hc) hg
+    (P := ∅) c (IsCycle.walks_compl_singleton hC hc) hg
   obtain ⟨D, hD, hgD⟩ :=
-    exists_mem_cycle_of_tildeContracted_walks (walks_compl_of_mem_isCycle hC₀ hgC₀)
+    exists_mem_cycle_of_tildeContracted_walks (IsCycle.walks_compl_singleton hC₀ hgC₀)
   have h4 : 4 ≤ D.ncard := by
     by_contra h
     exact g.2 D hD (by omega) hgD
@@ -1275,7 +1257,7 @@ theorem exists_mem_of_mk_eq_of_big {u₀ : V} (hu₀ : u₀ ∈ cycleNodes G.gra
   have h₄ := walks_of_contract_walks (P := fun C => C.ncard ≤ 3) h₃
   refine ⟨a, mem_cycleNodes_of_walks_cycleEdges hG.cycle_eq hC hu₀ (walks_mono ?_ h₄), ha.symm⟩
   rintro _ (⟨g, ⟨C', hC', hgC'⟩, rfl⟩ | hcyc)
-  · exact exists_mem_cycle_of_tildeContracted_walks (walks_compl_of_mem_isCycle hC' hgC')
+  · exact exists_mem_cycle_of_tildeContracted_walks (IsCycle.walks_compl_singleton hC' hgC')
   · exact hcyc
 
 omit [Finite V] h4 in
@@ -1296,7 +1278,7 @@ theorem not_fourNetworkBlock_of_side {u : V} (hu : u ∈ cycleNodes G.graph C) {
     hvz.trans (walks_mono (F' := ({f}ᶜ : Set E))
       (fun g (hg : g ∈ D) (hgf : g ∈ ({f} : Set E)) => hf D hD (Set.mem_singleton_iff.1 hgf ▸ hg))
       (walks_cycle_of_mem_cycleNodes G.graph hD hz hd))
-  obtain ⟨d₀, hd₀, hd₀u⟩ := exists_walks_compl_of_isConnected hG.connected hD u
+  obtain ⟨d₀, hd₀, hd₀u⟩ := exists_walks_compl_cycleNodes hG.connected hD u
   -- the blocks of `D` of its nodes other than `d₀` are in the block of `u`
   have hin : ∀ d ∈ cycleNodes G.graph D, d ≠ d₀ → ∀ t ∈ nodeBlock G.graph G.leaf D d,
       t ∈ nodeBlock G.graph G.leaf C u := by
@@ -1393,7 +1375,7 @@ theorem fourNetworkBlocks_of_isLeafNode
       (treeOfCycles_mk_eq_of_big hG hC h4 hu₁ hu₂ hs₁ hs₂) hn₁ hn₂ hi₁ hi₂ ?_
     rwa [treeOfCycles_mk_eq_of_big hG hC h4 hu₀ hu₁ hs₀ hs₁] at hleaf
   · push Not at hex
-    obtain ⟨u₀, hu₀⟩ := hC.cycleNodes_nonempty
+    obtain ⟨u₀, hu₀⟩ := hC.nonempty_cycleNodes
     exact ⟨u₀, hu₀, fun u' hu' _ => hex u' hu'⟩
 
 /-- **A node arising from a cycle of size at least four all of whose blocks but one are 4-network
@@ -1470,7 +1452,7 @@ finite tree (`treeOfCycles_isTree`) with a node, the class of the nodes of the c
 theorem exists_isLeafNode_treeOfCycles_of_big :
     ∃ w, IsLeafNode (treeOfCycles (tildeNetwork G)).graph w := by
   obtain ⟨_, _, _, _, hall, -⟩ := exists_isCycle_tilde_of_big hG hC h4
-  obtain ⟨u, hu⟩ := hC.cycleNodes_nonempty
+  obtain ⟨u, hu⟩ := hC.nonempty_cycleNodes
   obtain ⟨-, s, -, -⟩ := hall u hu
   have : Nonempty (Quot (ContractRel (coreSuppressed (tildeNetwork G)).graph fun _ => True)) :=
     ⟨Quot.mk _ s⟩
@@ -1506,6 +1488,7 @@ theorem exists_arisesFrom_of_isLeafNode_unrooted
     exists_arisesFrom_of_isLeafNode (isUnrootedLevelOne_unrooted hN h1 hX) hw
   exact ⟨C, ⟨hC, h4⟩, hwC⟩
 
+omit [Finite V] in
 /-- **A node of `T` arises from each cycle of `N⁻` of size at least four**: the class of a node of
 the suppressed core of `Ñ` coming from a node of the cycle (`exists_isCycle_tilde_of_big`). -/
 theorem exists_arisesFrom_unrooted {C : Set _}
@@ -1513,7 +1496,7 @@ theorem exists_arisesFrom_unrooted {C : Set _}
     ∃ w, ArisesFrom (unrooted N hN hX) w C := by
   obtain ⟨_, _, _, _, hall, -⟩ :=
     exists_isCycle_tilde_of_big (isUnrootedLevelOne_unrooted hN h1 hX) hC.1 hC.2
-  obtain ⟨u, hu⟩ := hC.1.cycleNodes_nonempty
+  obtain ⟨u, hu⟩ := hC.1.nonempty_cycleNodes
   obtain ⟨-, s, -, hs⟩ := hall u hu
   exact ⟨_, u, hu, s, hs, rfl⟩
 

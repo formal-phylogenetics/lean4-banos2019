@@ -6,9 +6,10 @@ public import Phylogenetics.NMSC.InducedSuppress
 /-!
 # The cycles of a suppressed network
 
-Suppressing the nodes of indegree one and outdegree one (`RootedNetwork.suppress`) replaces each chain
-of arcs by its first arc. The arcs on the chains of the arcs of a cycle of the suppressed network form
-a cycle of the network, so suppression keeps a network level-1; so does taking a part of a network.
+Suppressing the nodes of indegree one and outdegree one (`RootedNetwork.suppress`) replaces each
+chain of arcs by its first arc. The arcs on the chains of the arcs of a cycle of the suppressed
+network form a cycle of the network, so suppression keeps a network level-1; so does taking a part
+of a network.
 
 * `IsCycle.walks_sdiff_singleton`: two nodes of a cycle are joined along it, avoiding any one of its
   edges.
@@ -17,9 +18,9 @@ a cycle of the network, so suppression keeps a network level-1; so does taking a
   node is all of it.
 * `IsLevelOne.of_injective`: a subgraph of a level-1 graph is level-1.
 * `cycleChainArcs`: the arcs of a network on the chains of a set of arcs of its suppressed network;
-  `isCycle_cycleChainArcs`: for a cycle, they form a cycle. A cycle `D` of the network through the first
-  arc of one chain, on these arcs, exists because a walk around the cycle closes it; it is all of them,
-  because at each node there are at most two of them.
+  `isCycle_cycleChainArcs`: for a cycle, they form a cycle. A cycle `D` of the network through the
+  first arc of one chain, on these arcs, exists because a walk around the cycle closes it; it is all
+  of them, because at each node there are at most two of them.
 * `suppress_isLevelOne`: suppression keeps a network level-1.
 -/
 
@@ -64,6 +65,12 @@ theorem IsCycle.walks_sdiff_singleton {C : Set E'} (hC : IsCycle G C) {g : E'} (
     exact walks_mono (fun f hf => by obtain ⟨l, -, -, rfl⟩ := hf; exact hP'.mem l)
       (hP'.walks_of_le (Fin.zero_le _))
   exact (G.walks_symm (hnode a ha)).trans (hnode b hb)
+
+/-- **An edge of a cycle has its ends joined without it**, along the other edges of the cycle. -/
+theorem IsCycle.walks_compl_singleton {C : Set E'} (hC : IsCycle G C) {g : E'} (hg : g ∈ C) :
+    G.Walks {g}ᶜ (G.source g) (G.target g) :=
+  walks_mono (fun f (hf : f ∈ C \ {g}) => hf.2)
+    (hC.walks_sdiff_singleton hg (source_mem_cycleNodes hg) (target_mem_cycleNodes hg))
 
 /-- **A subgraph of a level-1 graph is level-1**: its cycles are cycles of the graph. -/
 theorem IsLevelOne.of_injective {V'' E'' : Type*} {G' : DirectedMultigraph V'' E''}
@@ -203,10 +210,10 @@ theorem walks_cycleChainArcs_of_walks {F : Set {e // ¬ M.IsChainVertex (M.graph
       have ht' : chainEnd hM (M.graph.target g.1) = b.1 := congrArg Subtype.val ht
       exact ih.trans (M.graph.walks_symm (by rw [← hs', ← ht']; exact key g hg))
 
-/-- **At each node there are at most two arcs on the chains of a cycle of the suppressed network**: a
-chain node has one arc in and one out; at another node `x`, an arc on the chain of `g` leaving `x` is
-`g`, and one entering `x` is the last arc of the chain of `g`, which ends at `x`; and the cycle has two
-arcs at `x`. -/
+/-- **At each node there are at most two arcs on the chains of a cycle of the suppressed network**:
+a chain node has one arc in and one out; at another node `x`, an arc on the chain of `g` leaving `x`
+is `g`, and one entering `x` is the last arc of the chain of `g`, which ends at `x`; and the cycle
+has two arcs at `x`. -/
 theorem ncard_incident_cycleChainArcs_le {C : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
     (hC : IsCycle (M.suppress hM).graph C) (x : V) :
     {f | f ∈ cycleChainArcs M C ∧ (M.graph.source f = x ∨ M.graph.target f = x)}.ncard ≤ 2 := by

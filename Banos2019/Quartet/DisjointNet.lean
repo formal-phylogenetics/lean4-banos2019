@@ -8,10 +8,10 @@ public import Banos2019.Quartet.Trees
 
 `disjointNet Q v h₁ h₂ a b` is the part of `Q` not below the hybrid node `v`, with the hybrid edges
 `h₁`, `h₂` ending at two new leaves, labelled `a` and `b`, the two taxa below `v`. Its process is
-that of the part of `Q` not below `v` with the lineage of `a` at the source of `h₁` and that of `b` at
-the source of `h₂`: each new leaf carries a single lineage up its edge, and gluing removes the two
-leaves one after the other (`NMSC.IsGlued.rootDist_eq_unit`), the first at the cut vertex of its leaf
-(`isGlued_cut`), the second by an explicit gluing onto the part of `Q` not below `v`.
+that of the part of `Q` not below `v` with the lineage of `a` at the source of `h₁` and that of `b`
+at the source of `h₂`: each new leaf carries a single lineage up its edge, and gluing removes the
+two leaves one after the other (`NMSC.IsGlued.rootDist_eq_unit`), the first at the cut vertex of its
+leaf (`isGlued_cut`), the second by an explicit gluing onto the part of `Q` not below `v`.
 
 * `disjointNet_isPhylogenetic`, `disjointNet_isNormalized`.
 * `rootDist_disjointNet`: the law at the root is `hybridUpperLaw` with `{{a}}` and `{{b}}`.
@@ -479,10 +479,10 @@ theorem taxaInj_disjointNet_inl (u : {u // ¬ Q.graph.Reaches v u}) :
   exact ⟨fun h => congrArg Subtype.val (Sum.inl_injective h),
     fun h => congrArg Sum.inl (Subtype.ext h)⟩
 
-/-- **The process of `Q_a⊕` is that of the part of `Q` not below `v` with the lineages of `a` and `b`
-at the sources of `h₁` and `h₂`.** The leaf of `b` is a cut vertex whose single lineage goes up `h₂`
-unchanged (`isGlued_cut`, `NMSC.IsGlued.rootDist_eq_unit`); what remains is the part not below `v`
-with the leaf of `a` below `h₁`, glued in the same way. -/
+/-- **The process of `Q_a⊕` is that of the part of `Q` not below `v` with the lineages of `a` and
+`b` at the sources of `h₁` and `h₂`.** The leaf of `b` is a cut vertex whose single lineage goes up
+`h₂` unchanged (`isGlued_cut`, `NMSC.IsGlued.rootDist_eq_unit`); what remains is the part not below
+`v` with the leaf of `a` below `h₁`, glued in the same way. -/
 theorem rootDist_disjointNet (θ : MetricData E) (F : Finset (Finset X)) :
     rootDist (disjointNet Q v h₁ h₂ a b) (disjointMetric Q v h₁ h₂ θ) 0
         (taxaInj (disjointNet Q v h₁ h₂ a b) univ) F =
@@ -651,7 +651,8 @@ theorem rootDist_disjointNet (θ : MetricData E) (F : Finset (Finset X)) :
   constructor
   · rintro ((hA | ⟨p, hp, hA⟩) | ⟨p, hp, hA⟩)
     · exact Or.inl hA
-    · exact Or.inr (Or.inr ⟨(congrArg Subtype.val (Sum.inl_injective (congrArg Subtype.val hp))).symm,
+    · exact Or.inr
+        (Or.inr ⟨(congrArg Subtype.val (Sum.inl_injective (congrArg Subtype.val hp))).symm,
         hA⟩)
     · exact Or.inr (Or.inl ⟨(congrArg Subtype.val hp).symm, hA⟩)
   · rintro (hA | ⟨hu, hA⟩ | ⟨hu, hA⟩)

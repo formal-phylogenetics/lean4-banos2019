@@ -11,8 +11,9 @@ public import Banos2019.Network.Suppress
 * `isCycle_suppress_preimage`: the chains of a cycle of a level-1 network are a cycle of the
   suppressed network; `walks_suppress_chainEnd_of_walks`: a walk of the network gives a walk of the
   suppressed network.
-* `sdNode`, `walks_semidirected_of_walks`, `isCycle_semidirected_preimage`: the node of `N⁻` of a node
-  of `N` below `LSA(X)`; a walk, and a cycle, of `N` below `LSA(X)` give a walk, and a cycle, of `N⁻`.
+* `sdNode`, `walks_semidirected_of_walks`, `isCycle_semidirected_preimage`: the node of `N⁻` of a
+  node of `N` below `LSA(X)`; a walk, and a cycle, of `N` below `LSA(X)` give a walk, and a cycle,
+  of `N⁻`.
 -/
 
 @[expose] public noncomputable section
@@ -91,7 +92,8 @@ variable {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
 of its ends, along the arcs of the walk that leave nodes that are not chain nodes. -/
 theorem walks_suppress_chainEnd_of_walks {A : Set E}
     {F : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
-    (hA : ∀ f ∈ A, ∀ hf : ¬ M.IsChainVertex (M.graph.source f), (⟨f, hf⟩ : {e // ¬ M.IsChainVertex (M.graph.source e)}) ∈ F)
+    (hA : ∀ f ∈ A, ∀ hf : ¬ M.IsChainVertex (M.graph.source f),
+        (⟨f, hf⟩ : {e // ¬ M.IsChainVertex (M.graph.source e)}) ∈ F)
     {a b : V} (h : M.graph.Walks A a b) :
     (M.suppress hM).graph.Walks F ⟨chainEnd hM a, not_isChainVertex_chainEnd hM a⟩
       ⟨chainEnd hM b, not_isChainVertex_chainEnd hM b⟩ := by
@@ -119,9 +121,10 @@ theorem walks_suppress_chainEnd_of_walks {A : Set E}
 
 /-- **A cycle of a level-1 network gives a cycle of the suppressed network**: the arcs of the
 suppressed network whose first arc is on the cycle form a cycle, whose chains are the arcs of the
-cycle. An arc out of the top of the cycle leaves a node that is not a chain node; the rest of the cycle
-is a walk between its ends, which gives a walk of the suppressed network, closing a cycle through
-it; the chains of that cycle are a cycle of the network sharing that arc, so they are the cycle. -/
+cycle. An arc out of the top of the cycle leaves a node that is not a chain node; the rest of the
+cycle is a walk between its ends, which gives a walk of the suppressed network, closing a cycle
+through it; the chains of that cycle are a cycle of the network sharing that arc, so they are the
+cycle. -/
 theorem isCycle_suppress_preimage (h1 : IsLevelOne M.graph) {D : Set E} (hD : IsCycle M.graph D) :
     IsCycle (M.suppress hM).graph {g | g.1 ∈ D} ∧ cycleChainArcs M {g | g.1 ∈ D} = D := by
   have := hM.finite_arcs
@@ -226,19 +229,21 @@ theorem sdNode_leaf (x : X) : sdNode hM hB hX (M.leaf x) = (semidirected hM hB h
 
 /-- The ends of an edge of `N⁻` are the nodes of `N⁻` of the ends of its arc. -/
 theorem sdNode_source (g : SemidirectedArc hM hB hX) :
-    (semidirected hM hB hX).graph.source g = sdNode hM hB hX (M.graph.source (sdArc hM hB hX g)) := by
+    (semidirected hM hB hX).graph.source g =
+    sdNode hM hB hX (M.graph.source (sdArc hM hB hX g)) := by
   apply sdVert_injective hM hX
   rcases sdVert_source_cases hM hB hX g with ⟨hne, h⟩ | ⟨hm, h⟩
   · rw [h, sdVert_sdNode hM hB hX ((mem_range_sdArc hM hB hX _).1 ⟨g, rfl⟩).1 hne]
   · rw [h, hm, sdVert_sdNode_lsa]
 
 theorem sdNode_target (g : SemidirectedArc hM hB hX) :
-    (semidirected hM hB hX).graph.target g = sdNode hM hB hX (M.graph.target (sdArc hM hB hX g)) := by
+    (semidirected hM hB hX).graph.target g =
+    sdNode hM hB hX (M.graph.target (sdArc hM hB hX g)) := by
   rw [← sdVert_target]
   exact (sdNode_sdVert hM hB hX _).symm
 
-/-- **A walk of `M` below the LSA gives a walk of `N⁻`** between the nodes of `N⁻` of its ends: an arc
-is an edge of `N⁻`, but for `sdRootArc`, whose two ends have the same node of `N⁻`. -/
+/-- **A walk of `M` below the LSA gives a walk of `N⁻`** between the nodes of `N⁻` of its ends: an
+arc is an edge of `N⁻`, but for `sdRootArc`, whose two ends have the same node of `N⁻`. -/
 theorem walks_semidirected_of_walks {A : Set E} {F : Set (SemidirectedArc hM hB hX)}
     (hA : ∀ f ∈ A, M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (M.graph.source f))
     (hF : ∀ g, sdArc hM hB hX g ∈ A → g ∈ F) {a b : V} (h : M.graph.Walks A a b) :

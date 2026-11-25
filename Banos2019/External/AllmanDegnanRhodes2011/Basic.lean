@@ -12,8 +12,8 @@ public import Mathlib.Analysis.SpecialFunctions.Exp
 /-!
 # Allman, Degnan, Rhodes 2011: four-taxon species trees under the multispecies coalescent
 
-E. S. Allman, J. H. Degnan, J. A. Rhodes, *Identifying the rooted species tree from the distribution of
-unrooted gene trees under the coalescent*, J. Math. Biol. 62 (2011), 833–862.
+E. S. Allman, J. H. Degnan, J. A. Rhodes, *Identifying the rooted species tree from the distribution
+of unrooted gene trees under the coalescent*, J. Math. Biol. 62 (2011), 833–862.
 
 Baños 2019 cites this source for equation (1) and states two of its results as Propositions 3 and 4.
 They are stated here in the source's terms: species trees (`Phylogenetics.SpeciesTree`) under the
@@ -34,9 +34,9 @@ variable {X : Type*} [Fintype X] [DecidableEq X]
 def quartetProb (σ : SpeciesTree X) (q : QuartetTree X) : ℝ :=
   ∑ T, if Displays T q then σ.unrootedDist id T else 0
 
-/-- On four taxa, when only the quartet trees `treeOfClusters {C}` (`#C = 2`) have positive probability,
-the probability that the unrooted gene tree displays the quartet tree `r` is the probability of the
-unrooted tree of the split of `r`, `B | Bᶜ` for a cherry `B` of `r`
+/-- On four taxa, when only the quartet trees `treeOfClusters {C}` (`#C = 2`) have positive
+probability, the probability that the unrooted gene tree displays the quartet tree `r` is the
+probability of the unrooted tree of the split of `r`, `B | Bᶜ` for a cherry `B` of `r`
 (`displays_treeOfClusters_iff`). -/
 theorem quartetProb_eq_of_support (hX : Fintype.card X = 4) (σ : SpeciesTree X)
     (hσ : ∀ T, (∀ C : Finset X, #C = 2 → T ≠ treeOfClusters {C}) → σ.unrootedDist id T = 0)
@@ -53,10 +53,10 @@ theorem quartetProb_eq_of_support (hX : Fintype.card X = 4) (σ : SpeciesTree X)
       rw [hσ T h, ite_self]
   · exact fun h => absurd (mem_univ _) h
 
-/-- **Equation (1)** of Baños 2019 (`CFtree`): on a species tree whose unrooted topology has the split
-`ab|cd`, with internal edge of length `t`, any rooting gives the concordance factors
-`(1 - ⅔e^{-t}, ⅓e^{-t}, ⅓e^{-t})` to `ab|cd` and its two alternatives `ac|bd`, `ad|bc` (Allman, Degnan,
-Rhodes 2011, Section 4.1). -/
+/-- **Equation (1)** of Baños 2019 (`CFtree`): on a species tree whose unrooted topology has the
+split `ab|cd`, with internal edge of length `t`, any rooting gives the concordance factors
+`(1 - ⅔e^{-t}, ⅓e^{-t}, ⅓e^{-t})` to `ab|cd` and its two alternatives `ac|bd`, `ad|bc` (Allman,
+Degnan, Rhodes 2011, Section 4.1). -/
 theorem equation1 (hX : Fintype.card X = 4) (σ : SpeciesTree X) {a b c d : X} {q : QuartetTree X}
     (hq : q.val = {{a, b}, {c, d}}) (hsplit : {a, b} ∈ unroot σ.clusters) :
     quartetProb σ q = 1 - 2 / 3 * Real.exp (-σ.unrootedLength {a, b}) ∧
@@ -80,10 +80,10 @@ theorem equation1 (hX : Fintype.card X = 4) (σ : SpeciesTree X) {a b c d : X} {
 
 /-- **Proposition 3** of Baños 2019 (`pub:prop3`), "proven in [1]" (Allman, Degnan, Rhodes 2011,
 Proposition 3): for four taxa, the unrooted metric species tree `T⁻` is identifiable from the
-distribution of unrooted gene trees under the multispecies coalescent on a binary `T⁺`, and `T⁺` is not:
-two binary species trees with the same distribution have the same unrooted metric tree, and two binary
-species trees with different rooted metric trees have the same distribution. It is the source's
-Proposition 3, as lean4-allman2011 proves it (`Allman2011.proposition3`). -/
+distribution of unrooted gene trees under the multispecies coalescent on a binary `T⁺`, and `T⁺` is
+not: two binary species trees with the same distribution have the same unrooted metric tree, and two
+binary species trees with different rooted metric trees have the same distribution. It is the
+source's Proposition 3, as lean4-allman2011 proves it (`Allman2011.proposition3`). -/
 theorem proposition3 (hX : Fintype.card X = 4) :
     (∀ σ σ' : SpeciesTree X, σ.IsBinary → σ'.IsBinary →
       σ.unrootedDist id = σ'.unrootedDist id → σ.SameUnrootedMetricTree σ') ∧
@@ -100,12 +100,13 @@ theorem proposition4 (hX : Fintype.card X = 4) :
     ∃ σ σ' : SpeciesTree X, σ.unrootedDist id = σ'.unrootedDist id ∧ ¬ σ.SameRootedMetricTree σ' :=
   Allman2011.proposition11_proposition3 hX
 
-/-- **The root placement does not matter** (`pub:rootplace`): on four taxa, species trees with the same
-unrooted metric tree, binary or not, have the same distribution of unrooted gene trees. Baños 2019 states
-it in Section 4 ("it is known that the quartet concordance factors do not depend on the root placement
-[1]") and uses it in the proofs of Lemmas 7 and 9 and Proposition 5, where it cites Propositions 3 and 4:
-"`T⁺` is not identifiable" is read there as this statement, which Allman, Degnan, Rhodes 2011 prove
-(Theorem 9 and Proposition 11, for four taxa): lean4-allman2011's `Allman2011.unrootedDist_eq_iff_four`. -/
+/-- **The root placement does not matter** (`pub:rootplace`): on four taxa, species trees with the
+same unrooted metric tree, binary or not, have the same distribution of unrooted gene trees. Baños
+2019 states it in Section 4 ("it is known that the quartet concordance factors do not depend on the
+root placement [1]") and uses it in the proofs of Lemmas 7 and 9 and Proposition 5, where it cites
+Propositions 3 and 4: "`T⁺` is not identifiable" is read there as this statement, which Allman,
+Degnan, Rhodes 2011 prove (Theorem 9 and Proposition 11, for four taxa): lean4-allman2011's
+`Allman2011.unrootedDist_eq_iff_four`. -/
 theorem unrootedDist_eq_of_sameUnrootedMetricTree (hX : Fintype.card X = 4) {σ σ' : SpeciesTree X}
     (h : σ.SameUnrootedMetricTree σ') : σ.unrootedDist id = σ'.unrootedDist id :=
   (Allman2011.unrootedDist_eq_iff_four hX σ σ').2 h

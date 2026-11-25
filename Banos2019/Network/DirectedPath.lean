@@ -37,7 +37,8 @@ inductive IsDPath : V → V → Set V → Set E → Prop
   | cons (e : E) {w : V} {S : Set V} {P : Set E} :
       IsDPath (G.target e) w S P → IsDPath (G.source e) w (insert (G.source e) S) (insert e P)
 
-/-- The reachability order of an acyclic graph: `u ≤ w` when a directed path leads from `u` to `w`. -/
+/-- The reachability order of an acyclic graph: `u ≤ w` when a directed path leads from `u` to `w`.
+-/
 @[reducible] def reachOrderOfIsAcyclic (hA : G.IsAcyclic) : PartialOrder V where
   le := G.Reaches
   le_refl _ := .refl
@@ -50,7 +51,8 @@ inductive IsDPath : V → V → Set V → Set E → Prop
 variable {G}
 
 /-- In an acyclic graph, mutual reachability is equality. -/
-theorem reaches_antisymm_of_isAcyclic (hA : G.IsAcyclic) {a b : V} (h : G.Reaches a b) (h' : G.Reaches b a) :
+theorem reaches_antisymm_of_isAcyclic (hA : G.IsAcyclic) {a b : V} (h : G.Reaches a b)
+    (h' : G.Reaches b a) :
     a = b :=
   (reachOrderOfIsAcyclic G hA).le_antisymm a b h h'
 
@@ -202,11 +204,12 @@ theorem exists_next (hA : G.IsAcyclic) (h : IsDPath G u w S P) {s : V} (hs : s �
       refine ⟨f, Set.mem_insert_of_mem _ hf, hfs, Set.mem_insert_of_mem _ hft,
         fun t ht hst hts => ?_⟩
       rcases Set.mem_insert_iff.mp ht with rfl | ht
-      · exact absurd ((h.reaches_of_mem hs').1.trans hst) (not_reaches_target_source_of_isAcyclic hA e)
+      · exact absurd ((h.reaches_of_mem hs').1.trans hst)
+          (not_reaches_target_source_of_isAcyclic hA e)
       · exact hnext t ht hst hts
 
-/-- **The node before a node of a path**, other than its start, in an acyclic graph: an arc of the path
-enters the node, and its source is above the node and below the earlier nodes of the path. -/
+/-- **The node before a node of a path**, other than its start, in an acyclic graph: an arc of the
+path enters the node, and its source is above the node and below the earlier nodes of the path. -/
 theorem exists_prev (hA : G.IsAcyclic) (h : IsDPath G u w S P) {s : V} (hs : s ∈ S) (hsu : s ≠ u) :
     ∃ f ∈ P, G.target f = s ∧ G.source f ∈ S ∧
       ∀ t ∈ S, G.Reaches t s → t ≠ s → G.Reaches t (G.source f) := by
@@ -272,8 +275,8 @@ theorem isSDPath (hA : G.IsAcyclic) {G' : SemidirectedNetwork V E X} (hG : G'.gr
       rfl, rfl, Set.range_eq_empty _, Set.range_const⟩
   | cons e h ih =>
     obtain ⟨k, v, f, hpath, h0, hlast, hP, hS⟩ := ih
-    refine ⟨k + 1, (Fin.cons (G'.graph.source e) v : Fin (k + 2) → V), (Fin.cons e f : Fin (k + 1) → E),
-      ⟨fun i => ?_, ?_⟩, rfl, ?_, ?_, ?_⟩
+    refine ⟨k + 1, (Fin.cons (G'.graph.source e) v : Fin (k + 2) → V),
+      (Fin.cons e f : Fin (k + 1) → E), ⟨fun i => ?_, ?_⟩, rfl, ?_, ?_, ?_⟩
     · refine Fin.cases ?_ (fun i => ?_) i
       · refine Or.inl ⟨rfl, ?_⟩
         rw [Fin.cons_zero]

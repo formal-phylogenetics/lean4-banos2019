@@ -14,13 +14,14 @@ module describes it for a single cycle, and `Q₁⊕ = deleteArc Q h`:
   above its nodes that receives every arc entering `C` off `C`; then `Q₀⊕` is a metric phylogenetic
   network (`IsContractible.isPhylogenetic`, `IsContractible.isMetric`).
 * `reaches_contract_iff`, `isCut_contract`, `rootDist_cutLower_contract`: below a vertex `z` none of
-  whose descendants is a node of `C`, `Q₀⊕` and `Q⊕` have isomorphic parts, so the forest arriving at
-  `z` has the same law.
+  whose descendants is a node of `C`, `Q₀⊕` and `Q⊕` have isomorphic parts, so the forest arriving
+  at `z` has the same law.
 * `IsContractible.reaches_top_iff`, `IsContractible.isCut_top`, `IsContractible.upperLaw_contract`:
   above the top, `Q₀⊕` and `Q⊕` have isomorphic parts.
 * `isCut_child_of_hybrid`: the child of a hybrid node is a cut vertex.
-* `isCut_deleteArc`, `rootDist_cutLower_deleteArc`, `isPhylogenetic_deleteArc`, `isMetric_deleteArc`,
-  `upperLaw_deleteArc_of_parallel`: the same for the network without a hybrid arc.
+* `isCut_deleteArc`, `rootDist_cutLower_deleteArc`, `isPhylogenetic_deleteArc`,
+  `isMetric_deleteArc`, `upperLaw_deleteArc_of_parallel`: the same for the network without a hybrid
+  arc.
 -/
 
 @[expose] public noncomputable section
@@ -84,7 +85,8 @@ theorem mk_eq_mk_iff_of_notMem' (hC : IsCycle Q.graph C) {a b : V}
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- The arcs of `Q₀⊕` are the arcs off `C`. -/
-theorem notMem_of_contract {e : E} (he : ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C') (hC : IsCycle Q.graph C) :
+theorem notMem_of_contract {e : E} (he : ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C')
+    (hC : IsCycle Q.graph C) :
     e ∉ C :=
   he C hC rfl
 
@@ -174,8 +176,8 @@ def belowArcsContractEquiv (hC : IsCycle Q.graph C)
         change Quot.mk _ (Q.graph.target e.1) = Quot.mk _ z
         rw [h])⟩, rfl⟩)
 
-/-- **The law of the forest arriving at `z` is the same in `Q⊕` and in `Q₀⊕`**, when no descendant of
-`z` is a node of `C`. -/
+/-- **The law of the forest arriving at `z` is the same in `Q⊕` and in `Q₀⊕`**, when no descendant
+of `z` is a node of `C`. -/
 theorem rootDist_cutLower_contract (hC : IsCycle Q.graph C) (hc : IsCut Q z)
     (hS : ∀ w, Q.graph.Reaches z w → w ∉ cycleNodes Q.graph C) (θ : MetricData E) (ρ : ℝ)
     (F : Finset (Finset X)) :
@@ -229,7 +231,8 @@ theorem exists_arc_enter' {p : V → Prop} {a b : V} (h : Q.graph.Reaches a b) (
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- Every vertex of a phylogenetic network is above a taxon. -/
-theorem exists_reaches_leaf (hQ : Q.IsPhylogenetic) (w : V) : ∃ x, Q.graph.Reaches w (Q.leaf x) := by
+theorem exists_reaches_leaf (hQ : Q.IsPhylogenetic) (w : V) : ∃ x, Q.graph.Reaches w
+    (Q.leaf x) := by
   have : Finite V := hQ.finite_vertices
   have : Finite E := hQ.finite_arcs
   let rel : V → V → Prop := fun a c => Relation.TransGen Q.graph.Adj c a
@@ -700,8 +703,8 @@ def belowArcsDeleteEquiv (hc : IsCut Q z) (hS : ∀ w, Q.graph.Reaches z w → Q
   left_inv _ := rfl
   right_inv _ := rfl
 
-/-- **The law of the forest arriving at `z` is the same without `h`**, when `h` leaves no vertex below
-`z`. -/
+/-- **The law of the forest arriving at `z` is the same without `h`**, when `h` leaves no vertex
+below `z`. -/
 theorem rootDist_cutLower_deleteArc (hc : IsCut Q z)
     (hS : ∀ w, Q.graph.Reaches z w → Q.graph.source h ≠ w) (θ : MetricData E) (ρ : ℝ)
     (F : Finset (Finset X)) :
@@ -720,7 +723,8 @@ theorem rootDist_cutLower_deleteArc (hc : IsCut Q z)
       have hth : Q.graph.Reaches z (Q.graph.target h) := heq ▸ e.2.1
       exact hS _ (hc.entry h hth (heq ▸ e.2.2)) rfl
     rw [ite_eq_right hne]
-  rw [rootDist_congr (N := cutLower Q z hc) (N' := cutLower (deleteArc Q h) z (isCut_deleteArc hc hS))
+  rw [rootDist_congr (N := cutLower Q z hc)
+    (N' := cutLower (deleteArc Q h) z (isCut_deleteArc hc hS))
     (θ := cutLowerMetric Q z θ) (θ' := cutLowerMetric (deleteArc Q h) z (deleteArcMetric Q h θ))
     (Equiv.subtypeEquivRight fun w => (reaches_deleteArc_iff hS w).symm)
     (belowArcsDeleteEquiv hc hS) (fun _ => rfl) (fun _ => rfl) rfl (fun _ => rfl) hinh]

@@ -6,9 +6,9 @@ public import Banos2019.Quartet.CycleBlocks
 /-!
 # The cycles and the descendants of `N⁻` in the terms of `N` (Baños 2019, Section 5)
 
-For a binary network `M` whose root is the LSA of its taxa, the nodes of `N⁻ = semidirected M` are the
-nodes of `M` other than the root, and its edges the arcs of `M` other than the arc `e₀ = sdRootArc`
-out of the root, which is merged into the other arc out of the root.
+For a binary network `M` whose root is the LSA of its taxa, the nodes of `N⁻ = semidirected M` are
+the nodes of `M` other than the root, and its edges the arcs of `M` other than the arc
+`e₀ = sdRootArc` out of the root, which is merged into the other arc out of the root.
 
 * `semidirected_graph_isAcyclic`: the edges of `N⁻`, oriented from source to target, form an acyclic
   graph: no edge enters the child of `e₀`.
@@ -16,8 +16,9 @@ out of the root, which is merged into the other arc out of the root.
   in `M`: a semidirected path from a hybrid node never goes up a tree edge.
 * `liftEdges`: the arcs of `M` of a set of edges of `N⁻`, with `e₀` when the merged edge is one of
   them. `isCycle_liftEdges`, `isCycle_iff_liftEdges`: the cycles of `N⁻` are the cycles of `M`, with
-  `liftEdges`; `ncard_liftEdges`, `root_mem_cycleNodes_liftEdges_iff`: a cycle of `M` through the root
-  has one edge more than the cycle of `N⁻`; `isHybridNodeOf_iff`: their hybrid nodes are the same.
+  `liftEdges`; `ncard_liftEdges`, `root_mem_cycleNodes_liftEdges_iff`: a cycle of `M` through the
+  root has one edge more than the cycle of `N⁻`; `isHybridNodeOf_iff`: their hybrid nodes are the
+  same.
 -/
 
 @[expose] public noncomputable section
@@ -57,8 +58,8 @@ theorem sdVert_source_of_ne_target_sdRootArc (g : SemidirectedArc hM hB hX)
   · exact absurd h hg
   · exact ⟨h, hs⟩
 
-/-- **The graph of `N⁻` is acyclic**: a closed directed path would enter the child of `e₀` to use the
-merged edge, so it is a closed directed path of `M`. -/
+/-- **The graph of `N⁻` is acyclic**: a closed directed path would enter the child of `e₀` to use
+the merged edge, so it is a closed directed path of `M`. -/
 theorem semidirected_graph_isAcyclic : (semidirected hM hB hX).graph.IsAcyclic := by
   set G := semidirected hM hB hX
   have key : ∀ a b, Relation.TransGen G.graph.Adj a b →
@@ -69,14 +70,16 @@ theorem semidirected_graph_isAcyclic : (semidirected hM hB hX).graph.IsAcyclic :
     induction h with
     | single hab =>
       obtain ⟨g, rfl, rfl⟩ := hab
-      refine ⟨.single ⟨sdArc hM hB hX g, (sdVert_source_of_ne_target_sdRootArc hM hB hX g ha).1.symm, rfl⟩, ?_⟩
+      refine ⟨.single ⟨sdArc hM hB hX g,
+        (sdVert_source_of_ne_target_sdRootArc hM hB hX g ha).1.symm, rfl⟩, ?_⟩
       rw [sdVert_target]
       exact target_sdArc_ne hM hB hX g
     | tail _ hbc ih =>
       obtain ⟨h₁, h₂⟩ := ih
       obtain ⟨g, hgs, rfl⟩ := hbc
       subst hgs
-      refine ⟨h₁.tail ⟨sdArc hM hB hX g, (sdVert_source_of_ne_target_sdRootArc hM hB hX g h₂).1.symm, rfl⟩, ?_⟩
+      refine ⟨h₁.tail ⟨sdArc hM hB hX g,
+        (sdVert_source_of_ne_target_sdRootArc hM hB hX g h₂).1.symm, rfl⟩, ?_⟩
       rw [sdVert_target]
       exact target_sdArc_ne hM hB hX g
   intro u hu
@@ -87,11 +90,11 @@ theorem semidirected_graph_isAcyclic : (semidirected hM hB hX).graph.IsAcyclic :
     exact target_sdArc_ne hM hB hX g
   exact hM.acyclic _ (key u u hu hu').1
 
-/-- **The taxa descending from a hybrid node of `N⁻` are those below it in `M`.** A semidirected path
-from the hybrid node `v` never goes against a tree edge: the node it enters along an edge has no other
-tree edge entering it, and that edge leads back to a node already on the path. So it follows the
-arcs of `M`, never entering the child of `e₀` and so never using the merged edge. Conversely a path of
-`M` from `v` stays below `v`, away from the root, and is a path of `N⁻`. -/
+/-- **The taxa descending from a hybrid node of `N⁻` are those below it in `M`.** A semidirected
+path from the hybrid node `v` never goes against a tree edge: the node it enters along an edge has
+no other tree edge entering it, and that edge leads back to a node already on the path. So it
+follows the arcs of `M`, never entering the child of `e₀` and so never using the merged edge.
+Conversely a path of `M` from `v` stays below `v`, away from the root, and is a path of `N⁻`. -/
 theorem descendsFrom_semidirected_iff (v : SemidirectedVertex hM hX)
     (h2 : M.graph.indegree (sdVert hM hX v) = 2) (x : X) :
     DescendsFrom (semidirected hM hB hX) v x ↔ M.graph.Reaches (sdVert hM hX v) (M.leaf x) := by
@@ -152,7 +155,8 @@ theorem descendsFrom_semidirected_iff (v : SemidirectedVertex hM hX)
     have hlv : M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (sdVert hM hX v) :=
       ((mem_range_sdVert hM hX _).1 ⟨v, rfl⟩).1
     have hdp := hp.pullback (H' := G.graph) (sdVert hM hX) (sdArc hM hB hX)
-      (sdVert_injective hM hX) (sdArc_injective hM hB hX) (fun e he => ?_) rfl (sdVert_leaf hM hB hX x)
+      (sdVert_injective hM hX) (sdArc_injective hM hB hX) (fun e he => ?_) rfl
+      (sdVert_leaf hM hB hX x)
     · exact ⟨_, _, IsDPath.isSDPath (semidirected_graph_isAcyclic hM hB hX) rfl hdp⟩
     · have hs := (hp.reaches_of_mem (hp.ends_mem he).1).1
       have hsl : M.graph.source e ≠ lsa hM Set.univ Set.univ_nonempty := fun h' =>
@@ -179,7 +183,8 @@ theorem sdVert_ne_lsa (u : SemidirectedVertex hM hX) :
     sdVert hM hX u ≠ lsa hM Set.univ Set.univ_nonempty :=
   ((mem_range_sdVert hM hX _).1 ⟨u, rfl⟩).2
 
-theorem sdArc_mem_liftEdges_iff (D : Set (SemidirectedArc hM hB hX)) (g : SemidirectedArc hM hB hX) :
+theorem sdArc_mem_liftEdges_iff (D : Set (SemidirectedArc hM hB hX))
+    (g : SemidirectedArc hM hB hX) :
     sdArc hM hB hX g ∈ liftEdges hM hB hX D ↔ g ∈ D := by
   constructor
   · rintro ⟨g', hg', h | ⟨-, h⟩⟩
@@ -200,8 +205,8 @@ theorem sdVert_source_cases (g : SemidirectedArc hM hB hX) :
   · exact Or.inr ⟨hs, h⟩
   · exact Or.inl ⟨hs, h⟩
 
-/-- At most one edge of `N⁻` leaves the LSA in `M`: the LSA has outdegree two, and `e₀` is one of its
-arcs. -/
+/-- At most one edge of `N⁻` leaves the LSA in `M`: the LSA has outdegree two, and `e₀` is one of
+its arcs. -/
 theorem eq_of_source_sdArc_eq_lsa {g g' : SemidirectedArc hM hB hX}
     (hg : M.graph.source (sdArc hM hB hX g) = lsa hM Set.univ Set.univ_nonempty)
     (hg' : M.graph.source (sdArc hM hB hX g') = lsa hM Set.univ Set.univ_nonempty) : g = g' := by
@@ -409,8 +414,9 @@ theorem exists_sdArc_of_ne (hr : lsa hM Set.univ Set.univ_nonempty = M.root) {f 
   · exact h
   · exact absurd (hm.trans hr) hf
 
-/-- A cycle of `M` read from the root is the cycle of `M` of a cycle of `N⁻`: its nodes other than the
-root and its edges other than the two at the root form a path of `N⁻`, which the merged edge closes. -/
+/-- A cycle of `M` read from the root is the cycle of `M` of a cycle of `N⁻`: its nodes other than
+the root and its edges other than the two at the root form a path of `N⁻`, which the merged edge
+closes. -/
 theorem exists_liftEdges_eq_of_root (hr : lsa hM Set.univ Set.univ_nonempty = M.root)
     (hbin : IsBinaryRootedNetwork M) {m : ℕ} {v : Fin (m + 2) → V} {e : Fin (m + 2) → E}
     (hC : IsCycleOf M.graph (m + 2) v e) (hv0 : v 0 = M.root) :
@@ -422,7 +428,8 @@ theorem exists_liftEdges_eq_of_root (hr : lsa hM Set.univ Set.univ_nonempty = M.
     Fin.succ_ne_zero i (hC.injective_node (h.trans hv0.symm))
   -- the nodes and the inner edges as nodes and edges of `N⁻`
   choose w hw using fun i : Fin (m + 1) => exists_sdVert_of_ne hM hX hr (hvr i)
-  have hlink : ∀ l : Fin m, Joins M.graph (e l.succ.castSucc) (v l.succ.castSucc) (v l.succ.succ) := by
+  have hlink : ∀ l : Fin m, Joins M.graph (e l.succ.castSucc) (v l.succ.castSucc)
+    (v l.succ.succ) := by
     intro l
     have hr' : finRotate (m + 2) l.succ.castSucc = l.succ.succ := by
       ext

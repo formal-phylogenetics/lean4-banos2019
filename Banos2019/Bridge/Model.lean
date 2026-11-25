@@ -14,14 +14,15 @@ The Challenge states its theorems on the definitions of `Banos2019.Defs` (namesp
   `Model.ofSD`, `Model.ofRooted`: the same data as a `DirectedMultigraph`, a `RootedNetwork`, a
   `MetricData`, a `SemidirectedNetwork`, and back.
 * `Model.Digraph.isCycle_iff`, `isLevelOne_iff`: cycles and level-1 graphs.
-* `Model.Network.isBinaryNetwork_iff`: Definition 1, through `isBinaryRootedNetwork_iff`; connectedness
-  follows from the other clauses.
+* `Model.Network.isBinaryNetwork_iff`: Definition 1, through `isBinaryRootedNetwork_iff`;
+  connectedness follows from the other clauses.
 * `Model.Network.isMetric_iff`: Definition 2 on a binary network, through `isMetricNetwork_iff`.
 * `Model.Network.isLSA_iff`, `Model.Network.lsa_eq`: the lowest stable ancestor.
 * `Model.quartetTreeEquiv`, `Model.Network.cf_eq`: concordance factors, the allocation
   `∏ r, γ (a r)` being `allocationWeight 0` (`allocationWeight_rho_zero`).
 * `Model.bigCycleOn_iff`, `Model.sameOrdering_iff`, `Model.Network.forGenericParams_of`: the Big
-  Cycle property, orderings and genericity; the Challenge's null sets are contained in the library's.
+  Cycle property, orderings and genericity; the Challenge's null sets are contained in the
+  library's.
 * `Model.SDIso.toLib`, `Model.SDIso.ofLib`, `Model.SDMetricIso.toLib`, `Model.SDMetricIso.ofLib`:
   isomorphisms.
 -/
@@ -109,8 +110,8 @@ variable (N : Network V E X)
 
 theorem graph_toRooted : N.toRooted.graph = N.graph.toDM := rfl
 
-/-- **Definition 1** is the library's binary rooted phylogenetic network. Definition 1 also asks for a
-connected graph, which the clauses give: going up from any node ends at the root. -/
+/-- **Definition 1** is the library's binary rooted phylogenetic network. Definition 1 also asks for
+a connected graph, which the clauses give: going up from any node ends at the root. -/
 theorem isBinaryNetwork_iff : N.IsBinaryNetwork ↔ IsBinaryRootedNetwork N.toRooted := by
   rw [isBinaryRootedNetwork_iff]
   constructor
@@ -172,7 +173,8 @@ theorem isMetric_iff [Fintype E] (hN : N.IsBinaryNetwork) (θ : Params E) :
 /-! ### The lowest stable ancestor -/
 
 /-- **Definition 4** is the library's least stable ancestor. -/
-theorem isLSA_iff (Z : Set X) (v : V) : N.IsLSA Z v ↔ N.toRooted.IsLeastStableAncestor Z v := Iff.rfl
+theorem isLSA_iff (Z : Set X) (v : V) : N.IsLSA Z v ↔
+    N.toRooted.IsLeastStableAncestor Z v := Iff.rfl
 
 theorem lsa_eq (hN : N.IsBinaryNetwork) [Nonempty X] :
     N.lsa = RootedNetwork.lsa ((N.isBinaryNetwork_iff).mp hN).1 Set.univ Set.univ_nonempty := by
@@ -208,7 +210,8 @@ theorem kingmanAbsorption_eq :
       Phylogenetics.kingmanAbsorption := rfl
 
 omit [Fintype L] in
-theorem forestBelow_eq (F A : Finset (Finset L)) : forestBelow F A = Phylogenetics.forestBelow F A :=
+theorem forestBelow_eq (F A : Finset (Finset L)) : forestBelow F A =
+    Phylogenetics.forestBelow F A :=
   rfl
 
 theorem unroot_eq (G : Finset (Finset L)) : unroot G = Phylogenetics.unroot G := rfl
@@ -325,9 +328,9 @@ namespace Network
 
 variable [Fintype E] (N : Network V E X)
 
-/-- **Genericity transfers**: a property that holds for generic parameters in the library's sense holds
-for generic parameters in the Challenge's. The Challenge's exceptional set, `{θ | N.IsMetric θ ∧ ¬ P θ}`
-in the same coordinates, is contained in the library's. -/
+/-- **Genericity transfers**: a property that holds for generic parameters in the library's sense
+holds for generic parameters in the Challenge's. The Challenge's exceptional set,
+`{θ | N.IsMetric θ ∧ ¬ P θ}` in the same coordinates, is contained in the library's. -/
 theorem forGenericParams_of (hN : N.IsBinaryNetwork) {P : Params E → Prop} {Q : MetricData E → Prop}
     (hPQ : ∀ θ, N.IsMetric θ → Q θ.toMetric → P θ) (h : Banos2019.ForGenericParams N.toRooted Q) :
     N.ForGenericParams P := by

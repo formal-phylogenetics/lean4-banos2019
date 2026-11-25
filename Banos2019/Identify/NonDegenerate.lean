@@ -25,7 +25,6 @@ displays is strictly the most probable (`nmscCF_choiceMetric_alternative_lt`).
 * `nmscCF_choiceMetric_alternative_lt`: in the parameters of a parent choice, with positive lengths,
   a quartet tree displayed by the tree of the choice has a larger concordance factor than its
   alternatives.
-* `forGenericParams_nonDegenerateCF_of_isBinary`: the first condition, on every binary network.
 -/
 
 @[expose] public noncomputable section
@@ -132,8 +131,8 @@ theorem exists_displays_displayedSides_of_isBinary {N : RootedNetwork V E X}
 
 /-- **In the parameters of a parent choice, with positive lengths, a quartet tree displayed by the
 tree of the choice has a larger concordance factor than its alternatives** (with independent
-inheritance, `ρ = 0`): the network then behaves as the tree of the choice, in which an arc of positive
-length separates the two cherries of the quartet tree. -/
+inheritance, `ρ = 0`): the network then behaves as the tree of the choice, in which an arc of
+positive length separates the two cherries of the quartet tree. -/
 theorem nmscCF_choiceMetric_alternative_lt {N : RootedNetwork V E X} (hN : N.IsPhylogenetic)
     (c : N.ParentChoice) {θ : MetricData E} (hℓ : ∀ f, 0 < θ.length f) {r : QuartetTree X}
     (hd : Displays (N.displayedSides c) r) {r' : QuartetTree X} (hr' : r' ∈ r.alternatives) :
@@ -158,7 +157,7 @@ every binary network. For each set `s` of four taxa, the tree of a parent choice
 tree `r` on `s`; in the parameters of the choice with lengths `1`, the concordance factor of `r`
 exceeds that of an alternative `r'`, so that the analytic function `CF(r) - CF(r')` of the
 coordinates vanishes only on a null set. -/
-theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
+theorem forGenericParams_nonDegenerateCF {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → NonDegenerateCF (cf N θ) := by
   -- a parent choice, and lengths `1`
@@ -171,7 +170,8 @@ theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
   let c₀ : N.ParentChoice := fun v => (hpar v).some
   let θ₁ : MetricData E := ⟨fun _ => 1, fun _ => 0⟩
   refine (forGenericParams_iInter (ι := {s : Finset X // #s = 4})
-    (P := fun s θ => IsMetricNetwork N θ → ∃ q ∈ treesOn s.1, ∃ r ∈ treesOn s.1, cf N θ q ≠ cf N θ r)
+    (P := fun s θ => IsMetricNetwork N θ → ∃ q ∈ treesOn s.1, ∃ r ∈
+      treesOn s.1, cf N θ q ≠ cf N θ r)
     fun s => ?_).mono fun θ h hθ s hs => h ⟨s, hs⟩ hθ
   -- the quartet tree on `s` displayed by the tree of `c₀`, and an alternative
   obtain ⟨r, hr, hd⟩ := exists_displays_displayedSides_of_isBinary hN c₀ s.2
@@ -190,19 +190,12 @@ theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
   by_contra hne
   exact hθ fun _ => ⟨r, hr, r', hr'', hne⟩
 
-set_option linter.unusedVariables false in
-/-- **For generic parameters, the concordance factors on a set of four taxa are not all equal.** -/
-theorem forGenericParams_nonDegenerateCF {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) :
-    ForGenericParams N fun θ => IsMetricNetwork N θ → NonDegenerateCF (cf N θ) :=
-  forGenericParams_nonDegenerateCF_of_isBinary hN
-
 /-- **The conditions of Theorem 4 hold for generic parameters** (Lemma 12 and
 `forGenericParams_nonDegenerateCF`). -/
 theorem forGenericParams_goodParams {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) : ForGenericParams N (GoodParams hX N) := by
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
-  exact ((lemma12 hN h1 hX).and (forGenericParams_nonDegenerateCF hN h1)).mono
+  exact ((lemma12 hN h1 hX).and (forGenericParams_nonDegenerateCF hN)).mono
     fun θ h hθ _ => ⟨h.1 hθ, h.2 hθ⟩
 
 end Banos2019

@@ -17,12 +17,12 @@ This module gives the properties of `S` that `C` keeps.
 * `IsContraction.outdegree_eq`, `IsContraction.isPhylogenetic`, `IsContraction.isBinary`,
   `IsContraction.isLevelOne`, `IsContraction.isMetric`: the network laws and the parameters.
 * `IsContraction.geneTreeDist_eq`: the gene tree distribution is the same. With the root of
-  outdegree one, the forest at the child of the root goes up the arc at the root, and the population on
-  that arc does not change the gene tree (`kingmanTransition_mul_kingmanAbsorption`).
+  outdegree one, the forest at the child of the root goes up the arc at the root, and the population
+  on that arc does not change the gene tree (`kingmanTransition_mul_kingmanAbsorption`).
 * `IsContraction.hasCutSplit_iff`: the cut edges between two nonempty sets of taxa are the same.
-* `IsContraction.isCycle_image`, `IsContraction.exists_eq_image`, `IsContraction.inducesCycleType_iff`:
-  the cycles, with their types, are the same, when the child of a root of outdegree one is on no
-  cycle.
+* `IsContraction.isCycle_image`, `IsContraction.exists_eq_image`,
+  `IsContraction.inducesCycleType_iff`: the cycles, with their types, are the same, when the child
+  of a root of outdegree one is on no cycle.
 * `finContract`: `S` with the arc at the root contracted, its nodes and arcs renamed by `Fin`.
 -/
 
@@ -224,9 +224,9 @@ theorem isMetric [Fintype EC] [Fintype ES] {θ : MetricData ES} (hθ : S.IsMetri
   · obtain ⟨e, rfl⟩ := hK.exists_arc_of_target hcr (mem_filter.1 ha).2
     exact ⟨e, mem_filter.2 ⟨mem_univ _, hK.inj_v ((hK.target e).trans (mem_filter.1 ha).2)⟩, rfl⟩
 
-/-- **The gene tree distribution of `C` is that of `S`**, when the arc at a root of outdegree one has
-inheritance `1`: with a root of outdegree one, `S` is `C` glued below one arc from a single node, and
-the population on that arc does not change the gene tree. -/
+/-- **The gene tree distribution of `C` is that of `S`**, when the arc at a root of outdegree one
+has inheritance `1`: with a root of outdegree one, `S` is `C` glued below one arc from a single
+node, and the population on that arc does not change the gene tree. -/
 theorem geneTreeDist_eq [Fintype VS] [Fintype ES] [Fintype VC] [Fintype EC] [Fintype Y]
     (θ : MetricData ES)
     (hθ : ∀ a, S.graph.source a = S.root → S.graph.outdegree S.root = 1 → θ.inheritance a = 1)
@@ -337,8 +337,8 @@ theorem nmscCF_eq [Fintype VS] [Fintype ES] [Fintype VC] [Fintype EC] [Fintype Y
   simp only [hK.geneTreeDist_eq hS htwo θ hθ hρ]
 
 omit htwo in
-/-- **The cut edges of `C` and `S` between two nonempty sets of taxa are the same.** The arc at a root
-of outdegree one is not one of them: every taxon is below its target. -/
+/-- **The cut edges of `C` and `S` between two nonempty sets of taxa are the same.** The arc at a
+root of outdegree one is not one of them: every taxon is below its target. -/
 theorem hasCutSplit_iff {A : Set Y} (hA : ∃ x, x ∈ A) (hA' : ∃ x, x ∉ A) :
     C.HasCutSplit A ↔ S.HasCutSplit A := by
   have := hS.finite_arcs
@@ -531,7 +531,8 @@ abbrev FinContractVertex := Fin (Fintype.card (ContractRootVertex S))
 /-- The arcs of `finContract S hS`. -/
 abbrev FinContractArc := Fin (Fintype.card (ContractRootArc S))
 
-/-- **`S` with the arc at a root of outdegree one contracted, its nodes and arcs renamed by `Fin`.** -/
+/-- **`S` with the arc at a root of outdegree one contracted, its nodes and arcs renamed by `Fin`.**
+-/
 def finContract : RootedNetwork (FinContractVertex S) (FinContractArc S) Y where
   graph :=
     { source := fun e => Fintype.equivFin _

@@ -8,18 +8,20 @@ public import Banos2019.Quartet.RootedIsoUnrooted
 /-!
 # The unrooted network of `Q_a⊕`
 
-For a hybrid node `w` of a semidirected network `G` with hybrid edges `h₁`, `h₂`, `cutSD G w h₁ h₂ a b`
-is `G` without the nodes joined to `w` by paths avoiding `h₁` and `h₂` (`CutReach`), with `h₁` and `h₂`
-ending at two new leaves labelled `a` and `b`, as tree edges. An isomorphism of semidirected networks
-keeps `CutReach` (`SDIso.cutReach_iff`) and, when `h₁` and `h₂` are hybrid, maps the cut network to the
-network cut at the images (`SDMetricIso.nonempty_cutSD_of_isDirected`).
+For a hybrid node `w` of a semidirected network `G` with hybrid edges `h₁`, `h₂`,
+`cutSD G w h₁ h₂ a b` is `G` without the nodes joined to `w` by paths avoiding `h₁` and `h₂`
+(`CutReach`), with `h₁` and `h₂` ending at two new leaves labelled `a` and `b`, as tree edges. An
+isomorphism of semidirected networks keeps `CutReach` (`SDIso.cutReach_iff`) and, when `h₁` and `h₂`
+are hybrid, maps the cut network to the network cut at the images
+(`SDMetricIso.nonempty_cutSD_of_isDirected`).
 
 For a binary level-1 network `Q` whose root is the LSA of its taxa, the nodes of `Q⁻` joined to a
-hybrid node `w` avoiding its hybrid edges are those below `w` in `Q` (`cutReach_semidirected_iff`: the
-arcs entering the part below `w` enter `w`, `isCut_hybrid`), and the unrooted network of
-`Q_a⊕ = disjointNet Q w h₁ h₂ a b` is `cutSD Q⁻ w h₁ h₂ a b` (`nonempty_sdMetricIso_disjointNet_cutSD`):
-its nodes are the nodes of `Q⁻` not below `w` and the two new leaves, and its edges the arcs of `Q`
-out of these nodes, the two arcs at the root merged, possibly in the other order than in `Q⁻`.
+hybrid node `w` avoiding its hybrid edges are those below `w` in `Q` (`cutReach_semidirected_iff`:
+the arcs entering the part below `w` enter `w`, `isCut_hybrid`), and the unrooted network of
+`Q_a⊕ = disjointNet Q w h₁ h₂ a b` is `cutSD Q⁻ w h₁ h₂ a b`
+(`nonempty_sdMetricIso_disjointNet_cutSD`): its nodes are the nodes of `Q⁻` not below `w` and the
+two new leaves, and its edges the arcs of `Q` out of these nodes, the two arcs at the root merged,
+possibly in the other order than in `Q⁻`.
 -/
 
 @[expose] public noncomputable section
@@ -35,8 +37,8 @@ variable {V E X V' E' : Type*}
 def CutReach (G : SemidirectedNetwork V E X) (h₁ h₂ : E) (w : V) : V → Prop :=
   Relation.ReflTransGen (fun u u' => ∃ g, g ≠ h₁ ∧ g ≠ h₂ ∧ Joins G.graph g u u') w
 
-/-- **`G` cut below `w`**: without the nodes joined to `w` avoiding `h₁` and `h₂`, the edges `h₁` and
-`h₂` ending at two new leaves, labelled `a` and `b`, as tree edges. -/
+/-- **`G` cut below `w`**: without the nodes joined to `w` avoiding `h₁` and `h₂`, the edges `h₁`
+and `h₂` ending at two new leaves, labelled `a` and `b`, as tree edges. -/
 def cutSD (G : SemidirectedNetwork V E X) (w : V) (h₁ h₂ : E) (a b : X) :
     SemidirectedNetwork ({u // ¬ CutReach G h₁ h₂ w u} ⊕ Fin 2)
       {g // ¬ CutReach G h₁ h₂ w (G.graph.source g)} X where
@@ -434,7 +436,8 @@ theorem nonempty_sdMetricIso_disjointNet_cutSD {Q : RootedNetwork V E X}
     sdVert_injective hb.1 hX (h.trans (hvert s).symm)
   -- the edges
   let arcN : {g // ¬ CutReach (semidirected hQ.1 hQ.2 hX) h₁ h₂ w
-      ((semidirected hQ.1 hQ.2 hX).graph.source g)} → {e // ¬ Q.graph.Reaches v (Q.graph.source e)} :=
+      ((semidirected hQ.1 hQ.2 hX).graph.source g)} →
+      {e // ¬ Q.graph.Reaches v (Q.graph.source e)} :=
     fun g => ⟨sdArc hQ.1 hQ.2 hX g.1, (not_congr (csrc g.1)).1 g.2⟩
   let eRN : {e // ¬ Q.graph.Reaches v (Q.graph.source e)} :=
     ⟨sdRootArc hQ.1 hQ.2 hX, by rw [heR]; exact hρ⟩
@@ -670,7 +673,8 @@ theorem nonempty_sdMetricIso_disjointNet_cutSD {Q : RootedNetwork V E X}
       (semidirectedMetric hQ.1 hQ.2 hX θ).length g.1
     rw [semidirectedMetric_length, semidirectedMetric_length, hedge]
     rcases hcases g with ⟨hs, h⟩ | ⟨hs, hf, h⟩ | ⟨hs, hf, h⟩
-    · rw [h, ite_eq_right (fun h' => hs ((hsrcRoot _).1 h')), ite_eq_right (fun h' => hs (h'.trans hr))]
+    · rw [h, ite_eq_right (fun h' => hs ((hsrcRoot _).1 h')), ite_eq_right
+        (fun h' => hs (h'.trans hr))]
       rfl
     · rw [h, ite_eq_left ((hsrcRoot _).2 hs), ite_eq_left (hs.trans hr.symm), hf]
       rfl

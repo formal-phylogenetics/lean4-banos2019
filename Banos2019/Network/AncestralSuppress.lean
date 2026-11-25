@@ -8,8 +8,8 @@ public import Banos2019.Network.Contraction
 For a network `N` and a set `Z` of taxa, `M` is the ancestral network on `Z` (the arcs and nodes on
 paths from the root to the taxa of `Z`) and `S` is `M` with its nodes of indegree and outdegree one
 suppressed (Definition 7, steps 1 and 2). The nodes of `S` are the nodes of `M` that are not chain
-nodes (`ChainZ`); an arc of `S` is the chain of `M` starting with an arc out of such a node, from its
-source to the end of the chain (`chainEndZ`).
+nodes (`ChainZ`); an arc of `S` is the chain of `M` starting with an arc out of such a node, from
+its source to the end of the chain (`chainEndZ`).
 
 * `valS`, `valSE`: the node and the arc of `N` of a node and an arc of `S`.
 * `suppressAnc_reaches_iff`: paths of `S` are paths of `N`.
@@ -316,7 +316,8 @@ def chainTailArcs (a : V) : Set E :=
     (N.ancestralNetwork Z hZ hN.root_reaches).ChainReach ⟨a, ha⟩
       ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source ⟨e, he⟩)}
 
-/-- **The chain of the ancestral network from a node, as a path of `N`**, to the end of the chain. -/
+/-- **The chain of the ancestral network from a node, as a path of `N`**, to the end of the chain.
+-/
 theorem isDPath_chainTail [Finite V] {a : V} (ha : a ∈ N.ancestralVertices Z) :
     IsDPath N.graph a (chainEndZ hN hZ a) (chainNodes hN hZ a) (chainTailArcs hN hZ a) := by
   set M := N.ancestralNetwork Z hZ hN.root_reaches
@@ -501,7 +502,8 @@ theorem chainEndZ_ne {f f' : E} (hf : f ∈ N.ancestralArcs Z) (hf' : f' ∈ N.a
   have h₁ := target_chainLast hM ⟨f, hf⟩
   have h₂ := target_chainLast hM ⟨f', hf'⟩
   have hl : chainLast hM ⟨f, hf⟩ ≠ chainLast hM ⟨f', hf'⟩ := fun h => hne (congrArg Subtype.val
-    (congrArg Subtype.val (chainLast_injective hM (a₁ := ⟨⟨f, hf⟩, hsA⟩) (a₂ := ⟨⟨f', hf'⟩, hsA'⟩) h)))
+    (congrArg Subtype.val (chainLast_injective hM (a₁ := ⟨⟨f, hf⟩, hsA⟩)
+      (a₂ := ⟨⟨f', hf'⟩, hsA'⟩) h)))
   have hl' : (chainLast hM ⟨f, hf⟩).1 ≠ (chainLast hM ⟨f', hf'⟩).1 := fun h => hl (Subtype.ext h)
   have ht₁ : N.graph.target (chainLast hM ⟨f, hf⟩).1 = chainEndZ hN hZ (N.graph.target f) := by
     rw [chainEndZ_of_mem hN hZ hf]
@@ -521,7 +523,8 @@ theorem chainEndZ_ne {f f' : E} (hf : f ∈ N.ancestralArcs Z) (hf' : f' ∈ N.a
 
 /-- A chain has one first arc. -/
 theorem eq_of_mem_chainArcs {f f' a : E} (h : a ∈ chainArcs hN hZ f) (h' : a ∈ chainArcs hN hZ f')
-    (hs : ¬ ChainZ hN hZ (N.graph.source f)) (hs' : ¬ ChainZ hN hZ (N.graph.source f')) : f = f' := by
+    (hs : ¬ ChainZ hN hZ (N.graph.source f))
+    (hs' : ¬ ChainZ hN hZ (N.graph.source f')) : f = f' := by
   obtain ⟨hf, ha, hon⟩ := h
   obtain ⟨hf', ha', hon'⟩ := h'
   exact congrArg Subtype.val (hon.unique hon'

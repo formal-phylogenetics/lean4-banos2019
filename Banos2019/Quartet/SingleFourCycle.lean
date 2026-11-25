@@ -6,14 +6,14 @@ public import Banos2019.Quartet.SingleCycle
 # LSA quartet networks with a single 4-cycle (proofs of Propositions 10 and 11)
 
 An LSA quartet network `Q⊕` whose only cycle induces a `4₁`-cycle has nine nodes and nine arcs
-(`card_eq_nine_of_single_hybrid`): the root, the four leaves, the hybrid node `v` and the three other
-nodes of the cycle off the root. The child of `v` is the leaf of the taxon below `v`. Locating the arcs
-from the top of the cycle shows that `Q⊕` is one of seven networks on `Fin 9`, the rootings of
-Figure 17.
+(`card_eq_nine_of_single_hybrid`): the root, the four leaves, the hybrid node `v` and the three
+other nodes of the cycle off the root. The child of `v` is the leaf of the taxon below `v`. Locating
+the arcs from the top of the cycle shows that `Q⊕` is one of seven networks on `Fin 9`, the rootings
+of Figure 17.
 
 * `fig17RootSrc`, `fig17RootTgt`: the seven rootings of Figure 17 on `Fin 9`.
-* `exists_rootedIso_fourOne`: with a single cycle, inducing a `4₁`-cycle, `Q⊕` is isomorphic to one of
-  them, the arc of the root that the unrooted network merges being the edge `8`.
+* `exists_rootedIso_fourOne`: with a single cycle, inducing a `4₁`-cycle, `Q⊕` is isomorphic to one
+  of them, the arc of the root that the unrooted network merges being the edge `8`.
 -/
 
 @[expose] public noncomputable section
@@ -26,11 +26,11 @@ namespace Banos2019
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
 /-- The seven rootings of Figure 17 on `Fin 9`: the leaves `a, b, c, d` at `0, 1, 2, 3`, the nodes
-`4, 5, 6, 7` of the cycle with `a, b, c, d`, `6` the hybrid node, the root `8`, and the edges `0, …, 7`
-of the figure, the edge `8` being the arc of the root that the unrooted network merges into the other
-arc of the root. The root is on the edge of `a` (the first two rootings), on the edge of `b` (the next
-two), on the edge `t₂` from `4` to `5` (the next two), or on the hybrid edge from `5` to `6` (the last
-one). -/
+`4, 5, 6, 7` of the cycle with `a, b, c, d`, `6` the hybrid node, the root `8`, and the edges
+`0, …, 7` of the figure, the edge `8` being the arc of the root that the unrooted network merges
+into the other arc of the root. The root is on the edge of `a` (the first two rootings), on the edge
+of `b` (the next two), on the edge `t₂` from `4` to `5` (the next two), or on the hybrid edge from
+`5` to `6` (the last one). -/
 def fig17RootSrc : Fin 7 → Fin 9 → Fin 9 :=
   ![![8, 5, 6, 7, 4, 4, 5, 7, 8], ![8, 5, 6, 7, 4, 4, 5, 7, 8], ![4, 8, 6, 7, 4, 5, 5, 7, 8],
     ![4, 8, 6, 7, 4, 5, 5, 7, 8], ![4, 5, 6, 7, 4, 8, 5, 7, 8], ![4, 5, 6, 7, 4, 8, 5, 7, 8],
@@ -47,11 +47,11 @@ section SingleFourCycle
 variable {Q : RootedNetwork V E X} {θ : MetricData E} [DecidableEq X]
 
 /-- **An LSA quartet network whose only cycle induces a `4₁`-cycle is a rooting of Figure 17**, with
-the arc that its unrooted network merges at the root as the edge `8`. The child of the hybrid node `v`
-is the leaf of the taxon `c` below it; the other nodes of the cycle are tree nodes, each the parent of a
-leaf, but for the top of the cycle when the root is its parent. When the root is off the cycle, it is
-the parent of the top and of a leaf, and the top is a parent of `v` or not; when it is on the cycle, it
-is a parent of `v` or not. -/
+the arc that its unrooted network merges at the root as the edge `8`. The child of the hybrid node
+`v` is the leaf of the taxon `c` below it; the other nodes of the cycle are tree nodes, each the
+parent of a leaf, but for the top of the cycle when the root is its parent. When the root is off the
+cycle, it is the parent of the top and of a leaf, and the top is a parent of `v` or not; when it is
+on the cycle, it is a parent of `v` or not. -/
 theorem exists_rootedIso_fourOne (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     (hC : InducesCycleType Q C v 4 1) (hone : ∀ C', IsCycle Q.graph C' → C' = C) :
     ∃ (a b c d : X) (_ : Distinct4 a b c d) (s : Fin 7)
@@ -294,7 +294,8 @@ theorem exists_rootedIso_fourOne (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
       push Not at hx
       have h5 : #({x, a, b, c, d} : Finset X) = 5 := by
         rw [card_insert_of_notMem (by simp [hx.1, hx.2.1, hx.2.2.1, hx.2.2.2]),
-          card_insert_of_notMem (by simp [hab, hac, had]), card_insert_of_notMem (by simp [hbc, hbd]),
+          card_insert_of_notMem (by simp [hab, hac, had]), card_insert_of_notMem
+          (by simp [hbc, hbd]),
           card_pair hcd]
       have := card_le_univ ({x, a, b, c, d} : Finset X)
       omega

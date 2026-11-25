@@ -67,7 +67,7 @@ theorem reaches_lsa_source [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhyl
   exact hasPathAvoiding_trans (hasPathAvoiding_trans h₁ h₂) h₃
 
 /-- The vertices of `N` below the LSA, other than the LSA, keep their degrees in `𝒩⊕`. -/
-theorem lsaPlus_degree [Finite E] [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhylogenetic)
+theorem lsaPlus_degree [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhylogenetic)
     (hX : Nontrivial X) (w : N.belowVertices (lsa hP Set.univ Set.univ_nonempty) Set.univ)
     (hw : w.1 ≠ lsa hP Set.univ Set.univ_nonempty) :
     degree (lsaPlus hP hX).graph w = degree N.graph w.1 := by
@@ -323,7 +323,7 @@ theorem unrooted_walks_of_avoidingReach_lsa (g : SemidirectedArc hN.1 hN.2 hX) {
 
 /-- **A bridge of `N⁻` is a cut arc of `N`**: its arc dominates the taxa on the side of its target
 and is above none of the others. -/
-theorem unrooted_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
+theorem unrooted_separates (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : ¬ (unrooted N hN hX).graph.Walks {g}ᶜ ((unrooted N hN hX).graph.source g)
       ((unrooted N hN hX).graph.target g)) :
     N.Separates g.1.1
@@ -363,7 +363,7 @@ theorem unrooted_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
     exact hx hw'
 
 /-- **A bridge of `N⁻` is a cut arc of `N`**, for the side of either of its ends. -/
-theorem unrooted_side_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
+theorem unrooted_side_separates (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : ¬ (unrooted N hN hX).graph.Walks {g}ᶜ ((unrooted N hN hX).graph.source g)
       ((unrooted N hN hX).graph.target g)) {a : SemidirectedVertex hN.1 hX}
     (ha : a = (unrooted N hN hX).graph.source g ∨ a = (unrooted N hN hX).graph.target g) :
@@ -609,7 +609,7 @@ theorem not_hasFourCycle_of_ncard_le_three {V E : Type*} [Fintype V] [Fintype E]
     ¬ HasFourCycle N hN s hs := by
   rintro ⟨C₀, v₀, k, hC₀⟩
   obtain ⟨C, hC, hC4, w, hw, -⟩ :=
-    (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+    (inducesCycleType_iff (quartetLSA_isLSAQuartet hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
   obtain ⟨C', w', h4, hC', -⟩ := exists_separates_of_fourCycle hN h1 hX hs hC hC4 hw
   have := hsize C' hC'
   omega
@@ -687,7 +687,7 @@ theorem alternatives_eq_of_displays {V E : Type*} [Fintype V] [Fintype E] {N : R
     intro r hr
     obtain ⟨hrt, hrs⟩ := QuartetTree.mem_alternatives.1 hr
     obtain ⟨q, rfl⟩ := QuartetTree.exists_map_eq Subtype.val_injective r
-      (by rw [hrt, image_val_univ_finsetCoe])
+      (by rw [hrt, Finset.image_val_univ_coe])
     refine ⟨q, rfl, fun hBq => hrs ?_⟩
     have hmem : A ∩ t ∈ (q.map Subtype.val_injective).val := by
       rw [QuartetTree.map_val, ← hBimg]
@@ -698,7 +698,7 @@ theorem alternatives_eq_of_displays {V E : Type*} [Fintype V] [Fintype E] {N : R
   obtain ⟨q', rfl, hq'⟩ := hlift r' hr'
   have hcf := cf_quartetLSA hN h1 hθ ht
   rw [← congrFun hcf q, ← congrFun hcf q']
-  exact cf_eq_of_not_mem_of_hasCutSplit (isLSAQuartet_quartetLSA hN h1 hθ ht)
+  exact cf_eq_of_not_mem_of_hasCutSplit (quartetLSA_isLSAQuartet hN h1 hθ ht)
     (not_hasFourCycle_of_ncard_le_three hN h1 hX hθ hsize ht) hB (hBcoe ▸ hcut) hq hq'
 
 /-- **Trees with the same ordering of concordance factors display the same quartet trees** (Baños

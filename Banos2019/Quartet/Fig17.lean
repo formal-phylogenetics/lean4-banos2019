@@ -6,13 +6,14 @@ public import Banos2019.Quartet.Concrete
 # Figure 17 as an LSA quartet network (Example 4)
 
 The 4-cycle of Figure 17 is the unrooted network of the LSA quartet network `q17 a b c`: the nodes
-`0, 1, 2, 3` are the leaves `a, b, c, d`; `4, 5, 6, 7` the nodes of the cycle with `a, b, c, d`, `6` the
-hybrid node; the root `8` has the hybrid edge `8 → 6` and the tree edge `8 → 7`, which the unrooted
-network merges into the hybrid edge `7 → 6` of Figure 17. `inducesNetwork_q17`, with the figures in
-`Banos2019.Quartet.Examples`, shows that the unrooted network of `q17 a b c` is Figure 17.
+`0, 1, 2, 3` are the leaves `a, b, c, d`; `4, 5, 6, 7` the nodes of the cycle with `a, b, c, d`, `6`
+the hybrid node; the root `8` has the hybrid edge `8 → 6` and the tree edge `8 → 7`, which the
+unrooted network merges into the hybrid edge `7 → 6` of Figure 17. `inducesNetwork_q17`, with the
+figures in `Banos2019.Quartet.Examples`, shows that the unrooted network of `q17 a b c` is Figure
+17.
 
-* `isLSAQuartet_q17`, `inducesCycleType_q17`: `q17 a b c` with the parameters `q17Metric len γ` is an
-  LSA quartet network with a 4-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.
+* `isLSAQuartet_q17`, `inducesCycleType_q17`: `q17 a b c` with the parameters `q17Metric len γ` is
+  an LSA quartet network with a 4-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.
 * `cf_deleteArc_q17_seven`, `cf_deleteArc_q17_six`: the networks `Q₁⊕`, `Q₂⊕` of Lemma 10 are trees,
   with the internal edges `bc|ad` of length `t₂` and `ab|cd` of length `t₁` (equation (1)).
 -/
@@ -35,8 +36,8 @@ variable {X : Type*} [DecidableEq X]
 def q17 (a b c : X) : RootedNetwork (Fin 9) (Fin 9) X :=
   ⟨⟨q17Src, q17Tgt⟩, 8, quartetLeaf9 a b c⟩
 
-/-- The parameters of `q17`: those of Figure 17, the length `len 7` of the merged hybrid edge shared by
-the two edges at the root. -/
+/-- The parameters of `q17`: those of Figure 17, the length `len 7` of the merged hybrid edge shared
+by the two edges at the root. -/
 def q17Metric (len : Fin 8 → ℝ) (γ : ℝ) : MetricData (Fin 9) :=
   ⟨![len 0, len 1, len 2, len 3, len 4, len 5, len 6, len 7 / 2, len 7 / 2],
     ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
@@ -73,20 +74,13 @@ theorem deleteArc_q17_indegree (h v : Fin 9) :
 
 variable [Fintype X]
 
-theorem q17_leaf_injective (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
-    Function.Injective (quartetLeaf9 a b c) := by
-  intro x y hxy
-  rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl <;>
-    rcases eq_or_of_distinct4_of_card_eq hX h y with rfl | rfl | rfl | rfl <;>
-    simp only [quartetLeaf9_a, quartetLeaf9_b h, quartetLeaf9_c h, quartetLeaf9_d h] at hxy <;>
-    first | rfl | exact absurd hxy (by decide)
-
 theorem q17_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
     (q17 a b c).IsPhylogenetic where
   finite_vertices := inferInstance
   finite_arcs := inferInstance
   finite_taxa := inferInstance
-  acyclic := DirectedMultigraph.isAcyclic_of_rank _ (fun v : Fin 9 => ![5, 5, 5, 5, 2, 3, 4, 1, 0] v)
+  acyclic := DirectedMultigraph.isAcyclic_of_rank _
+    (fun v : Fin 9 => ![5, 5, 5, 5, 2, 3, 4, 1, 0] v)
     (by show ∀ e, ![5, 5, 5, 5, 2, 3, 4, 1, 0] (q17Src e) < ![5, 5, 5, 5, 2, 3, 4, 1, 0] (q17Tgt e)
         decide)
   root_reaches v := by
@@ -116,7 +110,7 @@ theorem q17_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
   nonroot_indegree v hv := by
     rw [q17_indegree]
     fin_cases v <;> first | decide | exact absurd rfl hv
-  leaf_injective := q17_leaf_injective hX h
+  leaf_injective := quartetLeaf9_injective hX h
   leaf_indegree x := by
     rw [q17_indegree]
     have := quartetLeaf9_mem (a := a) (b := b) (c := c) x
@@ -215,7 +209,8 @@ theorem q17_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q17 a b c).graph C) : C = 
   have hsrc : ∀ f ∈ q17Cycle, q17Src f = 4 ∨ q17Src f = 5 ∨ q17Src f = 7 ∨ q17Src f = 8 := by
     decide
   have hconn : ∀ f ∈ (↑q17Cycle : Set (Fin 9)),
-      (q17 a b c).graph.Walks ↑q17Cycle ((q17 a b c).graph.source f₀) ((q17 a b c).graph.source f) :=
+      (q17 a b c).graph.Walks ↑q17Cycle ((q17 a b c).graph.source f₀)
+      ((q17 a b c).graph.source f) :=
     fun f hf => ((q17 a b c).graph.walks_symm (hw _ (hsrc f₀ (hsub hf₀)))).trans
       (hw _ (hsrc f (by simpa using hf)))
   exact hsub.antisymm (hC.superset_of_ncard_incident_le hloop hsub hdeg (source_mem_cycleNodes hf₀)
@@ -269,7 +264,8 @@ theorem q17Metric_isMetricNetwork {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i
   have hpos : ∀ e, 0 < (q17Metric len γ).length e := by
     intro e
     fin_cases e <;> simp [q17Metric, hlen]
-  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩,
+  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_,
+    fun v hv => ?_⟩,
     hpos⟩
   · rw [q17_isTreeArc_iff] at he
     fin_cases e <;> simp_all [q17Metric]
@@ -316,7 +312,8 @@ def q17ArcFive : {e : Fin 9 // e ≠ 7} := ⟨5, by decide⟩
 def q17ArcFour : {e : Fin 9 // e ≠ 6} := ⟨4, by decide⟩
 
 /-- **`q17` without the hybrid edge `7` is a tree with the split `bc|ad`**, of length `t₂`: the
-concordance factor of `ad|bc` is `1 - ⅔x₂`, those of `ab|cd` and `ac|bd` are `⅓x₂` (equation (1)). -/
+concordance factor of `ad|bc` is `1 - ⅔x₂`, those of `ab|cd` and `ac|bd` are `⅓x₂` (equation (1)).
+-/
 theorem cf_deleteArc_q17_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len : Fin 8 → ℝ}
     (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) :
     cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
@@ -337,7 +334,8 @@ theorem cf_deleteArc_q17_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d)
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 7} => q17Tgt f.1 = q17Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q17 a b c) 7).IsMetric (deleteArcMetric (q17 a b c) 7 (q17Metric len γ)) := by
+  have hθ : (deleteArc (q17 a b c) 7).IsMetric
+    (deleteArcMetric (q17 a b c) 7 (q17Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 7) (h' := 6) (by decide)
       rfl (by rw [q17_indegree]; show #(univ.filter fun e => q17Tgt e = 6) = 2; decide)
   have hD : ∀ u w, (deleteArc (q17 a b c) 7).graph.Reaches u w ↔ w ∈ q17DescSeven u :=
@@ -386,7 +384,8 @@ theorem cf_deleteArc_q17_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d)
   exact ⟨e₁, e₂, e₃⟩
 
 /-- **`q17` without the hybrid edge `6` is a tree with the split `ab|cd`**, of length `t₁`: the
-concordance factor of `ab|cd` is `1 - ⅔x₁`, those of `ac|bd` and `ad|bc` are `⅓x₁` (equation (1)). -/
+concordance factor of `ab|cd` is `1 - ⅔x₁`, those of `ac|bd` and `ad|bc` are `⅓x₁` (equation (1)).
+-/
 theorem cf_deleteArc_q17_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len : Fin 8 → ℝ}
     (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) :
     cf (deleteArc (q17 a b c) 6) (deleteArcMetric (q17 a b c) 6 (q17Metric len γ))
@@ -405,7 +404,8 @@ theorem cf_deleteArc_q17_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 6} => q17Tgt f.1 = q17Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q17 a b c) 6).IsMetric (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) := by
+  have hθ : (deleteArc (q17 a b c) 6).IsMetric
+    (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 6) (h' := 7) (by decide)
       rfl (by rw [q17_indegree]; show #(univ.filter fun e => q17Tgt e = 6) = 2; decide)
   have hD : ∀ u w, (deleteArc (q17 a b c) 6).graph.Reaches u w ↔ w ∈ q17DescSix u :=

@@ -11,13 +11,14 @@ public import Phylogenetics.MSC.Small
 
 When the root of `Q⊕` is on the cycle, the proofs of Lemmas 7 and 9 condition on the lineages at the
 top of the edge above a node `y`. When none of them have coalesced, the remaining process is the
-multispecies coalescent on a four-taxon species tree: the lineages are its taxa, on pendant edges, each
-of which carries a single lineage and so does not change the process. The trees of the networks that
-the lemmas compare have the same unrooted metric tree, and the root placement does not matter
+multispecies coalescent on a four-taxon species tree: the lineages are its taxa, on pendant edges,
+each of which carries a single lineage and so does not change the process. The trees of the networks
+that the lemmas compare have the same unrooted metric tree, and the root placement does not matter
 (`pub:rootplace`, Allman, Degnan, Rhodes 2011, Theorem 9 and Proposition 11): species trees with the
 same unrooted metric tree have the same distribution of unrooted gene trees
 (`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`). For these steps the
-paper cites its Propositions 3 and 4, which as printed state identifiability (see `lemma7`, `lemma9`).
+paper cites its Propositions 3 and 4, which as printed state identifiability (see `lemma7`,
+`lemma9`).
 
 The trees that occur have at most one nontrivial cluster: `cladeSpeciesTree S`, with the cluster `S`
 above an edge of length `ℓ`. They are the star tree (`S = univ`) and the tree `((a,b,c):ℓ,d)`
@@ -26,16 +27,17 @@ above an edge of length `ℓ`. They are the star tree (`S = univ`) and the tree 
 
 * `forestDist_id_of_card_childClusters`, `cladeSpeciesTree_rootedDist_univ`,
   `cladeSpeciesTree_rootedDist_erase`: the gene tree distributions of these species trees.
-* `rootDist_rootArc`, `injDist_rootArc`: the network multispecies coalescent with forests injected at
-  the root and at the end `w` of an arc `f` from the root that is the only arc into `w`, and nothing
-  elsewhere: the forest at `w` goes up `f` by Kingman's coalescent and joins the forest at the root.
-* `rootDist_liftInj_single`, `cherryMass_liftInj_single`: the single lineage of the only taxon below a
-  cut vertex goes up the arc into it unchanged.
+* `rootDist_rootArc`, `injDist_rootArc`: the network multispecies coalescent with forests injected
+  at the root and at the end `w` of an arc `f` from the root that is the only arc into `w`, and
+  nothing elsewhere: the forest at `w` goes up `f` by Kingman's coalescent and joins the forest at
+  the root.
+* `rootDist_liftInj_single`, `cherryMass_liftInj_single`: the single lineage of the only taxon below
+  a cut vertex goes up the arc into it unchanged.
 * `quartetProb_eq_sum_rootedDist`: the quartet probabilities of a species tree from its rooted gene
   tree distribution; `cherryMass_rootArc_eq_quartetProb_erase`,
-  `cherryMass_rootArc_eq_quartetProb_univ`, `cherryMass_atRoot_eq_quartetProb_univ`: the processes of
-  Lemmas 7 and 9 are those of `cladeSpeciesTree`, and the masses of the quartet trees are its quartet
-  probabilities.
+  `cherryMass_rootArc_eq_quartetProb_univ`, `cherryMass_atRoot_eq_quartetProb_univ`: the processes
+  of Lemmas 7 and 9 are those of `cladeSpeciesTree`, and the masses of the quartet trees are its
+  quartet probabilities.
 * `quartetProb_cladeSpeciesTree_erase`: the root placement, for these trees.
 -/
 
@@ -185,7 +187,8 @@ theorem cladeSpeciesTree_rootedDist_erase (hX : 3 ≤ Fintype.card X) (d : X)
         · exact Or.inr (by rw [h, hx])
         · refine absurd (ssubset_univ_iff.2 hSu) (hmax _ hSmem ?_)
           rw [h]
-          refine Finset.ssubset_iff_subset_ne.2 ⟨singleton_subset_iff.2 (mem_erase.2 ⟨hx, mem_univ x⟩),
+          refine Finset.ssubset_iff_subset_ne.2
+            ⟨singleton_subset_iff.2 (mem_erase.2 ⟨hx, mem_univ x⟩),
             fun h' => ?_⟩
           rw [← h', card_singleton] at hS2
           omega
@@ -222,7 +225,8 @@ theorem cladeSpeciesTree_rootedDist_erase (hX : 3 ≤ Fintype.card X) (d : X)
   unfold SpeciesTree.rootedDist
   rw [forestDist_of_childClusters_eq_pair hch hSd]
   simp only [hSF, forestDist_id_singleton (cladeSpeciesTree (univ.erase d) hS ℓ hℓ).isHierarchy,
-    mul_ite, mul_one, mul_zero, ite_mul, zero_mul, sum_ite_eq', mem_univ, ite_true, populationKernel]
+    mul_ite, mul_one, mul_zero, ite_mul, zero_mul, sum_ite_eq', mem_univ, ite_true,
+    populationKernel]
   refine sum_congr rfl fun s _ => ?_
   by_cases h0 : kingmanTransition ℓ ((univ.erase d).image fun x => {x}) s = 0
   · rw [h0, zero_mul, zero_mul]
@@ -264,8 +268,8 @@ theorem mem_unroot_cladeSpeciesTree_univ (hX : Fintype.card X = 4) (hU : (univ :
     · exact Or.inl ⟨Or.inr (Or.inr ⟨x, hx⟩), hx ▸ hsu x⟩
     · exact Or.inr ⟨Or.inr (Or.inr ⟨x, hx⟩), hx ▸ hsu x⟩
 
-/-- On four taxa, the sides of the splits of the unrooted tree of `((a,b,c):ℓ,d)` are those of the star
-tree. -/
+/-- On four taxa, the sides of the splits of the unrooted tree of `((a,b,c):ℓ,d)` are those of the
+star tree. -/
 theorem mem_unroot_cladeSpeciesTree_erase (hX : Fintype.card X = 4) (d : X)
     (hS : (univ.erase d).Nonempty) (ℓ : ℝ) (hℓ : 0 < ℓ) (A : Finset X) :
     A ∈ unroot (cladeSpeciesTree (univ.erase d) hS ℓ hℓ).clusters ↔
@@ -290,8 +294,8 @@ theorem mem_unroot_cladeSpeciesTree_erase (hX : Fintype.card X = 4) (d : X)
     · exact Or.inl ⟨Or.inr (Or.inr ⟨x, hx⟩), hx ▸ hsu x⟩
     · exact Or.inr ⟨Or.inr (Or.inr ⟨x, hx⟩), hx ▸ hsu x⟩
 
-/-- **On four taxa, `((a,b,c):ℓ,d)` and the star tree have the same unrooted metric tree**: the star,
-without internal edges. -/
+/-- **On four taxa, `((a,b,c):ℓ,d)` and the star tree have the same unrooted metric tree**: the
+star, without internal edges. -/
 theorem sameUnrootedMetricTree_cladeSpeciesTree (hX : Fintype.card X = 4) (d : X)
     (hS : (univ.erase d).Nonempty) (ℓ : ℝ) (hℓ : 0 < ℓ) (hU : (univ : Finset X).Nonempty) (ℓ' : ℝ)
     (hℓ' : 0 < ℓ') :
@@ -307,8 +311,8 @@ theorem sameUnrootedMetricTree_cladeSpeciesTree (hX : Fintype.card X = 4) (d : X
     · rw [hx, card_singleton] at h2'
       omega
 
-/-- The probability that the unrooted gene tree displays `q` is the mass of the rooted gene trees that
-display it. -/
+/-- The probability that the unrooted gene tree displays `q` is the mass of the rooted gene trees
+that display it. -/
 theorem quartetProb_eq_sum_rootedDist (σ : SpeciesTree X) (q : QuartetTree X) :
     External.AllmanDegnanRhodes2011.quartetProb σ q =
       ∑ G, if Displays (unroot G) q then σ.rootedDist id G else 0 := by
@@ -335,7 +339,8 @@ theorem quartetProb_eq_sum_rootedDist (σ : SpeciesTree X) (q : QuartetTree X) :
 
 /-- **The root placement does not matter** (`pub:rootplace`, for these trees): on four taxa,
 `((a,b,c):ℓ,d)` and the star tree give each quartet tree the same probability, as they have the same
-unrooted metric tree (`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`). -/
+unrooted metric tree (`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`).
+-/
 theorem quartetProb_cladeSpeciesTree_erase (hX : Fintype.card X = 4) (d : X)
     (hS : (univ.erase d).Nonempty) (ℓ : ℝ) (hℓ : 0 < ℓ) (hU : (univ : Finset X).Nonempty) (ℓ' : ℝ)
     (hℓ' : 0 < ℓ') (q : QuartetTree X) :
@@ -353,9 +358,9 @@ section RootArc
 
 variable {V' E' : Type*} [Fintype V'] [Fintype E'] {M : RootedNetwork V' E' X}
 
-/-- **Forests at the root and at the end `w` of an arc `f` from the root**, `f` the only arc into `w`,
-and nothing elsewhere: the forest at `w` goes up `f` by Kingman's coalescent and joins the forest at
-the root. -/
+/-- **Forests at the root and at the end `w` of an arc `f` from the root**, `f` the only arc into
+`w`, and nothing elsewhere: the forest at `w` goes up `f` by Kingman's coalescent and joins the
+forest at the root. -/
 theorem rootDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
     (hroot : ∀ e, M.graph.target e ≠ M.root) {f : E'} (hfs : M.graph.source f = M.root)
     (huniq : ∀ e, M.graph.target e = M.graph.target f → e = f) {θ : MetricData E'}
@@ -398,7 +403,7 @@ theorem rootDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
         have hk : kingmanTransition (θ.length e) (b e) (t e) ≠ 0 :=
           prod_ne_zero_iff.1 (right_ne_zero_of_mul hv) e (mem_arcsInto.2 he)
         rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-        exact ⟨hb, ne_zero_of_ite_ne_zero' hk⟩
+        exact ⟨hb, (ite_ne_right_iff.1 hk).1⟩
     refine ⟨fun e hef => hall _ e rfl hef, ?_⟩
     have hv : vertexWeight M θ ρ inj (M.graph.target f) b t ≠ 0 :=
       prod_ne_zero_iff.1 h _ (mem_erase.2 ⟨hw, mem_univ _⟩)
@@ -411,7 +416,7 @@ theorem rootDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
       exact absurd hAe' (notMem_empty _)
     unfold vertexWeight at hv
     rw [harr, allocationFactor_of_unique_arc hρ rfl huniq h1] at hv
-    exact ne_zero_of_ite_ne_zero' (left_ne_zero_of_mul hv)
+    exact (ite_ne_right_iff.1 (left_ne_zero_of_mul hv)).1
   -- the histories of nonzero weight
   let B₀ : E' → Finset (Finset X) := fun e => if e = f then inj (M.graph.target f) else ∅
   let T : Finset (Finset X) → E' → Finset (Finset X) := fun s e => if e = f then s else ∅
@@ -507,8 +512,8 @@ theorem injDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
   simp only [mul_assoc, ite_mul, one_mul, zero_mul]
   rw [← mul_sum, sum_ite_eq, ite_eq_left (mem_univ _)]
 
-/-- **The process of the tree `((a,b,c):ℓ,d)`**: the three singletons of `univ.erase d` at the end of
-an arc `f` from the root and the singleton of `d` at the root. -/
+/-- **The process of the tree `((a,b,c):ℓ,d)`**: the three singletons of `univ.erase d` at the end
+of an arc `f` from the root and the singleton of `d` at the root. -/
 theorem cherryMass_rootArc_eq_quartetProb_erase (hX : Fintype.card X = 4)
     (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v) (hroot : ∀ e, M.graph.target e ≠ M.root)
     {f : E'} (hfs : M.graph.source f = M.root)
@@ -525,8 +530,8 @@ theorem cherryMass_rootArc_eq_quartetProb_erase (hX : Fintype.card X = 4)
   rw [injDist_rootArc hacyc hroot hfs huniq h1 hρ hinj, hw, hr,
     cladeSpeciesTree_rootedDist_erase (by omega)]
 
-/-- **The process of the star tree**: the four singletons at the end of an arc `f` from the root, and
-nothing at the root. -/
+/-- **The process of the star tree**: the four singletons at the end of an arc `f` from the root,
+and nothing at the root. -/
 theorem cherryMass_rootArc_eq_quartetProb_univ (hX : Fintype.card X = 4)
     (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v) (hroot : ∀ e, M.graph.target e ≠ M.root)
     {f : E'} (hfs : M.graph.source f = M.root)

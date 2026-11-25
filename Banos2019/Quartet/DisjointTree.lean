@@ -7,11 +7,11 @@ public import Banos2019.Network.CycleMap
 /-!
 # `Q_a⊕` of a single `3₂`-cycle is a tree (in the proof of Proposition 5)
 
-When `C` is the only cycle of a binary level-1 network `Q`, its hybrid node `v` is the only node with
-two parents, and `disjointNet Q v h₁ h₂ a b` has no node with two parents (`disjointNet_arc_eq`)
-and no cycle (`disjointNet_not_isCycle`): a cycle would map to a cycle of `Q` avoiding `v`. It is a
-binary network whose root is the LSA of its taxa, and the parameters of `Q` give it a metric
-(`disjointNet_spec`).
+When `C` is the only cycle of a binary level-1 network `Q`, its hybrid node `v` is the only node
+with two parents, and `disjointNet Q v h₁ h₂ a b` has no node with two parents
+(`disjointNet_arc_eq`) and no cycle (`disjointNet_not_isCycle`): a cycle would map to a cycle of `Q`
+avoiding `v`. It is a binary network whose root is the LSA of its taxa, and the parameters of `Q`
+give it a metric (`disjointNet_spec`).
 -/
 
 @[expose] public noncomputable section
@@ -33,7 +33,7 @@ variable (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph) {C : Set E}
   (hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b)
 include hQ h1 hone hv h2 hne hh₁ hh₂
 
-omit [Fintype V] [Fintype E] [Fintype X] in
+omit [Fintype V] [Fintype E] [Fintype X] hne hh₁ hh₂ in
 /-- The hybrid node of the only cycle is the only node with two parents. -/
 theorem eq_hybrid_of_target_eq_of_single_cycle {e f : E} (hef : e ≠ f)
     (ht : Q.graph.target e = Q.graph.target f) : Q.graph.target e = v := by
@@ -57,7 +57,7 @@ theorem disjointNet_arc_eq {e f : {e // ¬ Q.graph.Reaches v (Q.graph.source e)}
     rw [← ht] at hfl
     by_contra hnef
     have hne' : e.1 ≠ f.1 := fun h => hnef (Subtype.ext h)
-    have := eq_hybrid_of_target_eq_of_single_cycle hQ h1 hone hv h2 hne hh₁ hh₂ hne'
+    have := eq_hybrid_of_target_eq_of_single_cycle hQ h1 hone hv h2 hne'
       (hel.symm.trans hfl)
     have hw : w.1 = v := (show w.1 = Q.graph.target e.1 from hel).trans this
     exact w.2 (by rw [hw]; exact .refl)
@@ -145,6 +145,7 @@ theorem disjointNet_outdegree_inr (i : Fin 2) :
     Set.eq_empty_of_forall_notMem fun e he => Sum.inl_ne_inr he
   rw [this, Set.ncard_empty]
 
+omit [Fintype V] [Fintype X] in
 include hab hbelow in
 /-- **`Q_a⊕` is a binary network whose root is the LSA of its taxa, with a metric**, when `C` is the
 only cycle of `Q`. -/
@@ -183,8 +184,8 @@ theorem disjointNet_spec {θ : MetricData E} (hθ : IsMetricNetwork Q θ) :
     have := hin (D.graph.target e)
     unfold IsHybridArc at he
     omega
-  refine ⟨fun e _ => hθ.2 e.1, fun e _ => (hθ.2 e.1).le, fun e _ => ?_, fun e he => absurd he (hnh e),
-    fun u hu => absurd hu (by have := hin u; omega)⟩
+  refine ⟨fun e _ => hθ.2 e.1, fun e _ => (hθ.2 e.1).le, fun e _ => ?_, fun e he => absurd he
+    (hnh e), fun u hu => absurd hu (by have := hin u; omega)⟩
   show (if e.1 = h₁ ∨ e.1 = h₂ then 1 else θ.inheritance e.1) = 1
   split_ifs with he
   · rfl

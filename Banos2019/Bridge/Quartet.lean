@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Bridge.Unrooted
 public import Banos2019.CycleProperty
+public import Banos2019.Basic.Logic.EquivOfInjective
 
 /-!
 # The induced unrooted network of the Challenge and the library's `Q⁻_s`
@@ -16,8 +17,9 @@ above taxa of `s`, with the nodes of indegree and outdegree one suppressed
 
 * `SDIso.ofValues`: an isomorphism of two semidirected networks whose nodes and edges are given, by
   injective maps with the same images, by the same objects.
-* `lsaNetwork_isChainVertex_iff`, `lsaNetwork_chainEnd_val`: below `LSA(Z)`, the network below the LSA
-  and the ancestral network have the same nodes of indegree and outdegree one, and the same chains.
+* `lsaNetwork_isChainVertex_iff`, `lsaNetwork_chainEnd_val`: below `LSA(Z)`, the network below the
+  LSA and the ancestral network have the same nodes of indegree and outdegree one, and the same
+  chains.
 * `Model.Network.exists_fourCycle_induced_iff`: the right side of Theorem 3.
 -/
 
@@ -36,13 +38,6 @@ section OfValues
 variable {V₁ E₁ V₂ E₂ W F : Type*} {G₁ : SemidirectedNetwork V₁ E₁ X}
   {G₂ : SemidirectedNetwork V₂ E₂ X}
 
-theorem ofInjectiveSubtype_trans_symm_apply {α β γ : Type*} (f₁ : α → γ)
-    (hf₁ : Function.Injective f₁) (f₂ : β → γ) (hf₂ : Function.Injective f₂) (Q : γ → Prop)
-    (hQ₁ : ∀ c, Q c ↔ ∃ a, f₁ a = c) (hQ₂ : ∀ c, Q c ↔ ∃ b, f₂ b = c) (a : α) :
-    f₂ (((Equiv.ofInjectiveSubtype f₁ hf₁ Q hQ₁).trans
-      (Equiv.ofInjectiveSubtype f₂ hf₂ Q hQ₂).symm) a) = f₁ a :=
-  Equiv.ofInjectiveSubtype_symm_apply f₂ hf₂ Q hQ₂ _
-
 /-- **An isomorphism from common values**: the nodes of `G₁` and of `G₂` are given by injective maps
 to `W` with the same image, their edges by injective maps to `F` with the same image, the ends of an
 edge are the values `σ`, `τ` of its value, and an edge is directed according to its value. -/
@@ -59,18 +54,18 @@ def SDIso.ofValues (f₁ : V₁ → W) (hf₁ : Function.Injective f₁) (f₂ :
   edge := (Equiv.ofInjectiveSubtype g₁ hg₁ (fun y => ∃ b, g₂ b = y) fun y => (hre y).symm).trans
     (Equiv.ofInjectiveSubtype g₂ hg₂ (fun y => ∃ b, g₂ b = y) fun _ => Iff.rfl).symm
   isDirected_iff e := by
-    rw [hd₂, hd₁, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂]
+    rw [hd₂, hd₁, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂]
   joins e := Or.inl
-    ⟨hf₂ (by rw [hs₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
-    hf₂ (by rw [ht₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
+    ⟨hf₂ (by rw [hs₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
+    hf₂ (by rw [ht₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
   directed e _ :=
-    ⟨hf₂ (by rw [hs₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
-    hf₂ (by rw [ht₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
-  leaf x := hf₂ (by rw [ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hl₁, hl₂])
+    ⟨hf₂ (by rw [hs₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
+    hf₂ (by rw [ht₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
+  leaf x := hf₂ (by rw [Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hl₁, hl₂])
 
 end OfValues
 
@@ -88,13 +83,14 @@ theorem lsaNetwork_outdegree (v : N.belowVertices (lsa hN.1 Z hZ.nonempty) Z) :
   refine Set.ncard_congr' ?_
   exact
     { toFun := fun e => ⟨e.1.1, congrArg Subtype.val e.2, e.1.2.2⟩
-      invFun := fun f => ⟨⟨f.1, by rw [show N.graph.source f.1 = v.1 from f.2.1]; exact v.2.1, f.2.2⟩,
-        Subtype.ext f.2.1⟩
+      invFun := fun f =>
+        ⟨⟨f.1, by rw [show N.graph.source f.1 = v.1 from f.2.1]; exact v.2.1, f.2.2⟩,
+          Subtype.ext f.2.1⟩
       left_inv := fun _ => rfl
       right_inv := fun _ => rfl }
 
-/-- **Below `LSA(Z)`, the chain nodes of the network below the LSA are those of the ancestral network
-on `Z`.** -/
+/-- **Below `LSA(Z)`, the chain nodes of the network below the LSA are those of the ancestral
+network on `Z`.** -/
 theorem lsaNetwork_isChainVertex_iff (v : N.belowVertices (lsa hN.1 Z hZ.nonempty) Z) :
     (lsaNetwork hN.1 Z hZ.nonempty).IsChainVertex v ↔ ChainZ hN.1 hZ.nonempty v.1 := by
   have := hN.1.finite_arcs
@@ -112,8 +108,8 @@ theorem lsaNetwork_isChainVertex_iff (v : N.belowVertices (lsa hN.1 Z hZ.nonempt
       belowNetwork_indegree hN.1 (lsa_spec hN.1 Z hZ.nonempty).1 v hv
     rw [h]
 
-/-- **Below `LSA(Z)`, the chains of the network below the LSA end where those of the ancestral network
-on `Z` end.** -/
+/-- **Below `LSA(Z)`, the chains of the network below the LSA end where those of the ancestral
+network on `Z` end.** -/
 theorem lsaNetwork_chainEnd_val (t : N.belowVertices (lsa hN.1 Z hZ.nonempty) Z) :
     (chainEnd (lsaNetwork_isPhylogenetic hN.1 hZ) t).1 = chainEndZ hN.1 hZ.nonempty t.1 := by
   have hL := lsaNetwork_isPhylogenetic hN.1 hZ
@@ -121,7 +117,8 @@ theorem lsaNetwork_chainEnd_val (t : N.belowVertices (lsa hN.1 Z hZ.nonempty) Z)
   rw [chainEndZ_of_mem hN.1 hZ.nonempty t.2.2]
   -- a chain of the network below the LSA is a chain of the ancestral network
   have hlift : ∀ a b, (lsaNetwork hN.1 Z hZ.nonempty).ChainReach a b →
-      (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).ChainReach ⟨a.1, a.2.2⟩ ⟨b.1, b.2.2⟩ := by
+      (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).ChainReach ⟨a.1, a.2.2⟩
+      ⟨b.1, b.2.2⟩ := by
     intro a b h
     induction h with
     | refl => exact .refl
@@ -145,8 +142,8 @@ section Induced
 
 variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X} (hZ : Z.Nontrivial)
 
-/-- The arcs of `N⁺_Z` out of nodes below its LSA are the arcs of `N` below `LSA(Z)` above a taxon of
-`Z` whose source is not a chain node. -/
+/-- The arcs of `N⁺_Z` out of nodes below its LSA are the arcs of `N` below `LSA(Z)` above a taxon
+of `Z` whose source is not a chain node. -/
 theorem mem_range_valCE_below (f : E) :
     (∃ e : {e : _ // (inducedRooted N hN.1 Z hZ.nonempty).graph.Reaches
         (lsa (inducedRooted_isBinaryRootedNetwork hN hZ).1 Set.univ
@@ -191,7 +188,8 @@ theorem lsa_inducedNetwork :
     lsa (inducedLSA_isBinaryRootedNetwork hN hZ).1 Set.univ
         (@Set.univ_nonempty _ hZ.coe_sort.to_nonempty) =
       (inducedNetwork hN.1 Z hZ).root :=
-  IsLeastStableAncestor.unique (N := inducedNetwork hN.1 Z hZ) (inducedLSA_isBinaryRootedNetwork hN hZ).1
+  IsLeastStableAncestor.unique (N := inducedNetwork hN.1 Z hZ)
+    (inducedLSA_isBinaryRootedNetwork hN hZ).1
     (lsa_spec _ _ _) (inducedNetwork_isLSANetwork hN.1 hZ)
 
 /-- A node of `N` strictly below `LSA(Z)` is not the root, when `LSA(Z)` has two arcs above taxa of
@@ -243,7 +241,8 @@ def belowLSA_inducedRooted_sdIso :
     (fun v => by
       constructor
       · rintro ⟨c, rfl⟩
-        have hr := (hreachC c.1).mp (((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).mem_belowLSA_iff hC c.1).mp c.2)
+        have hr := (hreachC c.1).mp
+          (((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).mem_belowLSA_iff hC c.1).mp c.2)
         obtain ⟨hv, hnc, -⟩ := (mem_range_valC hN hZ Subtype.val Subtype.val hK _).mp ⟨_, rfl⟩
         exact ⟨⟨⟨⟨_, hr, hv⟩, fun h => hnc ((lsaNetwork_isChainVertex_iff hN hZ _).mp h)⟩,
           ((Model.ofRooted (inducedNetwork hN.1 Z hZ)).mem_belowLSA_iff hD _).mpr (hrootD _)⟩, rfl⟩
@@ -253,7 +252,8 @@ def belowLSA_inducedRooted_sdIso :
           d.1.2 ((lsaNetwork_isChainVertex_iff hN hZ _).mpr h)
         obtain ⟨c, hc⟩ := (mem_range_valC hN hZ Subtype.val Subtype.val hK _).mpr
           ⟨hv, hnc, not_root_outdegree_one hN hZ hr⟩
-        exact ⟨⟨c, ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).mem_belowLSA_iff hC c).mpr ((hreachC c).mpr (hc ▸ hr))⟩, hc⟩)
+        exact ⟨⟨c, ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).mem_belowLSA_iff hC c).mpr
+          ((hreachC c).mpr (hc ▸ hr))⟩, hc⟩)
     (fun e => valCE hN hZ Subtype.val e.1) (fun a b h => Subtype.ext
       (valCE_injective hN hZ Subtype.val Subtype.val hK h))
     (fun e => e.1.1.1) (fun a b h => Subtype.ext (Subtype.ext (Subtype.ext h)))
@@ -261,16 +261,19 @@ def belowLSA_inducedRooted_sdIso :
       have key := mem_range_valCE_below hN hZ f
       constructor
       · rintro ⟨e, rfl⟩
-        have hr := ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).reaches_lsaL_source_iff hC e.1).mp e.2
+        have hr := ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).reaches_lsaL_source_iff
+          hC e.1).mp e.2
         obtain ⟨hmf, hf, hnc⟩ := key.mp ⟨⟨e.1, hr⟩, rfl⟩
         exact ⟨⟨⟨⟨_, hmf, hf⟩, fun h => hnc ((lsaNetwork_isChainVertex_iff hN hZ _).mp h)⟩,
-          ((Model.ofRooted (inducedNetwork hN.1 Z hZ)).reaches_lsaL_source_iff hD _).mpr (hrootD _)⟩, rfl⟩
+          ((Model.ofRooted (inducedNetwork hN.1 Z hZ)).reaches_lsaL_source_iff hD _).mpr
+          (hrootD _)⟩, rfl⟩
       · rintro ⟨e, rfl⟩
         obtain ⟨hmf, hf⟩ := e.1.1.2
         have hnc : ¬ ChainZ hN.1 hZ.nonempty (N.graph.source e.1.1.1) := fun h =>
           e.1.2 ((lsaNetwork_isChainVertex_iff hN hZ _).mpr h)
         obtain ⟨⟨e', he'⟩, he⟩ := key.mpr ⟨hmf, hf, hnc⟩
-        exact ⟨⟨e', ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).reaches_lsaL_source_iff hC e').mpr he'⟩, he⟩)
+        exact ⟨⟨e', ((Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).reaches_lsaL_source_iff
+          hC e').mpr he'⟩, he⟩)
     N.graph.source (fun f => chainEndZ hN.1 hZ.nonempty (N.graph.target f))
     (fun f => 2 ≤ N.graph.indegree (chainEndZ hN.1 hZ.nonempty (N.graph.target f)))
     (fun z => N.leaf z)
@@ -313,7 +316,8 @@ def belowLSA_inducedRooted_sdIso :
 theorem nonempty_sdIso_unrooted_inducedRooted :
     Nonempty (SDIso (unrooted (inducedRooted N hN.1 Z hZ.nonempty)
       (inducedRooted_isBinaryRootedNetwork hN hZ) hZ.coe_sort)
-      (unrooted (inducedNetwork hN.1 Z hZ) (inducedLSA_isBinaryRootedNetwork hN hZ) hZ.coe_sort)) := by
+      (unrooted (inducedNetwork hN.1 Z hZ)
+          (inducedLSA_isBinaryRootedNetwork hN hZ) hZ.coe_sort)) := by
   have : Nontrivial Z := hZ.coe_sort
   have := hN.1.finite_arcs
   obtain ⟨uC⟩ := (Model.ofRooted (inducedRooted N hN.1 Z hZ.nonempty)).nonempty_sdIso_unrooted
@@ -332,12 +336,12 @@ end Induced
 /-! ### The right side of Theorem 3 -/
 
 /-- **The right side of Theorem 3**: `(N⁻)_s`, the Challenge's induced unrooted network, has a
-4-cycle exactly when `Q⁻_s` does (`HasFourCycle`). By Proposition 1, `(N⁻)_s ≅ (N⁺_s)⁻ ≅ (N⊕_s)⁻ = Q⁻_s`;
-a cycle of `Q⁻_s` has a hybrid node (Lemma 3), so it is an `n_k`-cycle, and `inducesCycleType_iff`
-relates the cycles of `Q⁻_s` to those of `Q⊕_s`. -/
+4-cycle exactly when `Q⁻_s` does (`HasFourCycle`). By Proposition 1,
+`(N⁻)_s ≅ (N⁺_s)⁻ ≅ (N⊕_s)⁻ = Q⁻_s`; a cycle of `Q⁻_s` has a hybrid node (Lemma 3), so it is an
+`n_k`-cycle, and `inducesCycleType_iff` relates the cycles of `Q⁻_s` to those of `Q⊕_s`. -/
 theorem Model.Network.exists_fourCycle_induced_iff [Fintype V] [Fintype E] [Fintype X]
-    (N : Model.Network V E X) (hN : N.IsBinaryNetwork) (h1 : N.graph.IsLevelOne) {θ : Model.Params E}
-    (hθ : N.IsMetric θ) (s : Finset X) (hs : s.card = 4) :
+    (N : Model.Network V E X) (hN : N.IsBinaryNetwork) (h1 : N.graph.IsLevelOne)
+    {θ : Model.Params E} (hθ : N.IsMetric θ) (s : Finset X) (hs : s.card = 4) :
     (∃ C, (N.unrooted.induced (s : Set X)).graph.IsCycle C ∧ C.ncard = 4) ↔
       HasFourCycle N.toRooted (N.isBinaryNetwork_iff.mp hN) s hs := by
   classical
@@ -355,7 +359,8 @@ theorem Model.Network.exists_fourCycle_induced_iff [Fintype V] [Fintype E] [Fint
   obtain ⟨p2⟩ := nonempty_sdIso_unrooted_inducedRooted hb hZ
   rw [e1, ((((N.unrooted.inducedIso (s : Set X)).trans (u.inducedUnrooted (s : Set X))).trans
     p1).trans p2).exists_isCycle_ncard_iff 4]
-  have hQ := isLSAQuartet_quartetLSA hb ((N.graph.isLevelOne_iff).mp h1) ((N.isMetric_iff hN θ).mp hθ) hs
+  have hQ := quartetLSA_isLSAQuartet hb ((N.graph.isLevelOne_iff).mp h1)
+    ((N.isMetric_iff hN θ).mp hθ) hs
   have := hQ.binary.1.finite_arcs
   unfold HasFourCycle
   constructor

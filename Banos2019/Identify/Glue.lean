@@ -10,8 +10,8 @@ public import Banos2019.Bridge.Quartet
 "We obtain `Ñ` by identifying `s₁` in `N₂` with `s₂` in `N₁` and suppressing that node." Gluing
 `G₁` at its leaf `x₁` to `G₂` at its leaf `x₂`: remove the two leaves and their edges, and join
 their neighbours `w₁`, `w₂` by a new edge, which is the result of identifying the two leaves and
-suppressing the node of degree two that this leaves. The taxa of the glued network are given by a map
-`τ` to the taxa of the two pieces.
+suppressing the node of degree two that this leaves. The taxa of the glued network are given by a
+map `τ` to the taxa of the two pieces.
 
 * `glue`: the glued network; `IsLeafNeighbour`: `w` is the neighbour of the leaf `x`.
 * `glue_congr`: isomorphic pieces glue to isomorphic networks.
@@ -51,7 +51,8 @@ section Glue
 
 variable {V₁ E₁ X₁ V₂ E₂ X₂ X : Type*}
 
-/-- `w` is the neighbour of the leaf `x`: every edge at the leaf joins it to `w`, and there is one. -/
+/-- `w` is the neighbour of the leaf `x`: every edge at the leaf joins it to `w`, and there is one.
+-/
 def IsLeafNeighbour {V E X' : Type*} (G : SemidirectedNetwork V E X') (x : X') (w : V) : Prop :=
   w ≠ G.leaf x ∧ (∃ e, Joins G.graph e (G.leaf x) w) ∧
     ∀ e, (G.graph.source e = G.leaf x ∨ G.graph.target e = G.leaf x) → Joins G.graph e (G.leaf x) w
@@ -65,8 +66,8 @@ def glueLeaf (G₁ : SemidirectedNetwork V₁ E₁ X₁) (G₂ : SemidirectedNet
   | .inl y => if h : G₁.leaf y = G₁.leaf x₁ then .inl w₁ else .inl ⟨G₁.leaf y, h⟩
   | .inr y => if h : G₂.leaf y = G₂.leaf x₂ then .inl w₁ else .inr ⟨G₂.leaf y, h⟩
 
-/-- **Gluing** `G₁` at the leaf `x₁` to `G₂` at the leaf `x₂`: the leaves and their edges are removed,
-and a new undirected edge joins the neighbours `w₁` and `w₂`. -/
+/-- **Gluing** `G₁` at the leaf `x₁` to `G₂` at the leaf `x₂`: the leaves and their edges are
+removed, and a new undirected edge joins the neighbours `w₁` and `w₂`. -/
 def glue (G₁ : SemidirectedNetwork V₁ E₁ X₁) (G₂ : SemidirectedNetwork V₂ E₂ X₂) (x₁ : X₁) (x₂ : X₂)
     (w₁ : {v // v ≠ G₁.leaf x₁}) (w₂ : {v // v ≠ G₂.leaf x₂}) (τ : X → X₁ ⊕ X₂) :
     SemidirectedNetwork ({v // v ≠ G₁.leaf x₁} ⊕ {v // v ≠ G₂.leaf x₂})
@@ -114,8 +115,8 @@ theorem IsLeafNeighbour.of_sdIso {V E V' E' X' : Type*} {G : SemidirectedNetwork
 
 /-- **Isomorphic pieces glue to isomorphic networks.** -/
 theorem glue_congr {G₁ : SemidirectedNetwork V₁ E₁ X₁} {G₂ : SemidirectedNetwork V₂ E₂ X₂}
-    {G₁' : SemidirectedNetwork V₁' E₁' X₁} {G₂' : SemidirectedNetwork V₂' E₂' X₂} {x₁ : X₁} {x₂ : X₂}
-    {w₁ : V₁} {w₂ : V₂} {w₁' : V₁'} {w₂' : V₂'} (hw₁ : IsLeafNeighbour G₁ x₁ w₁)
+    {G₁' : SemidirectedNetwork V₁' E₁' X₁} {G₂' : SemidirectedNetwork V₂' E₂' X₂} {x₁ : X₁}
+    {x₂ : X₂} {w₁ : V₁} {w₂ : V₂} {w₁' : V₁'} {w₂' : V₂'} (hw₁ : IsLeafNeighbour G₁ x₁ w₁)
     (hw₂ : IsLeafNeighbour G₂ x₂ w₂) (hw₁' : IsLeafNeighbour G₁' x₁ w₁')
     (hw₂' : IsLeafNeighbour G₂' x₂ w₂') (τ : X → X₁ ⊕ X₂) (i₁ : SDIso G₁ G₁') (i₂ : SDIso G₂ G₂') :
     Nonempty (SDIso (glue G₁ G₂ x₁ x₂ ⟨w₁, hw₁.1⟩ ⟨w₂, hw₂.1⟩ τ)
@@ -521,7 +522,7 @@ structure IsUnrootedLevelOne (G : SemidirectedNetwork V E X) : Prop where
     (G.graph.source e = w ∨ G.graph.target e = w) → ∃ x, G.leaf x ∈ cutSide G.graph e w
 
 /-- **`N⁻` has the properties of `IsUnrootedLevelOne`** for a binary level-1 network `N`. -/
-theorem isUnrootedLevelOne_unrooted [Finite V] [Finite E] {N : RootedNetwork V E X}
+theorem isUnrootedLevelOne_unrooted [Finite E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) :
     IsUnrootedLevelOne (unrooted N hN hX) where
   connected := unrooted_isConnected hN hX
@@ -2378,7 +2379,7 @@ theorem exists_isCycle_halfNet_iff (Pn : ℕ → Prop)
 omit hG in
 /-- **The contracted network of a half is the side of the contracted network**, with the pendant
 edge at the class of `y`. -/
-theorem nonempty_sdIso_tildeContracted_halfNet [Finite E] (hG : IsUnrootedLevelOne G) :
+theorem nonempty_sdIso_tildeContracted_halfNet (hG : IsUnrootedLevelOne G) :
     Nonempty (SDIso (tildeContracted (halfNet G f y ι))
       (pendantSide (tildeContracted G) (contractSide G f y)
         ⟨Quot.mk _ y, ⟨y, Relation.ReflTransGen.refl, rfl⟩⟩ ι)) := by
@@ -3218,16 +3219,18 @@ theorem nonempty_sdIso_inducedUnrooted_unrooted_inducedLSA {Z : Set X} (hZ : Z.N
   obtain ⟨p₂⟩ := nonempty_sdIso_unrooted_inducedRooted hN hZ
   exact ⟨p₁.trans p₂⟩
 
+omit [Finite V] in
 include h1 in
 /-- `(N⁻)_Z` has the properties of `IsUnrootedLevelOne`, being isomorphic to `(N⊕_Z)⁻`. -/
 theorem isUnrootedLevelOne_inducedUnrooted {Z : Set X} (hZ : Z.Nontrivial) :
     IsUnrootedLevelOne (inducedUnrooted (unrooted N hN hX) Z) := by
   obtain ⟨ι⟩ := nonempty_sdIso_inducedUnrooted_unrooted_inducedLSA hN hX hZ
   have h1M : IsLevelOne (inducedLSA N hN.1 Z hZ).graph :=
-    isLevelOne_suppress (lsaNetwork_isPhylogenetic hN.1 hZ) (isLevelOne_belowNetwork h1)
+    suppress_isLevelOne (lsaNetwork_isPhylogenetic hN.1 hZ) (isLevelOne_belowNetwork h1)
   exact (isUnrootedLevelOne_unrooted (inducedLSA_isBinaryRootedNetwork hN hZ) h1M
     hZ.coe_sort).of_sdIso ι.symm
 
+omit [Finite V] in
 include h1 in
 /-- **The edges of `N⁻` at the side of `y` lie on simple treks between taxa of `Z`**, when `Z` is
 the set of taxa on the side of `y` of an edge `f` on no cycle, and one taxon `z₀` on the other side.
@@ -3388,6 +3391,7 @@ theorem mem_trekEdges_of_side {f : SemidirectedArc hN.1 hN.2 hX}
       rw [← hty] at hgA
       exact hb (G.graph.walks_symm (Relation.ReflTransGen.trans hgA hw'))
 
+omit [Finite V] in
 include h1 in
 /-- **The side of `y` of `N⁻` is a side of `(N⁻)_Z`** when `Z` is the set of taxa on the side of `y`
 of an edge `f` on no cycle, and one taxon `z₀` on the other side: the edges of `N⁻` at the nodes on
@@ -3471,14 +3475,15 @@ def blockSide (P : Finset X) (s₁ s₂ : X) (x : X) :
     ↥((insert s₂ Pᶜ : Finset X) : Set X) ⊕ ↥((insert s₁ P : Finset X) : Set X) :=
   if h : x ∈ P then .inr ⟨x, by simp [h]⟩ else .inl ⟨x, by simp [h]⟩
 
-/-- **`Ñ` is the gluing of the networks `Ñ` of two induced networks** (proof of Theorem 4): for a node
-`u` of a cycle `C` of `N⁻`, with block `P`, a taxon `s₂ ∈ P` and a taxon `s₁ ∉ P`, the network `Ñ` of
-`N` is the gluing of the network `Ñ` of the network induced on `Pᶜ ∪ {s₂}`, at its leaf `s₂`, to the
-network `Ñ` of the network induced on `P ∪ {s₁}`, at its leaf `s₁`. -/
+/-- **`Ñ` is the gluing of the networks `Ñ` of two induced networks** (proof of Theorem 4): for a
+node `u` of a cycle `C` of `N⁻`, with block `P`, a taxon `s₂ ∈ P` and a taxon `s₁ ∉ P`, the network
+`Ñ` of `N` is the gluing of the network `Ñ` of the network induced on `Pᶜ ∪ {s₂}`, at its leaf `s₂`,
+to the network `Ñ` of the network induced on `P ∪ {s₁}`, at its leaf `s₁`. -/
 theorem tilde_sdIso_glue {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {u} (hu : u ∈ cycleNodes (unrooted N hN hX).graph C)
-    {P : Finset X} (hP : ∀ x, x ∈ P ↔ x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u)
+    {P : Finset X} (hP : ∀ x, x ∈ P ↔ x ∈ nodeBlock (unrooted N hN hX).graph
+        (unrooted N hN hX).leaf C u)
     {s₁ s₂ : X} (hs₁ : s₁ ∉ P) (hs₂ : s₂ ∈ P)
     (hZ₁ : ((insert s₂ Pᶜ : Finset X) : Set X).Nontrivial)
     (hZ₂ : ((insert s₁ P : Finset X) : Set X).Nontrivial) :

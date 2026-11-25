@@ -6,18 +6,18 @@ public import Phylogenetics.NMSC.TreeCF
 /-!
 # Two taxa below an arc (Example 5)
 
-Let `c` be the only arc into a cut vertex `r` below which lie exactly two taxa `a` and `b`, at children
-of `r`. The two lineages arrive at `r` apart, and coalesce along `c` with probability `1 - e^{-t}`,
-`t` the length of `c` (`kingmanTransition_singletons_cherry`).
+Let `c` be the only arc into a cut vertex `r` below which lie exactly two taxa `a` and `b`, at
+children of `r`. The two lineages arrive at `r` apart, and coalesce along `c` with probability
+`1 - e^{-t}`, `t` the length of `c` (`kingmanTransition_singletons_cherry`).
 
 * `eq_or_eq_of_isGoodForest_of_lineages_eq_pair`: a binary forest on two lineages is the two
   singletons, with or without their cherry.
 * `rootDist_cutLower_cherry`: the forest arriving at `r` is `{{a}, {b}}`.
-* `arcLaw_cherry`, `probLineages_cherry_one`, `probLineages_cherry_two`: the number `K` of lineages at
-  the top of `c` is `1` with probability `1 - e^{-t}` and `2` with probability `e^{-t}`.
-* `jointCF_cherry_one`, `condCF_cherry_one`: for four taxa, given `K = 1` the cherry `{a, b}` decides
-  the quartet tree: `CF(· | K = 1)` is `1` on the quartet trees with the cherry `{a, b}`, `0` on the
-  others.
+* `arcLaw_cherry`, `probLineages_cherry_one`, `probLineages_cherry_two`: the number `K` of lineages
+  at the top of `c` is `1` with probability `1 - e^{-t}` and `2` with probability `e^{-t}`.
+* `jointCF_cherry_one`, `condCF_cherry_one`: for four taxa, given `K = 1` the cherry `{a, b}`
+  decides the quartet tree: `CF(· | K = 1)` is `1` on the quartet trees with the cherry `{a, b}`,
+  `0` on the others.
 -/
 
 @[expose] public noncomputable section
@@ -152,7 +152,8 @@ theorem rootDist_cutLower_cherry (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : 
     have hprod : ∏ w ∈ strictBelow N r, vertexWeight N θ 0 (taxaInj N univ) w bot top ≠ 0 := by
       rw [hset, prod_map]
       refine ne_of_eq_of_ne (prod_congr rfl fun w hw' =>
-        hgl.vertexWeight_lower (taxaInj N univ) (fun _ => ∅) (fun _ => ∅) (fun _ => ∅) (fun _ => ∅) b₁
+        hgl.vertexWeight_lower (taxaInj N univ) (fun _ => ∅) (fun _ => ∅) (fun _ => ∅)
+          (fun _ => ∅) b₁
           t₁ (ne_of_mem_erase hw')) (by unfold injWeight at hw; convert hw)
     have hF := frontier_of_prod_ne_zero hN hinj (downClosed_strictBelow hN r) hprod
     have harr' : arriving N (taxaInj N univ) top r = F := by
@@ -175,7 +176,8 @@ theorem rootDist_cutLower_cherry (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : 
       have hleaf : ∀ x, N.graph.outdegree (N.leaf x) = 0 := fun x => (hN.leaves _).2 ⟨x, rfl⟩
       rcases harcs e he with h | h
       · rw [h] at hu'
-        exact hab (hN.leaf_injective (N.graph.eq_of_reaches_of_outdegree_eq_zero hu' (hleaf a))).symm
+        exact hab (hN.leaf_injective
+          (N.graph.eq_of_reaches_of_outdegree_eq_zero hu' (hleaf a))).symm
       · rw [h] at hu
         exact hab (hN.leaf_injective (N.graph.eq_of_reaches_of_outdegree_eq_zero hu (hleaf b)))
   have hsum := sum_rootDist_cutLower hN hc hθ ⟨le_rfl, zero_le_one⟩ hinj
@@ -226,8 +228,8 @@ theorem card_roots_insert_pair_singletons (hab : a ≠ b) :
 
 variable {c : E}
 
-/-- **The forest at the top of the arc `c` above the cut vertex**: the two singletons, which coalesce
-along `c`. -/
+/-- **The forest at the top of the arc `c` above the cut vertex**: the two singletons, which
+coalesce along `c`. -/
 theorem arcLaw_cherry (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : MetricData E}
     (hθ : N.IsMetric θ) (hab : a ≠ b) (hbelow : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = a ∨ x = b)
     (hr : ∀ x, N.leaf x ≠ r)
@@ -253,12 +255,14 @@ theorem probLineages_cherry_one (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : M
     (hθ : N.IsMetric θ) (hcr : N.graph.target c = r) (huniq : ∀ g, N.graph.target g = r → g = c)
     (hab : a ≠ b) (hbelow : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = a ∨ x = b)
     (hr : ∀ x, N.leaf x ≠ r)
-    (harcs : ∀ e, N.graph.source e = r → N.graph.target e = N.leaf a ∨ N.graph.target e = N.leaf b) :
+    (harcs : ∀ e, N.graph.source e = r → N.graph.target e = N.leaf a ∨
+        N.graph.target e = N.leaf b) :
     probLineages N θ c 1 = 1 - Real.exp (-θ.length c) := by
   rw [probLineages_eq_sum_arc hN hθ hc hcr huniq,
     Finset.sum_eq_single (insert {a, b} (({a, b} : Finset X).image fun x => ({x} : Finset X)))]
   · rw [ite_eq_left (card_roots_insert_pair_singletons hab),
-      arcLaw_cherry hN hc hθ hab hbelow hr harcs, kingmanTransition_singletons_cherry (card_pair hab)]
+      arcLaw_cherry hN hc hθ hab hbelow hr harcs, kingmanTransition_singletons_cherry
+        (card_pair hab)]
   · intro t _ ht
     split_ifs with h1
     · rw [arcLaw_cherry hN hc hθ hab hbelow hr harcs]
@@ -275,7 +279,8 @@ theorem probLineages_cherry_two (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : M
     (hθ : N.IsMetric θ) (hcr : N.graph.target c = r) (huniq : ∀ g, N.graph.target g = r → g = c)
     (hab : a ≠ b) (hbelow : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = a ∨ x = b)
     (hr : ∀ x, N.leaf x ≠ r)
-    (harcs : ∀ e, N.graph.source e = r → N.graph.target e = N.leaf a ∨ N.graph.target e = N.leaf b) :
+    (harcs : ∀ e, N.graph.source e = r → N.graph.target e = N.leaf a ∨
+        N.graph.target e = N.leaf b) :
     probLineages N θ c 2 = Real.exp (-θ.length c) := by
   rw [probLineages_eq_sum_arc hN hθ hc hcr huniq,
     Finset.sum_eq_single (({a, b} : Finset X).image fun x => ({x} : Finset X))]
@@ -302,15 +307,18 @@ theorem jointCF_cherry_one (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : Metric
     (hbelow : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = a ∨ x = b) (hr : ∀ x, N.leaf x ≠ r)
     (harcs : ∀ e, N.graph.source e = r → N.graph.target e = N.leaf a ∨ N.graph.target e = N.leaf b)
     (q : QuartetTree X) :
-    jointCF N θ c 1 q = (1 - Real.exp (-θ.length c)) * if ({a, b} : Finset X) ∈ q.val then 1 else 0 := by
+    jointCF N θ c 1 q = (1 - Real.exp (-θ.length c)) * if ({a, b} : Finset X) ∈
+      q.val then 1 else 0 := by
   have h1 : θ.inheritance c = 1 := hθ.2.2.1 c (isTreeArc_of_unique hcr huniq)
   have hlen : 0 < θ.length c := hθ.1 c (isTreeArc_of_unique hcr huniq)
   set T := insert {a, b} (({a, b} : Finset X).image fun x => ({x} : Finset X)) with hT
   rw [jointCF_eq_sum_arc hN hc hcr huniq h1 1 q, Finset.sum_eq_single T]
-  · rw [ite_eq_left (card_roots_insert_pair_singletons hab), arcLaw_cherry hN hc hθ hab hbelow hr harcs,
+  · rw [ite_eq_left (card_roots_insert_pair_singletons hab),
+      arcLaw_cherry hN hc hθ hab hbelow hr harcs,
       kingmanTransition_singletons_cherry (card_pair hab), sum_displays_injDist hX]
     have hne : arcLaw N r hc θ 0 c (taxaInj N univ) T ≠ 0 := by
-      rw [arcLaw_cherry hN hc hθ hab hbelow hr harcs, kingmanTransition_singletons_cherry (card_pair hab)]
+      rw [arcLaw_cherry hN hc hθ hab hbelow hr harcs, kingmanTransition_singletons_cherry
+        (card_pair hab)]
       have : Real.exp (-θ.length c) < 1 := Real.exp_lt_one_iff.2 (by linarith)
       linarith
     have hv := validInj_of_arcLaw_ne_zero hN hc hcr (validInj_taxaInj univ) hne

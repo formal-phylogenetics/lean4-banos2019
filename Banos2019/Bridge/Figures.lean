@@ -8,18 +8,18 @@ public import Banos2019.Identify.TreeOfCycles
 /-!
 # The networks of Figures 17 and 18, on the Challenge's definitions
 
-`Model.fig17Network` and `Model.fig18Network` (`Banos2019.Defs`) are the library's rootings `q17` and
-`q18` of Figures 17 and 18 (`fig17Network_toRooted`, `fig18Network_toRooted`). So:
+`Model.fig17Network` and `Model.fig18Network` (`Banos2019.Defs`) are the library's rootings `q17`
+and `q18` of Figures 17 and 18 (`fig17Network_toRooted`, `fig18Network_toRooted`). So:
 
 * `example6_fig18`, `example7_fig17`: Examples 6 and 7 (`Banos2019.example6`, `Banos2019.example7`).
-* `unrooted_q17_fourCycle`, `unrooted_q18_ncard`: `N⁻` of Figure 17 has a 4-cycle; every cycle of `N⁻`
-  of Figure 18 has three edges (the cycle of `q18` through the root, which `N⁻` suppresses). Both
-  through `inducesCycleType_iff`.
+* `unrooted_q17_fourCycle`, `unrooted_q18_ncard`: `N⁻` of Figure 17 has a 4-cycle; every cycle of
+  `N⁻` of Figure 18 has three edges (the cycle of `q18` through the root, which `N⁻` suppresses).
+  Both through `inducesCycleType_iff`.
 * `fig17_fig18_unrooted`: on the Challenge's `unrooted`.
-* `fig17_fig18_tilde`: the networks `Ñ` of Figures 17 and 18 are not isomorphic: that of Figure 17 has
-  a cycle, from the 4-cycle of `N⁻` (`exists_isCycle_tilde_of_big`), and a cycle of `Ñ` comes from a
-  cycle of `N⁻` of size at least four (`exists_isCycle_big_of_mem_cycleNodes_tilde`), which Figure 18
-  does not have.
+* `fig17_fig18_tilde`: the networks `Ñ` of Figures 17 and 18 are not isomorphic: that of Figure 17
+  has a cycle, from the 4-cycle of `N⁻` (`exists_isCycle_tilde_of_big`), and a cycle of `Ñ` comes
+  from a cycle of `N⁻` of size at least four (`exists_isCycle_big_of_mem_cycleNodes_tilde`), which
+  Figure 18 does not have.
 -/
 
 @[expose] public noncomputable section
@@ -188,7 +188,8 @@ theorem unrooted_q17_fourCycle {M : RootedNetwork (Fin 9) (Fin 9) (Fin 4)}
 /-- **Every cycle of `N⁻` of Figure 18 has three edges**: it comes from the cycle of `q18`, of four
 edges, through the root, which `N⁻` suppresses. -/
 theorem unrooted_q18_ncard {M : RootedNetwork (Fin 9) (Fin 9) (Fin 4)}
-    (hM : IsBinaryRootedNetwork M) (hX : Nontrivial (Fin 4)) (h : M = q18 (0 : Fin 4) 1 2) {C : Set _}
+    (hM : IsBinaryRootedNetwork M) (hX : Nontrivial (Fin 4))
+    (h : M = q18 (0 : Fin 4) 1 2) {C : Set _}
     (hC : IsCycle (unrooted M hM hX).graph C) : C.ncard = 3 := by
   subst h
   have hQ := fig18_isLSAQuartet (t₁ := 1) (t₂ := 1) (t₃ := 1) (t₄ := 1) one_pos one_pos one_pos
@@ -254,9 +255,10 @@ theorem fig17_fig18_tilde :
   obtain ⟨C, hC, h4⟩ := unrooted_q17_fourCycle hb₁₇ hX fig17Network_toRooted
   obtain ⟨C₁, hC₁, -⟩ := exists_isCycle_tilde_of_big
     (isUnrootedLevelOne_unrooted hb₁₇ h1₁₇ hX) hC h4.ge
-  -- its image is a cycle of `Ñ` of Figure 18, which comes from a cycle of `N⁻` of size at least four
+  -- its image is a cycle of `Ñ` of Figure 18, which comes from a cycle of `N⁻` of size at least
+  -- four
   have hC₂ := J.isCycle_image hC₁
-  obtain ⟨w, hw⟩ := hC₂.cycleNodes_nonempty
+  obtain ⟨w, hw⟩ := hC₂.nonempty_cycleNodes
   obtain ⟨D, -, hD, hD4, -⟩ := exists_isCycle_big_of_mem_cycleNodes_tilde hC₂ hw
   rw [unrooted_q18_ncard hb₁₈ hX fig18Network_toRooted hD] at hD4
   exact absurd hD4 (by norm_num)

@@ -6,14 +6,15 @@ public import Phylogenetics.NMSC.Glue
 /-!
 # Isomorphisms of rooted networks
 
-An isomorphism of rooted networks renames their nodes and their arcs, keeping the ends of the arcs, the
-root and the leaves. It keeps the network laws, and, with the same lengths and inheritance
+An isomorphism of rooted networks renames their nodes and their arcs, keeping the ends of the arcs,
+the root and the leaves. It keeps the network laws, and, with the same lengths and inheritance
 probabilities, the concordance factors. The examples of Section 5 use it to compute the concordance
 factors of networks defined by a construction (`disjointNet`) from an explicit isomorphic network.
 
 * `RootedNetworkIso`: an isomorphism; `RootedNetworkIso.symm`: its inverse.
 * `RootedNetworkIso.reaches_iff`, `RootedNetworkIso.indegree_eq`, `RootedNetworkIso.outdegree_eq`.
-* `RootedNetworkIso.isPhylogenetic`, `RootedNetworkIso.cf_eq`, `RootedNetworkIso.cf_eq_of_isPhylogenetic`.
+* `RootedNetworkIso.isPhylogenetic`, `RootedNetworkIso.cf_eq`,
+  `RootedNetworkIso.cf_eq_of_isPhylogenetic`.
 -/
 
 @[expose] public noncomputable section
@@ -62,7 +63,8 @@ theorem adj_iff (u w : V) : N'.graph.Adj (φ.vert u) (φ.vert w) ↔ N.graph.Adj
 theorem reaches_iff (u w : V) : N'.graph.Reaches (φ.vert u) (φ.vert w) ↔ N.graph.Reaches u w := by
   constructor
   · intro h
-    have key : ∀ u' w', N'.graph.Reaches u' w' → N.graph.Reaches (φ.vert.symm u') (φ.vert.symm w') :=
+    have key : ∀ u' w', N'.graph.Reaches u' w' → N.graph.Reaches (φ.vert.symm u')
+      (φ.vert.symm w') :=
       fun u' w' h => by
         induction h with
         | refl => exact .refl

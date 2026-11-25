@@ -7,12 +7,13 @@ public import Banos2019.Network.AncestralSuppress
 # Proposition 1: `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic
 
 The proof of Proposition 1 (Appendix). `K`, the network of the edges of `N⁻` on simple treks between
-taxa of `Z`, has as edges the arcs of `N` below `LSA(Z)` and above a taxon of `Z` (`mem_trekEdges_iff`,
-from Lemma 17): the paper's `M' = K`, or `M⁻ = K` when `LSA(Z) = LSA(X)`. Suppressing the nodes of
-degree two of `K` gives `(N⁺_Z)⁻`: the nodes kept on both sides are the nodes strictly below `LSA(Z)`
-that are not chain nodes of the ancestral network on `Z`, and the edges on both sides are the chains of
-the ancestral network below `LSA(Z)`, the two chains out of `LSA(Z)` merged into one (through
-`LSA(Z)`, or through the edge of `N⁻` out of the child of `rootTreeArc` when `LSA(Z) = LSA(X)`).
+taxa of `Z`, has as edges the arcs of `N` below `LSA(Z)` and above a taxon of `Z`
+(`mem_trekEdges_iff`, from Lemma 17): the paper's `M' = K`, or `M⁻ = K` when `LSA(Z) = LSA(X)`.
+Suppressing the nodes of degree two of `K` gives `(N⁺_Z)⁻`: the nodes kept on both sides are the
+nodes strictly below `LSA(Z)` that are not chain nodes of the ancestral network on `Z`, and the
+edges on both sides are the chains of the ancestral network below `LSA(Z)`, the two chains out of
+`LSA(Z)` merged into one (through `LSA(Z)`, or through the edge of `N⁻` out of the child of
+`rootTreeArc` when `LSA(Z) = LSA(X)`).
 
 The network `N⁺_Z` enters through `IsContraction`, so that the argument applies to `inducedRooted`
 (`Banos2019.Network.Induced`).
@@ -128,8 +129,8 @@ theorem exists_other_arc_lsa (hZ : Z.Nontrivial) {a : E}
   exact not_three_of_outdegree_eq_two hout hes hbs ha heb hea
     (fun h => hb (Set.mem_singleton_iff.mpr h))
 
-/-- A node of the ancestral network is a chain node when it has one parent in `N` and one arc above a
-taxon of `Z`. -/
+/-- A node of the ancestral network is a chain node when it has one parent in `N` and one arc above
+a taxon of `Z`. -/
 theorem chainZ_iff (hZ : Z.Nonempty) {v : V} (hv : v ∈ N.ancestralVertices Z) :
     ChainZ hN.1 hZ v ↔
       N.graph.indegree v = 1 ∧ {e | N.graph.source e = v ∧ e ∈ N.ancestralArcs Z}.ncard = 1 := by
@@ -152,7 +153,8 @@ theorem valK_mem_belowArcs (g : trekEdges (semidirected hN.1 hN.2 hX) Z) :
   (mem_trekEdges_iff hN hX hZ.nonempty h17 g.1).mp g.2
 
 omit h17 in
-/-- An arc out of `LSA(X)` other than `rootTreeArc` is below `LSA(Z)` only when the two are equal. -/
+/-- An arc out of `LSA(X)` other than `rootTreeArc` is below `LSA(Z)` only when the two are equal.
+-/
 theorem lsa_eq_of_source_eq {e : E} (he : e ∈ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z)
     (hs : N.graph.source e = lsa hN.1 Set.univ Set.univ_nonempty) :
     lsa hN.1 Z hZ.nonempty = lsa hN.1 Set.univ Set.univ_nonempty :=
@@ -258,8 +260,8 @@ theorem valH_mem (u : keptNodes (semidirected hN.1 hN.2 hX) (trekEdges (semidire
   (mem_keptNodes_iff hN hX hZ h17 u.1).mp u.2
 
 /-- **The degree of a node of `K` other than `LSA(Z)`** is its indegree in `N` plus its outdegree in
-the ancestral network on `Z`. At the child of `rootTreeArc`, when `LSA(Z) = LSA(X)`, `rootTreeArc` is
-replaced by the other arc out of `LSA(X)`. -/
+the ancestral network on `Z`. At the child of `rootTreeArc`, when `LSA(Z) = LSA(X)`, `rootTreeArc`
+is replaced by the other arc out of `LSA(X)`. -/
 theorem degree_trekNet (u : keptNodes (semidirected hN.1 hN.2 hX)
     (trekEdges (semidirected hN.1 hN.2 hX) Z) Z) (hu : valH hN hX u ≠ lsa hN.1 Z hZ.nonempty) :
     degree (trekNet hN hX Z).graph u = N.graph.indegree (valH hN hX u) +
@@ -384,8 +386,8 @@ theorem trekNet_leaf_iff (u : keptNodes (semidirected hN.1 hN.2 hX)
     subst hxz'
     exact ⟨⟨z, hz⟩, valH_injective hN hX hx⟩
 
-/-- **The nodes of `K` kept by suppression**, other than `LSA(Z)`, are those that are not chain nodes
-of the ancestral network on `Z`. -/
+/-- **The nodes of `K` kept by suppression**, other than `LSA(Z)`, are those that are not chain
+nodes of the ancestral network on `Z`. -/
 theorem isBranch_trekNet_iff (u : keptNodes (semidirected hN.1 hN.2 hX)
     (trekEdges (semidirected hN.1 hN.2 hX) Z) Z) (hu : valH hN hX u ≠ lsa hN.1 Z hZ.nonempty) :
     IsBranch (trekNet hN hX Z) ∅ u ↔ ¬ ChainZ hN.1 hZ.nonempty (valH hN hX u) := by
@@ -410,14 +412,16 @@ theorem isBranch_trekNet_iff (u : keptNodes (semidirected hN.1 hN.2 hX)
     by_cases hl : ∃ x, N.leaf x = valH hN hX u
     · exact Or.inr (Or.inl ((trekNet_leaf_iff hN hX hZ h17 u).mpr hl))
     · refine Or.inl fun h2 => hnc ⟨?_, ?_⟩ <;> rw [hdeg] at h2
-      · have : 1 ≤ ({e | N.graph.source e = valH hN hX u ∧ e ∈ N.ancestralArcs Z} : Set E).ncard := by
+      · have : 1 ≤ ({e | N.graph.source e = valH hN hX u ∧ e ∈
+          N.ancestralArcs Z} : Set E).ncard := by
           obtain ⟨z, hz, hvz⟩ := hv
           rcases Relation.ReflTransGen.cases_head hvz with h | ⟨c, ⟨e, hes, het⟩, hcz⟩
           · exact absurd ⟨z, h.symm⟩ hl
           · exact Nat.one_le_iff_ne_zero.mpr (Set.ncard_ne_zero_of_mem (a := e)
               ⟨hes, ⟨z, hz, het ▸ hcz⟩⟩ (Set.toFinite _))
         omega
-      · have : 1 ≤ ({e | N.graph.source e = valH hN hX u ∧ e ∈ N.ancestralArcs Z} : Set E).ncard := by
+      · have : 1 ≤ ({e | N.graph.source e = valH hN hX u ∧ e ∈
+          N.ancestralArcs Z} : Set E).ncard := by
           obtain ⟨z, hz, hvz⟩ := hv
           rcases Relation.ReflTransGen.cases_head hvz with h | ⟨c, ⟨e, hes, het⟩, hcz⟩
           · exact absurd ⟨z, h.symm⟩ hl
@@ -451,7 +455,8 @@ theorem not_isBranch_trekNet_lsa (u : keptNodes (semidirected hN.1 hN.2 hX)
       refine Set.eq_empty_of_forall_notMem ?_
       rintro e ⟨g, hg, rfl⟩
       have hb := valK_mem_belowArcs hN hX hZ h17 g
-      exact not_reaches_target_source_of_isAcyclic hN.1.acyclic _ (by rw [(htgt g).mp hg]; exact hb.1)
+      exact not_reaches_target_source_of_isAcyclic hN.1.acyclic _
+        (by rw [(htgt g).mp hg]; exact hb.1)
     have h2 : valK hN hX '' {g | (trekNet hN hX Z).graph.source g = u} =
         {e | N.graph.source e = m ∧ e ∈ N.ancestralArcs Z} := by
       ext e
@@ -484,7 +489,8 @@ chain nodes of the ancestral network on `Z`. -/
 def lVertEquiv : {u // IsBranch (trekNet hN hX Z) ∅ u} ≃
     {v : V // v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
       N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty} :=
-  Equiv.ofInjectiveSubtype (fun u => valH hN hX u.1) (fun _ _ h => Subtype.ext (valH_injective hN hX h)) _
+  Equiv.ofInjectiveSubtype (fun u => valH hN hX u.1)
+    (fun _ _ h => Subtype.ext (valH_injective hN hX h)) _
     fun v => by
       constructor
       · rintro ⟨hv, hnc, hmv, hvm⟩
@@ -501,7 +507,8 @@ def lVertEquiv : {u // IsBranch (trekNet hN hX Z) ∅ u} ≃
 omit h17 in
 /-- A node below `LSA(Z)` is not `LSA(X)`, unless both are `LSA(Z)`. -/
 theorem ne_lsa_univ {s : V} (hms : N.graph.Reaches (lsa hN.1 Z hZ.nonempty) s)
-    (h : s ≠ lsa hN.1 Z hZ.nonempty ∨ lsa hN.1 Z hZ.nonempty ≠ lsa hN.1 Set.univ Set.univ_nonempty) :
+    (h : s ≠ lsa hN.1 Z hZ.nonempty ∨ lsa hN.1 Z hZ.nonempty ≠
+      lsa hN.1 Set.univ Set.univ_nonempty) :
     s ≠ lsa hN.1 Set.univ Set.univ_nonempty := by
   rintro rfl
   have := eq_of_reaches_of_reaches hN.1.acyclic hms (lsa_univ_reaches hN.1 hZ.nonempty)
@@ -548,7 +555,8 @@ variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X} (h
   {VC EC : Type*} {C : RootedNetwork VC EC Z} (hC : IsBinaryRootedNetwork C)
   (ι : VC → {v : N.AncestralVertex Z //
     ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex v})
-  (κ : EC → {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
+  (κ : EC → {e : N.AncestralArc Z // ¬
+    (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
     ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).graph.source e)})
   (hK : IsContraction ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
     (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)) C ι κ)
@@ -567,13 +575,15 @@ theorem valC_injective : Function.Injective (valC hN hZ ι) := fun _ _ h =>
 theorem valCE_injective : Function.Injective (valCE hN hZ κ) := fun _ _ h =>
   hK.inj_e (valSE_injective hN.1 hZ.nonempty h)
 
-theorem valC_source (e : EC) : valC hN hZ ι (C.graph.source e) = N.graph.source (valCE hN hZ κ e) := by
+theorem valC_source (e : EC) : valC hN hZ ι (C.graph.source e) =
+    N.graph.source (valCE hN hZ κ e) := by
   unfold valC valCE
   rw [hK.source]
   rfl
 
 theorem valC_target (e : EC) :
-    valC hN hZ ι (C.graph.target e) = chainEndZ hN.1 hZ.nonempty (N.graph.target (valCE hN hZ κ e)) := by
+    valC hN hZ ι (C.graph.target e) = chainEndZ hN.1 hZ.nonempty
+      (N.graph.target (valCE hN hZ κ e)) := by
   unfold valC valCE
   rw [hK.target, valS_target]
 
@@ -637,8 +647,8 @@ theorem mem_range_valC (v : V) :
     obtain ⟨c, rfl⟩ := (hK.range_v s).mpr fun ⟨h, h1⟩ => hr ⟨h ▸ valS_root hN.1 hZ.nonempty, h1⟩
     exact ⟨c, rfl⟩
 
-/-- **The nodes of `(N⁺_Z)⁻`**: the nodes strictly below `LSA(Z)`, above a taxon of `Z`, that are not
-chain nodes of the ancestral network on `Z`. -/
+/-- **The nodes of `(N⁺_Z)⁻`**: the nodes strictly below `LSA(Z)`, above a taxon of `Z`, that are
+not chain nodes of the ancestral network on `Z`. -/
 theorem mem_range_valR (v : V) :
     (∃ r, valR hN hZ hC ι r = v) ↔ v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
       N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty := by
@@ -756,13 +766,14 @@ variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivi
   {VC EC : Type*} {C : RootedNetwork VC EC Z} (hC : IsBinaryRootedNetwork C)
   (ι : VC → {v : N.AncestralVertex Z //
     ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex v})
-  (κ : EC → {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
+  (κ : EC → {e : N.AncestralArc Z // ¬
+    (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
     ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).graph.source e)})
   (hK : IsContraction ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
     (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)) C ι κ)
 
-/-- The arcs of `N` of an edge of `(N⁺_Z)⁻`: the chain of the ancestral network starting with its arc,
-and, for the edge out of `LSA(Z)`, the chain starting with the other arc out of `LSA(Z)`. -/
+/-- The arcs of `N` of an edge of `(N⁺_Z)⁻`: the chain of the ancestral network starting with its
+arc, and, for the edge out of `LSA(Z)`, the chain starting with the other arc out of `LSA(Z)`. -/
 def edgeArcsR (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) : Set E :=
   {e | e ∈ chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g) ∨
     (N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty ∧
@@ -797,7 +808,8 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
   have hsf : N.graph.source f ∈ N.ancestralVertices Z := N.source_mem_ancestralVertices hf
   have hpath := IsDPath.cons f (isDPath_chainTail hN.1 hZ.nonempty htf)
   have hgood : ∀ s ∈ insert (N.graph.source f) (chainNodes hN.1 hZ.nonempty (N.graph.target f)),
-      N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ lsa hN.1 Set.univ Set.univ_nonempty := by
+      N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠
+      lsa hN.1 Set.univ Set.univ_nonempty := by
     rintro s (rfl | hs)
     · exact ⟨hmf, hsf, ne_lsa_univ hN hX hZ hmf (Or.inl hg)⟩
     · have hms : N.graph.Reaches m s := (hmf.tail ⟨f, rfl, rfl⟩).trans
@@ -808,7 +820,8 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
           ((reaches_of_mem_chainNodes hN.1 hZ.nonempty hs).trans hmf)
       exact ⟨hms, hs.2.1, ne_lsa_univ hN hX hZ hms (Or.inl hsm)⟩
   obtain ⟨u, hu⟩ := exists_valH hN hX hZ h17 hmf hsf ((hgood _ (Set.mem_insert _ _)).2.2)
-  have hend := Set.mem_insert_of_mem (N.graph.source f) (chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf)
+  have hend := Set.mem_insert_of_mem (N.graph.source f)
+    (chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf)
   obtain ⟨w, hw⟩ := exists_valH hN hX hZ h17 (hgood _ hend).1 (hgood _ hend).2.1 (hgood _ hend).2.2
   have hK' := isDPath_trekNet hN hX hZ h17 hpath hgood hu hw
   have hedges : valK hN hX ⁻¹' insert f (chainTailArcs hN.1 hZ.nonempty (N.graph.target f)) =
@@ -849,8 +862,8 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
 
 include h17 hK in
 /-- **The chain of the edge of `(N⁺_Z)⁻` out of `LSA(Z)`**: the two chains from `LSA(Z)` merged into
-one, through `LSA(Z)` when `LSA(Z) ≠ LSA(X)`, and through the edge of `N⁻` that replaces the two arcs
-out of `LSA(X)` when `LSA(Z) = LSA(X)` (the "straightforward modification" of the paper). -/
+one, through `LSA(Z)` when `LSA(Z) ≠ LSA(X)`, and through the edge of `N⁻` that replaces the two
+arcs out of `LSA(X)` when `LSA(Z) = LSA(X)` (the "straightforward modification" of the paper). -/
 theorem exists_chainTrail_of_eq (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
     (hg : N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty) :
     ∃ u w S, IsChainTrail hN hX hZ hC ι κ g u w S := by
@@ -953,7 +966,8 @@ theorem exists_chainTrail_of_eq (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
     have hstar : ∃ e : trekEdges (semidirected hN.1 hN.2 hX) Z, (valK hN hX e = f₁ ∨
         valK hN hX e = f) ∧ Joins (trekNet hN hX Z).graph e ut₁ ut₂ := by
       by_cases h₀ : f₁ = f₀
-      · obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (e := f) ⟨hmf, hf⟩ fun h => hff₁ (h.trans h₀.symm)
+      · obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (e := f)
+          ⟨hmf, hf⟩ fun h => hff₁ (h.trans h₀.symm)
         have hes : N.graph.source (valK hN hX e) = ρ := by rw [he, hg]; exact hmρ
         refine ⟨e, Or.inr he, Or.inl ⟨valH_injective hN hX ?_, valH_injective hN hX ?_⟩⟩
         · rw [hut₁, valH_source, sdVert_source_of_eq hN hX e.1 hes, h₀]
@@ -1190,7 +1204,8 @@ theorem valH_vertEquivR_symm (x : SemidirectedVertex hC.1 hZ.coe_sort) :
     valH hN hX ((vertEquivR hN hX hZ h17 hC ι κ hK).symm x).1 = valR hN hZ hC ι x := by
   unfold vertEquivR
   rw [Equiv.symm_trans_apply, Equiv.symm_symm]
-  exact Equiv.ofInjectiveSubtype_symm_apply (fun u : {u // IsBranch (trekNet hN hX Z) ∅ u} => valH hN hX u.1)
+  exact Equiv.ofInjectiveSubtype_symm_apply (fun u : {u // IsBranch (trekNet hN hX Z) ∅ u} =>
+    valH hN hX u.1)
     _ _ _ _
 
 include h17 hK in
@@ -1307,7 +1322,8 @@ theorem edgeArcsR_subset (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
 include hK in
 /-- The chain of an edge of `(N⁺_Z)⁻` containing one arc out of `LSA(Z)` contains the other. -/
 theorem mem_edgeArcsR_of_lsa (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) {a b : E}
-    (has : N.graph.source a = lsa hN.1 Z hZ.nonempty) (hbs : N.graph.source b = lsa hN.1 Z hZ.nonempty)
+    (has : N.graph.source a = lsa hN.1 Z hZ.nonempty)
+    (hbs : N.graph.source b = lsa hN.1 Z hZ.nonempty)
     (hb : b ∈ N.ancestralArcs Z) (hab : a ≠ b) (ha : a ∈ edgeArcsR hN hZ hC κ g) :
     b ∈ edgeArcsR hN hZ hC κ g := by
   have := hN.1.finite_arcs

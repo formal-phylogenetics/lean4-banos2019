@@ -6,8 +6,8 @@ public import Banos2019.Bridge.Suppress
 # The constructions on semidirected networks are invariant under isomorphism
 
 An isomorphism of semidirected networks keeps cycles and their sizes (`SDIso.isCycle_image_iff`),
-semidirected paths and simple treks (`SDIso.isSimpleTrek`), so the edges on simple treks between taxa
-(`SDIso.mem_trekEdges_iff`). It gives isomorphisms of the networks built from them: `restrict`,
+semidirected paths and simple treks (`SDIso.isSimpleTrek`), so the edges on simple treks between
+taxa (`SDIso.mem_trekEdges_iff`). It gives isomorphisms of the networks built from them: `restrict`,
 `inducedUnrooted` (Definition 10), `contractCycles`, `undirectEdges` and `tildeNetwork` (Theorem 4).
 
 The Challenge's copies of these definitions are the library's, up to isomorphism
@@ -29,13 +29,15 @@ variable {V' E' : Type*} {G : SemidirectedNetwork V E X} {G' : SemidirectedNetwo
 
 /-! ### Cycles -/
 
-theorem SDIso.isCycle_image {C : Set E} (h : IsCycle G.graph C) : IsCycle G'.graph (ι.edge '' C) := by
+theorem SDIso.isCycle_image {C : Set E} (h : IsCycle G.graph C) : IsCycle G'.graph
+    (ι.edge '' C) := by
   obtain ⟨k, v, e, ⟨hk, hj, hv, he⟩, rfl⟩ := h
   exact ⟨k, ι.vert ∘ v, ι.edge ∘ e,
     ⟨hk, fun i => ι.joins_of_joins (hj i), ι.vert.injective.comp hv, ι.edge.injective.comp he⟩,
     Set.range_comp _ _⟩
 
-theorem SDIso.isCycle_image_iff (C : Set E) : IsCycle G'.graph (ι.edge '' C) ↔ IsCycle G.graph C := by
+theorem SDIso.isCycle_image_iff (C : Set E) : IsCycle G'.graph (ι.edge '' C) ↔
+    IsCycle G.graph C := by
   refine ⟨fun h => ?_, ι.isCycle_image⟩
   have := ι.symm.isCycle_image h
   rwa [show ι.symm.edge '' (ι.edge '' C) = C from ι.edge.symm_image_image C] at this
@@ -148,7 +150,8 @@ def SDIso.inducedUnrooted [Finite E] (Z : Set X) :
 
 /-! ### Contraction and `Ñ` -/
 
-variable {Q : Set E → Prop} {Q' : Set E' → Prop} (hQ : ∀ C, IsCycle G.graph C → (Q' (ι.edge '' C) ↔ Q C))
+variable {Q : Set E → Prop} {Q' : Set E' → Prop}
+  (hQ : ∀ C, IsCycle G.graph C → (Q' (ι.edge '' C) ↔ Q C))
 include hQ
 
 theorem SDIso.contractRel_iff (u w : V) :
@@ -179,7 +182,8 @@ theorem SDIso.notMem_contracted_iff (f : E) :
     exact ⟨ι.edge f, hf, ι.edge.symm_apply_apply f⟩
 
 /-- **An isomorphism gives isomorphic contracted networks**, when it keeps the cycles contracted. -/
-def SDIso.contractCycles : SDIso (Banos2019.contractCycles G Q) (Banos2019.contractCycles G' Q') where
+def SDIso.contractCycles : SDIso (Banos2019.contractCycles G Q)
+    (Banos2019.contractCycles G' Q') where
   vert := Quot.congr ι.vert fun a b => (ι.contractRel_iff hQ a b).symm
   edge := ι.edge.subtypeEquiv fun f => (ι.notMem_contracted_iff hQ f).symm
   isDirected_iff f := ι.isDirected_iff f.1
@@ -223,7 +227,8 @@ def SDIso.tildeNetwork [Finite E] : SDIso (Banos2019.tildeNetwork G) (Banos2019.
       simp only [Set.mem_ofPred_eq]
       constructor
       · rintro ⟨C', hC', h4, hf⟩
-        refine ⟨_, (ι.isCycle_iff_symm_image C').mp hC', ?_, ⟨ι.edge f.1, hf, ι.edge.symm_apply_apply _⟩⟩
+        refine ⟨_, (ι.isCycle_iff_symm_image C').mp hC', ?_,
+          ⟨ι.edge f.1, hf, ι.edge.symm_apply_apply _⟩⟩
         rw [← ι.ncard_image, ι.edge.image_symm_image, h4]
       · rintro ⟨C, hC, h4, hf⟩
         exact ⟨_, ι.isCycle_image hC, (ι.ncard_image C).trans h4, Set.mem_image_of_mem _ hf⟩

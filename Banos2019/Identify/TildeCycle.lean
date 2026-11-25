@@ -10,13 +10,13 @@ public import Banos2019.Identify.TreeOfCycles
 * `exists_not_isFourNetworkBlock_of_ne`: for two cycles of size at least four, the block of the node
   of the first toward the second is not a 4-network block, and the second has all the taxa outside
   it in one of its blocks.
-* `exists_leaf_bigCycle`: when `N⁻` has at least two cycles of size at least four, one of them, `C_v`,
-  is a leaf of the tree of cycles: all its `v`-blocks but that of a node `u` are 4-network blocks, the
-  block of `u` is not, and every other such cycle has all the taxa outside the block of `u` in one of
-  its blocks.
-* `tilde_sdIso_of_singletonBlocks`: two networks each with a cycle of size at least four whose blocks
-  are single taxa, with the same adjacent blocks and, for size at least five, the same hybrid block,
-  have isomorphic networks `Ñ`.
+* `exists_leaf_bigCycle`: when `N⁻` has at least two cycles of size at least four, one of them,
+  `C_v`, is a leaf of the tree of cycles: all its `v`-blocks but that of a node `u` are 4-network
+  blocks, the block of `u` is not, and every other such cycle has all the taxa outside the block of
+  `u` in one of its blocks.
+* `tilde_sdIso_of_singletonBlocks`: two networks each with a cycle of size at least four whose
+  blocks are single taxa, with the same adjacent blocks and, for size at least five, the same hybrid
+  block, have isomorphic networks `Ñ`.
 
 The second rests on a description of `Ñ` when the blocks of a cycle `C` of size at least four are
 single taxa, for a semidirected network with the properties of `N⁻` that it uses
@@ -63,20 +63,6 @@ theorem walks_compl_of_not_walks_compl (hG : G.IsConnected) {C C' : Set E'} (hC 
   exact (hu'a.trans (walks_mono (show C ⊆ C'ᶜ from fun g hg => hCC' g hg)
     (walks_cycle_of_mem_cycleNodes G hC ha hz))).trans
     (G.walks_symm (walks_mono Set.inter_subset_right hpz))
-
-/-- A walk on `F` is a walk on `F'` when every edge of `F` at a node that the walk can reach is in
-`F'`. -/
-theorem walks_of_forall_reach {F F' : Set E'} {a b : V'} (h : G.Walks F a b)
-    (hF : ∀ y, G.Walks F a y → ∀ f ∈ F, (G.source f = y ∨ G.target f = y) → f ∈ F') :
-    G.Walks F' a b := by
-  induction h with
-  | refl => exact .refl
-  | @tail c d hac hcd ih =>
-    obtain ⟨f, hf, hj⟩ := hcd
-    refine ih.tail ⟨f, hF c hac f hf ?_, hj⟩
-    rcases hj with ⟨h, -⟩ | ⟨-, h⟩
-    · exact Or.inl h
-    · exact Or.inr h
 
 /-- At a node of degree one of a multigraph without loops, two edges are equal. -/
 theorem eq_of_incident_of_degree_eq_one [Finite E'] {G : DirectedMultigraph V' E'}
@@ -212,7 +198,7 @@ theorem contract_source_ne_target_of_cycles (hloop : ∀ e, G.graph.source e ≠
     exact hgC (this ▸ hgC'')
 
 /-- A node on no contracted cycle keeps its degree in the contraction. -/
-theorem contract_degree_of_notMem_of_cycles [Finite E] {v : V}
+theorem contract_degree_of_notMem_of_cycles {v : V}
     (hv : ∀ C, IsCycle G.graph C → P C → v ∉ cycleNodes G.graph C) :
     degree (contractCycles G P).graph (Quot.mk _ v) = degree G.graph v := by
   have hcls : ∀ w, (Quot.mk _ w : Quot (ContractRel G.graph P)) = Quot.mk _ v ↔ w = v := fun w => by
@@ -365,18 +351,12 @@ structure SingletonBlockCycle (G : SemidirectedNetwork V E X) (C : Set E) : Prop
   four : 4 ≤ C.ncard
   single : ∀ x y, SameBlock G.graph G.leaf C x y → x = y
 
-/-- `Ñ` before suppression: the network with its cycles of size at most three contracted and the
-hybrid edges of its 4-cycles undirected (`tildeNetwork G = suppress (tildeUnsuppressed G)`). -/
-abbrev tildeUnsuppressed (G : SemidirectedNetwork V E X) :=
-  undirectEdges (contractCycles G fun C => C.ncard ≤ 3)
-    {e | ∃ C, IsCycle G.graph C ∧ C.ncard = 4 ∧ e.1 ∈ C}
-
 /-- The edges of `Ñ` before suppression off `C` hanging from the node of `C` of the block of `x`:
 reached from it by a walk off `C`. -/
 def pendantEdges (G : SemidirectedNetwork V E X) (C : Set E) (x : X) :
     Set {e // ∀ C', IsCycle G.graph C' → C'.ncard ≤ 3 → e ∉ C'} :=
-  {g | g.1 ∉ C ∧ (tildeUnsuppressed G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ (blockNode G C x))
-    ((tildeUnsuppressed G).graph.source g)}
+  {g | g.1 ∉ C ∧ (tildeContracted G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ (blockNode G C x))
+    ((tildeContracted G).graph.source g)}
 
 /-- **A cycle with a taxon hanging from each node**: nodes `inl x`, the taxon `x`, and `inr x`, a
 node of the cycle; edges `inl x`, from `inr x` to `inl x`, and `inr τ`, from `inr (s τ)` to
@@ -406,14 +386,14 @@ theorem notMem_of_ne {C₁ C₂ : Set E} (h₁ : IsCycle G.graph C₁) (h₂ : I
 /-- **The other cycles have size two**: a cycle `C'` other than `C` lies in the component of a node
 `w` of `C` without the edges of `C`, and the taxa outside the block of `w` are in one block of `C'`;
 the blocks of two more nodes of `C'` would hold two taxa of the block of `w`. -/
-theorem ncard_le_two [Finite E] {C' : Set E} (hC' : IsCycle G.graph C') (hne : C' ≠ C) :
+theorem ncard_le_two {C' : Set E} (hC' : IsCycle G.graph C') (hne : C' ≠ C) :
     C'.ncard ≤ 2 := by
   by_contra h3
   have h1 := hG.isLevelOne
   have hCC' : ∀ f ∈ C, f ∉ C' := fun f hf => hG.notMem_of_ne hG.cycle hC' (Ne.symm hne) hf
-  obtain ⟨z₀, hz₀⟩ := hC'.cycleNodes_nonempty
-  obtain ⟨w, hw, hwz⟩ := exists_walks_compl_of_isConnected hG.conn hG.cycle z₀
-  obtain ⟨u', hu', hu'w⟩ := exists_walks_compl_of_isConnected hG.conn hC' w
+  obtain ⟨z₀, hz₀⟩ := hC'.nonempty_cycleNodes
+  obtain ⟨w, hw, hwz⟩ := exists_walks_compl_cycleNodes hG.conn hG.cycle z₀
+  obtain ⟨u', hu', hu'w⟩ := exists_walks_compl_cycleNodes hG.conn hC' w
   have key : ∀ p, ¬ G.graph.Walks Cᶜ w p → G.graph.Walks C'ᶜ u' p := fun p hp =>
     walks_compl_of_not_walks_compl G.graph hG.conn hG.cycle hC' hCC' hz₀ hwz hw
       hu'w hp
@@ -476,7 +456,7 @@ theorem exists_leaf_eq [Finite E] {w : V}
       G.graph.Walks {g}ᶜ (b g) z →
         G.graph.Walks {f | ¬ (G.graph.source f = w ∨ G.graph.target f = w)} (b g) z := by
     intro g hg z hz
-    refine walks_of_forall_reach G.graph hz fun y hy f hf hfy hfw => hfar g hg ?_
+    refine walks_mono_of_reach hz fun y hy f hf hfy hfw => hfar g hg ?_
     have hyw : y ≠ w := fun h => hfar g hg (h ▸ hy)
     refine hy.tail ⟨f, hf, ?_⟩
     rcases hfy with h | h <;> rcases hfw with h' | h'
@@ -503,14 +483,14 @@ theorem exists_leaf_eq [Finite E] {w : V}
   have hgC : ∀ g, (G.graph.source g = w ∨ G.graph.target g = w) → g ∉ C := fun g hg hgC =>
     hwC ⟨g, hgC, hg⟩
   -- a far side without a node of `C` holds a taxon of the block of `w`
-  obtain ⟨w₀, hw₀, hw₀w⟩ := exists_walks_compl_of_isConnected hG.conn hG.cycle w
+  obtain ⟨w₀, hw₀, hw₀w⟩ := exists_walks_compl_cycleNodes hG.conn hG.cycle w
   have htax : ∀ g, (G.graph.source g = w ∨ G.graph.target g = w) →
       (∀ z, G.graph.Walks {g}ᶜ (b g) z → z ∉ cycleNodes G.graph C) →
       ∃ x, G.graph.Walks {g}ᶜ (b g) (G.leaf x) ∧ G.graph.Walks Cᶜ w₀ (G.leaf x) := by
     intro g hg hnC
     obtain ⟨x, hx⟩ := hG.side g (hbr g hg) (b g) (hb g hg).2
     refine ⟨x, hx, hw₀w.trans ((Relation.ReflTransGen.single ⟨g, hgC g hg, (hb g hg).1⟩).trans
-      (walks_of_forall_reach G.graph hx fun y hy f _ hfy hfC => hnC y hy ⟨f, hfC, hfy⟩))⟩
+      (walks_mono_of_reach hx fun y hy f _ hfy hfC => hnC y hy ⟨f, hfC, hfy⟩))⟩
   have htwo : ∀ g g', (G.graph.source g = w ∨ G.graph.target g = w) →
       (G.graph.source g' = w ∨ G.graph.target g' = w) → g ≠ g' →
       (∀ z, G.graph.Walks {g}ᶜ (b g) z → z ∉ cycleNodes G.graph C) →
@@ -553,19 +533,19 @@ theorem leaf_notMem [Finite E] (x : X) {C' : Set E} (hC' : IsCycle G.graph C') :
   omega
 
 /-- The cycles of size at most three are those other than `C`. -/
-theorem small_iff [Finite E] {C' : Set E} (hC' : IsCycle G.graph C') : C'.ncard ≤ 3 ↔ C' ≠ C := by
+theorem small_iff {C' : Set E} (hC' : IsCycle G.graph C') : C'.ncard ≤ 3 ↔ C' ≠ C := by
   refine ⟨fun h hc => ?_, fun h => (hG.ncard_le_two hC' h).trans (by norm_num)⟩
   subst hc
   have := hG.four
   omega
 
 /-- A node of `C` is on no other cycle. -/
-theorem notMem_small [Finite E] {u : V} (hu : u ∈ cycleNodes G.graph C) (C' : Set E)
+theorem notMem_small {u : V} (hu : u ∈ cycleNodes G.graph C) (C' : Set E)
     (hC' : IsCycle G.graph C') (h3 : C'.ncard ≤ 3) : u ∉ cycleNodes G.graph C' := fun hu' =>
   (hG.small_iff hC').1 h3 (hG.nd C' C hC' hG.cycle ⟨u, hu', hu⟩)
 
 /-- **The nodes identified in `Ñ`** are those of a cycle other than `C`. -/
-theorem mk_eq_iff [Finite E] {a b : V} :
+theorem mk_eq_iff {a b : V} :
     (Quot.mk _ a : Quot (ContractRel G.graph fun C => C.ncard ≤ 3)) = Quot.mk _ b ↔
       a = b ∨ ∃ C', IsCycle G.graph C' ∧ C' ≠ C ∧ a ∈ cycleNodes G.graph C' ∧
         b ∈ cycleNodes G.graph C' := by
@@ -577,7 +557,7 @@ theorem mk_eq_iff [Finite E] {a b : V} :
     exacts [Or.inl h, Or.inr ⟨C', hC', (hG.small_iff hC').2 hne, ha, hb⟩]
 
 /-- The class of a node of `C` is that node alone. -/
-theorem mk_eq_mk_iff_of_mem [Finite E] {u a : V} (hu : u ∈ cycleNodes G.graph C) :
+theorem mk_eq_mk_iff_of_mem {u a : V} (hu : u ∈ cycleNodes G.graph C) :
     (Quot.mk _ a : Quot (ContractRel G.graph fun C => C.ncard ≤ 3)) = Quot.mk _ u ↔ a = u := by
   rw [hG.mk_eq_iff]
   constructor
@@ -588,19 +568,19 @@ theorem mk_eq_mk_iff_of_mem [Finite E] {u a : V} (hu : u ∈ cycleNodes G.graph 
 
 /-- The degree of a taxon in `Ñ` before suppression is one. -/
 theorem degree_leaf [Finite E] (x : X) :
-    degree (tildeUnsuppressed G).graph ((tildeUnsuppressed G).leaf x) = 1 :=
+    degree (tildeContracted G).graph ((tildeContracted G).leaf x) = 1 :=
   (contract_degree_of_notMem_of_cycles hG.nd fun _ hC' _ => hG.leaf_notMem x hC').trans
     (hG.leaf_deg x)
 
 /-- The degree of a node of `C` in `Ñ` before suppression is three. -/
 theorem degree_cycle [Finite E] {u : V} (hu : u ∈ cycleNodes G.graph C) :
-    degree (tildeUnsuppressed G).graph (Quot.mk _ u) = 3 :=
+    degree (tildeContracted G).graph (Quot.mk _ u) = 3 :=
   (contract_degree_of_notMem_of_cycles hG.nd (hG.notMem_small hu)).trans
     (hG.deg u fun ⟨x, hx⟩ => hG.leaf_notMem x hG.cycle (hx ▸ hu))
 
 /-- The degree of a contracted cycle other than `C` is two. -/
 theorem degree_small [Finite E] {C' : Set E} (hC' : IsCycle G.graph C') (hne : C' ≠ C) {a : V}
-    (ha : a ∈ cycleNodes G.graph C') : degree (tildeUnsuppressed G).graph (Quot.mk _ a) = 2 := by
+    (ha : a ∈ cycleNodes G.graph C') : degree (tildeContracted G).graph (Quot.mk _ a) = 2 := by
   have h := contract_degree_of_mem_of_cycles (P := fun C => C.ncard ≤ 3) hG.nd hG.loop hC'
     ((hG.small_iff hC').2 hne)
     (fun w hw => hG.deg w fun ⟨x, hx⟩ => hG.leaf_notMem x hC' (hx ▸ hw)) ha
@@ -613,8 +593,8 @@ theorem degree_small [Finite E] {C' : Set E} (hC' : IsCycle G.graph C') (hne : C
 
 /-- **The kept nodes of `Ñ`**: the taxa and the nodes of `C`. -/
 theorem isBranch_iff [Finite E] (q : Quot (ContractRel G.graph fun C => C.ncard ≤ 3)) :
-    IsBranch (tildeUnsuppressed G) ∅ q ↔
-      (∃ x, q = (tildeUnsuppressed G).leaf x) ∨ ∃ u ∈ cycleNodes G.graph C, q = Quot.mk _ u := by
+    IsBranch (tildeContracted G) ∅ q ↔
+      (∃ x, q = (tildeContracted G).leaf x) ∨ ∃ u ∈ cycleNodes G.graph C, q = Quot.mk _ u := by
   induction q using Quot.ind with
   | mk w =>
   constructor
@@ -639,8 +619,8 @@ theorem isBranch_iff [Finite E] (q : Quot (ContractRel G.graph fun C => C.ncard 
 
 /-- A walk of `Ñ` before suppression avoiding the edges of `C` is a walk of the network avoiding
 `C`. -/
-theorem walks_lift [Finite E] {a b : V}
-    (h : (tildeUnsuppressed G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ a) (Quot.mk _ b)) :
+theorem walks_lift {a b : V}
+    (h : (tildeContracted G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ a) (Quot.mk _ b)) :
     G.graph.Walks Cᶜ a b := by
   refine walks_mono ?_ (walks_of_contract_walks_of_cycles h)
   rintro e (⟨g, hg, rfl⟩ | ⟨C', hC', h3, heC'⟩)
@@ -648,15 +628,15 @@ theorem walks_lift [Finite E] {a b : V}
   · exact hG.notMem_of_ne hC' hG.cycle ((hG.small_iff hC').1 h3) heC'
 
 /-- A walk of the network avoiding `C` is a walk of `Ñ` before suppression avoiding `C`. -/
-theorem walks_push [Finite E] {a b : V} (h : G.graph.Walks Cᶜ a b) :
-    (tildeUnsuppressed G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ a) (Quot.mk _ b) :=
+theorem walks_push {a b : V} (h : G.graph.Walks Cᶜ a b) :
+    (tildeContracted G).graph.Walks {g | g.1 ∉ C} (Quot.mk _ a) (Quot.mk _ b) :=
   contract_walks_of_walks_of_cycles h fun _ hf _ hC' hfC' =>
     (hG.small_iff hC').2 fun h => hf (h ▸ hfC')
 
 /-- `blockNode C x` is a node of `C`, and `x` is in its block. -/
 theorem blockNode_mem_and (x : X) :
     blockNode G C x ∈ cycleNodes G.graph C ∧ x ∈ nodeBlock G.graph G.leaf C (blockNode G C x) := by
-  obtain ⟨u, hu, hux⟩ := exists_walks_compl_of_isConnected hG.conn hG.cycle (G.leaf x)
+  obtain ⟨u, hu, hux⟩ := exists_walks_compl_cycleNodes hG.conn hG.cycle (G.leaf x)
   exact Classical.epsilon_spec (p := fun u => u ∈ cycleNodes G.graph C ∧
     x ∈ nodeBlock G.graph G.leaf C u) ⟨u, hu, hux⟩
 
@@ -708,7 +688,7 @@ theorem eq_of_notMem_of_mem_cycleNodes [Finite E] {u : V} (hu : u ∈ cycleNodes
 
 /-- An edge of `C` is on no cycle of size at most three: it is an edge of `Ñ` before
 suppression. -/
-theorem notMem_small_of_mem [Finite E] {e : E} (he : e ∈ C) (C' : Set E) (hC' : IsCycle G.graph C')
+theorem notMem_small_of_mem {e : E} (he : e ∈ C) (C' : Set E) (hC' : IsCycle G.graph C')
     (h3 : C'.ncard ≤ 3) : e ∉ C' := fun heC' =>
   (hG.small_iff hC').1 h3 (hG.isLevelOne C' C hC' hG.cycle ⟨e, heC', he⟩)
 
@@ -720,9 +700,9 @@ one edge, and the inner nodes two. -/
 theorem exists_isChainOf_pendantEdges [Finite E] (x : X) :
     ∃ (n : ℕ) (p : Fin (n + 1) → Quot (ContractRel G.graph fun C => C.ncard ≤ 3))
       (q : Fin n → {e // ∀ C', IsCycle G.graph C' → C'.ncard ≤ 3 → e ∉ C'}),
-      IsChainOf (tildeUnsuppressed G) ∅ n p q ∧ Set.range q = pendantEdges G C x ∧
-        p 0 = Quot.mk _ (blockNode G C x) ∧ p (Fin.last n) = (tildeUnsuppressed G).leaf x := by
-  set K := tildeUnsuppressed G with hK
+      IsChainOf (tildeContracted G) ∅ n p q ∧ Set.range q = pendantEdges G C x ∧
+        p 0 = Quot.mk _ (blockNode G C x) ∧ p (Fin.last n) = (tildeContracted G).leaf x := by
+  set K := tildeContracted G with hK
   set F : Set {e // ∀ C', IsCycle G.graph C' → C'.ncard ≤ 3 → e ∉ C'} := {g | g.1 ∉ C} with hF
   obtain ⟨hu, hux⟩ := hG.blockNode_mem_and x
   set u := blockNode G C x with hu_def
@@ -842,25 +822,25 @@ theorem exists_isChainOf_pendantEdges [Finite E] (x : X) :
   exact ⟨n, p, q, hchain, hQ, hp0, hpn⟩
 
 /-- An edge off `C` hangs from the node of `C` of the block of some taxon. -/
-theorem exists_mem_pendantEdges [Finite E]
+theorem exists_mem_pendantEdges
     (g : {e // ∀ C', IsCycle G.graph C' → C'.ncard ≤ 3 → e ∉ C'}) (hg : g.1 ∉ C) :
     ∃ x, g ∈ pendantEdges G C x := by
-  obtain ⟨u, hu, hug⟩ := exists_walks_compl_of_isConnected hG.conn hG.cycle (G.graph.source g.1)
+  obtain ⟨u, hu, hug⟩ := exists_walks_compl_cycleNodes hG.conn hG.cycle (G.graph.source g.1)
   obtain ⟨x, rfl⟩ := hG.exists_blockNode_eq_of_mem hu
   exact ⟨x, hg, hG.walks_push hug⟩
 
 /-- An edge off `C` hangs from one node of `C` only. -/
-theorem eq_of_mem_pendantEdges [Finite E]
+theorem eq_of_mem_pendantEdges
     {g : {e // ∀ C', IsCycle G.graph C' → C'.ncard ≤ 3 → e ∉ C'}} {x y : X}
     (hx : g ∈ pendantEdges G C x) (hy : g ∈ pendantEdges G C y) : x = y :=
   hG.blockNode_injective (hG.isLevelOne.eq_of_walks_compl hG.cycle (hG.blockNode_mem_and x).1
     (hG.blockNode_mem_and y).1
-    (hG.walks_lift (hx.2.trans ((tildeUnsuppressed G).graph.walks_symm hy.2))))
+    (hG.walks_lift (hx.2.trans ((tildeContracted G).graph.walks_symm hy.2))))
 
 /-- **An edge of `C` is a chain** of `Ñ` before suppression: its ends are nodes of `C`, which are
 kept. -/
 theorem isChainOf_cycle [Finite E] {e : E} (he : e ∈ C) :
-    IsChainOf (tildeUnsuppressed G) ∅ 1
+    IsChainOf (tildeContracted G) ∅ 1
       ![Quot.mk _ (G.graph.source e), Quot.mk _ (G.graph.target e)]
       ![⟨e, hG.notMem_small_of_mem he⟩] where
   pos := one_pos
@@ -887,7 +867,7 @@ theorem nonempty_sdIso_cycleModel [Finite E] {T : Type*} (s t : T → X) (D : T 
     (hD : ∀ τ, D τ ↔ 5 ≤ C.ncard ∧ G.IsDirected (β τ).1)
     (hDt : ∀ τ, D τ → G.graph.target (β τ).1 = blockNode G C (t τ)) :
     Nonempty (SDIso (tildeNetwork G) (cycleModel s t D)) := by
-  set K := tildeUnsuppressed G with hK
+  set K := tildeContracted G with hK
   -- the kept nodes: the taxa and the nodes of `C`
   let ι : X ⊕ X → {q // IsBranch K ∅ q} := Sum.elim
     (fun x => ⟨K.leaf x, Or.inr (Or.inl ⟨x, rfl⟩)⟩)
@@ -1065,7 +1045,7 @@ variable {V E X : Type*} {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N
 /-- **Each side of an edge of `N⁻` on no cycle holds a taxon.** The side of the target holds the
 taxa below the arc in `N`. If the side of the source held none, the arc would dominate every taxon,
 so its child would be a stable ancestor of all taxa below `LSA(X)`, which is impossible. -/
-theorem unrooted_exists_leaf_side [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
+theorem unrooted_exists_leaf_side (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : ¬ (unrooted N hN hX).graph.Walks {g}ᶜ ((unrooted N hN hX).graph.source g)
       ((unrooted N hN hX).graph.target g)) {b : SemidirectedVertex hN.1 hX}
     (hb : b = (unrooted N hN hX).graph.source g ∨ b = (unrooted N hN hX).graph.target g) :
@@ -1155,7 +1135,7 @@ section Main
 
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
 
-set_option linter.unusedSectionVars false in
+omit [Fintype X] [DecidableEq X] in
 /-- **The block of a cycle toward another cycle of size at least four is not a 4-network block**:
 for distinct cycles `C`, `C'` of size at least four of `N⁻`, there is a node `w` of `C` whose block
 is not a 4-network block, such that `C'` has all the taxa outside the block of `w` in one of its
@@ -1163,8 +1143,8 @@ blocks.
 
 `C` and `C'` have no common node (Lemma 3), so `C'` lies in the component of a node `w` of `C` once
 the edges of `C` are removed, and every taxon outside the block of `w` is in the block of the node
-`u'` of `C'` toward `C` (`walks_compl_of_not_walks_compl`). The block of `w` contains the taxa of the
-blocks of the other nodes of `C'`, at least two of them, which `C'` separates. -/
+`u'` of `C'` toward `C` (`walks_compl_of_not_walks_compl`). The block of `w` contains the taxa of
+the blocks of the other nodes of `C'`, at least two of them, which `C'` separates. -/
 theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C C' : Set _}
     (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)
@@ -1183,9 +1163,9 @@ theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
     hdisj _ ⟨f, hf, Or.inl rfl⟩ ⟨f, hf', Or.inl rfl⟩
   -- `C'` is in the component of the node `w` of `C`, and every taxon outside the block of `w` is in
   -- the block of the node `u'` of `C'` toward `C`
-  obtain ⟨z₀, hz₀⟩ := hC'.1.cycleNodes_nonempty
-  obtain ⟨w, hw, hwz⟩ := exists_walks_compl_of_isConnected hconn hC.1 z₀
-  obtain ⟨u', hu', hu'w⟩ := exists_walks_compl_of_isConnected hconn hC'.1 w
+  obtain ⟨z₀, hz₀⟩ := hC'.1.nonempty_cycleNodes
+  obtain ⟨w, hw, hwz⟩ := exists_walks_compl_cycleNodes hconn hC.1 z₀
+  obtain ⟨u', hu', hu'w⟩ := exists_walks_compl_cycleNodes hconn hC'.1 w
   have key : ∀ t, t ∉ nodeBlock G.graph G.leaf C w → t ∈ nodeBlock G.graph G.leaf C' u' :=
     fun t ht => walks_compl_of_not_walks_compl G.graph hconn hC.1 hC'.1 hCC' hz₀ hwz hw
       hu'w ht
@@ -1210,9 +1190,9 @@ theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
   exact hbu.2 (h1'.eq_of_walks_compl hC'.1 hb ha
     (htb.trans ((G.graph.walks_symm hab).trans (G.graph.walks_symm hta))))
 
-set_option linter.unusedSectionVars false in
-/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size at
-least four, one of them, `C`, has a node `u` such that the blocks of the other nodes of `C` are
+omit [Fintype X] [DecidableEq X] in
+/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size
+at least four, one of them, `C`, has a node `u` such that the blocks of the other nodes of `C` are
 4-network blocks and that of `u` is not, and every other cycle of size at least four has all the
 taxa outside the block of `u` in one of its blocks.
 
@@ -1259,7 +1239,7 @@ theorem exists_leaf_bigCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwo
     (by unfold bigCycleCount at h2; omega) C
   exact ⟨C, u, hC, hu, hblock, (htoward C' hC' hne).1, fun C' hC' hne => (htoward C' hC' hne).2⟩
 
-set_option linter.unusedSectionVars false in
+omit [Fintype X] [DecidableEq X] [Fintype V] in
 /-- **A cycle with one taxon in each block** (Theorem 4, one cycle): two networks each with a cycle
 of size at least four whose blocks are single taxa, with the same adjacent blocks and, for size at
 least five, the same taxon descending from the hybrid node, have isomorphic networks `Ñ`: a cycle
@@ -1276,10 +1256,12 @@ theorem tilde_sdIso_of_singletonBlocks {V' E' : Type} [Fintype V'] [Fintype E']
     (hX : Nontrivial X) {C₁ : Set _} {C₂ : Set _} {v₁ v₂}
     (hC₁ : C₁ ∈ cyclesOfSizeAtLeast (unrooted N₁ hN₁ hX).graph 4)
     (hC₂ : C₂ ∈ cyclesOfSizeAtLeast (unrooted N₂ hN₂ hX).graph 4)
-    (hv₁ : IsHybridNodeOf (unrooted N₁ hN₁ hX) C₁ v₁) (hv₂ : IsHybridNodeOf (unrooted N₂ hN₂ hX) C₂ v₂)
+    (hv₁ : IsHybridNodeOf (unrooted N₁ hN₁ hX) C₁ v₁)
+    (hv₂ : IsHybridNodeOf (unrooted N₂ hN₂ hX) C₂ v₂)
     (hs₁ : ∀ x y, SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf C₁ x y → x = y)
     (hs₂ : ∀ x y, SameBlock (unrooted N₂ hN₂ hX).graph (unrooted N₂ hN₂ hX).leaf C₂ x y → x = y)
-    (hadj : ∀ x y, AdjacentBlocks (unrooted N₁ hN₁ hX) C₁ x y ↔ AdjacentBlocks (unrooted N₂ hN₂ hX) C₂ x y)
+    (hadj : ∀ x y, AdjacentBlocks (unrooted N₁ hN₁ hX) C₁ x y ↔
+        AdjacentBlocks (unrooted N₂ hN₂ hX) C₂ x y)
     (hhyb : 5 ≤ C₁.ncard → ∀ x, DescendsFrom (unrooted N₁ hN₁ hX) v₁ x ↔
       DescendsFrom (unrooted N₂ hN₂ hX) v₂ x) :
     Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by

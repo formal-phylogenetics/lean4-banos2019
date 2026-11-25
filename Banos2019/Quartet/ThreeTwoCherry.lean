@@ -7,13 +7,13 @@ public import Banos2019.Quartet.SemidirectedCycles
 /-!
 # Below the hybrid node of the only cycle (Lemma 11, in the proof of Proposition 5)
 
-When `C` is the only cycle of a binary level-1 network and two taxa `a`, `b` lie below its hybrid node
-`v`, the child `u` of `v` is the parent of the leaves `a` and `b`: below `u` every node has a single
-parent, so two children of a node below `u` have no taxon in common
-(`cherry_below_hybrid_of_single_cycle`). The number `K` of lineages at `v` and the concordance factors
-of the contracted network given `K = 1` are then those of Example 5
-(`probLineages_cherry_of_single_cycle`, `condCF_contractRooted_cherry_of_single_cycle`), read off the
-length of the edge from `v` to `u`, which an isomorphism of the unrooted networks keeps
+When `C` is the only cycle of a binary level-1 network and two taxa `a`, `b` lie below its hybrid
+node `v`, the child `u` of `v` is the parent of the leaves `a` and `b`: below `u` every node has a
+single parent, so two children of a node below `u` have no taxon in common
+(`cherry_below_hybrid_of_single_cycle`). The number `K` of lineages at `v` and the concordance
+factors of the contracted network given `K = 1` are then those of Example 5
+(`probLineages_cherry_of_single_cycle`, `condCF_contractRooted_cherry_of_single_cycle`), read off
+the length of the edge from `v` to `u`, which an isomorphism of the unrooted networks keeps
 (`length_child_eq_of_sdMetricIso`).
 -/
 
@@ -55,11 +55,12 @@ end Below
 
 variable [Fintype V] [Fintype E] [Fintype X] {Q : RootedNetwork V E X}
 
+omit [Fintype V] [Fintype X] in
 /-- **The child of the hybrid node of the only cycle is the parent of the two taxa below the hybrid
 node**: it is not a leaf, and its two child arcs end at the leaves `a` and `b`. Below it every node
 has a single parent (a second parent would put it on a cycle, the only cycle `C`, and make it the
-hybrid node of `C`, above it), so two siblings below it have no taxon in common, and a child that is not
-a leaf would have both `a` and `b` below it. -/
+hybrid node of `C`, above it), so two siblings below it have no taxon in common, and a child that is
+not a leaf would have both `a` and `b` below it. -/
 theorem cherry_below_hybrid_of_single_cycle (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
     {C : Set E} (hC : IsCycle Q.graph C) (hone : ∀ C', IsCycle Q.graph C' → C' = C) {v : V}
     (hv : v ∈ cycleNodes Q.graph C) (h2 : Q.graph.indegree v = 2) {c : E}
@@ -161,7 +162,8 @@ theorem cherry_below_hybrid_of_single_cycle (hQ : IsBinaryRootedNetwork Q) (h1 :
   intro e he
   obtain ⟨e', hne, he'⟩ := hother w .refl hwr hwout e he
   obtain ⟨x', hx'⟩ := exists_reaches_leaf hQ.1 (Q.graph.target e')
-  have hwx' : Q.graph.Reaches w (Q.leaf x') := (Relation.ReflTransGen.single ⟨e', he', rfl⟩).trans hx'
+  have hwx' : Q.graph.Reaches w (Q.leaf x') :=
+    (Relation.ReflTransGen.single ⟨e', he', rfl⟩).trans hx'
   set u := Q.graph.target e with hu_def
   have hwu : Q.graph.Reaches w u := .single ⟨e, he, rfl⟩
   by_cases hu0 : Q.graph.outdegree u = 0
@@ -204,8 +206,8 @@ theorem cherry_below_hybrid_of_single_cycle (hQ : IsBinaryRootedNetwork Q) (h1 :
     · exact hsib e e' (Ne.symm hne) (he.trans he'.symm) hws x' huy hx'
     · exact hsib e e' (Ne.symm hne) (he.trans he'.symm) hws x' huy' hx'
 
-/-- **`P(K = 1) = 1 - e^{-ℓ(c)}` and `P(K = 2) = e^{-ℓ(c)}`** for the lineages at the hybrid node `v`
-of the only cycle, with two taxa below `v` and `c` the edge out of `v` (Example 5). -/
+/-- **`P(K = 1) = 1 - e^{-ℓ(c)}` and `P(K = 2) = e^{-ℓ(c)}`** for the lineages at the hybrid node
+`v` of the only cycle, with two taxa below `v` and `c` the edge out of `v` (Example 5). -/
 theorem probLineages_cherry_of_single_cycle (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
     {C : Set E} (hC : IsCycle Q.graph C) (hone : ∀ C', IsCycle Q.graph C' → C' = C) {v : V}
     (hv : v ∈ cycleNodes Q.graph C) (h2 : Q.graph.indegree v = 2) {c : E}
@@ -222,9 +224,9 @@ theorem probLineages_cherry_of_single_cycle (hQ : IsBinaryRootedNetwork Q) (h1 :
   exact ⟨probLineages_cherry_one hQ.1 hcut hθ rfl huniq hab hbw (fun x h => hr x h) harcs,
     probLineages_cherry_two hQ.1 hcut hθ rfl huniq hab hbw (fun x h => hr x h) harcs⟩
 
-/-- **`CF(Q₀⊕ | K = 1)`** for the only cycle `C`, with two taxa `a`, `b` below its hybrid node: in the
-network with `C` contracted, given one lineage at the top of the edge `c` out of the hybrid node, the
-cherry `{a, b}` decides the quartet tree (Example 5). -/
+/-- **`CF(Q₀⊕ | K = 1)`** for the only cycle `C`, with two taxa `a`, `b` below its hybrid node: in
+the network with `C` contracted, given one lineage at the top of the edge `c` out of the hybrid
+node, the cherry `{a, b}` decides the quartet tree (Example 5). -/
 theorem condCF_contractRooted_cherry_of_single_cycle (hQ : IsBinaryRootedNetwork Q)
     (h1 : IsLevelOne Q.graph) {C : Set E} (hC : IsCycle Q.graph C)
     (hone : ∀ C', IsCycle Q.graph C' → C' = C) {v : V} (hv : v ∈ cycleNodes Q.graph C)
@@ -264,6 +266,7 @@ theorem condCF_contractRooted_cherry_of_single_cycle (hQ : IsBinaryRootedNetwork
   exact condCF_cherry_one (hK.isPhylogenetic hQ.1) (isCut_contract hC hcut hS) (hK.isMetric hθ) hX
     hcr huniq₀ hab hbelow₀ hr₀ harcs₀ q
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- **The edge out of a hybrid node has the length of the corresponding edge**: for an isomorphism
 `φ` of the metric unrooted networks of two binary level-1 LSA networks, the edge `c` out of a hybrid
 node `v`, a tree edge of `Q⁻` from `v`, goes to the edge of `Q̃⁻` from `φ v` that is not hybrid, the
@@ -339,7 +342,8 @@ theorem length_child_eq_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E']
     rw [hd, hc']
     exact hvr'
   have hlen := φ.length cb
-  rw [semidirectedMetric_length, semidirectedMetric_length, if_neg hds, if_neg hcs, hd, hcb] at hlen
+  rw [semidirectedMetric_length, semidirectedMetric_length, ite_eq_right hds, ite_eq_right hcs,
+    hd, hcb] at hlen
   exact hlen
 
 end Banos2019
