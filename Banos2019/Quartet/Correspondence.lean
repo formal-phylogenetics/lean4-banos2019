@@ -277,8 +277,8 @@ end Quartet
 /-! ### The correspondence -/
 
 /-- **Lemma 12, the cycle of `N⁻` gives the 4-cycle of `Q⁻_s`** (proof of Lemma 12): if `N⁻` has a
-cycle `C_v` of size at least four for which the taxa of `s` are in distinct `v`-blocks, one of them in
-the hybrid block, then `s` induces a quartet network with a 4-cycle.
+cycle `C_v` for which the taxa of `s` are in distinct `v`-blocks, one of them in the hybrid block,
+then `s` induces a quartet network with a 4-cycle.
 
 The cycle of `N` of `C_v` lies below `LSA(s)`. Otherwise the root reaches the top of the cycle avoiding
 `LSA(s)`, then `v` along one of the two sides of the cycle (were `LSA(s)` on both, the two sides from
@@ -289,13 +289,13 @@ they are arcs of the LSA network of `s` (the edges of `N⁻` on simple treks bet
 `mem_trekEdges_iff`), and their chains form a cycle of `Q⊕_s` with hybrid node `v`. Each taxon of `s` is
 in the block of a node of this cycle other than the root, and then in the block of that node in `N⁻`;
 the four taxa being in distinct `v`-blocks, the cycle has four nodes other than the root, and no more
-since `Q⊕_s` has four taxa. The size of `C_v` follows from the other hypotheses.
+since `Q⊕_s` has four taxa. The size of `C_v`, at least four in the paper's statement, follows from
+the other hypotheses, and the statement leaves it out.
 
 The paper asserts this step without argument (TeX l. 1102); this proof fills it. -/
 theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {v : _}
-    (hC4 : 4 ≤ C.ncard) (hC : IsCycle (unrooted N hN hX).graph C)
-    (hv : IsHybridNodeOf (unrooted N hN hX) C v)
+    (hC : IsCycle (unrooted N hN hX).graph C) (hv : IsHybridNodeOf (unrooted N hN hX) C v)
     (hblk : ∀ x ∈ s, ∀ y ∈ s, x ≠ y →
       ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y)
     (hdesc : ∃ x ∈ s, DescendsFrom (unrooted N hN hX) v x) :

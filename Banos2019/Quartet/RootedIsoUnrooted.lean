@@ -135,7 +135,7 @@ def unrootedArcMap : E ≃ E' :=
 
 omit [Fintype E] [Fintype E'] in
 /-- The arcs at the root of `N'` are the images of those at the root of `N`. -/
-theorem eq_or_eq_of_source_root (e : E) (he : N.graph.source e = N.root) {e' : E'}
+theorem eq_or_eq_of_source_root (e : E) {e' : E'}
     (he' : N'.graph.source e' = N'.root) (hne : e' ≠ φ.arc e) :
     ∃ f, f ≠ e ∧ N.graph.source f = N.root ∧ e' = φ.arc f := by
   refine ⟨φ.arc.symm e', fun h => hne (by rw [← h, Equiv.apply_symm_apply]), ?_,

@@ -2808,8 +2808,8 @@ theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
 
 omit [Fintype V] in
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
-nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
-edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. The unrooted network of `Q_a⊕` is
+nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` and corresponding hybrid edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic
+metric unrooted networks. The unrooted network of `Q_a⊕` is
 `Q⁻` cut below `w` (`nonempty_sdMetricIso_disjointNet_cutSD`), and `φ` maps this network to `Q̃⁻` cut
 below `φ w` (`SDMetricIso.nonempty_cutSD_of_isDirected`). -/
 theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E']
@@ -2821,7 +2821,7 @@ theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E
     {h₁ h₂ : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hne : h₁ ≠ h₂)
     (hd₁ : hQ.unrooted.IsDirected h₁) (hd₂ : hQ.unrooted.IsDirected h₂)
     (ht₁ : hQ.unrooted.graph.target h₁ = w) (ht₂ : hQ.unrooted.graph.target h₂ = w) {a b : X}
-    (hab : a ≠ b) (hbelow : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b)
+    (hab : a ≠ b)
     (hb : IsBinaryRootedNetwork (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
       (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₁)
       (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₂) a b))
@@ -3172,8 +3172,6 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
         x = b ∨ x = a := fun x => (hbelow x).trans or_comm
     have hbelow_ba' : ∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
         (Q'.leaf x) ↔ x = b ∨ x = a := fun x => (hbelow' x).trans or_comm
-    have hbelowD_ba : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = b ∨ x = a := fun x =>
-      (hbelowD x).trans or_comm
     -- the child edges of the hybrid nodes
     obtain ⟨c, hc, -⟩ := existsUnique_child_of_hybrid hQ.binary hC.2.2.1
     obtain ⟨c', hc', -⟩ := existsUnique_child_of_hybrid hQ'.binary hC'.2.2.1
@@ -3196,7 +3194,6 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
         (∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔ x = a ∨ x = b) →
         (∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w)) (Q'.leaf x) ↔
           x = a ∨ x = b) →
-        (∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b) →
         cf (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
             (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁)
             (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂) a b)
@@ -3209,12 +3206,12 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
           (disjointMetric Q' (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
             (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁))
             (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂)) θ') := by
-      intro a b hab hb hb' hbD
+      intro a b hab hb hb'
       obtain ⟨hQa, h0a⟩ := isLSAQuartet_disjointNet hQ hC hone hne₁ (harc g₁ w ht₁)
         (harc g₂ w ht₂) hab hb
       obtain ⟨hQa', -⟩ := isLSAQuartet_disjointNet hQ' hC' hone' hne' (harc' g₁ w ht₁ hd₁)
         (harc' g₂ w ht₂ hd₂) hab hb'
-      refine IH hQa hQa' ?_ (nonempty_sdMetricIso_disjointNet hQ hQ' φ hne hd₁ hd₂ ht₁ ht₂ hab hbD
+      refine IH hQa hQa' ?_ (nonempty_sdMetricIso_disjointNet hQ hQ' φ hne hd₁ hd₂ ht₁ ht₂ hab
         hQa.binary hQa.isLSA hQa'.binary hQa'.isLSA)
       have h0 : {D | IsCycle (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
           (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁)
@@ -3232,8 +3229,8 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
     rw [lemma11 hQ hC hne₁ (harc g₁ w ht₁) (harc g₂ w ht₂) hc c₀ rfl hab ha hb q,
       lemma11 hQ' hC' hne' (harc' g₁ w ht₁ hd₁) (harc' g₂ w ht₂ hd₂) hc' c₀' rfl hab ha' hb' q,
       hγ g₁ hd₁, congrFun (hdel D hDc w hw g₁ hd₁ ht₁) q, congrFun (hdel D hDc w hw g₂ hd₂ ht₂) q,
-      e.1, e.2.1, e.2.2 q, congrFun (hdisj a b hab hbelow hbelow' hbelowD) q,
-      congrFun (hdisj b a hab.symm hbelow_ba hbelow_ba' hbelowD_ba) q]
+      e.1, e.2.1, e.2.2 q, congrFun (hdisj a b hab hbelow hbelow') q,
+      congrFun (hdisj b a hab.symm hbelow_ba hbelow_ba') q]
   · -- no cycle: the base case
     have hnone : ∀ D, ¬ IsCycle hQ.unrooted.graph D := by
       intro D hD

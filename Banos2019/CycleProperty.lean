@@ -1067,8 +1067,8 @@ theorem lemma12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : I
       exists_separates_of_fourCycle hN h1 hX hs hC hC4 hw
     exact ⟨C', w', h4, hC', hw', hblk, hdesc⟩
   · -- such a cycle of `N⁻` induces a 4-cycle of `Q⁻_s`
-    rintro ⟨C, v, h4, hC, hv, hblk, hdesc⟩
-    exact exists_fourCycle_of_separates hN h1 hX hs h4 hC hv hblk hdesc
+    rintro ⟨C, v, -, hC, hv, hblk, hdesc⟩
+    exact exists_fourCycle_of_separates hN h1 hX hs hC hv hblk hdesc
 
 /-- The node of `N` underlying a node of `Q⁻_s`. -/
 def quartetNode {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {s : Finset X} (hs : #s = 4)
