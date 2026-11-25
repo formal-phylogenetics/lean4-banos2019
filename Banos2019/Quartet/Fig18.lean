@@ -422,4 +422,122 @@ theorem exists_inducesCycleType_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b
           exact (Relation.ReflTransGen.single ⟨4, rfl, rfl⟩).tail ⟨1, rfl, rfl⟩
     rw [hset, Set.ncard_pair h.1]
 
+/-! ### The unrooted network is Figure 18 -/
+
+theorem isLSAQuartet_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len : Fin 8 → ℝ}
+    (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) :
+    IsLSAQuartet (q18 a b c) (q18Metric len γ) :=
+  ⟨q18_isBinaryRootedNetwork hX h, q18_isLevelOne, q18_isLSANetwork h, hX,
+    q18Metric_isMetricNetwork hlen hγ₀ hγ₁⟩
+
+/-- **The metric unrooted network of `q18` is Figure 18.** -/
+theorem inducesNetwork_q18 (h : Distinct4 a b c d) {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q18 a b c) (q18Metric len γ)) :
+    InducesNetwork hQ (fig18 a b c) (figMetric len γ) := by
+  have hP := hQ.binary.1
+  have hB := hQ.binary.2
+  have hXn := hQ.nontrivial
+  have hl : lsa hP Set.univ Set.univ_nonempty = 8 :=
+    IsLeastStableAncestor.unique hP (lsa_spec hP _ _) (q18_isLSANetwork h)
+  have hr : (rootTreeArc hP hB hXn).1 = 8 := by
+    obtain ⟨hs, ht⟩ := rootTreeArc_spec hP hB hXn
+    have hs' : q18Src (rootTreeArc hP hB hXn).1 = 8 := by
+      rw [← hl]
+      exact congrArg Subtype.val hs
+    have ht' : (q18 a b c).IsTreeArc (rootTreeArc hP hB hXn).1 :=
+      (belowNetwork_isTreeArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+        (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+        hP (lsa_spec hP _ _).1 _).1 ht
+    rw [q18_isTreeArc_iff] at ht'
+    have key : ∀ r : Fin 9, q18Src r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8 := by decide
+    exact key _ hs' ht'
+  -- the nodes and the edges of `Q⁻`: those of `q18` but the root and the edge `8`
+  have hv : ∀ v : SemidirectedVertex hP hXn, v.1.1 ≠ Fin.last 8 := fun v hv => v.2 (Subtype.ext
+    (show v.1.1 = lsa hP Set.univ Set.univ_nonempty by rw [hv]; exact hl.symm))
+  have he : ∀ e : SemidirectedArc hP hB hXn, e.1.1 ≠ Fin.last 8 := fun e he =>
+    e.2 (Subtype.ext (by rw [he]; exact hr.symm))
+  let vert : SemidirectedVertex hP hXn ≃ Fin 8 :=
+    { toFun := fun v => v.1.1.castPred (hv v)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun v => v.1) hi
+          simp only at this
+          rw [this]
+          exact hl)⟩
+      left_inv := fun v => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  let edge : SemidirectedArc hP hB hXn ≃ Fin 8 :=
+    { toFun := fun e => e.1.1.castPred (he e)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun e => e.1) hi
+          simp only at this
+          rw [this]
+          exact hr)⟩
+      left_inv := fun e => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  have hvert : ∀ v, (vert v).castSucc = v.1.1 := fun v => Fin.castSucc_castPred _ (hv v)
+  have hedge : ∀ e, (edge e).castSucc = e.1.1 := fun e => Fin.castSucc_castPred _ (he e)
+  -- the ends of the edges of `Q⁻`: the edge `6` from the root is merged into one from `7`
+  have hroot : ∀ e : SemidirectedArc hP hB hXn,
+      (lsaPlus hP hXn).graph.source e.1 = (lsaPlus hP hXn).root ↔ q18Src e.1.1 = 8 := by
+    intro e
+    rw [← hl]
+    exact ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
+  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 = if q18Src e.1.1 = 8 then 7 else q18Src e.1.1 := by
+    intro e
+    show ((unrootAt (lsaPlus hP hXn) (lsaPlus_isPhylogenetic hP hXn)
+      (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
+    simp only [unrootAt]
+    by_cases h8 : q18Src e.1.1 = 8
+    · rw [dite_eq_left ((hroot e).2 h8), if_pos h8]
+      show q18Tgt (rootTreeArc hP hB hXn).1 = 7
+      rw [hr]
+      rfl
+    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), if_neg h8]
+      rfl
+  have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = q18Tgt e.1.1 := fun e => rfl
+  have hdir : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>
+    ((belowNetwork_isHybridArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+      (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+      hP (lsa_spec hP _ _).1 e.1).trans (q18_isHybridArc_iff e.1.1))
+  have fsrc : ∀ j : Fin 8, ((fig18 a b c).graph.source j).castSucc =
+      if q18Src j.castSucc = 8 then 7 else q18Src j.castSucc := by
+    show ∀ j : Fin 8, ((![4, 4, 6, 7, 5, 7, 7, 6] : Fin 8 → Fin 8) j).castSucc =
+      if q18Src j.castSucc = 8 then 7 else q18Src j.castSucc
+    decide
+  have ftgt : ∀ j : Fin 8, ((fig18 a b c).graph.target j).castSucc = q18Tgt j.castSucc := by
+    show ∀ j : Fin 8, ((![0, 1, 2, 3, 4, 6, 5, 5] : Fin 8 → Fin 8) j).castSucc = q18Tgt j.castSucc
+    decide
+  have hjs : ∀ e, (fig18 a b c).graph.source (edge e) = vert (hQ.unrooted.graph.source e) := fun e =>
+    Fin.castSucc_injective _ (by rw [hvert, hsrc, fsrc, hedge])
+  have hjt : ∀ e, (fig18 a b c).graph.target (edge e) = vert (hQ.unrooted.graph.target e) := fun e =>
+    Fin.castSucc_injective _ (by rw [hvert, htgt, ftgt, hedge])
+  refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => Or.inl ⟨hjs e, hjt e⟩, fun e _ => ⟨hjs e, hjt e⟩,
+    fun x => ?_⟩, fun e => ?_, fun e _ => ?_⟩⟩
+  · rw [hdir, ← hedge e]
+    show edge e = 6 ∨ edge e = 7 ↔ _
+    generalize edge e = j
+    revert j
+    decide
+  · apply Fin.castSucc_injective
+    rw [hvert]
+    rfl
+  · simp only [figMetric, unrootedMetric, semidirectedMetric]
+    rw [hr, ← hedge e]
+    split_ifs with h8
+    · have h8' : q18Src (edge e).castSucc = 8 := by rw [hedge e]; exact (hroot e).1 h8
+      have h6 : edge e = 6 := by
+        have key : ∀ j : Fin 8, q18Src j.castSucc = 8 → j = 6 := by decide
+        exact key _ h8'
+      rw [h6]
+      simp [q18Metric]
+    · have h8' : q18Src (edge e).castSucc ≠ 8 := fun h' => h8 ((hroot e).2 (by rwa [← hedge e]))
+      generalize edge e = j at h8'
+      fin_cases j <;> first | exact absurd (by decide) h8' | simp [q18Metric]
+  · show (figMetric len γ).inheritance (edge e) = (q18Metric len γ).inheritance e.1.1
+    rw [← hedge e]
+    generalize edge e = j
+    fin_cases j <;> simp [figMetric, q18Metric]
+
 end Banos2019
