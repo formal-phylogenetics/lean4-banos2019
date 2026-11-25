@@ -41,8 +41,6 @@ the two coalescents agree (`forestDist_univ_eq_geneTreeDist`).
 open Phylogenetics Phylogenetics.RootedNetwork Finset
 open scoped Classical
 
-set_option linter.unusedSectionVars false
-
 namespace Banos2019
 
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] [DecidableEq X]
@@ -57,29 +55,35 @@ variable {N : RootedNetwork V E X}
 def treeCluster (N : RootedNetwork V E X) (v : V) : Finset X :=
   univ.filter fun x => N.graph.Reaches v (N.leaf x)
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 theorem mem_treeCluster {v : V} {x : X} : x ∈ treeCluster N v ↔ N.graph.Reaches v (N.leaf x) := by
   simp [treeCluster]
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 theorem treeCluster_subset_of_reaches {u v : V} (h : N.graph.Reaches u v) :
     treeCluster N v ⊆ treeCluster N u :=
   fun _ hx => mem_treeCluster.2 (h.trans (mem_treeCluster.1 hx))
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs every vertex has at most one incoming arc. -/
 theorem indegree_le_one (ht : ∀ e, ¬ N.IsHybridArc e) (v : V) : N.graph.indegree v ≤ 1 := by
   by_contra h
   obtain ⟨e, he⟩ := (N.graph.one_le_indegree_iff v).1 (by omega)
   exact ht e (by unfold IsHybridArc; rw [he]; omega)
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs every arc is a tree arc. -/
 theorem isTreeArc_of_forall (ht : ∀ e, ¬ N.IsHybridArc e) (e : E) : N.IsTreeArc e :=
   le_antisymm (indegree_le_one ht _) ((N.graph.one_le_indegree_iff _).2 ⟨e, rfl⟩)
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs an arc is determined by its target. -/
 theorem arc_eq_of_target_eq (ht : ∀ e, ¬ N.IsHybridArc e) {e f : E}
     (h : N.graph.target e = N.graph.target f) : e = f := by
   obtain ⟨g, hg⟩ := (N.graph.indegree_eq_one_iff _).1 (isTreeArc_of_forall ht f)
   rw [(hg e).1 h, (hg f).1 rfl]
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs, a vertex that reaches the target of an arc and is not that target reaches its
 source. -/
 theorem reaches_source_of_reaches_target (ht : ∀ e, ¬ N.IsHybridArc e) {e : E} {a : V}
@@ -90,6 +94,7 @@ theorem reaches_source_of_reaches_target (ht : ∀ e, ¬ N.IsHybridArc e) {e : E
   · rw [← arc_eq_of_target_eq ht hge, hgc]
     exact hac
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs, the ancestors of a vertex are totally ordered. -/
 theorem reaches_total (ht : ∀ e, ¬ N.IsHybridArc e) {u v w : V} (hu : N.graph.Reaches u w)
     (hv : N.graph.Reaches v w) : N.graph.Reaches u v ∨ N.graph.Reaches v u := by
@@ -105,11 +110,13 @@ theorem reaches_total (ht : ∀ e, ¬ N.IsHybridArc e) {u v w : V} (hu : N.graph
       subst hef
       exact ih (he1 ▸ hf1 ▸ hvc)
 
+omit [Fintype V] [Fintype E] [Fintype X] [DecidableEq X] in
 /-- The target of an arc does not reach its source. -/
 theorem not_reaches_source (hN : N.IsPhylogenetic) (e : E) :
     ¬ N.graph.Reaches (N.graph.target e) (N.graph.source e) := fun h =>
   hN.acyclic _ (Relation.TransGen.head' ⟨e, rfl, rfl⟩ h)
 
+omit [Fintype V] [DecidableEq X] in
 /-- Without hybrid arcs, the clusters of two children of a vertex are disjoint. -/
 theorem disjoint_treeCluster (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e) {e f : E}
     (hs : N.graph.source e = N.graph.source f) (hef : e ≠ f) :
@@ -127,13 +134,16 @@ theorem disjoint_treeCluster (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridA
   · exact key e f hs hef h
   · exact key f e hs.symm (Ne.symm hef) h
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 theorem treeCluster_nonempty (hN : N.IsPhylogenetic) (v : V) : (treeCluster N v).Nonempty := by
   obtain ⟨x, hx⟩ := exists_reaches_leaf hN v
   exact ⟨x, mem_treeCluster.2 hx⟩
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 theorem treeCluster_root (hN : N.IsPhylogenetic) : treeCluster N N.root = univ :=
   eq_univ_of_forall fun _ => mem_treeCluster.2 (hN.root_reaches _)
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- A leaf reaches only itself. -/
 theorem eq_of_leaf_reaches (hN : N.IsPhylogenetic) {x : X} {w : V}
     (h : N.graph.Reaches (N.leaf x) w) : w = N.leaf x := by
@@ -141,6 +151,7 @@ theorem eq_of_leaf_reaches (hN : N.IsPhylogenetic) {x : X} {w : V}
   · exact h'.symm
   · exact absurd he ((N.graph.outdegree_eq_zero_iff _).1 ((hN.leaves _).2 ⟨x, rfl⟩) e)
 
+omit [Fintype V] [DecidableEq X] in
 theorem treeCluster_leaf (hN : N.IsPhylogenetic) (x : X) : treeCluster N (N.leaf x) = {x} := by
   ext y
   rw [mem_treeCluster, mem_singleton]
@@ -150,6 +161,7 @@ theorem treeCluster_leaf (hN : N.IsPhylogenetic) (x : X) : treeCluster N (N.leaf
   · rintro rfl
     exact .refl
 
+omit [Fintype V] in
 /-- Without hybrid arcs, the clusters of two vertices are nested or disjoint. -/
 theorem treeCluster_laminar (ht : ∀ e, ¬ N.IsHybridArc e) (u v : V) :
     treeCluster N u ⊆ treeCluster N v ∨ treeCluster N v ⊆ treeCluster N u ∨
@@ -164,6 +176,7 @@ theorem treeCluster_laminar (ht : ∀ e, ¬ N.IsHybridArc e) (u v : V) :
 /-- The clusters of the vertices. -/
 def treeClusters (N : RootedNetwork V E X) : Finset (Finset X) := univ.image (treeCluster N)
 
+omit [Fintype E] in
 theorem mem_treeClusters {A : Finset X} : A ∈ treeClusters N ↔ ∃ v, treeCluster N v = A := by
   simp [treeClusters]
 
@@ -243,6 +256,7 @@ section Suppress
 
 variable {N : RootedNetwork V E X}
 
+omit [Fintype V] [Fintype E] [Fintype X] [DecidableEq X] in
 /-- A path of the suppressed network is a path of the network. -/
 theorem reaches_of_suppress_reaches (hN : N.IsPhylogenetic) {u v : {v // ¬ N.IsChainVertex v}}
     (h : (N.suppress hN).graph.Reaches u v) : N.graph.Reaches u.1 v.1 := by
@@ -252,10 +266,12 @@ theorem reaches_of_suppress_reaches (hN : N.IsPhylogenetic) {u v : {v // ¬ N.Is
     obtain ⟨e, rfl, rfl⟩ := hab
     exact (ih.tail ⟨e.1, rfl, rfl⟩).trans (chainReach_chainEnd hN _).reaches
 
+omit [Fintype V] [Fintype E] [Fintype X] [DecidableEq X] in
 theorem suppress_reaches_iff (hN : N.IsPhylogenetic) (u v : {v // ¬ N.IsChainVertex v}) :
     (N.suppress hN).graph.Reaches u v ↔ N.graph.Reaches u.1 v.1 :=
   ⟨reaches_of_suppress_reaches hN, suppress_reaches_of_reaches hN u v⟩
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 /-- The cluster of a vertex in the suppressed network is its cluster in the network. -/
 theorem treeCluster_suppress (hN : N.IsPhylogenetic) (v : {v // ¬ N.IsChainVertex v}) :
     treeCluster (N.suppress hN) v = treeCluster N v.1 := by
@@ -263,6 +279,7 @@ theorem treeCluster_suppress (hN : N.IsPhylogenetic) (v : {v // ¬ N.IsChainVert
   rw [mem_treeCluster, mem_treeCluster, suppress_reaches_iff]
   rfl
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 /-- Along a chain of nodes of indegree one and outdegree one the cluster does not change. -/
 theorem treeCluster_eq_of_chainReach (hN : N.IsPhylogenetic) {v w : V} (h : N.ChainReach v w) :
     treeCluster N v = treeCluster N w := by
@@ -276,10 +293,12 @@ theorem treeCluster_eq_of_chainReach (hN : N.IsPhylogenetic) {v w : V} (h : N.Ch
     · exact absurd (h' ▸ hab.1) (not_isChainVertex_leaf hN x)
     · rwa [hab.1.adj_unique hab.2 hac]
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 theorem treeCluster_chainEnd (hN : N.IsPhylogenetic) (v : V) :
     treeCluster N (chainEnd hN v) = treeCluster N v :=
   (treeCluster_eq_of_chainReach hN (chainReach_chainEnd hN v)).symm
 
+omit [Fintype E] in
 /-- Suppression keeps the clusters. -/
 theorem treeClusters_suppress (hN : N.IsPhylogenetic) :
     treeClusters (N.suppress hN) = treeClusters N := by
@@ -292,6 +311,7 @@ theorem treeClusters_suppress (hN : N.IsPhylogenetic) :
     exact ⟨⟨chainEnd hN v, not_isChainVertex_chainEnd hN v⟩,
       (treeCluster_suppress hN _).trans (treeCluster_chainEnd hN v)⟩
 
+omit [Fintype V] [Fintype E] [DecidableEq X] in
 /-- The arcs of a chain lead to vertices with the cluster of the end of the chain. -/
 theorem treeCluster_target_of_isOnChain (hN : N.IsPhylogenetic) {e f : E} (h : N.IsOnChain e f) :
     treeCluster N (N.graph.target f) = treeCluster N (N.graph.target e) := by
@@ -299,6 +319,7 @@ theorem treeCluster_target_of_isOnChain (hN : N.IsPhylogenetic) {e f : E} (h : N
   · rfl
   · exact (treeCluster_eq_of_chainReach hN (hc.tail ⟨hf, f, rfl, rfl⟩)).symm
 
+omit [Fintype V] in
 /-- Suppression keeps the lengths of the edges above the clusters: the length of an arc of the
 suppressed network is that of its chain. -/
 theorem treeLength_suppress (hN : N.IsPhylogenetic) (θ : MetricData E) (A : Finset X) :
@@ -321,6 +342,7 @@ theorem treeLength_suppress (hN : N.IsPhylogenetic) (θ : MetricData E) (A : Fin
   · rfl
   · simp
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- Without hybrid arcs, the suppressed network has none. -/
 theorem suppress_not_isHybridArc (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
     (e : {e // ¬ N.IsChainVertex (N.graph.source e)}) : ¬ (N.suppress hN).IsHybridArc e := by
@@ -346,6 +368,7 @@ theorem suppress_not_isHybridArc (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHyb
   intro a b ha hb
   exact huniq a b (ha.trans hb.symm)
 
+omit [Fintype V] [Fintype X] [DecidableEq X] in
 /-- On a network without hybrid arcs, with valid parameters, every arc of the suppressed network has
 inheritance probability one. -/
 theorem suppressMetric_inheritance (ht : ∀ e, ¬ N.IsHybridArc e) {θ : MetricData E}
@@ -361,11 +384,13 @@ section Reduced
 
 variable {K : RootedNetwork V E X}
 
+omit [Fintype V] [Fintype E] [Fintype X] [DecidableEq X] in
 theorem leaf_ne_root (hK : K.IsPhylogenetic) (x : X) : K.leaf x ≠ K.root := fun h => by
   have := hK.leaf_indegree x
   rw [h, hK.root_indegree] at this
   exact absurd this (by norm_num)
 
+omit [Fintype V] [DecidableEq X] in
 /-- In a tree without nodes of indegree one and outdegree one, the cluster of a vertex strictly
 contains the clusters of its children, unless it is a root of outdegree one. -/
 theorem treeCluster_target_ssubset (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc e)
@@ -392,6 +417,7 @@ theorem treeCluster_target_ssubset (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsH
   · rw [← hr, h1] at he
     omega
 
+omit [Fintype V] [DecidableEq X] in
 /-- In a tree without nodes of indegree one and outdegree one, distinct vertices have distinct
 clusters, except a root of outdegree one and its child. -/
 theorem treeCluster_injOn (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc e)
@@ -415,6 +441,7 @@ theorem treeCluster_injOn (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc 
   · exact key u v hu h h'
   · exact (key v u hv h.symm h').symm
 
+omit [Fintype V] [DecidableEq X] in
 /-- The cluster of the target of an arc is not `univ`, unless the arc leaves a root of outdegree
 one. -/
 theorem treeCluster_target_ne_univ (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc e)
@@ -447,6 +474,7 @@ theorem parentCluster_treeCluster (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHy
       exact ssubset_irrefl _ hlt
     exact treeCluster_subset_of_reaches (reaches_source_of_reaches_target ht h hne)
 
+omit [Fintype V] [Fintype E] in
 /-- The singleton lineages injected at the vertices of a network correspond along a bijection of the
 vertices that matches the leaves. -/
 theorem taxaInj_congr {V' E' : Type*} [Fintype V'] [Fintype E'] {K' : RootedNetwork V' E' X}

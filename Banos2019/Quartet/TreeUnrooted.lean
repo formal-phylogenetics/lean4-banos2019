@@ -285,6 +285,7 @@ section Tree
 
 variable [Fintype V] [Fintype E] [Fintype X] {M : RootedNetwork V E X}
 
+omit [Fintype V] in
 /-- **The arc into a node of a tree cuts the cluster of the node and its complement**, and no other
 set of taxa: the nodes below the node are joined without the arc, and so are the others, through the
 root. -/
