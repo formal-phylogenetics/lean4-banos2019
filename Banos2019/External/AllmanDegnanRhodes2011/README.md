@@ -5,7 +5,8 @@ of unrooted gene trees under the coalescent*, J. Math. Biol. 62 (2011), 833–86
 [doi:10.1007/s00285-010-0355-7](https://doi.org/10.1007/s00285-010-0355-7). Reference [1] of
 Baños 2019.
 
-Module `Banos2019.External.AllmanDegnanRhodes2011.Basic`, namespace
+Modules `Banos2019.External.AllmanDegnanRhodes2011.Basic` (the statements) and
+`Banos2019.External.AllmanDegnanRhodes2011.Quartets` (displayed quartet trees on four taxa), namespace
 `External.AllmanDegnanRhodes2011`. The statements are in the source's terms: rooted species trees
 `Phylogenetics.SpeciesTree X` with positive edge lengths, the multispecies coalescent with one lineage
 per taxon, and the distribution `σ.unrootedDist id` of the unrooted gene tree topology. The unrooted
@@ -47,7 +48,8 @@ theorems:
 
 `equation1` is stated with `quartetProb`, the sum over the unrooted gene trees that display the
 quartet tree, while lean4-adr11 gives the probabilities of the unrooted gene trees
-`treeOfClusters {B}`. Its proof needs, besides the theorems above, that on four taxa the unrooted tree
-`treeOfClusters {C}` (`#C = 2`) displays the quartet tree `r` exactly when
-`treeOfClusters {C} = treeOfClusters {B}` for a cherry `B` of `r`. Neither lean4-adr11 nor
-lean4-phylogenetics has this lemma.
+`treeOfClusters {B}`. The two are linked in `Banos2019.External.AllmanDegnanRhodes2011.Quartets`: on
+four taxa the unrooted tree `treeOfClusters {C}` (`#C = 2`) displays the quartet tree `r` exactly when
+`treeOfClusters {C} = treeOfClusters {B}` for a cherry `B` of `r` (`displays_treeOfClusters_iff`), so
+that, with `ADR11.four_unrootedDist_eq_zero` as the hypothesis on the support,
+`quartetProb σ r = σ.unrootedDist id (treeOfClusters {B})` (`quartetProb_eq_of_support`, in `Basic`).

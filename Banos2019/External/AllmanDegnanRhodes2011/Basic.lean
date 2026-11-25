@@ -1,5 +1,6 @@
 module
 
+public import Banos2019.External.AllmanDegnanRhodes2011.Quartets
 public import Phylogenetics.MSC.Defs
 public import Phylogenetics.Tree.Defs
 public import Mathlib.Analysis.SpecialFunctions.Exp
@@ -28,6 +29,25 @@ variable {X : Type*} [Fintype X] [DecidableEq X]
 /-- The probability that the unrooted gene tree displays the quartet tree `q`. -/
 def quartetProb (σ : SpeciesTree X) (q : QuartetTree X) : ℝ :=
   ∑ T, if Displays T q then σ.unrootedDist id T else 0
+
+/-- On four taxa, when only the quartet trees `treeOfClusters {C}` (`#C = 2`) have positive probability,
+the probability that the unrooted gene tree displays the quartet tree `r` is the probability of the
+unrooted tree of the split of `r`, `B | Bᶜ` for a cherry `B` of `r`
+(`displays_treeOfClusters_iff`). -/
+theorem quartetProb_eq_of_support (hX : Fintype.card X = 4) (σ : SpeciesTree X)
+    (hσ : ∀ T, (∀ C : Finset X, #C = 2 → T ≠ treeOfClusters {C}) → σ.unrootedDist id T = 0)
+    (r : QuartetTree X) {B : Finset X} (hB : B ∈ r.val) :
+    quartetProb σ r = σ.unrootedDist id (treeOfClusters {B}) := by
+  unfold quartetProb
+  rw [Finset.sum_eq_single (treeOfClusters {B})]
+  · rw [ite_eq_left ((displays_treeOfClusters_iff hX r hB (r.card_of_mem hB)).2 rfl)]
+  · intro T _ hT
+    by_cases h : ∃ C : Finset X, #C = 2 ∧ T = treeOfClusters {C}
+    · obtain ⟨C, hC, rfl⟩ := h
+      rw [ite_eq_right fun hd => hT ((displays_treeOfClusters_iff hX r hB hC).1 hd)]
+    · simp only [not_exists, not_and] at h
+      rw [hσ T h, ite_self]
+  · exact fun h => absurd (mem_univ _) h
 
 /-- **Equation (1)** of Baños 2019 (`CFtree`): on a species tree whose unrooted topology has the split
 `ab|cd`, with internal edge of length `t`, any rooting gives the concordance factors
