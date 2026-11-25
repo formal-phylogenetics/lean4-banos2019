@@ -1812,7 +1812,13 @@ theorem cf_disjointNet_eq_cherryMass (hQ : IsLSAQuartet Q θ) (hC : InducesCycle
 /-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the
 taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge `c`),
 `CF(Q⊕) = γ² CF(Q₁⊕) + (1 - γ)² CF(Q₂⊕) + P(K = 1) 2γ(1 - γ) CF(Q₀⊕ | K = 1)
-  + P(K = 2) γ(1 - γ) [CF(Q_a⊕) + CF(Q_b⊕)]`. -/
+  + P(K = 2) γ(1 - γ) [CF(Q_a⊕) + CF(Q_b⊕)]`.
+
+The paper's proof: the forest of the lineages of `a`, `b` at `v` splits between `h₁` and `h₂`
+(`cherryMass_cutInj_hybrid`); all its lineages on `h₁`, or on `h₂`, is the process of `Q₁⊕`, or of
+`Q₂⊕` (`cf_deleteArc`). For `K = 1` the cluster `{a, b}` decides the quartet tree in every network,
+and for `K = 2`, with the two lineages on different hybrid edges, the process is that of `Q_a⊕` or of
+`Q_b⊕` (`cf_disjointNet_eq_cherryMass`). -/
 theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁ h₂ : E}
     (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) {c : E}
     (hc : Q.graph.source c = v) (c₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'})
