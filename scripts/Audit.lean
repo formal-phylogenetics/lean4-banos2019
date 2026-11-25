@@ -251,7 +251,6 @@ import all Banos2019.Identify.Generic
 import all Banos2019.Identify.Glue
 import all Banos2019.Identify.HybridBlock
 import all Banos2019.Identify.InducedCycles
-import all Banos2019.Identify.InducedOrder
 import all Banos2019.Identify.NonDegenerate
 import all Banos2019.Identify.QuartetCycles
 import all Banos2019.Identify.SameData
