@@ -110,7 +110,14 @@ theorem exists_lsaQuartet_of_corollary2 {Q : RootedNetwork V E X} {θ : MetricDa
       cf Q' θ' = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) ∧
         SameCyclesBut Q' Q (IsTwoOneOrThree Q) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
-  sorry
+  obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, -, hcyc, hcut⟩ :=
+    exists_reduce_contractSet hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric
+      (P := IsTwoOneOrThree Q) fun C _ ⟨v, hv⟩ => by
+        rcases hv with hv | hv
+        · exact hv.2.2.2.1
+        · exact hv.2.2.2.1
+  exact ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf,
+    fun n D => hcyc n D.ncard D, fun A hA => hcut _ (by rwa [Set.ncard_coe_finset])⟩
 
 /-- **The networks `Q₁⊕`, `Q₂⊕` of Lemmas 9 and 10**: deleting a hybrid edge of a cycle inducing a
 `2₂`- or a `3₁`-cycle, and suppressing the nodes of degree two this leaves (and the edge of the root,
@@ -126,7 +133,14 @@ theorem exists_lsaQuartet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E
       cf Q' θ' = cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧ numRootedCycles Q' < numRootedCycles Q ∧
         SameCyclesBut Q' Q (· = C) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
-  sorry
+  obtain ⟨n, k, hCt, hnk⟩ : ∃ n k, InducesCycleType Q C v n k ∧ ((n = 2 ∧ k = 2) ∨ (n = 3 ∧ k = 1)) := by
+    rcases hC with hC | hC
+    · exact ⟨2, 2, hC, Or.inl ⟨rfl, rfl⟩⟩
+    · exact ⟨3, 1, hC, Or.inr ⟨rfl, rfl⟩⟩
+  obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, hlt, hcyc, hcut⟩ :=
+    exists_reduce_deleteArc hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric hCt hh
+  exact ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf, hlt,
+    fun n' D => hcyc n' D.ncard D, fun A hA => hcut hnk _ (by rwa [Set.ncard_coe_finset])⟩
 
 /-- **The network `Q₀⊕` of Lemma 9**: contracting a cycle inducing a `2₂`-cycle, and suppressing the
 node of degree two this leaves, gives an LSA quartet network with the other cycles of `Q⊕` and the
@@ -138,7 +152,14 @@ theorem exists_lsaQuartet_contractRooted {Q : RootedNetwork V E X} {θ : MetricD
       cf Q' θ' = cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) ∧
         numRootedCycles Q' < numRootedCycles Q ∧ SameCyclesBut Q' Q (· = C) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
-  sorry
+  obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, hnum, hcyc, hcut⟩ :=
+    exists_reduce_contractSet hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric
+      (P := (· = C)) fun C' _ hC' => hC' ▸ hC.2.2.2.1
+  refine ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf, ?_,
+    fun n D => hcyc n D.ncard D, fun A hA => hcut _ (by rwa [Set.ncard_coe_finset])⟩
+  unfold numRootedCycles
+  rw [hnum]
+  exact Set.ncard_lt_ncard ⟨fun D hD => hD.1, fun hsub => (hsub hC.1).2 rfl⟩ (Set.toFinite _)
 
 /-- **A single `3₂`-cycle is the network of Figure 18** (proof of Proposition 7): if the only cycle of
 `Q⊕` induces a `3₂`-cycle with `a`, `b` below its hybrid node, `Q⁻` is the network of Figure 18 with

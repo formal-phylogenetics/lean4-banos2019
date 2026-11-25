@@ -5,6 +5,7 @@ public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
 public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Quartet.HybridGlue
+public import Banos2019.Quartet.ReduceSpec
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
