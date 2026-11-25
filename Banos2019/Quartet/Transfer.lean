@@ -245,8 +245,9 @@ theorem isTreelikeOn_of_sameOrdering {X : Type*} [Fintype X] [DecidableEq X]
 
 section Subtype
 
-variable {X : Type*} [Fintype X] [DecidableEq X] (s : Finset X)
+variable {X : Type*} [Fintype X] [DecidableEq X] (s : Finset X) [DecidableEq (s : Set X)]
 
+omit [DecidableEq (s : Set X)] in
 theorem image_val_univ_coe : (univ : Finset (s : Set X)).image Subtype.val = s := by
   ext x
   simp
@@ -433,10 +434,11 @@ theorem isLSAQuartet_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
 /-- The concordance factors of `Q⊕_s` are those of `N` on `s` (**Theorem 2**). -/
 theorem cf_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
-    (hs : #s = 4) :
+    (hs : #s = 4) [inst : DecidableEq (s : Set X)] :
     cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) =
-      fun q => cf N θ (q.map Subtype.val_injective) :=
-  funext (theorem2 hN h1 hθ hs)
+      fun q => cf N θ (q.map Subtype.val_injective) := by
+  obtain rfl : inst = fun a b => Subtype.instDecidableEq a b := Subsingleton.elim _ _
+  exact funext (theorem2 hN h1 hθ hs)
 
 end Induced
 

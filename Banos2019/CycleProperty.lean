@@ -110,13 +110,151 @@ def HasThreeTwoCycle (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s
     (hs : #s = 4) : Prop :=
   ∃ C v, InducesCycleType (quartetLSA N hN.1 s hs) C v 3 2
 
+/-- **Corollary 2 and equation (8)**: if `Q⁻` has a 4-cycle `C`, then, with the taxa `a, b, c, d`
+named around `C` (`c` in the hybrid block), the concordance factors of `Q⊕` for every metric are
+those of Figure 17 (equation (8)), in the lengths of two chains `A`, `B` of edges and the inheritance
+probability of a hybrid edge `h` (the map `f ∘ η ∘ ν` of the proof of Proposition 10). -/
+theorem cf_eq_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
+    {C : Set _} (hC : IsCycle hQ.unrooted.graph C) (hC4 : C.ncard = 4) :
+    ∃ (u : Fin 4 → _) (f : Fin 4 → _), IsCycleOf hQ.unrooted.graph 4 u f ∧ Set.range f = C ∧
+      ∃ (a b c d : X) (habcd : Distinct4 a b c d),
+        a ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u 0) ∧
+        b ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u 1) ∧
+        c ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u 2) ∧
+        d ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u 3) ∧
+        ∃ (A B : Finset E) (h : E), A.Nonempty ∧ B.Nonempty ∧ Disjoint A B ∧ Q.IsHybridArc h ∧
+          ∀ θ', IsMetricNetwork Q θ' →
+            CF Q θ' a b c d habcd =
+              ((1 - θ'.inheritance h) * (1 - 2 / 3 * Real.exp (-∑ e ∈ A, θ'.length e)) +
+                  θ'.inheritance h * (1 / 3 * Real.exp (-∑ e ∈ B, θ'.length e)),
+                (1 - θ'.inheritance h) * (1 / 3 * Real.exp (-∑ e ∈ A, θ'.length e)) +
+                  θ'.inheritance h * (1 / 3 * Real.exp (-∑ e ∈ B, θ'.length e)),
+                (1 - θ'.inheritance h) * (1 / 3 * Real.exp (-∑ e ∈ A, θ'.length e)) +
+                  θ'.inheritance h * (1 - 2 / 3 * Real.exp (-∑ e ∈ B, θ'.length e))) := by
+  obtain ⟨u, f, hcyc, hf, a, b, c, d, habcd, ha, hb, hc, hd, A, B, h, hA, hB, hAB, hh, hfig⟩ :=
+    exists_fig17 hQ hC hC4
+  refine ⟨u, f, hcyc, hf, a, b, c, d, habcd, ha, hb, hc, hd, A, B, h, hA, hB, hAB, hh,
+    fun θ' hθ' => ?_⟩
+  obtain ⟨V', E', _, _, Q', θ'', hQ', len, hcf, hiso, hl4, hl5⟩ := hfig θ' hθ'
+  -- equation (8) for the network of Figure 17
+  have h8 := example4 habcd hQ' len (θ'.inheritance h) hiso
+  -- Corollary 2: contracting the `2₁`- and `2₃`-cycles keeps the concordance factors
+  have hc2 := corollary2 (hQ.ofMetric hθ')
+  have e : ∀ q, nmscCF Q θ' 0 q = nmscCF Q' θ'' 0 q := fun q => by
+    have h₁ := congrFun hc2 q
+    have h₂ := congrFun hcf q
+    convert h₁.trans h₂.symm using 1
+  simp only [CF, e] at h8 ⊢
+  rw [← hl4, ← hl5]
+  exact h8
+
+/-- The order of the concordance factors of equation (8): `CF_{AC|BD}` is the smallest, strictly, and
+`CF_{AB|CD} = CF_{AD|BC}` exactly when `(1 - γ)(1 - x₁) = γ(1 - x₂)`. -/
+theorem fig17_order {γ L₁ L₂ : ℝ} {t : ℝ × ℝ × ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) (h₁ : 0 < L₁)
+    (h₂ : 0 < L₂)
+    (h : t =
+      ((1 - γ) * (1 - 2 / 3 * Real.exp (-L₁)) + γ * (1 / 3 * Real.exp (-L₂)),
+        (1 - γ) * (1 / 3 * Real.exp (-L₁)) + γ * (1 / 3 * Real.exp (-L₂)),
+        (1 - γ) * (1 / 3 * Real.exp (-L₁)) + γ * (1 - 2 / 3 * Real.exp (-L₂)))) :
+    t.2.1 < t.1 ∧ t.2.1 < t.2.2 ∧
+      (t.1 = t.2.2 ↔ (1 - γ) * (1 - Real.exp (-L₁)) = γ * (1 - Real.exp (-L₂))) := by
+  subst h
+  have e₁ : Real.exp (-L₁) < 1 := Real.exp_lt_one_iff.2 (by linarith)
+  have e₂ : Real.exp (-L₂) < 1 := Real.exp_lt_one_iff.2 (by linarith)
+  have p₁ : 0 < (1 - γ) * (1 - Real.exp (-L₁)) := mul_pos (by linarith) (by linarith)
+  have p₂ : 0 < γ * (1 - Real.exp (-L₂)) := mul_pos hγ₀ (by linarith)
+  refine ⟨by dsimp only; nlinarith, by dsimp only; nlinarith,
+    ⟨fun h => by dsimp only at h; linarith, fun h => by dsimp only; linarith⟩⟩
+
 /-- **Proposition 10** (`prop:BCgenerically`): if `Q⁻_s` has a 4-cycle, `s` satisfies the Cycle property,
 and for generic numerical parameters it satisfies the Big Cycle property. -/
 theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) (h4 : HasFourCycle N hN s hs) :
     (∀ θ, IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s) ∧
       ForGenericParams N fun θ => IsMetricNetwork N θ → BigCycleOn (cf N θ) s := by
-  sorry
+  -- the decidable equality on the taxa of `Q⊕_s` that the results on quartet networks use
+  let _ : DecidableEq (s : Set X) := fun a b => Classical.propDecidable (a = b)
+  have hQb := quartetLSA_isBinaryRootedNetwork hN hs
+  -- `Q⊕_s` is an LSA quartet network (named here with one of its metrics)
+  have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs) (halfMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
+    ⟨hQb, quartetLSA_isLevelOne hN h1 hs, quartetLSA_isLSANetwork hN hs, by simp [hs],
+      isMetricNetwork_halfMetric hQb fun _ => one_pos⟩
+  -- its 4-cycle, the hybrid block `{c}` adjacent to the blocks of `b` and `d`
+  obtain ⟨C₀, v₀, k, hC₀⟩ := h4
+  obtain ⟨C, hCt⟩ := (inducesCycleType_iff hQ₀ 4 k).1 ⟨C₀, v₀, hC₀⟩
+  -- by Corollary 2, `CF(Q⁻_s) = CF(Q')`, and `Q'` is the network of Figure 17: equation (8)
+  obtain ⟨-, -, -, -, a, b, c, d, habcd, -, -, -, -, A, B, h, hA, hB, hAB, hh, hCF⟩ :=
+    cf_eq_fig17 hQ₀ hCt.1 hCt.2.1
+  have huniv : ({a, b, c, d} : Finset _) = univ :=
+    eq_univ_of_card _ (by rw [habcd.card_eq]; simp [hs])
+  have hsum : ∀ θ' : MetricData _, IsMetricNetwork (quartetLSA N hN.1 s hs) θ' → ∀ A : Finset _,
+      A.Nonempty → 0 < ∑ e ∈ A, θ'.length e :=
+    fun θ' hθ' A hA => Finset.sum_pos (fun e _ => hθ'.2 e) hA
+  have horder : ∀ θ', IsMetricNetwork (quartetLSA N hN.1 s hs) θ' →
+      (CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).2.1 <
+          (CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).1 ∧
+        (CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).2.1 <
+          (CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).2.2 ∧
+        ((CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).1 =
+            (CF (quartetLSA N hN.1 s hs) θ' a b c d habcd).2.2 ↔
+          (1 - θ'.inheritance h) * (1 - Real.exp (-∑ e ∈ A, θ'.length e)) =
+            θ'.inheritance h * (1 - Real.exp (-∑ e ∈ B, θ'.length e))) := fun θ' hθ' =>
+    fig17_order (inheritance_mem_Ioo hQb hθ' hh).1 (inheritance_mem_Ioo hQb hθ' hh).2
+      (hsum θ' hθ' A hA) (hsum θ' hθ' B hB) (by convert hCF θ' hθ' using 2)
+  simp only [CF] at horder
+  refine ⟨fun θ hθ => ?_, ?_⟩
+  · -- equation (8) shows that `s` satisfies the Cycle property
+    obtain ⟨hy₁, hy₂, -⟩ := horder _ (quartetLSA_isMetricNetwork hN hθ hs)
+    rw [← cyclePropertyOn_comp_map_iff s]
+    have hcp : CyclePropertyOn
+        (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+      rw [← huniv]
+      unfold CyclePropertyOn
+      rw [isTreelikeOn_iff_triple _ habcd]
+      rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩) <;> linarith
+    rw [cf_quartetLSA hN h1 hθ hs] at hcp
+    convert hcp
+  · -- for generic parameters of `Q⊕_s`, `CF_{AB|CD} ≠ CF_{AD|BC}`: the zero set of an analytic
+    -- function that is not identically zero, at the parameters with lengths `(|B| + 1)/|A|` on `A`
+    have hnull : (quartetLSA N hN.1 s hs).IsGenericNull {θ' | (quartetLSA N hN.1 s hs).IsMetric θ' ∧
+        nmscCF (quartetLSA N hN.1 s hs) θ' 0 (quartetTree a b c d habcd) =
+          nmscCF (quartetLSA N hN.1 s hs) θ' 0 (quartetTree a d b c (distinct4_adbc habcd))} := by
+      set ℓ : _ → ℝ := fun e => if e ∈ A then ((#B : ℝ) + 1) / #A else 1 with hℓdef
+      have hApos : (0 : ℝ) < #A := by exact_mod_cast hA.card_pos
+      have hℓ : ∀ e, 0 < ℓ e := fun e => by
+        simp only [hℓdef]
+        split_ifs
+        · positivity
+        · exact one_pos
+      have hθw := isMetricNetwork_halfMetric hQb hℓ
+      refine isGenericNull_nmscCF_eq hθw.1 fun heq => ?_
+      have hγ : (halfMetric (quartetLSA N hN.1 s hs) ℓ).inheritance h = 1 / 2 := by
+        simp [halfMetric, hh]
+      have hLA : ∑ e ∈ A, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B + 1 := by
+        simp only [halfMetric, hℓdef]
+        rw [Finset.sum_congr rfl fun e he => if_pos he, Finset.sum_const, nsmul_eq_mul]
+        field_simp
+      have hLB : ∑ e ∈ B, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B := by
+        simp only [halfMetric, hℓdef]
+        rw [Finset.sum_congr rfl fun e he => if_neg (Finset.disjoint_right.1 hAB he),
+          Finset.sum_const, nsmul_eq_mul, mul_one]
+      have := ((horder _ hθw).2.2.1 heq)
+      rw [hγ, hLA, hLB] at this
+      have hlt : Real.exp (-((#B : ℝ) + 1)) < Real.exp (-(#B : ℝ)) := Real.exp_lt_exp.2 (by linarith)
+      linarith
+    -- the parameters of `N` are null where those of `Q⊕_s` are (the map `ν`)
+    refine isGenericNull_mono (isGenericNull_inducedMetric hN.1 _ hnull) fun θ hθ => ?_
+    simp only [Set.mem_setOf_eq, not_imp] at hθ
+    obtain ⟨hθm, hnbc⟩ := hθ
+    have hθs := quartetLSA_isMetricNetwork hN hθm hs
+    refine ⟨hθm.1, hθs.1, ?_⟩
+    obtain ⟨hy₁, hy₂, -⟩ := horder _ hθs
+    have hnbc' : ¬ BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+      rw [cf_quartetLSA hN h1 hθm hs]
+      convert (bigCycleOn_comp_map_iff s (cf N θ)).not.2 hnbc
+    rw [← huniv, bigCycleOn_iff_triple _ habcd] at hnbc'
+    by_contra hne
+    exact hnbc' ⟨hy₁.ne', hne, hy₂.ne⟩
 
 /-- **Theorem 3** (`thm::twocor`): for generic numerical parameters, `s` satisfies the Big Cycle property
 if and only if `Q⁻_s` has a 4-cycle. -/
