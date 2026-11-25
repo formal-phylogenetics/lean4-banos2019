@@ -18,5 +18,5 @@ and 6).
 
 The paper also takes Lemma 3, on the cycles of level-1 networks, from Rosselló and Valiente 2009.
 It is one of the paper's numbered results, so it is in the paper's library, proved by an argument
-of the formalization's own: [`Banos2019.lemma3`](../Network/Cycle.lean#L438) and [`Banos2019.lemma3_unrooted`](../Network/Induced.lean#L287). The network
+of the formalization's own: [`Banos2019.lemma3`](../Network/Cycle.lean#L440) and [`Banos2019.lemma3_unrooted`](../Network/Induced.lean#L289). The network
 multispecies coalescent of Meng and Kubatko 2009 is a definition, the library `Phylogenetics`'s.

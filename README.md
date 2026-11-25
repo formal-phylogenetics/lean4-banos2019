@@ -64,14 +64,14 @@ determine `Ñ` up to isomorphism.
 
 | Paper | Lean | Statement |
 | --- | --- | --- |
-| Proposition 1 | [`Banos2019.proposition1`](Banos2019/Network/Induced.lean#L661), [`Banos2019.proposition1_metric`](Banos2019/Network/Induced.lean#L674) | unrooting and inducing on a set of taxa commute |
-| Theorem 2 | [`Banos2019.theorem2`](Banos2019/Quartet/Reduction.lean#L238) | the concordance factors of four taxa are those of their induced LSA network |
-| Lemmas 7–11 | [`Banos2019.lemma7`](Banos2019/Quartet/Reduction.lean#L1039), …, [`Banos2019.lemma11`](Banos2019/Quartet/Reduction.lean#L2319) | the reduction formulas for the cycles of quartet networks |
-| Proposition 7 | [`Banos2019.proposition7`](Banos2019/CycleProperty.lean#L532) | the concordance factors of a `3₂`-cycle lie in `I`, and fill it but for its vertices |
-| Proposition 10 | [`Banos2019.proposition10`](Banos2019/CycleProperty.lean#L794) | a 4-cycle gives the Cycle property, and the Big Cycle property for generic parameters |
-| Lemmas 12–16 | [`Banos2019.lemma12`](Banos2019/CycleProperty.lean#L1051), …, [`Banos2019.lemma16`](Banos2019/Identifiability.lean#L122) | the set of quartets with the Big Cycle property, and the orderings, give the blocks of the large cycles and their order |
-| Proposition 13 | [`Banos2019.proposition13`](Banos2019/Identifiability.lean#L351), [`Banos2019.proposition13_asPrinted_false`](Banos2019/Identifiability.lean#L465) | the corrected statement, and the refutation of the printed one |
-| Lemma 17 | [`Banos2019.lemma17`](Banos2019/Network/Induced.lean#L540) | an edge below `LSA(Z)` above a taxon of `Z` lies on a simple trek between taxa of `Z` |
+| Proposition 1 | [`Banos2019.proposition1`](Banos2019/Network/Induced.lean#L665), [`Banos2019.proposition1_metric`](Banos2019/Network/Induced.lean#L678) | unrooting and inducing on a set of taxa commute |
+| Theorem 2 | [`Banos2019.theorem2`](Banos2019/Quartet/Reduction.lean#L243) | the concordance factors of four taxa are those of their induced LSA network |
+| Lemmas 7–11 | [`Banos2019.lemma7`](Banos2019/Quartet/Reduction.lean#L1056), …, [`Banos2019.lemma11`](Banos2019/Quartet/Reduction.lean#L2334) | the reduction formulas for the cycles of quartet networks |
+| Proposition 7 | [`Banos2019.proposition7`](Banos2019/CycleProperty.lean#L539) | the concordance factors of a `3₂`-cycle lie in `I`, and fill it but for its vertices |
+| Proposition 10 | [`Banos2019.proposition10`](Banos2019/CycleProperty.lean#L805) | a 4-cycle gives the Cycle property, and the Big Cycle property for generic parameters |
+| Lemmas 12–16 | [`Banos2019.lemma12`](Banos2019/CycleProperty.lean#L1071), …, [`Banos2019.lemma16`](Banos2019/Identifiability.lean#L125) | the set of quartets with the Big Cycle property, and the orderings, give the blocks of the large cycles and their order |
+| Proposition 13 | [`Banos2019.proposition13`](Banos2019/Identifiability.lean#L359), [`Banos2019.proposition13_asPrinted_false`](Banos2019/Identifiability.lean#L474) | the corrected statement, and the refutation of the printed one |
+| Lemma 17 | [`Banos2019.lemma17`](Banos2019/Network/Induced.lean#L544) | an edge below `LSA(Z)` above a taxon of `Z` lies on a simple trek between taxa of `Z` |
 
 [Section 8 of the report](docs/Banos2019/REPORT.md#8-what-each-result-depends-on) lists every numbered result with its Lean name.
 

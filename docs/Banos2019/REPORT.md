@@ -29,7 +29,7 @@ Status of the formalization:
   Three statements are proved in corrected forms: Theorem 4, with the nodes of degree two that the contraction leaves in `Ñ` suppressed
   (E14), the second claim of Proposition 7 off the three vertices of the simplex (E9), and Proposition 13 with a
   hypothesis in place of the false step of its proof (E18). Proposition 13 as printed is refuted
-  ([`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L465)).
+  ([`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L474)).
 - **Proved cited results.** Equation (1) and the paper's Propositions 3 and 4, which it takes from Allman, Degnan and
   Rhodes 2011, and the invariance of the concordance factors of a species tree under the root placement, which its
   proofs use in their place (E6). They are stated in [`Banos2019/External/AllmanDegnanRhodes2011/`](../../Banos2019/External/AllmanDegnanRhodes2011) and proved from the
@@ -94,13 +94,13 @@ Status of the formalization:
 | Equation (1): on four taxa, a species tree whose unrooted tree has the split `ab\|cd` with internal edge `t` has the concordance factors `(1 - ⅔e^{-t}, ⅓e^{-t}, ⅓e^{-t})`, for any rooting | Section 4; the computation after Corollary 3; Examples 2–5; Propositions 6 and 10 | Allman, Degnan, Rhodes 2011, Sections 4.1 and 5 | [`External.AllmanDegnanRhodes2011.equation1`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L60) | The source's, in lean4-allman2011: the formulas for the binary rootings, and the nonbinary ones as limits |
 | Proposition 3: for four taxa, the distribution of unrooted gene trees identifies `T⁻` and not `T⁺` | Cited in Lemma 9 and Proposition 5 (E6) | Allman, Degnan, Rhodes 2011, Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition3`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L87) | The source's ([`Allman2011.proposition3`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/FourTaxa/Proposition3.lean#L171)) |
 | Proposition 4: Proposition 3 for species trees that need not be binary | Cited in Lemmas 7 and 9 (E6) | Allman, Degnan, Rhodes 2011, Proposition 11 for Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition4`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L98) | The source's ([`Allman2011.proposition11_proposition3`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/Proposition11.lean#L66)) |
-| The root placement does not matter: on four taxa, species trees with the same unrooted metric tree have the same distribution of unrooted gene trees | Section 4 ("it is known … [1]"); the steps of Lemmas 7, 9 and Proposition 5 that cite Propositions 3 and 4 (E6) | Allman, Degnan, Rhodes 2011, Theorem 9 for four taxa, and Section 5 | [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L109) | The source's ([`Allman2011.unrootedDist_eq_iff_four`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/FourTaxa.lean#L277)) |
+| The root placement does not matter: on four taxa, species trees with the same unrooted metric tree have the same distribution of unrooted gene trees | Section 4 ("it is known … [1]"); the steps of Lemmas 7, 9 and Proposition 5 that cite Propositions 3 and 4 (E6) | Allman, Degnan, Rhodes 2011, Theorem 9 for four taxa, and Section 5 | [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110) | The source's ([`Allman2011.unrootedDist_eq_iff_four`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/FourTaxa.lean#L277)) |
 | Two phylogenetic `X`-trees that display the same quartet trees are isomorphic | Theorem 4, base case ("a standard result [22]") | Semple, Steel 2003 | [`External.SempleSteel2003.exists_iso_of_quartets_eq`](../../Banos2019/External/SempleSteel2003/Quartets.lean#L184) | The quartet trees give the splits ([`Phylogenetics.subset_of_forall_displays`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/Splits.lean#L737)), and the splits the tree (the Splits Equivalence Theorem, [`Phylogenetics.SplitsEquivalence.xTree_unique`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L604)) |
-| Lemma 3: a cycle of a level-1 network has exactly one hybrid node, with both its hybrid edges; a node is on at most one cycle | Throughout, wherever the paper speaks of the hybrid node of a cycle, the cycle `C_v` or the `v`-blocks | Rosselló, Valiente 2009 | [`Banos2019.lemma3`](../../Banos2019/Network/Cycle.lean#L438), [`Banos2019.lemma3_unrooted`](../../Banos2019/Network/Induced.lean#L287) | The formalization's own: the top node of the cycle, and a count of its edges by the node they enter |
+| Lemma 3: a cycle of a level-1 network has exactly one hybrid node, with both its hybrid edges; a node is on at most one cycle | Throughout, wherever the paper speaks of the hybrid node of a cycle, the cycle `C_v` or the `v`-blocks | Rosselló, Valiente 2009 | [`Banos2019.lemma3`](../../Banos2019/Network/Cycle.lean#L440), [`Banos2019.lemma3_unrooted`](../../Banos2019/Network/Induced.lean#L289) | The formalization's own: the top node of the cycle, and a count of its edges by the node they enter |
 
 The statements of [`Banos2019/External/`](../../Banos2019/External) are in their sources' terms, on species trees ([`Phylogenetics.SpeciesTree`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Hierarchy/SpeciesTree.lean#L57)).
 The paper applies them to rooted networks without hybrid edges, which may have nodes of indegree and outdegree one;
-[`Banos2019.nmscCF_eq_quartetProb`](../../Banos2019/Quartet/Trees.lean#L792) identifies the concordance factors of such a network with those of its species
+[`Banos2019.nmscCF_eq_quartetProb`](../../Banos2019/Quartet/Trees.lean#L824) identifies the concordance factors of such a network with those of its species
 tree. Propositions 3 and 4 are proved as printed, and no proof uses them (E6).
 
 ### What was read
@@ -121,7 +121,7 @@ Nothing: the formalization is unconditional.
 | --- | --- | --- |
 | The network multispecies coalescent: Kingman's coalescent on each edge, independent inheritance at hybrid nodes, exchangeability of the lineages | Section 4; Theorem 2; Lemmas 7–11 | The library `Phylogenetics` ([`Phylogenetics.NMSC.exchangeability`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Exchangeability.lean#L412); the concordance factors `nmscCF N θ 0`) |
 | The zero set of a real analytic function that is not identically zero is null | Proposition 10 ("contained in a proper sub-variety … has measure zero") | [`AnalyticOnNhd.volume_setOf_eq_zero`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/ForMathlib/Analysis/AnalyticZeroSet.lean#L178), in lean4-phylogenetics |
-| The preimage of a null set under a surjective affine map is null | Proposition 10 ("ν is linear surjective") | [`MeasureTheory.prod_pi_volume_preimage_sum_coords_null`](../../Banos2019/Basic/MeasureTheory/SumCoordsNull.lean#L25) |
+| The preimage of a null set under a surjective affine map is null | Proposition 10 ("ν is linear surjective") | [`MeasureTheory.prod_pi_volume_preimage_sum_coords_null`](../../Banos2019/Basic/MeasureTheory/SumCoordsNull.lean#L26) |
 | A continuous image of a connected set is connected | Proposition 7 | Mathlib |
 
 ### Does the paper use each cited result correctly?
@@ -149,7 +149,7 @@ Definition 4 says: "To see that LSA(Z) is well defined for any Z ⊆ X, note fir
 every pair of nodes u,v ∈ D both lie on a path, we have … a total order on D". For `Z = ∅` the set `D` of the nodes on
 every path from the root to a taxon of `Z` is the set of all nodes, which are not totally ordered, and `LSA(∅)` is not
 defined. Lemma 1 is stated for `Z ⊆ Y ⊆ X` ("for any Z ⊂ X" in (i)). Nothing in the paper uses `LSA(∅)`. The
-formalization states Lemma 1 for nonempty `Z` ([`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L307)).
+formalization states Lemma 1 for nonempty `Z` ([`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L312)).
 
 ### E2. Lemma 1 (ii): two steps
 
@@ -157,7 +157,7 @@ The proof says "If both x1 and x2 had parents below LSA(Z), then x1 has a parent
 x1", and "Let z ∈ Z with z below x1", without argument for either. Both hold. A taxon of `Z` is below each child `xᵢ`
 of `LSA(Z)`: otherwise every path to `Z` would leave `LSA(Z)` through the other child, a lower node on all of them. A
 path from `LSA(Z)` to the other parent of `x₁`, when that parent is below `LSA(Z)`, starts with `e₂`, since through
-`e₁` it would close a directed cycle. [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L307) has both steps.
+`e₁` it would close a directed cycle. [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L312) has both steps.
 
 ### E3. Proposition 2: three paths and the level-1 condition
 
@@ -165,7 +165,7 @@ The proof finds three paths `P₁, P₂, P₃` from the root to `m = LSA(X)`, th
 "This contradicts the level-1 condition" without saying how (TeX l. 365–369). The step holds: the paths through `e₁`
 and `y`, and through `e₂` and `y`, give two cycles through the edge `(r, x)`; by the level-1 condition they are one
 cycle, whose other edge at `x` is `e₁` or `e₂` and lies on only one of them, since the path through `y` cannot enter the
-tree node `x` ([`Banos2019.proposition2`](../../Banos2019/Structure.lean#L46), with [`Banos2019.exists_isCycle_of_walks`](../../Banos2019/Network/Cycle.lean#L125)).
+tree node `x` ([`Banos2019.proposition2`](../../Banos2019/Structure.lean#L46), with [`Banos2019.exists_isCycle_of_walks`](../../Banos2019/Network/Cycle.lean#L127)).
 
 ### E4. Lemma 4: no printed proof
 
@@ -173,7 +173,7 @@ The published version introduces Lemma 4 with "The following is straightforward 
 source of arXiv v1 has one, commented out (TeX l. 403–409): an edge `e` of a path from `a` to `b` lies on a cycle `C_v`
 of `𝒟`, and a path from `a` to `b` avoiding `C_v` would give a cycle through `e` with edges outside `C_v`. The
 formalization follows it, and closes it by the level-1 condition: that cycle is `C_v`, so all the edges of `C_v` lie
-on the path, which a cycle cannot ([`Banos2019.lemma4`](../../Banos2019/Structure.lean#L430)). Corollary 1 follows from it as the paper says.
+on the path, which a cycle cannot ([`Banos2019.lemma4`](../../Banos2019/Structure.lean#L431)). Corollary 1 follows from it as the paper says.
 
 ### E5. Lemma 5: the blocks of three cycles
 
@@ -181,7 +181,7 @@ on the path, which a cycle cannot ([`Banos2019.lemma4`](../../Banos2019/Structur
 cycles form a chain, the middle one joined to each of the others through a part of the network that holds no taxon,
 two of the middle cycle's blocks are empty, and the count is `k₁ + k₂ + k₃ − 4`: three 3-cycles joined in a chain by
 single edges, with taxa below their free nodes, leave five nonempty blocks, not six. Since `k₁ + k₂ + k₃ − 4 ≥ 5 > 4`,
-the contradiction and the lemma stand ([`Banos2019.lemma5`](../../Banos2019/Quartet/Reduction.lean#L128), with [`Banos2019.card_add_card_add_card_le_of_cycles`](../../Banos2019/Quartet/CycleBlocks.lean#L557)).
+the contradiction and the lemma stand ([`Banos2019.lemma5`](../../Banos2019/Quartet/Reduction.lean#L131), with [`Banos2019.card_add_card_add_card_le_of_cycles`](../../Banos2019/Quartet/CycleBlocks.lean#L560)).
 
 ### E6. Propositions 3 and 4, as Lemmas 7 and 9 and Proposition 5 use them
 
@@ -201,7 +201,7 @@ same distribution. The paper states the needed fact in Section 4 ("it is known t
 not depend on the root placement [1]"), and Allman, Degnan and Rhodes 2011 prove it (Theorem 9 for four taxa, and
 Section 5 for nonbinary trees; arXiv v1 cites "Proposition 3 in [Allman2011]" and "Proposition 11 in [Allman2011]").
 The steps hold. The formalization states the fact as
-[`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L109) (label `pub:rootplace`) and uses it in the
+[`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110) (label `pub:rootplace`) and uses it in the
 three proofs (Section 7).
 
 ### E7. Proposition 5: the terms of Lemma 11
@@ -214,16 +214,16 @@ fewer cycles, and the proof does not say why they agree for `Q` and `Q̃`; that 
 have isomorphic unrooted metric networks is asserted. Both hold. The formalization reduces the cycles in the order
 `2₁` and `2₃`, `2₂`, `3₁` and 4, `3₂`; the `3₂`-cycle is then the only one (Lemma 6), and the extra terms are
 `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of the two taxa below the hybrid node, for the length `ℓ` of the
-edge below it, which the isomorphism keeps ([`Banos2019.probLineages_condCF_eq_of_threeTwo`](../../Banos2019/Quartet/Reduction.lean#L2856)). The isomorphisms of the
-reduced networks are [`Banos2019.nonempty_sdMetricIso_reduceNet_deleteArc`](../../Banos2019/Quartet/Reduction.lean#L2739), [`Banos2019.nonempty_sdMetricIso_contractNet`](../../Banos2019/Quartet/Reduction.lean#L2765)
-and [`Banos2019.nonempty_sdMetricIso_disjointNet`](../../Banos2019/Quartet/Reduction.lean#L2811).
+edge below it, which the isomorphism keeps ([`Banos2019.probLineages_condCF_eq_of_threeTwo`](../../Banos2019/Quartet/Reduction.lean#L2879)). The isomorphisms of the
+reduced networks are [`Banos2019.nonempty_sdMetricIso_reduceNet_deleteArc`](../../Banos2019/Quartet/Reduction.lean#L2758), [`Banos2019.nonempty_sdMetricIso_contractNet`](../../Banos2019/Quartet/Reduction.lean#L2786)
+and [`Banos2019.nonempty_sdMetricIso_disjointNet`](../../Banos2019/Quartet/Reduction.lean#L2834).
 
 ### E8. Proposition 6: the reduced trees
 
 The induction ends with "Since Q₀′, Q₁′, Q₂ and Q′ are trees with the same topology, their concordance factors have
 the same ordering by equations (1)" (`Q₂` for `Q₂′`, E20). That the networks obtained by contracting all `2₂`- and
 `3₁`-cycles are quartet trees with one internal edge, the same for all, is asserted (TeX l. 917). It holds, since each
-such cycle has a block of two taxa ([`Banos2019.exists_speciesTree_contractRooted`](../../Banos2019/Quartet/Normal.lean#L85)). The induction also needs the list of
+such cycle has a block of two taxa ([`Banos2019.exists_speciesTree_contractRooted`](../../Banos2019/Quartet/Normal.lean#L89)). The induction also needs the list of
 the cycles that can accompany the others, which Lemmas 5 and 6 give and the proof does not cite; the proof of
 Proposition 7 uses them the same way (TeX l. 964).
 
@@ -234,7 +234,7 @@ point (x,y,z) in this set there is such a Q with (x,y,z) = CF(Q)." The set conta
 `(0, 1, 0)`, `(0, 0, 1)` of the simplex, and concordance factors are positive, so the second claim fails there. The
 proof shows that the image of the `3₂`-cycle of Figure 18 is the open segment `L` from `(1, 0, 0)` to
 `(2/12, 5/12, 5/12)`, which excludes the vertex. The correct statement is the second claim for every point of `I` other
-than the vertices; [`Banos2019.proposition7`](../../Banos2019/CycleProperty.lean#L532) proves it, with the first claim as printed.
+than the vertices; [`Banos2019.proposition7`](../../Banos2019/CycleProperty.lean#L539) proves it, with the first claim as printed.
 
 ### E10. Example 7: the labels of the taxa
 
@@ -248,8 +248,8 @@ gives:
 
 The printed values are those of Figure 17 with the taxa `b` and `c` exchanged. The point of the example stands: up to
 the names of the taxa, the 4-cycle has the concordance factors `(32, 33, 33)/98` of the `3₂`-cycle of Example 6
-([`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L849), and [`Banos2019Challenge.example7`](../../palomar/Banos2019/Challenge.lean#L640) on the Challenge's definitions; Example 6 is
-[`Banos2019.example6`](../../Banos2019/Quartet/Examples.lean#L832)).
+([`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L871), and [`Banos2019Challenge.example7`](../../palomar/Banos2019/Challenge.lean#L640) on the Challenge's definitions; Example 6 is
+[`Banos2019.example6`](../../Banos2019/Quartet/Examples.lean#L853)).
 
 ### E11. Lemma 12: the statement, and the correspondence of cycles
 
@@ -257,26 +257,26 @@ The statement reads "There exists {a,b,c,d} ⊆ X satisfying the BC property if 
 size k ≥ 4 with one of these taxa is in the hybrid block, and the others in distinct v-blocks". Its proof, and every
 later use of it, is about a given set of four taxa: for generic parameters, `{a, b, c, d}` satisfies the Big Cycle
 property if and only if `N⁻` has a cycle `C_v` of size at least four with the four taxa in distinct `v`-blocks, one of
-them in the hybrid block. [`Banos2019.lemma12`](../../Banos2019/CycleProperty.lean#L1051) states this, for all sets of four taxa at once.
+them in the hybrid block. [`Banos2019.lemma12`](../../Banos2019/CycleProperty.lean#L1071) states this, for all sets of four taxa at once.
 
 The proof asserts in both directions how the cycles of `Q⁻_s` and of `N⁻` correspond (TeX l. 1102–1103): "This set of
 taxa induces a unrooted quartet network with a 4-cycle", and "Since the other taxa are in distinct v-blocks of Q⁻,
-they must be in distinct v-blocks of N⁻". Both hold: [`Banos2019.exists_fourCycle_of_separates`](../../Banos2019/Quartet/Correspondence.lean#L295) and
-[`Banos2019.exists_separates_of_fourCycle`](../../Banos2019/Quartet/Correspondence.lean#L502).
+they must be in distinct v-blocks of N⁻". Both hold: [`Banos2019.exists_fourCycle_of_separates`](../../Banos2019/Quartet/Correspondence.lean#L299) and
+[`Banos2019.exists_separates_of_fourCycle`](../../Banos2019/Quartet/Correspondence.lean#L506).
 
 ### E12. Lemma 13: a generic lemma at given parameters
 
 Lemma 13 is stated for given parameters, and its proof twice cites Lemma 12, which holds for generic parameters, for
 "a, b, c, and d belong to different v-blocks". The direction it needs holds for all parameters: a set with the Big
 Cycle property induces a 4-cycle (Proposition 9), whose taxa are in distinct blocks of the cycle of `N⁻` that it comes
-from (the second half of E11). The formalization uses that direction ([`Banos2019.lemma13`](../../Banos2019/CycleProperty.lean#L1093); Section 7).
+from (the second half of E11). The formalization uses that direction ([`Banos2019.lemma13`](../../Banos2019/CycleProperty.lean#L1113); Section 7).
 
 ### E13. Lemma 14: the cases of `|X|`
 
 "If |X| < 3 there is nothing to prove. The case |X| = 4 follows from Proposition 9, so we assume |X| ≥ 5." The cases
 leave out `|X| = 3`, where, as for `|X| < 3`, there is no set of four taxa and nothing to prove: "< 3" reads as "< 4".
 For `|X| = 4`, Proposition 9 gives only one inclusion: when `X ∉ S`, that `N⁻` has no 4-cycle needs Proposition 10.
-The argument for `|X| ≥ 5` uses no bound on `|X|`, and the formalization applies it to every `X` ([`Banos2019.lemma14`](../../Banos2019/Identifiability.lean#L65);
+The argument for `|X| ≥ 5` uses no bound on `|X|`, and the formalization applies it to every `X` ([`Banos2019.lemma14`](../../Banos2019/Identifiability.lean#L66);
 Section 7).
 
 ### E14. Theorem 4: the network `Ñ`
@@ -291,7 +291,7 @@ construction of the paper does (Definitions 5, 10 and 13, and the gluing step of
 in N2 with s2 in N1 and suppressing that node"), and as Figure 23's `Ñ` shows. arXiv v1 says "suppressing all 2- and
 3-cycles", where suppressing a cycle means contracting it (TeX l. 331). Allman, Baños, Garrote-López and Rhodes 2024
 restate the theorem (their Theorem 2, "Baños 2019, Theorem 4") with "suppressing degree-2 nodes", and for `|X| ≥ 4`. The
-formalization's `Ñ` suppresses them ([`Banos2019.Model.SDNetwork.tilde`](../../palomar/Banos2019/Challenge.lean#L343), [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L216)), and the Challenge's
+formalization's `Ñ` suppresses them ([`Banos2019.Model.SDNetwork.tilde`](../../palomar/Banos2019/Challenge.lean#L343), [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L223)), and the Challenge's
 [`Banos2019Challenge.fig17_fig18_tilde`](../../palomar/Banos2019/Challenge.lean#L660) checks that `Ñ` still tells a 4-cycle from a `3₂`-cycle.
 
 ### E15. Theorem 4: the base case
@@ -309,7 +309,7 @@ how the ordering tells it. The formalization fills these steps ([`Banos2019.tild
   a `3₂`-cycle it can be the smallest (Example 6, `(32, 33, 33)/98`).
 - This reading needs the three concordance factors not to be all equal, and with a `3₂`-cycle they can be (the
   centroid lies on the segment `L` of Proposition 7). That they are not, on any set of four taxa, holds for generic
-  parameters ([`Banos2019.forGenericParams_nonDegenerateCF`](../../Banos2019/Identify/NonDegenerate.lean#L195)), and is part of the generic condition of the
+  parameters ([`Banos2019.forGenericParams_nonDegenerateCF`](../../Banos2019/Identify/NonDegenerate.lean#L160)), and is part of the generic condition of the
   formalization's Theorem 4.
 - The base case also needs that `N₂⁻` has no cycle of size at least four when `N₁⁻` has none: such a cycle would
   separate four taxa with the Big Cycle property for `N₂`, and so for `N₁` (Lemma 12).
@@ -322,17 +322,17 @@ The induction step takes "T, the tree of cycles of Ñ" (Definition 13) and state
 on N⁻ if and only if all v-blocks but one are 4-network blocks". The paper proves neither this nor that `T` is a tree
 ("Since contracting cycles in level-1 networks does not introduce loops or multi-edges, we can define a notion of a tree
 of cycles"). Both hold, and are proved in [`Banos2019/Identify/TreeOfCycles.lean`](../../Banos2019/Identify/TreeOfCycles.lean)
-([`Banos2019.isLeafNode_iff_fourNetworkBlocks_unrooted`](../../Banos2019/Identify/TreeOfCycles.lean#L1533)). The proof also leaves these steps unstated, all filled along its
+([`Banos2019.isLeafNode_iff_fourNetworkBlocks_unrooted`](../../Banos2019/Identify/TreeOfCycles.lean#L1516)). The proof also leaves these steps unstated, all filled along its
 lines:
 
 - the networks induced on `S_i ∪ {s_j}` have fewer cycles of size at least four;
 - their concordance factors are those of `N` on their taxa (Proposition 1 and Theorem 2), so the generic conditions and
   the equal orderings pass to them, and their data are read from their own orderings by the arguments of Lemmas 14–16;
-- `Ñ` is the gluing of the networks `Ñ` of the two pieces ([`Banos2019.tilde_sdIso_glue`](../../Banos2019/Identify/Glue.lean#L3478)): contracting the 2- and
+- `Ñ` is the gluing of the networks `Ñ` of the two pieces ([`Banos2019.tilde_sdIso_glue`](../../Banos2019/Identify/Glue.lean#L3482)): contracting the 2- and
   3-cycles and suppressing the nodes of degree two commute with taking a side of the edge of `u` off its cycle.
 
 With one cycle of size at least four, "Doing this for all v-blocks" is an induction on the number of `v`-blocks with at
-least two taxa ([`Banos2019.tildeDeterminedOneCycle`](../../Banos2019/Identify/TildeInduction.lean#L453)).
+least two taxa ([`Banos2019.tildeDeterminedOneCycle`](../../Banos2019/Identify/TildeInduction.lean#L410)).
 
 ### E17. Proposition 12: Propositions 8 and 7
 
@@ -342,7 +342,7 @@ only for generic parameters (Theorem 3): that is Corollary 4, which the formal p
 k-cycle for k ≥ 4" uses Lemma 12 without citing it. The last step, "Thus by Proposition 7, C_v has size 3 and at least
 two of a, b, c, d descend from v", miscites Proposition 7, which says where the concordance factors of a `3₂`-cycle
 lie: the size three follows from the three blocks of `C_v` that hold taxa of `s`, and the two taxa below `v` from the
-definition of a `3₂`-cycle ([`Banos2019.proposition12`](../../Banos2019/Identifiability.lean#L263)).
+definition of a `3₂`-cycle ([`Banos2019.proposition12`](../../Banos2019/Identifiability.lean#L271)).
 
 ### E18. Proposition 13 is false as printed
 
@@ -352,7 +352,7 @@ but not the BC property. Then the v-block containing e is the v-hybrid block." T
 Q⁻_abcd and the 3-cycle in Q⁻_abce have to have the same hybrid edges, otherwise the level-1 condition would be
 violated" (TeX l. 1231). The `3₂`-cycle of `Q⁻_abce` can come from another cycle of `N⁻`.
 
-Counterexample ([`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L465)): the network with the edges `r → a`, `r → t`, `t → p`,
+Counterexample ([`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L474)): the network with the edges `r → a`, `r → t`, `t → p`,
 `t → u`, `p → e`, `p → u`, `u → w`, `w → x`, `w → y`, `x → b`, `x → v`, `y → c`, `y → v`, `v → d`.
 
 - It is binary and level-1, with a 3-cycle `t, p, u` (hybrid node `u`) and a 4-cycle `C_v = {wx, xv, wy, yv}`
@@ -362,7 +362,7 @@ Counterexample ([`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Iden
 - In `Q⁻_abce` the cycle `C_v` disappears, as no simple trek between taxa of `{a, b, c, e}` passes through `v`, and the
   3-cycle `t, p, u` is a `3₂`-cycle with hybrid block `{b, c}`: Figure 18, relabelled.
 - So on an open set of parameters around those of Example 6, `{a, b, c, e}` satisfies the Cycle property but not the
-  Big Cycle property ([`Banos2019.cex_not_forGenericParams`](../../Banos2019/Identify/Counterexample.lean#L1230)), while `e` is not in the `v`-hybrid block `{d}`.
+  Big Cycle property ([`Banos2019.cex_not_forGenericParams`](../../Banos2019/Identify/Counterexample.lean#L1203)), while `e` is not in the `v`-hybrid block `{d}`.
 
 This reads "for generic parameters" as qualifying the implication. Read as part of the hypothesis ("{i,j,k,e} satisfies
 the Cycle property but not the BC property" for generic parameters), the printed statement holds vacuously, as that
@@ -370,17 +370,17 @@ hypothesis never holds: with a 4-cycle in `Q⁻_ijke` the Big Cycle property hol
 with neither a 4-cycle nor a `3₂`-cycle the Cycle property fails (Proposition 8); with a `3₂`-cycle it fails whenever
 the edge below the hybrid node is longer than `log(3/2)`, an open set of parameters.
 
-The corrected statement, [`Banos2019.proposition13`](../../Banos2019/Identifiability.lean#L351), makes the false step a hypothesis: no cycle of `N⁻` other than `C_v`
+The corrected statement, [`Banos2019.proposition13`](../../Banos2019/Identifiability.lean#L359), makes the false step a hypothesis: no cycle of `N⁻` other than `C_v`
 has two of `i, j, k, e` below its hybrid node and three of them, one of those two, in distinct blocks
-([`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L315)). A `3₂`-cycle of `Q⁻_ijke` always comes from such a cycle
-([`Banos2019.exists_cycle_of_hasThreeTwoCycle`](../../Banos2019/Identify/QuartetCycles.lean#L1863)), so the hypothesis is exactly the paper's step. With it, the proof is the
+([`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L323)). A `3₂`-cycle of `Q⁻_ijke` always comes from such a cycle
+([`Banos2019.exists_cycle_of_hasThreeTwoCycle`](../../Banos2019/Identify/QuartetCycles.lean#L1758)), so the hypothesis is exactly the paper's step. With it, the proof is the
 paper's (Section 7). The maintainer agreed to this correction.
 
 ### E19. Lemma 17: case 5 (ii)
 
 "For case 5 (ii), we assume without loss of generality that w is in Px." The paths `Px` and `Py` play different roles,
 one passing through `e` and the other avoiding its child, so the case of `w` on `Py` only is not symmetric to it. The
-construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos2019/Network/TrekArc.lean#L130); Section 7), and the lemma holds.
+construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos2019/Network/TrekArc.lean#L132); Section 7), and the lemma holds.
 
 ### E20. Typos
 
@@ -405,28 +405,28 @@ construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos20
 
 | Where | Missing hypothesis | Counterexample without it | In the formalization |
 | --- | --- | --- | --- |
-| Definition 4, Lemma 1 | `Z ≠ ∅` | `LSA(∅)` is undefined (E1) | [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L307) assumes `Z.Nonempty` |
-| Proposition 1 | `\|Z\| ≥ 2` | With one taxon, `LSA(Z)` is a leaf, which Definition 5 cannot suppress, and `(N⁺_Z)⁻` is undefined | [`Banos2019.proposition1`](../../Banos2019/Network/Induced.lean#L661) takes at least two taxa |
+| Definition 4, Lemma 1 | `Z ≠ ∅` | `LSA(∅)` is undefined (E1) | [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L312) assumes `Z.Nonempty` |
+| Proposition 1 | `\|Z\| ≥ 2` | With one taxon, `LSA(Z)` is a leaf, which Definition 5 cannot suppress, and `(N⁺_Z)⁻` is undefined | [`Banos2019.proposition1`](../../Banos2019/Network/Induced.lean#L665) takes at least two taxa |
 
 ### Corrections of statements
 
 - Theorem 4: `Ñ` with the nodes of degree two left by the contraction suppressed (E14).
 - Proposition 7: the second claim for the points of `I` other than the vertices of the simplex (E9).
-- Proposition 13: the hypothesis [`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L315) in place of the false step of the proof (E18); the
+- Proposition 13: the hypothesis [`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L323) in place of the false step of the proof (E18); the
   printed statement is refuted.
 
 ## 5. Redundant hypotheses
 
 | Result | Hypothesis that is not needed | Lean |
 | --- | --- | --- |
-| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters and every inheritance correlation in `[0, 1]` | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L238) keeps the paper's hypotheses |
-| Proposition 11 | The Big Cycle property: with a 4-cycle, the quartet tree that pairs the taxa of non-adjacent blocks always has the strictly smallest concordance factor (equation (8)) | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L942) keeps the hypothesis |
+| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters and every inheritance correlation in `[0, 1]` | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) keeps the paper's hypotheses |
+| Proposition 11 | The Big Cycle property: with a 4-cycle, the quartet tree that pairs the taxa of non-adjacent blocks always has the strictly smallest concordance factor (equation (8)) | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L959) keeps the hypothesis |
 
 ## 6. How the formalization reads the paper
 
 - **Networks.** A rooted network is a finite directed multigraph with named edges, so that two edges may join the same
   two nodes and 2-cycles exist, as Definition 1 allows. Definition 1's connectedness and the bijectivity of its
-  labelling follow from its other clauses ([`Banos2019Challenge.root_reaches`](../../palomar/Banos2019/Challenge.lean#L607), [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L43)).
+  labelling follow from its other clauses ([`Banos2019Challenge.root_reaches`](../../palomar/Banos2019/Challenge.lean#L607), [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L45)).
   The library works on the rooted and semidirected networks of lean4-phylogenetics; the Challenge restates them in
   Mathlib's vocabulary ([`Banos2019/Defs.lean`](../../Banos2019/Defs.lean)), and [`Banos2019/Bridge/`](../../Banos2019/Bridge) proves that the two agree.
 - **Metric.** Every edge has a positive length, a tree edge has inheritance probability one, and the two hybrid edges
@@ -474,12 +474,12 @@ Section 3, not here.
 
 | Result | The paper's argument | The formalization's | Why | E-item |
 | --- | --- | --- | --- | --- |
-| Lemmas 7 and 9, the root on the cycle; Proposition 5, the base case | Cites Propositions 3 and 4 for the equality of the concordance factors of species trees with the same unrooted metric tree | The same argument, with the root-placement invariance of Allman, Degnan, Rhodes 2011 ([`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L109)) in place of the cited statements | Gap: the cited statements do not give the step | E6 |
+| Lemmas 7 and 9, the root on the cycle; Proposition 5, the base case | Cites Propositions 3 and 4 for the equality of the concordance factors of species trees with the same unrooted metric tree | The same argument, with the root-placement invariance of Allman, Degnan, Rhodes 2011 ([`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110)) in place of the cited statements | Gap: the cited statements do not give the step | E6 |
 | Lemma 8, `K = 3` | Conditions on `𝔇`, whether the lineage of `d` is in the first coalescent event, and uses exchangeability for `𝔇 = 0` and `𝔇 = 1` | Exchangeability of the three lineages at `v`, once ([`Phylogenetics.NMSC.cherryMass_eq_third`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L262)) | Representation: the model gives the distribution of gene tree topologies, not the order of coalescent events, and `𝔇` is not defined in it | – |
 | Lemma 13 | Cites Lemma 12, a generic statement, at given parameters | The direction of Lemma 12's proof that holds for all parameters: Proposition 9 and the correspondence of cycles | Gap | E12 |
 | Lemma 14 | Cases `\|X\| < 3`, `\|X\| = 4` by Proposition 9, and `\|X\| ≥ 5` | The argument for `\|X\| ≥ 5`, for every `X` | Gap: `\|X\| = 3` is not covered, and Proposition 9 gives one inclusion | E13 |
 | Proposition 12 | Proposition 8 gives a `3₂`-cycle; Proposition 7 gives the size and the taxa below `v` | Corollary 4 gives the `3₂`-cycle; Lemma 12 excludes a size of four or more; the type `3₂` gives the rest | Gap: Proposition 8 also allows a 4-cycle, and Proposition 7 does not give the step | E17 |
-| Proposition 13 | Fixes the order of the cycle (Theorem 4) and, in its labels, that `{a, b, c, d}` and `{e, b, c, d}` determine the same hybrid node (Lemma 13), then claims that the two quartet networks have the same hybrid edges | That claim is the hypothesis [`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L315); the two taxa of the hybrid block are read from the `3₂`-cycle, without the preparations | The step is false, and the statement is corrected | E18 |
+| Proposition 13 | Fixes the order of the cycle (Theorem 4) and, in its labels, that `{a, b, c, d}` and `{e, b, c, d}` determine the same hybrid node (Lemma 13), then claims that the two quartet networks have the same hybrid edges | That claim is the hypothesis [`Banos2019.OnlyThreeTwoSource`](../../Banos2019/Identifiability.lean#L323); the two taxa of the hybrid block are read from the `3₂`-cycle, without the preparations | The step is false, and the statement is corrected | E18 |
 | Lemma 17, case 5 (ii) | Takes `w` on `Px` without loss of generality | The case of `w` on `Py` only, by the construction of case 5 (i) | Gap: the two cases are not symmetric | E19 |
 
 Not counted as departures:
@@ -490,7 +490,7 @@ Not counted as departures:
   ([`Phylogenetics.NMSC.cherryMass_of_mem`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L200)).
 - In Proposition 10, the zero-set lemma for analytic functions, applied to `f ∘ η`, stands for the paper's two steps
   (`f⁻¹(V)` lies in a proper subvariety; `η` is biholomorphic). The maps `ν`, `η` and `f` are the paper's
-  ([`Banos2019.cf_eq_fig17`](../../Banos2019/CycleProperty.lean#L685), [`Banos2019.volume_fig17_eq_null`](../../Banos2019/CycleProperty.lean#L761)).
+  ([`Banos2019.cf_eq_fig17`](../../Banos2019/CycleProperty.lean#L695), [`Banos2019.volume_fig17_eq_null`](../../Banos2019/CycleProperty.lean#L772)).
 - Proposition 2's induction runs on the top node of the chain of 2-cycles rather than on the network below it: the same
   induction, without building a new network.
 
@@ -502,54 +502,54 @@ Every result below depends only on [`propext`](https://leanprover-community.gith
 from prior work that its proof uses:
 
 - equation (1): [`External.AllmanDegnanRhodes2011.equation1`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L60);
-- root placement: [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L109);
+- root placement: [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110);
 - Semple–Steel: [`External.SempleSteel2003.exists_iso_of_quartets_eq`](../../Banos2019/External/SempleSteel2003/Quartets.lean#L184).
 
 | Result | Lean | Results from prior work used |
 | --- | --- | --- |
-| Definition 1 | [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L43) | – |
-| Definition 2 | [`Banos2019.isMetricNetwork_iff`](../../Banos2019/Network/Rooted.lean#L226) | – |
-| Definition 4 | [`Banos2019.isLeastStableAncestor_iff_def4`](../../Banos2019/Network/Rooted.lean#L286) | – |
-| Lemma 1 | [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L307) | – |
-| Lemma 2 | [`Banos2019.lemma2`](../../Banos2019/Network/Rooted.lean#L436) | – |
-| Proposition 1 | [`Banos2019.proposition1`](../../Banos2019/Network/Induced.lean#L661), [`Banos2019.proposition1_metric`](../../Banos2019/Network/Induced.lean#L674) | – |
-| Lemma 3 | [`Banos2019.lemma3`](../../Banos2019/Network/Cycle.lean#L438), [`Banos2019.lemma3_unrooted`](../../Banos2019/Network/Induced.lean#L287) | – |
+| Definition 1 | [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L45) | – |
+| Definition 2 | [`Banos2019.isMetricNetwork_iff`](../../Banos2019/Network/Rooted.lean#L229) | – |
+| Definition 4 | [`Banos2019.isLeastStableAncestor_iff_def4`](../../Banos2019/Network/Rooted.lean#L290) | – |
+| Lemma 1 | [`Banos2019.lemma1`](../../Banos2019/Network/Rooted.lean#L312) | – |
+| Lemma 2 | [`Banos2019.lemma2`](../../Banos2019/Network/Rooted.lean#L441) | – |
+| Proposition 1 | [`Banos2019.proposition1`](../../Banos2019/Network/Induced.lean#L665), [`Banos2019.proposition1_metric`](../../Banos2019/Network/Induced.lean#L678) | – |
+| Lemma 3 | [`Banos2019.lemma3`](../../Banos2019/Network/Cycle.lean#L440), [`Banos2019.lemma3_unrooted`](../../Banos2019/Network/Induced.lean#L289) | – |
 | Proposition 2 | [`Banos2019.proposition2`](../../Banos2019/Structure.lean#L46) | – |
-| Lemma 4 | [`Banos2019.lemma4`](../../Banos2019/Structure.lean#L430) | – |
-| Corollary 1 | [`Banos2019.corollary1`](../../Banos2019/Structure.lean#L490) | – |
-| Lemma 5 | [`Banos2019.lemma5`](../../Banos2019/Quartet/Reduction.lean#L128) | – |
-| Lemma 6 | [`Banos2019.lemma6`](../../Banos2019/Quartet/Reduction.lean#L177) | – |
-| Observation 1 | [`Banos2019.observation1`](../../Banos2019/Quartet/Reduction.lean#L195) | – |
-| Theorem 2 | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L238) | – |
-| Lemma 7 | [`Banos2019.lemma7`](../../Banos2019/Quartet/Reduction.lean#L1039) | root placement |
-| Lemma 8 | [`Banos2019.lemma8`](../../Banos2019/Quartet/Reduction.lean#L1124) | – |
-| Corollary 2 | [`Banos2019.corollary2`](../../Banos2019/Quartet/Reduction.lean#L1291) | root placement |
-| Lemma 9 | [`Banos2019.lemma9`](../../Banos2019/Quartet/Reduction.lean#L2198) | root placement |
-| Lemma 10 | [`Banos2019.lemma10`](../../Banos2019/Quartet/Reduction.lean#L2230) | – |
-| Lemma 11 | [`Banos2019.lemma11`](../../Banos2019/Quartet/Reduction.lean#L2319) | – |
-| Proposition 5 | [`Banos2019.proposition5`](../../Banos2019/Quartet/Reduction.lean#L3289) | root placement |
-| Corollary 3 | [`Banos2019.corollary3`](../../Banos2019/Quartet/Reduction.lean#L3325) | root placement |
-| Examples 2–5 | [`Banos2019.example2`](../../Banos2019/Quartet/Examples.lean#L547), [`Banos2019.example3`](../../Banos2019/Quartet/Examples.lean#L610), [`Banos2019.example4`](../../Banos2019/Quartet/Examples.lean#L659), [`Banos2019.example5`](../../Banos2019/Quartet/Examples.lean#L707) | equation (1), root placement |
-| Proposition 6 | [`Banos2019.proposition6`](../../Banos2019/CycleProperty.lean#L152) | equation (1), root placement |
-| Example 6 | [`Banos2019.example6`](../../Banos2019/Quartet/Examples.lean#L832) | equation (1), root placement |
-| Proposition 7 | [`Banos2019.proposition7`](../../Banos2019/CycleProperty.lean#L532) | equation (1), root placement |
-| Proposition 8 | [`Banos2019.proposition8`](../../Banos2019/CycleProperty.lean#L625) | equation (1), root placement |
-| Example 7 | [`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L849) | equation (1), root placement |
-| Proposition 9 | [`Banos2019.proposition9`](../../Banos2019/CycleProperty.lean#L646) | equation (1), root placement |
-| Proposition 10 | [`Banos2019.proposition10`](../../Banos2019/CycleProperty.lean#L794) | equation (1), root placement |
-| Theorem 3 | [`Banos2019.theorem3`](../../Banos2019/CycleProperty.lean#L865) | equation (1), root placement |
-| Corollary 4 | [`Banos2019.corollary4`](../../Banos2019/CycleProperty.lean#L880) | equation (1), root placement |
-| Proposition 11 | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L942) | equation (1), root placement |
-| Lemma 12 | [`Banos2019.lemma12`](../../Banos2019/CycleProperty.lean#L1051) | equation (1), root placement |
-| Lemma 13 | [`Banos2019.lemma13`](../../Banos2019/CycleProperty.lean#L1093) | equation (1), root placement |
-| Lemma 14 | [`Banos2019.lemma14`](../../Banos2019/Identifiability.lean#L65) | equation (1), root placement |
-| Lemma 15 | [`Banos2019.lemma15`](../../Banos2019/Identifiability.lean#L89) | equation (1), root placement |
-| Lemma 16 | [`Banos2019.lemma16`](../../Banos2019/Identifiability.lean#L122) | equation (1), root placement |
-| Theorem 4 | [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L216) | equation (1), root placement, Semple–Steel |
-| Proposition 12 | [`Banos2019.proposition12`](../../Banos2019/Identifiability.lean#L263) | equation (1), root placement |
-| Proposition 13, corrected | [`Banos2019.proposition13`](../../Banos2019/Identifiability.lean#L351) | equation (1), root placement |
-| Proposition 13 as printed is false | [`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L465) | equation (1), root placement |
-| Lemma 17 | [`Banos2019.lemma17`](../../Banos2019/Network/Induced.lean#L540) | – |
+| Lemma 4 | [`Banos2019.lemma4`](../../Banos2019/Structure.lean#L431) | – |
+| Corollary 1 | [`Banos2019.corollary1`](../../Banos2019/Structure.lean#L491) | – |
+| Lemma 5 | [`Banos2019.lemma5`](../../Banos2019/Quartet/Reduction.lean#L131) | – |
+| Lemma 6 | [`Banos2019.lemma6`](../../Banos2019/Quartet/Reduction.lean#L182) | – |
+| Observation 1 | [`Banos2019.observation1`](../../Banos2019/Quartet/Reduction.lean#L200) | – |
+| Theorem 2 | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) | – |
+| Lemma 7 | [`Banos2019.lemma7`](../../Banos2019/Quartet/Reduction.lean#L1056) | root placement |
+| Lemma 8 | [`Banos2019.lemma8`](../../Banos2019/Quartet/Reduction.lean#L1126) | – |
+| Corollary 2 | [`Banos2019.corollary2`](../../Banos2019/Quartet/Reduction.lean#L1296) | root placement |
+| Lemma 9 | [`Banos2019.lemma9`](../../Banos2019/Quartet/Reduction.lean#L2213) | root placement |
+| Lemma 10 | [`Banos2019.lemma10`](../../Banos2019/Quartet/Reduction.lean#L2245) | – |
+| Lemma 11 | [`Banos2019.lemma11`](../../Banos2019/Quartet/Reduction.lean#L2334) | – |
+| Proposition 5 | [`Banos2019.proposition5`](../../Banos2019/Quartet/Reduction.lean#L3317) | root placement |
+| Corollary 3 | [`Banos2019.corollary3`](../../Banos2019/Quartet/Reduction.lean#L3351) | root placement |
+| Examples 2–5 | [`Banos2019.example2`](../../Banos2019/Quartet/Examples.lean#L553), [`Banos2019.example3`](../../Banos2019/Quartet/Examples.lean#L622), [`Banos2019.example4`](../../Banos2019/Quartet/Examples.lean#L673), [`Banos2019.example5`](../../Banos2019/Quartet/Examples.lean#L723) | equation (1), root placement |
+| Proposition 6 | [`Banos2019.proposition6`](../../Banos2019/CycleProperty.lean#L154) | equation (1), root placement |
+| Example 6 | [`Banos2019.example6`](../../Banos2019/Quartet/Examples.lean#L853) | equation (1), root placement |
+| Proposition 7 | [`Banos2019.proposition7`](../../Banos2019/CycleProperty.lean#L539) | equation (1), root placement |
+| Proposition 8 | [`Banos2019.proposition8`](../../Banos2019/CycleProperty.lean#L633) | equation (1), root placement |
+| Example 7 | [`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L871) | equation (1), root placement |
+| Proposition 9 | [`Banos2019.proposition9`](../../Banos2019/CycleProperty.lean#L655) | equation (1), root placement |
+| Proposition 10 | [`Banos2019.proposition10`](../../Banos2019/CycleProperty.lean#L805) | equation (1), root placement |
+| Theorem 3 | [`Banos2019.theorem3`](../../Banos2019/CycleProperty.lean#L878) | equation (1), root placement |
+| Corollary 4 | [`Banos2019.corollary4`](../../Banos2019/CycleProperty.lean#L894) | equation (1), root placement |
+| Proposition 11 | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L959) | equation (1), root placement |
+| Lemma 12 | [`Banos2019.lemma12`](../../Banos2019/CycleProperty.lean#L1071) | equation (1), root placement |
+| Lemma 13 | [`Banos2019.lemma13`](../../Banos2019/CycleProperty.lean#L1113) | equation (1), root placement |
+| Lemma 14 | [`Banos2019.lemma14`](../../Banos2019/Identifiability.lean#L66) | equation (1), root placement |
+| Lemma 15 | [`Banos2019.lemma15`](../../Banos2019/Identifiability.lean#L91) | equation (1), root placement |
+| Lemma 16 | [`Banos2019.lemma16`](../../Banos2019/Identifiability.lean#L125) | equation (1), root placement |
+| Theorem 4 | [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L223) | equation (1), root placement, Semple–Steel |
+| Proposition 12 | [`Banos2019.proposition12`](../../Banos2019/Identifiability.lean#L271) | equation (1), root placement |
+| Proposition 13, corrected | [`Banos2019.proposition13`](../../Banos2019/Identifiability.lean#L359) | equation (1), root placement |
+| Proposition 13 as printed is false | [`Banos2019.proposition13_asPrinted_false`](../../Banos2019/Identifiability.lean#L474) | equation (1), root placement |
+| Lemma 17 | [`Banos2019.lemma17`](../../Banos2019/Network/Induced.lean#L544) | – |
 
 The cited results, [`External.AllmanDegnanRhodes2011.proposition3`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L87) and [`External.AllmanDegnanRhodes2011.proposition4`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L98)
 among them, use none; the theorems of the Challenge, as the Solution proves them, depend on the same three axioms.
