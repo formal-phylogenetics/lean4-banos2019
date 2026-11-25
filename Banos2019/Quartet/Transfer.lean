@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.Reduction
 public import Banos2019.Network.Suppress
+public import Banos2019.Basic.Data.Finset.Image
 
 /-!
 # Quartet trees on four taxa, and the quartet networks of a network
@@ -269,11 +270,6 @@ section Subtype
 
 variable {X : Type*} [Fintype X] [DecidableEq X] (s : Finset X) [DecidableEq (s : Set X)]
 
-omit [DecidableEq (s : Set X)] [Fintype X] in
-theorem image_val_univ_finsetCoe : (univ : Finset (s : Set X)).image Subtype.val = s := by
-  ext x
-  simp
-
 /-- The quartet trees on `s` are the images of the quartet trees on all of `↥s`. -/
 theorem treesOn_eq_image :
     treesOn s = (treesOn (univ : Finset (s : Set X))).image
@@ -283,12 +279,12 @@ theorem treesOn_eq_image :
   constructor
   · intro hq
     obtain ⟨q₀, rfl⟩ := QuartetTree.exists_map_eq Subtype.val_injective q
-      (by rw [hq, image_val_univ_finsetCoe])
+      (by rw [hq, Finset.image_val_univ_coe])
     refine ⟨q₀, ?_, rfl⟩
     apply image_injective Subtype.val_injective
-    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, image_val_univ_finsetCoe]
+    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, Finset.image_val_univ_coe]
   · rintro ⟨q₀, hq₀, rfl⟩
-    rw [QuartetTree.map_taxa, hq₀, image_val_univ_finsetCoe]
+    rw [QuartetTree.map_taxa, hq₀, Finset.image_val_univ_coe]
 
 theorem bigCycleOn_comp_map_iff (p : QuartetTree X → ℝ) :
     BigCycleOn (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) ↔

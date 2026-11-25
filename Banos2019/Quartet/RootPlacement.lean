@@ -403,7 +403,7 @@ theorem rootDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
         have hk : kingmanTransition (θ.length e) (b e) (t e) ≠ 0 :=
           prod_ne_zero_iff.1 (right_ne_zero_of_mul hv) e (mem_arcsInto.2 he)
         rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-        exact ⟨hb, ne_zero_of_ite_ne_zero' hk⟩
+        exact ⟨hb, (ite_ne_right_iff.1 hk).1⟩
     refine ⟨fun e hef => hall _ e rfl hef, ?_⟩
     have hv : vertexWeight M θ ρ inj (M.graph.target f) b t ≠ 0 :=
       prod_ne_zero_iff.1 h _ (mem_erase.2 ⟨hw, mem_univ _⟩)
@@ -416,7 +416,7 @@ theorem rootDist_rootArc (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
       exact absurd hAe' (notMem_empty _)
     unfold vertexWeight at hv
     rw [harr, allocationFactor_of_unique_arc hρ rfl huniq h1] at hv
-    exact ne_zero_of_ite_ne_zero' (left_ne_zero_of_mul hv)
+    exact (ite_ne_right_iff.1 (left_ne_zero_of_mul hv)).1
   -- the histories of nonzero weight
   let B₀ : E' → Finset (Finset X) := fun e => if e = f then inj (M.graph.target f) else ∅
   let T : Finset (Finset X) → E' → Finset (Finset X) := fun s e => if e = f then s else ∅

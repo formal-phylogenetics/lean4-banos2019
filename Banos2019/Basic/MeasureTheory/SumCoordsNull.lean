@@ -6,12 +6,11 @@ public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 /-!
 # Null sets pulled back along sums of coordinates
 
-On `(ι → ℝ) × (κ → ℝ)`, with the product of Lebesgue measures, the map `x ↦ (∑_{e ∈ A} x₁ e,
-∑_{e ∈ B} x₁ e, α + σ ∑_{f ∈ H} x₂
-f)` for disjoint nonempty sets `A`, `B` of coordinates, a nonempty set `H` and `σ ≠
-0` is affine and onto `ℝ³`, so the preimage of a null set is null
-(`prod_pi_volume_preimage_sum_coords_null`). The linear part is surjective, and a surjective linear
-map pushes a Haar measure to a multiple of a Haar measure
+On `(ι → ℝ) × (κ → ℝ)`, with the product of Lebesgue measures, the map
+`x ↦ (∑_{e ∈ A} x₁ e, ∑_{e ∈ B} x₁ e, α + σ ∑_{f ∈ H} x₂ f)` for disjoint nonempty sets `A`, `B` of
+coordinates, a nonempty set `H` and `σ ≠ 0` is affine and onto `ℝ³`, so the preimage of a null set
+is null (`prod_pi_volume_preimage_sum_coords_null`). The linear part is surjective, and a
+surjective linear map pushes a Haar measure to a multiple of a Haar measure
 (`MeasureTheory.ae_comp_linearMap_mem_iff`).
 -/
 

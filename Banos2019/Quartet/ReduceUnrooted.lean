@@ -3,6 +3,8 @@ module
 public import Banos2019.Quartet.DeleteArcReduce
 public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Network.SuppressIso
+public import Banos2019.Basic.Data.Set.Card
+public import Banos2019.Basic.Algebra.BigOperators.Finprod
 
 /-!
 # The unrooted network of a reduced network
@@ -142,7 +144,7 @@ omit he₀ in
 theorem indegree_unrootAt_add [Finite E] (u : {v // v ≠ M.root}) :
     (unrootAt M hP e₀).graph.indegree u + (if M.graph.target e₀ = u.1 then 1 else 0) =
       M.graph.indegree u.1 := by
-  have := ncard_subtype_ne_add e₀ (fun e => M.graph.target e = u.1)
+  have := Set.ncard_setOf_subtype_ne_add e₀ (fun e => M.graph.target e = u.1)
   unfold DirectedMultigraph.indegree
   convert this using 3
   ext g
@@ -169,7 +171,7 @@ theorem outdegree_unrootAt [Finite E] (h2 : M.graph.outdegree M.root = 2) (u : {
       · rintro (⟨h, -⟩ | h)
         · exact absurd h hg
         · exact Subtype.ext h
-  have h1 := ncard_subtype_ne_add e₀ p
+  have h1 := Set.ncard_setOf_subtype_ne_add e₀ p
   have hpe₀ : p e₀ ↔ M.graph.target e₀ = u.1 := by
     simp only [p, he₀, true_and]
     exact ⟨fun h => h.resolve_right fun h' => u.2 h'.symm, Or.inl⟩
@@ -608,21 +610,6 @@ theorem eq_lastArc_of_mem_reduceChainOf {g : SemidirectedArc hb.1 hb.2 hX}
       omega)
   · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX hf)
 
-omit [Fintype V] in
-/-- A sum over the arcs other than `e₀` satisfying `p`, which `e₀` does not. -/
-theorem finsum_mem_subtype_ne {e₀ : E} {p : E → Prop} (hp : ¬ p e₀) (F : E → ℝ) :
-    ∑ᶠ f ∈ {f : {e // e ≠ e₀} | p f.1}, F f.1 = ∑ e ∈ univ.filter p, F e := by
-  have himg : Subtype.val '' {f : {e // e ≠ e₀} | p f.1} = ↑(univ.filter p) := by
-    ext e
-    simp only [Set.mem_image, Set.mem_ofPred_eq, Finset.coe_filter, Finset.mem_univ, true_and]
-    constructor
-    · rintro ⟨f, hf, rfl⟩
-      exact hf
-    · intro he
-      exact ⟨⟨e, fun h => hp (h ▸ he)⟩, he, rfl⟩
-  rw [← finsum_mem_image (g := Subtype.val) Subtype.val_injective.injOn, himg,
-    finsum_mem_coe_finset]
-
 include h2 hl in
 /-- The last arc of the chain of the arc of an edge is not `e₀`. -/
 theorem lastArc_reduceArc_ne (g : SemidirectedArc hb.1 hb.2 hX) :
@@ -686,7 +673,7 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
         rcases hf with hf | ⟨hf, -⟩
         · exact hsrc hf hfε
         · exact hsrc hf f.2
-    rw [hset, finsum_mem_congr rfl hF, finsum_mem_subtype_ne (p := p)
+    rw [hset, finsum_mem_congr rfl hF, finsum_mem_setOf_subtype_ne (p := p)
       (fun h => h.elim hnot₀ (fun h' => h'.2 rfl))
       (fun e => θ.length e + if e = ε then θ.length e₀ else 0), sum_add_distrib]
     have hpε : p ε := Or.inl (Or.inl rfl)
@@ -723,7 +710,7 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       · rw [hfε]
         exact hroot
       · exact hsrc hf hfε
-    rw [hset, finsum_mem_congr rfl hF, finsum_mem_subtype_ne hnot₀ θ.length]
+    rw [hset, finsum_mem_congr rfl hF, finsum_mem_setOf_subtype_ne hnot₀ θ.length]
 
 include h2 hl in
 /-- **The inheritance of a hybrid edge of the unrooted network of `reduceNet M` is that of the only

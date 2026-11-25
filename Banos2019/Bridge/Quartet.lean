@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Bridge.Unrooted
 public import Banos2019.CycleProperty
+public import Banos2019.Basic.Logic.EquivOfInjective
 
 /-!
 # The induced unrooted network of the Challenge and the library's `Q⁻_s`
@@ -37,13 +38,6 @@ section OfValues
 variable {V₁ E₁ V₂ E₂ W F : Type*} {G₁ : SemidirectedNetwork V₁ E₁ X}
   {G₂ : SemidirectedNetwork V₂ E₂ X}
 
-theorem ofInjectiveSubtype_trans_symm_apply {α β γ : Type*} (f₁ : α → γ)
-    (hf₁ : Function.Injective f₁) (f₂ : β → γ) (hf₂ : Function.Injective f₂) (Q : γ → Prop)
-    (hQ₁ : ∀ c, Q c ↔ ∃ a, f₁ a = c) (hQ₂ : ∀ c, Q c ↔ ∃ b, f₂ b = c) (a : α) :
-    f₂ (((Equiv.ofInjectiveSubtype f₁ hf₁ Q hQ₁).trans
-      (Equiv.ofInjectiveSubtype f₂ hf₂ Q hQ₂).symm) a) = f₁ a :=
-  Equiv.ofInjectiveSubtype_symm_apply f₂ hf₂ Q hQ₂ _
-
 /-- **An isomorphism from common values**: the nodes of `G₁` and of `G₂` are given by injective maps
 to `W` with the same image, their edges by injective maps to `F` with the same image, the ends of an
 edge are the values `σ`, `τ` of its value, and an edge is directed according to its value. -/
@@ -60,18 +54,18 @@ def SDIso.ofValues (f₁ : V₁ → W) (hf₁ : Function.Injective f₁) (f₂ :
   edge := (Equiv.ofInjectiveSubtype g₁ hg₁ (fun y => ∃ b, g₂ b = y) fun y => (hre y).symm).trans
     (Equiv.ofInjectiveSubtype g₂ hg₂ (fun y => ∃ b, g₂ b = y) fun _ => Iff.rfl).symm
   isDirected_iff e := by
-    rw [hd₂, hd₁, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂]
+    rw [hd₂, hd₁, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂]
   joins e := Or.inl
-    ⟨hf₂ (by rw [hs₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
-    hf₂ (by rw [ht₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
+    ⟨hf₂ (by rw [hs₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
+    hf₂ (by rw [ht₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
   directed e _ :=
-    ⟨hf₂ (by rw [hs₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
-    hf₂ (by rw [ht₂, ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
-      ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
-  leaf x := hf₂ (by rw [ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hl₁, hl₂])
+    ⟨hf₂ (by rw [hs₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hs₁]),
+    hf₂ (by rw [ht₂, Equiv.ofInjectiveSubtype_trans_symm_apply g₁ hg₁ g₂ hg₂,
+      Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, ht₁])⟩
+  leaf x := hf₂ (by rw [Equiv.ofInjectiveSubtype_trans_symm_apply f₁ hf₁ f₂ hf₂, hl₁, hl₂])
 
 end OfValues
 

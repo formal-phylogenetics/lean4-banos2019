@@ -3,6 +3,7 @@ module
 public import Banos2019.Quartet.SingleFourCycle
 public import Banos2019.Quartet.GraphMaps
 public import Banos2019.Quartet.Examples
+public import Banos2019.Basic.Data.Finset.Image
 
 /-!
 # The 4-cycle of `Q⁻` and the network of Corollary 2 (proofs of Propositions 10 and 11)
@@ -278,30 +279,25 @@ def fig17Node : Fin 4 → Fin 9 := ![4, 5, 6, 7]
 /-- The leaves `0, 1, 2, 3` of the taxa `a, b, c, d`. -/
 def fig17Leaf : Fin 4 → Fin 9 := ![0, 1, 2, 3]
 
-/-- The range of a map from `Fin k` is its image of `univ`. -/
-theorem range_eq_coe_of_image_eq {k : ℕ} {e : Fin k → Fin 9} {F : Finset (Fin 9)}
-    (h : univ.image e = F) : Set.range e = ↑F := by
-  rw [← h, coe_image, coe_univ, Set.image_univ]
-
 /-- **The cycle of the rootings of Figure 17.** -/
 theorem isCycle_fig17Root (s : Fin 7) :
     IsCycle (⟨fig17RootSrc s, fig17RootTgt s⟩ : DirectedMultigraph (Fin 9) (Fin 9))
       ↑(fig17CycArcs s) := by
   fin_cases s
   · exact ⟨4, ![4, 5, 6, 7], ![5, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨4, ![4, 5, 6, 7], ![5, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨4, ![4, 5, 6, 7], ![5, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨4, ![4, 5, 6, 7], ![5, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨5, ![4, 8, 5, 6, 7], ![5, 8, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨5, ![4, 8, 5, 6, 7], ![8, 5, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
   · exact ⟨5, ![4, 5, 8, 6, 7], ![5, 8, 6, 7, 4], ⟨by norm_num, by unfold Joins; decide, by decide,
-      by decide⟩, range_eq_coe_of_image_eq (by decide)⟩
+      by decide⟩, Finset.range_eq_coe_of_image_univ_eq (by decide)⟩
 
 /-- Each taxon is joined to its node of the cycle off the cycle: by its arc, or through the root. -/
 theorem fig17_witness (s : Fin 7) (i : Fin 4) :

@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.DeleteArcReduce
 public import Banos2019.Quartet.ContractSet
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # The reduced networks of Section 5, as binary LSA networks
@@ -35,16 +36,6 @@ namespace Banos2019
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] {Q : RootedNetwork V E X}
   {θ : MetricData E}
 
-/-- A set of two taxa among four has a taxon and misses one. -/
-theorem exists_mem_and_notMem_of_ncard_eq_two (hX : Fintype.card X = 4) {A : Set X}
-    (hA : A.ncard = 2) : (∃ x, x ∈ A) ∧ ∃ x, x ∉ A := by
-  refine ⟨Set.nonempty_of_ncard_ne_zero (by omega), ?_⟩
-  by_contra h
-  push Not at h
-  have : A = Set.univ := Set.eq_univ_of_forall h
-  rw [this, Set.ncard_univ, Nat.card_eq_fintype_card, hX] at hA
-  omega
-
 /-- **The network without a hybrid edge `h` of a cycle `C`, as a binary LSA network.** -/
 theorem exists_reduce_deleteArc (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
     (hlsa : Q.IsLSANetwork) (hX : Fintype.card X = 4) (hθ : IsMetricNetwork Q θ) {C : Set E}
@@ -76,7 +67,7 @@ theorem exists_reduce_deleteArc (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne 
     omega
   · rw [hM.ncard_setOf_isCycle]
     exact ncard_setOf_isCycle_deleteArc_lt hQ h1 hC hh
-  · obtain ⟨h₁, h₂⟩ := exists_mem_and_notMem_of_ncard_eq_two hX hA
+  · obtain ⟨h₁, h₂⟩ := Set.exists_mem_and_exists_notMem_of_ncard_eq_two hX hA
     exact (hM.hasCutSplit_iff h₁ h₂).trans (deleteArc_hasCutSplit_iff hQ h1 hC hh hX hnk hA)
 
 /-! ### The network with cycles contracted, explicitly -/
@@ -193,7 +184,7 @@ theorem contractNet_spec (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph
     have := (add_le_of_inducesCycleType hQ h1 hlsa hD').2.2
     omega
   · exact hM.ncard_setOf_isCycle.trans (ncard_setOf_isCycle_contractSet hQ h1)
-  · obtain ⟨h₁, h₂⟩ := exists_mem_and_notMem_of_ncard_eq_two hX hA
+  · obtain ⟨h₁, h₂⟩ := Set.exists_mem_and_exists_notMem_of_ncard_eq_two hX hA
     exact (hM.hasCutSplit_iff h₁ h₂).trans (contractSet_hasCutSplit_iff hQ h1 A)
 
 /-- **The network with the cycles satisfying `P` contracted, as a binary LSA network**, when these

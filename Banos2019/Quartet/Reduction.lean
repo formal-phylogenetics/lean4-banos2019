@@ -17,6 +17,7 @@ public import Banos2019.Quartet.TreeUnrooted
 public import Banos2019.Quartet.ReduceUnrooted
 public import Banos2019.Quartet.ReduceUnrootedIso
 public import Banos2019.Quartet.RootPlacement
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -1091,21 +1092,6 @@ theorem lemma7 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 1) :
     key h₁ h₂ hne hh₁ hh₂ q, key h₂ h₁ hne.symm hh₂ hh₁ q]
   ring
 
-omit [Fintype V] [Fintype E] in
-/-- Three of four taxa satisfy `P`: the fourth does not. -/
-theorem exists_fourth_of_three (hX : Fintype.card X = 4) {P : X → Prop}
-    (h : {x | P x}.ncard = 3) : ∃ d, ¬ P d ∧ ∀ x, x ≠ d → P x := by
-  have hc : ({x | P x}ᶜ).ncard = 1 := by
-    rw [Set.ncard_compl, Nat.card_eq_fintype_card, hX, h]
-  obtain ⟨d, hd⟩ := Set.ncard_eq_one.1 hc
-  refine ⟨d, ?_, fun x hx => ?_⟩
-  · have : d ∈ ({x | P x}ᶜ) := hd ▸ Set.mem_singleton d
-    exact this
-  · by_contra hPx
-    have : x ∈ ({x | P x}ᶜ) := hPx
-    rw [hd] at this
-    exact hx this
-
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- The taxa below a hybrid node are those below its child. -/
 theorem reaches_leaf_iff_of_hybrid (hQ : IsBinaryRootedNetwork Q) (h2 : Q.graph.indegree v = 2)
@@ -1144,7 +1130,7 @@ theorem lemma8 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 3) :
   obtain ⟨c, hc, hcu⟩ := existsUnique_child_of_hybrid hQ.binary h2
   obtain ⟨hcut, huniq⟩ := isCut_child_of_hybrid hQ.binary hQ.levelOne h2 hc hcu
   -- the three taxa below `v` and the fourth one
-  obtain ⟨d, hd, hbelow⟩ := exists_fourth_of_three hQ.card_taxa h3
+  obtain ⟨d, hd, hbelow⟩ := Set.exists_not_and_forall_ne_of_ncard_eq_three hQ.card_taxa h3
   have hd' : ¬ Q.graph.Reaches (Q.graph.target c) (Q.leaf d) := fun h =>
     hd ((reaches_leaf_iff_of_hybrid hQ.binary h2 hc hcu d).2 h)
   have hbelow' : ∀ x, x ≠ d → Q.graph.Reaches (Q.graph.target c) (Q.leaf x) := fun x hx =>

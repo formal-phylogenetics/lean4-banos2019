@@ -2,6 +2,8 @@ module
 
 public import Banos2019.Quartet.ReduceUnrooted
 public import Banos2019.Network.SuppressMetric
+public import Banos2019.Basic.Data.Set.Card
+public import Banos2019.Basic.Algebra.BigOperators.Finprod
 
 /-!
 # The unrooted network of a reduced network, with the top node kept
@@ -163,30 +165,6 @@ theorem exists_isUTrail_keepRootSD_chainEnd {t : V}
 
 end Trail
 
-/-- The number of elements of a subtype satisfying `q`, when `q` implies the predicate of the
-subtype. -/
-theorem ncard_subtype_keepRoot {p q : E → Prop} (h : ∀ e, q e → p e) :
-    {e : {e // p e} | q e.1}.ncard = {e | q e}.ncard := by
-  rw [← Set.ncard_image_of_injective _ Subtype.val_injective]
-  congr 1
-  ext e
-  exact ⟨fun ⟨e', he', hee'⟩ => hee' ▸ he', fun he => ⟨⟨e, h e he⟩, he, rfl⟩⟩
-
-/-- A sum over the elements of a subtype satisfying `p`, when `p` implies the predicate of the
-subtype. -/
-theorem finsum_mem_subtype_keepRoot [Fintype E] {q p : E → Prop} (hpq : ∀ e, p e → q e)
-    (F : E → ℝ) : ∑ᶠ f ∈ {f : {e // q e} | p f.1}, F f.1 = ∑ e ∈ univ.filter p, F e := by
-  have himg : Subtype.val '' {f : {e // q e} | p f.1} = ↑(univ.filter p) := by
-    ext e
-    simp only [Set.mem_image, Set.mem_ofPred_eq, Finset.coe_filter, Finset.mem_univ, true_and]
-    constructor
-    · rintro ⟨f, hf, rfl⟩
-      exact hf
-    · intro he
-      exact ⟨⟨e, hpq e he⟩, he, rfl⟩
-  rw [← finsum_mem_image (g := Subtype.val) Subtype.val_injective.injOn, himg,
-    finsum_mem_coe_finset]
-
 section KeepAux
 
 variable [Fintype V] [Fintype E] {M : RootedNetwork V E X} {θ : MetricData E}
@@ -284,7 +262,7 @@ theorem isBranch_keepRootSD_iff (hb : IsBinaryRootedNetwork (reduceNet M hM.phyl
       ext e
       exact Subtype.ext_iff
     rw [this]
-    exact ncard_subtype_keepRoot (q := fun e => M.graph.source e = u.1) fun e he => by
+    exact Set.ncard_setOf_subtype_of_imp (q := fun e => M.graph.source e = u.1) fun e he => by
       rw [he]
       exact u.2
   have hin : u.1 ≠ keepRootTop M hP →
@@ -296,7 +274,7 @@ theorem isBranch_keepRootSD_iff (hb : IsBinaryRootedNetwork (reduceNet M hM.phyl
       ext e
       exact Subtype.ext_iff
     rw [this]
-    refine ncard_subtype_keepRoot (q := fun e => M.graph.target e = u.1) fun e he => ?_
+    refine Set.ncard_setOf_subtype_of_imp (q := fun e => M.graph.target e = u.1) fun e he => ?_
     rintro ⟨hs, h1⟩
     exact hT (he.symm.trans (keepRootTop_eq_target hM hc h1 hs).symm)
   have hinT : u.1 = keepRootTop M hP → (keepRootSD M hP).graph.indegree u = 0 := by
@@ -685,7 +663,7 @@ theorem length_eq_finsum_keepRootChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     have hdisj : Disjoint (univ.filter (M.IsOnChain ε)) (univ.filter (M.IsOnChain e₀)) :=
       Finset.disjoint_filter.2 fun x _ h₁ h₂ => hεe₀
         (IsOnChain.unique h₁ h₂ (not_isChainVertex_source_reduceArc hM hb hX g) hc₀)
-    rw [finsum_mem_subtype_keepRoot (p := fun e => M.IsOnChain ε e ∨ M.IsOnChain e₀ e)
+    rw [finsum_mem_setOf_subtype_of_imp (p := fun e => M.IsOnChain ε e ∨ M.IsOnChain e₀ e)
       (fun e h => h.elim (hk hkε) (hk hk₀)) θ.length, ← Finset.sum_union hdisj]
     refine Finset.sum_congr ?_ fun _ _ => rfl
     ext x
@@ -698,7 +676,7 @@ theorem length_eq_finsum_keepRootChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       exact ⟨fun h => h.resolve_right fun h' => hroot h'.1, Or.inl⟩
     rw [hset]
     change _ = ∑ᶠ f ∈ {f : KeepRootArc M | M.IsOnChain ε f.1}, θ.length f.1
-    rw [finsum_mem_subtype_keepRoot (p := fun e => M.IsOnChain ε e) (fun e h => hk hkε h)
+    rw [finsum_mem_setOf_subtype_of_imp (p := fun e => M.IsOnChain ε e) (fun e h => hk hkε h)
       θ.length]
 
 omit hc in

@@ -4,6 +4,7 @@ public import Banos2019.Bridge.Model
 public import Banos2019.Quartet.Trees
 public import Banos2019.Quartet.Examples
 public import Banos2019.Quartet.Fig18
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # Equation (1) on an explicit quartet tree, on the Challenge's definitions
@@ -32,21 +33,17 @@ abbrev balancedTree : Network (Fin 7) (Fin 6) (Fin 4) :=
 inheritance probability one. -/
 abbrev balancedParams (t₁ t₂ : ℝ) : Params (Fin 6) := ⟨![t₁, t₂, 1, 1, 1, 1], fun _ => 1⟩
 
-theorem ncard_setOf_fin {n : ℕ} (p : Fin n → Prop) [DecidablePred p] :
-    {a | p a}.ncard = (univ.filter p).card := by
-  rw [Set.ncard_eq_toFinset_card', Set.toFinset_ofPred]
-
 theorem balanced_indegree (v : Fin 7) :
     balancedTree.graph.indegree v = if v = 0 then 0 else 1 := by
   unfold Digraph.indegree
-  rw [ncard_setOf_fin]
+  rw [Set.ncard_setOf_eq_card_filter]
   revert v
   decide
 
 theorem balanced_outdegree (v : Fin 7) :
     balancedTree.graph.outdegree v = if v.1 < 3 then 2 else 0 := by
   unfold Digraph.outdegree
-  rw [ncard_setOf_fin]
+  rw [Set.ncard_setOf_eq_card_filter]
   revert v
   decide
 

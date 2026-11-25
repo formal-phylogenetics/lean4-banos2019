@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.Reduce
 public import Banos2019.Quartet.CutSplits
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # The network without a hybrid edge (`Q₁⊕`, `Q₂⊕` of Lemmas 9 and 10)
@@ -27,33 +28,17 @@ namespace Banos2019
 
 variable {V E X : Type*}
 
-/-- The elements of a subtype `{e // e ≠ h}` satisfying `p`, and `h` if it satisfies `p`, are the
-elements satisfying `p`. -/
-theorem ncard_subtype_ne_add [Finite E] (h : E) (p : E → Prop) :
-    {e : {e // e ≠ h} | p e.1}.ncard + (if p h then 1 else 0) = {e | p e}.ncard := by
-  have himg : Subtype.val '' {e : {e // e ≠ h} | p e.1} = {e | p e} \ {h} := by
-    ext e
-    constructor
-    · rintro ⟨e', he', rfl⟩
-      exact ⟨he', e'.2⟩
-    · rintro ⟨he, hne⟩
-      exact ⟨⟨e, hne⟩, he, rfl⟩
-  rw [← Set.ncard_image_of_injective _ Subtype.val_injective, himg]
-  split_ifs with hp
-  · exact Set.ncard_sdiff_singleton_add_one hp (Set.toFinite _)
-  · rw [Set.sdiff_singleton_eq_self hp, add_zero]
-
 variable {Q : RootedNetwork V E X} {h : E}
 
 theorem deleteArc_indegree [Finite E] (w : V) :
     (deleteArc Q h).graph.indegree w + (if Q.graph.target h = w then 1 else 0) =
       Q.graph.indegree w :=
-  ncard_subtype_ne_add h (fun e => Q.graph.target e = w)
+  Set.ncard_setOf_subtype_ne_add h (fun e => Q.graph.target e = w)
 
 theorem deleteArc_outdegree [Finite E] (w : V) :
     (deleteArc Q h).graph.outdegree w + (if Q.graph.source h = w then 1 else 0) =
       Q.graph.outdegree w :=
-  ncard_subtype_ne_add h (fun e => Q.graph.source e = w)
+  Set.ncard_setOf_subtype_ne_add h (fun e => Q.graph.source e = w)
 
 /-- A path without `h` is a path of `Q`. -/
 theorem reaches_of_deleteArc {a b : V} (hr : (deleteArc Q h).graph.Reaches a b) :

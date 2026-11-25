@@ -51,11 +51,6 @@ variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
 /-! ### Histories with a forest at the root only -/
 
-omit [Fintype V] [Fintype E] [Fintype X] in
-theorem ne_zero_of_ite_ne_zero' {p : Prop} [Decidable p] {a : ℝ} (h : (if p then a else 0) ≠ 0) :
-    p :=
-  by_contra fun hp => h (ite_eq_right hp)
-
 section AtRoot
 
 variable {V' E' : Type*} [Fintype V'] [Fintype E'] (M : RootedNetwork V' E' X)
@@ -77,7 +72,7 @@ theorem eq_empty_of_allocationFactor_empty_ne_zero {θ : MetricData E'} {ρ : �
     {e : E'} (he : M.graph.target e = v) : b e = ∅ := by
   unfold allocationFactor at h
   obtain ⟨a, -, ha⟩ := exists_ne_zero_of_sum_ne_zero h
-  have hc := (ne_zero_of_ite_ne_zero' ha) ⟨e, he⟩
+  have hc := (ite_ne_right_iff.1 ha).1 ⟨e, he⟩
   rw [hc]
   ext A
   simp [mem_forestBelow]
@@ -116,7 +111,7 @@ theorem eq_empty_of_injWeight_atRoot_ne_zero (hacyc : ∀ v, ¬ Relation.TransGe
     have hk : kingmanTransition (θ.length e) (b e) (t e) ≠ 0 :=
       prod_ne_zero_iff.1 (right_ne_zero_of_mul hv) e (mem_arcsInto.2 he)
     rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-    exact ⟨hb, ne_zero_of_ite_ne_zero' hk⟩
+    exact ⟨hb, (ite_ne_right_iff.1 hk).1⟩
 
 /-- **The law at the root when only the root receives a forest** `F`: the forest `F` itself. -/
 theorem rootDist_atRoot (hacyc : ∀ v, ¬ Relation.TransGen M.graph.Adj v v)
@@ -1189,7 +1184,7 @@ theorem eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero (hN : N.IsPhylo
   have hb : bot h = ∅ := by
     unfold allocationFactor at ha
     obtain ⟨a, -, ha'⟩ := exists_ne_zero_of_sum_ne_zero ha
-    have hP := ne_zero_of_ite_ne_zero' ha'
+    have hP := (ite_ne_right_iff.1 ha').1
     have hW := ha'
     rw [ite_eq_left hP] at hW
     simp only [allocationWeight_rho_zero] at hW
@@ -1201,7 +1196,7 @@ theorem eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero (hN : N.IsPhylo
     exact prod_ne_zero_iff.1 hW r (mem_univ _) (by rw [har, h0])
   refine ⟨hb, ?_⟩
   rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
-  exact (ne_zero_of_ite_ne_zero' hk)
+  exact (ite_ne_right_iff.1 hk).1
 
 /-- **Deleting an arc of inheritance `0`** does not change the gene tree distribution, at
 correlation `0`: no lineage takes the arc. -/

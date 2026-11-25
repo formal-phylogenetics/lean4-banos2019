@@ -28,4 +28,11 @@ theorem ofInjectiveSubtype_symm_apply (f : α → β) (hf : Function.Injective f
   rw [Equiv.apply_symm_apply] at this
   exact this.symm
 
+theorem ofInjectiveSubtype_trans_symm_apply {γ : Type*} (f₁ : α → γ) (hf₁ : Function.Injective f₁)
+    (f₂ : β → γ) (hf₂ : Function.Injective f₂) (Q : γ → Prop) (hQ₁ : ∀ c, Q c ↔ ∃ a, f₁ a = c)
+    (hQ₂ : ∀ c, Q c ↔ ∃ b, f₂ b = c) (a : α) :
+    f₂ (((ofInjectiveSubtype f₁ hf₁ Q hQ₁).trans (ofInjectiveSubtype f₂ hf₂ Q hQ₂).symm) a) =
+      f₁ a :=
+  ofInjectiveSubtype_symm_apply f₂ hf₂ Q hQ₂ _
+
 end Equiv
