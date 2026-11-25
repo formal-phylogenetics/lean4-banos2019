@@ -479,8 +479,8 @@ theorem deleteArc_q18_indegree (h v : Fin 9) :
 def q18DescSeven : Fin 9 → Finset (Fin 9) :=
   ![{0}, {1}, {2}, {3}, {4, 0, 1}, {5, 4, 0, 1}, {6, 2}, {7, 3, 6, 2}, univ]
 
-/-- The descendants of the nodes of `q18` without the hybrid edge `6`. -/
-def q18DescSix : Fin 9 → Finset (Fin 9) :=
+/-- The descendants of the nodes of `q18`, with or without the hybrid edge `6`. -/
+def q18Desc : Fin 9 → Finset (Fin 9) :=
   ![{0}, {1}, {2}, {3}, {4, 0, 1}, {5, 4, 0, 1}, {6, 2, 5, 4, 0, 1}, {7, 3, 6, 2, 5, 4, 0, 1}, univ]
 
 /-- The edges of the split `ab|cd` of `q18` without the hybrid edge `7`: `5 → 4`, `8 → 5`, `8 → 7`. -/
@@ -577,23 +577,23 @@ theorem cf_deleteArc_q18_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {
   have hθ : (deleteArc (q18 a b c) 6).IsMetric (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 6) (h' := 7) (by decide)
       rfl (by rw [q18_indegree]; show #(univ.filter fun e => q18Tgt e = 5) = 2; decide)
-  have hD : ∀ u w, (deleteArc (q18 a b c) 6).graph.Reaches u w ↔ w ∈ q18DescSix u :=
-    reaches_iff_mem_of_desc q18DescSix (by decide)
-      (by show ∀ u (e : {e : Fin 9 // e ≠ 6}), q18Src e.1 ∈ q18DescSix u →
-            q18Tgt e.1 ∈ q18DescSix u
+  have hD : ∀ u w, (deleteArc (q18 a b c) 6).graph.Reaches u w ↔ w ∈ q18Desc u :=
+    reaches_iff_mem_of_desc q18Desc (by decide)
+      (by show ∀ u (e : {e : Fin 9 // e ≠ 6}), q18Src e.1 ∈ q18Desc u →
+            q18Tgt e.1 ∈ q18Desc u
           decide)
-      (by show ∀ u, ∀ w ∈ q18DescSix u, w ≠ u → ∃ e : {e : Fin 9 // e ≠ 6}, q18Src e.1 = u ∧
-            w ∈ q18DescSix (q18Tgt e.1) ∧ #(q18DescSix (q18Tgt e.1)) < #(q18DescSix u)
+      (by show ∀ u, ∀ w ∈ q18Desc u, w ≠ u → ∃ e : {e : Fin 9 // e ≠ 6}, q18Src e.1 = u ∧
+            w ∈ q18Desc (q18Tgt e.1) ∧ #(q18Desc (q18Tgt e.1)) < #(q18Desc u)
           decide)
   have hl : (deleteArc (q18 a b c) 6).leaf = quartetLeaf9 a b c := q18_leaf_eq
   obtain ⟨hS, hSc⟩ := leafSet_q18 hX h
-  obtain ⟨e₁, e₂, e₃⟩ := cf_eq_of_desc hN ht hθ hX h q18DescSix hD
+  obtain ⟨e₁, e₂, e₃⟩ := cf_eq_of_desc hN ht hθ hX h q18Desc hD
     (L := {0, 1, 2, 3}) (hl ▸ quartetLeaf9_mem) (hl ▸ quartetLeaf9_surj h) (hl ▸ hS) (hl ▸ hSc)
     (v := 5) (by decide) q18ArcsSix (by
       show ∀ e : {e : Fin 9 // e ≠ 6}, e ∈ q18ArcsSix ↔
-        (q18DescSix (q18Tgt e.1) ∩ {0, 1, 2, 3} ≠ {0, 1, 2, 3} ∧
-          (q18DescSix (q18Tgt e.1) ∩ {0, 1, 2, 3} = {0, 1} ∩ {0, 1, 2, 3} ∨
-            q18DescSix (q18Tgt e.1) ∩ {0, 1, 2, 3} = {2, 3} ∩ {0, 1, 2, 3}))
+        (q18Desc (q18Tgt e.1) ∩ {0, 1, 2, 3} ≠ {0, 1, 2, 3} ∧
+          (q18Desc (q18Tgt e.1) ∩ {0, 1, 2, 3} = {0, 1} ∩ {0, 1, 2, 3} ∨
+            q18Desc (q18Tgt e.1) ∩ {0, 1, 2, 3} = {2, 3} ∩ {0, 1, 2, 3}))
       decide)
   have hsum : ∑ e ∈ q18ArcsSix,
       (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)).length e = len 4 + len 7 := by
@@ -780,10 +780,6 @@ theorem cf_qDisj (hX : Fintype.card X = 4) (h : Distinct4 u₁ u₂ u₃ u₄) {
   exact ⟨e₁, e₂, e₃⟩
 
 end QDisj
-
-/-- The descendants of the nodes of `q18`. -/
-def q18Desc : Fin 9 → Finset (Fin 9) :=
-  ![{0}, {1}, {2}, {3}, {4, 0, 1}, {5, 4, 0, 1}, {6, 2, 5, 4, 0, 1}, {7, 3, 6, 2, 5, 4, 0, 1}, univ]
 
 omit [Fintype X] in
 theorem q18_reaches_iff (u w : Fin 9) : (q18 a b c).graph.Reaches u w ↔ w ∈ q18Desc u :=

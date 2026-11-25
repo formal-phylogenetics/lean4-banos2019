@@ -676,7 +676,7 @@ theorem hasFourCycle_of_bigCycleOn {N : RootedNetwork V E X} (hN : IsBinaryRoote
   have hbc' : BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
     rw [cf_quartetLSA hN h1 hθ hs, bigCycleOn_comp_map_iff]
     exact hbc
-  exact proposition9 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hbc')
+  exact proposition9 (quartetLSA_isLSAQuartet hN h1 hθ hs) (by convert hbc')
 
 /-- **Corollary 2 and equation (8)**: if `Q⁻` has a 4-cycle `C`, then, with the taxa `a, b, c, d`
 named around `C` (`c` in the hybrid block), the concordance factors of `Q⊕` for every metric are
@@ -873,7 +873,7 @@ theorem theorem3 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : 
     have hbc' : BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
       rw [cf_quartetLSA hN h1 hθ hs, bigCycleOn_comp_map_iff]
       exact hbc
-    exact proposition9 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hbc')
+    exact proposition9 (quartetLSA_isLSAQuartet hN h1 hθ hs) (by convert hbc')
 
 /-- **Corollary 4** (`cor::Cpgen`): for generic numerical parameters, if `s` satisfies the Cycle property
 but not the Big Cycle property, `Q⁻_s` contains a `3₂`-cycle. -/
@@ -888,7 +888,7 @@ theorem corollary4 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 
   have hcp' : CyclePropertyOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
     rw [cf_quartetLSA hN h1 hθ hs, cyclePropertyOn_comp_map_iff]
     exact hcp
-  exact (proposition8 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hcp')).resolve_right hn4
+  exact (proposition8 (quartetLSA_isLSAQuartet hN h1 hθ hs) (by convert hcp')).resolve_right hn4
 
 /-- The blocks of the cycle `C` of a semidirected network containing the taxa `x` and `y` are adjacent:
 the nodes of `C` they are associated with are joined by an edge of `C`. -/
@@ -950,7 +950,7 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
   -- the decidable equalities are the classical ones, those of the results on quartet networks
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
   let _ : DecidableEq (({a, b, c, d} : Finset X) : Set X) := fun a b => Classical.propDecidable (a = b)
-  have hQ := isLSAQuartet_quartetLSA hN h1 hθ hs
+  have hQ := quartetLSA_isLSAQuartet hN h1 hθ hs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   -- by Corollary 2, `CF(Q) = CF(Q')`, and `Q'` is the network of Figure 17: equation (8)
   obtain ⟨u, f, hcyc, hf, a', b', c', d', h', ha, hb, hc, hd, A, B, h, hA, hB, -, hh, hCF⟩ :=
@@ -1062,7 +1062,7 @@ theorem lemma12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : I
   · -- a 4-cycle of `Q⁻_s` comes from a cycle of `N⁻` of size at least four separating `s`
     rintro ⟨C₀, v₀, k, hC₀⟩
     obtain ⟨C, hC, hC4, w, hw, -⟩ :=
-      (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+      (inducesCycleType_iff (quartetLSA_isLSAQuartet hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
     obtain ⟨C', w', h4, hC', hw', hblk, hdesc, -⟩ :=
       exists_separates_of_fourCycle hN h1 hX hs hC hC4 hw
     exact ⟨C', w', h4, hC', hw', hblk, hdesc⟩
@@ -1105,7 +1105,7 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
     intro s hs hbc
     obtain ⟨C₀, v₀, k, hC₀⟩ := hasFourCycle_of_bigCycleOn hN h1 hθ hs hbc
     obtain ⟨C, hC, hC4, w, hw, -⟩ :=
-      (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+      (inducesCycleType_iff (quartetLSA_isLSAQuartet hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
     exact ⟨_, C, w, hC, hC4, hw, rfl⟩
   -- two sets containing `a, b, c` determine the same hybrid node
   have huniq : ∀ {s₁ s₂ : Finset X} (hs₁ : #s₁ = 4) (hs₂ : #s₂ = 4) {u₁ u₂ : V},

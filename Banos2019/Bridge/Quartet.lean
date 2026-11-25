@@ -355,7 +355,7 @@ theorem Model.Network.exists_fourCycle_induced_iff [Fintype V] [Fintype E] [Fint
   obtain ⟨p2⟩ := nonempty_sdIso_unrooted_inducedRooted hb hZ
   rw [e1, ((((N.unrooted.inducedIso (s : Set X)).trans (u.inducedUnrooted (s : Set X))).trans
     p1).trans p2).exists_isCycle_ncard_iff 4]
-  have hQ := isLSAQuartet_quartetLSA hb ((N.graph.isLevelOne_iff).mp h1) ((N.isMetric_iff hN θ).mp hθ) hs
+  have hQ := quartetLSA_isLSAQuartet hb ((N.graph.isLevelOne_iff).mp h1) ((N.isMetric_iff hN θ).mp hθ) hs
   have := hQ.binary.1.finite_arcs
   unfold HasFourCycle
   constructor

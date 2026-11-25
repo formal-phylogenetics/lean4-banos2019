@@ -618,25 +618,6 @@ theorem eq_of_mem_keepRootChainOf {f : KeepRootArc M} {g g' : SemidirectedArc hb
       ((source_reduceArc_eq_keepRootTop_iff hM hb hX hl g').1 hgr')
 
 omit hc in
-/-- The chain of `reduceRootArc` has no hybrid arc: it is the arc that the unrooted network of
-`reduceNet M` merges, a tree arc. -/
-theorem not_isHybridArc_keepRoot_of_isOnChain {f : E}
-    (hf : M.IsOnChain (reduceRootArc hM hb hX) f) : ¬ M.IsHybridArc f := by
-  have hP := hM.phylo
-  have htwo := hM.two
-  intro hh
-  have hlast := NMSC.eq_lastArc hP hf (fun hc => by
-    unfold IsHybridArc at hh
-    rw [hc.1] at hh
-    omega)
-  have ht := (sdRootArc_spec hb.1 hb.2 hX).2
-  rw [hlast] at hh
-  have := (isHybridArc_reduceNet_iff hP htwo (sdRootArc hb.1 hb.2 hX)).2 hh
-  unfold IsTreeArc at ht
-  unfold IsHybridArc at this
-  omega
-
-omit hc in
 /-- **A hybrid arc on the chain of an edge is the last arc of the chain of the arc of the edge.** -/
 theorem eq_lastArc_of_mem_keepRootChainOf {g : SemidirectedArc hb.1 hb.2 hX}
     {f : KeepRootArc M} (hf : f ∈ keepRootChainOf hM hb hX g) (hh : M.IsHybridArc f.1) :
@@ -646,7 +627,7 @@ theorem eq_lastArc_of_mem_keepRootChainOf {g : SemidirectedArc hb.1 hb.2 hX}
       unfold IsHybridArc at hh
       rw [hc.1] at hh
       omega)
-  · exact absurd hh (not_isHybridArc_keepRoot_of_isOnChain hM hb hX hf)
+  · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX hf)
 
 omit hc in
 /-- The last arc of the chain of the arc of an edge is an arc of `keepRootSD M`. -/

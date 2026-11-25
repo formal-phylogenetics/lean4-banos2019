@@ -3310,14 +3310,12 @@ omit [Fintype V] [Fintype X] in
 /-- **`Q⊕_s` is an LSA quartet network**, with the parameters it inherits from `N`. -/
 theorem quartetLSA_isLSAQuartet {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
-    (hs : #s = 4) : IsLSAQuartet (quartetLSA N hN.1 s hs)
-      (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
-      where
+    (hs : #s = 4) : IsLSAQuartet (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) where
   binary := quartetLSA_isBinaryRootedNetwork hN hs
-  levelOne := isLevelOne_quartetLSA hN h1 hs
-  isLSA := isLSANetwork_quartetLSA hN hs
+  levelOne := quartetLSA_isLevelOne hN h1 hs
+  isLSA := quartetLSA_isLSANetwork hN hs
   card_taxa := by simp [hs]
-  metric := isMetricNetwork_quartetLSA hN hθ hs
+  metric := quartetLSA_isMetricNetwork hN hθ hs
 
 /-- **Corollary 3** (`cor::quartetisgood`): under the network multispecies coalescent on a level-1 rooted
 metric network, `CF_abcd = CF(Q⊕_abcd)` (Theorem 2) can be computed from the metric unrooted network

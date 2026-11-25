@@ -11,8 +11,8 @@ public import Banos2019.Network.Suppress
   property, treelikeness and `q^BC` in terms of the three concordance factors.
 * `treesOn_eq_image`, `bigCycleOn_comp_map_iff`, `isTreelikeOn_comp_map_iff`: a set `s` of four taxa
   and the taxa `↥s` of a quartet network on `s` have the same quartet trees.
-* `isLSAQuartet_quartetLSA`: `Q⊕_s`, with the parameters it inherits, is an LSA quartet network;
-  `cf_quartetLSA`: its concordance factors are those of `N` on `s` (Theorem 2).
+* `cf_quartetLSA`: the concordance factors of `Q⊕_s`, an LSA quartet network with the parameters it
+  inherits (`quartetLSA_isLSAQuartet`), are those of `N` on `s` (Theorem 2).
 -/
 
 @[expose] public noncomputable section
@@ -321,74 +321,11 @@ theorem cyclePropertyOn_comp_map_iff (p : QuartetTree X → ℝ) :
 
 end Subtype
 
-/-! ### `Q⊕_s` is an LSA quartet network -/
+/-! ### The concordance factors of `Q⊕_s` -/
 
 section Induced
 
-variable {V E X : Type*}
-
-/-- A path avoiding a kept vertex `w` gives a path of the suppressed network avoiding `w`, from the end
-of the chain of its first vertex. -/
-theorem suppress_reflTransGen_avoiding {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
-    (w : {v // ¬ M.IsChainVertex v}) {a b : V} (hb : ¬ M.IsChainVertex b) (hbw : b ≠ w.1)
-    (h : Relation.ReflTransGen (fun x y => M.graph.Adj x y ∧ x ≠ w.1 ∧ y ≠ w.1) a b) :
-    Relation.ReflTransGen (fun x y => (M.suppress hM).graph.Adj x y ∧ x ≠ w ∧ y ≠ w)
-        ⟨chainEnd hM a, not_isChainVertex_chainEnd hM a⟩ ⟨b, hb⟩ ∧
-      chainEnd hM a ≠ w.1 :=
-  reflTransGen_avoiding_suppress hM w hb hbw h
-
-/-- A stable ancestor of the suppressed network is one of the network. -/
-theorem suppress_isStableAncestor {M : RootedNetwork V E X} (hM : M.IsPhylogenetic) {Y : Set X}
-    {w : {v // ¬ M.IsChainVertex v}} (hw : (M.suppress hM).IsStableAncestor Y w) :
-    M.IsStableAncestor Y w.1 :=
-  isStableAncestor_of_suppress hM hw
-
-/-- A stable ancestor of the part below the LSA is one of the network. -/
-theorem lsaNetwork_isStableAncestor {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
-    (hY : Y.Nonempty) {w : N.belowVertices (lsa hN Y hY) Y}
-    (hw : (lsaNetwork hN Y hY).IsStableAncestor Set.univ w) : N.IsStableAncestor Y w.1 :=
-  isStableAncestor_of_lsaNetwork hN hY hw
-
-/-- **The induced network is an LSA network**: its root is the LSA of its taxa. -/
-theorem inducedNetwork_isLSANetwork {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
-    (hY : Y.Nontrivial) : (inducedNetwork hN Y hY).IsLSANetwork :=
-  isLSANetwork_inducedNetwork hN hY
-
-variable [Fintype V] [Fintype E] [Fintype X]
-
-/-- The parameters of `Q⊕_s` inherited from `N`. -/
-abbrev quartetLSAMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
-    (hs : #s = 4) (θ : MetricData E) :=
-  inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ
-
-omit [Fintype V] [Fintype X] in
-/-- The parameters that `Q⊕_s` inherits from a metric are a metric: every edge, a chain of edges of
-`N`, has positive length. -/
-theorem quartetLSA_isMetricNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4) :
-    IsMetricNetwork (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) :=
-  isMetricNetwork_quartetLSA hN hθ hs
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-/-- `Q⊕_s` is the LSA network of its taxa. -/
-theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    {s : Finset X} (hs : #s = 4) : (quartetLSA N hN.1 s hs).IsLSANetwork :=
-  isLSANetwork_quartetLSA hN hs
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-/-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of edges
-of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
-theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
-    IsLevelOne (quartetLSA N hN.1 s hs).graph :=
-  isLevelOne_quartetLSA hN h1 hs
-
-omit [Fintype V] [Fintype X] in
-/-- **`Q⊕_s` is an LSA quartet network.** -/
-theorem isLSAQuartet_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
-    (hs : #s = 4) : IsLSAQuartet (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) :=
-  quartetLSA_isLSAQuartet hN h1 hθ hs
+variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
 /-- The concordance factors of `Q⊕_s` are those of `N` on `s` (**Theorem 2**). -/
 theorem cf_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)

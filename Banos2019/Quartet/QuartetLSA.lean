@@ -9,10 +9,11 @@ public import Banos2019.Network.Suppress
 The facts that make `Q⊕_s = quartetLSA N hN.1 s hs`, with the parameters it inherits from `N`, an LSA
 quartet network (`Banos2019.Quartet.Reduction`).
 
-* `isLSANetwork_inducedNetwork`: the root of the induced network is the LSA of its taxa; a stable
+* `inducedNetwork_isLSANetwork`: the root of the induced network is the LSA of its taxa; a stable
   ancestor of the suppressed network, or of the part below the LSA, is one of the network
   (`isStableAncestor_of_suppress`, `isStableAncestor_of_lsaNetwork`).
-* `isMetricNetwork_quartetLSA`, `isLSANetwork_quartetLSA`, `isLevelOne_quartetLSA`.
+* `quartetLSAMetric`: the parameters of `Q⊕_s` inherited from `N`; `quartetLSA_isMetricNetwork`,
+  `quartetLSA_isLSANetwork`, `quartetLSA_isLevelOne`.
 -/
 
 @[expose] public noncomputable section
@@ -105,7 +106,7 @@ theorem isStableAncestor_of_lsaNetwork {N : RootedNetwork V E X} (hN : N.IsPhylo
   exact hlift _ .refl hpath (lsa_mem_ancestralVertices hN hY |> fun h => ⟨.refl, h⟩)
 
 /-- **The induced network is an LSA network**: its root is the LSA of its taxa. -/
-theorem isLSANetwork_inducedNetwork {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
+theorem inducedNetwork_isLSANetwork {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {Y : Set X}
     (hY : Y.Nontrivial) : (inducedNetwork hN Y hY).IsLSANetwork := by
   refine ⟨root_isStableAncestor _ _, fun w hw => ?_⟩
   have hM := lsaNetwork_isPhylogenetic hN hY
@@ -119,29 +120,32 @@ theorem isLSANetwork_inducedNetwork {N : RootedNetwork V E X} (hN : N.IsPhylogen
 
 variable [Fintype V] [Fintype E] [Fintype X]
 
+/-- The parameters of `Q⊕_s` inherited from `N`. -/
+abbrev quartetLSAMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
+    (hs : #s = 4) (θ : MetricData E) :=
+  inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ
+
 omit [Fintype V] [Fintype X] in
 /-- The parameters that `Q⊕_s` inherits from a metric are a metric: every edge, a chain of edges of
 `N`, has positive length. -/
-theorem isMetricNetwork_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+theorem quartetLSA_isMetricNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4) :
-    IsMetricNetwork (quartetLSA N hN.1 s hs)
-      (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty
-        θ) := by
+    IsMetricNetwork (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ) := by
   refine ⟨isMetric_inducedMetric hN.1 _ hθ.1, fun e => ?_⟩
-  simp only [inducedMetric, belowMetric]
+  simp only [quartetLSAMetric, inducedMetric, belowMetric]
   exact Finset.sum_pos (fun f _ => hθ.2 _) ⟨e.1, Finset.mem_filter.mpr
     ⟨@Finset.mem_univ _ (Fintype.ofFinite _) _, Or.inl rfl⟩⟩
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- `Q⊕_s` is the LSA network of its taxa. -/
-theorem isLSANetwork_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     {s : Finset X} (hs : #s = 4) : (quartetLSA N hN.1 s hs).IsLSANetwork :=
-  isLSANetwork_inducedNetwork hN.1 _
+  inducedNetwork_isLSANetwork hN.1 _
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of edges
 of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
-theorem isLevelOne_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
     IsLevelOne (quartetLSA N hN.1 s hs).graph :=
   suppress_isLevelOne _ (IsLevelOne.of_injective h1 Subtype.val Subtype.val Subtype.val_injective

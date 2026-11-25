@@ -149,14 +149,16 @@ abbrev contractSuppress :=
   (contractRooted Q P₀).suppress (contractSet_isPhylogenetic hQ h1)
 
 /-- The node of `Q` of a node of `contractNet Q hQ h1 P₀`: the representative of its node in `Q`
-with the cycles satisfying `P₀` contracted. -/
+with the cycles satisfying `P₀` contracted, the top of the cycle for a contracted cycle. -/
 def contractNetVertex (y : FinContractVertex (contractSuppress hQ h1 P₀)) : V :=
   contractSetRep hQ h1 (finContractVertex _ y).1
 
-/-- The arc of `Q` of an arc of `contractNet Q hQ h1 P₀`. -/
+/-- The arc of `Q` of an arc of `contractNet Q hQ h1 P₀`: the first arc of its chain. -/
 def contractNetArc (a : FinContractArc (contractSuppress hQ h1 P₀)) : E :=
   (finContractArc _ a).1.1
 
+/-- `contractNet` is the suppressed contracted network with the arc at a root of outdegree one
+contracted. -/
 theorem isContraction_contractNet :
     IsContraction (contractSuppress hQ h1 P₀) (contractNet Q hQ h1 P₀)
       (finContractVertex _) (finContractArc _) :=

@@ -75,14 +75,6 @@ theorem deleteArc_q15_indegree (h v : Fin 9) :
 
 variable [Fintype X]
 
-theorem q15_leaf_injective (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
-    Function.Injective (quartetLeaf9 a b c) := by
-  intro x y hxy
-  rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl <;>
-    rcases eq_or_of_distinct4_of_card_eq hX h y with rfl | rfl | rfl | rfl <;>
-    simp only [quartetLeaf9_a, quartetLeaf9_b h, quartetLeaf9_c h, quartetLeaf9_d h] at hxy <;>
-    first | rfl | exact absurd hxy (by decide)
-
 theorem q15_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
     (q15 a b c).IsPhylogenetic where
   finite_vertices := inferInstance
@@ -118,7 +110,7 @@ theorem q15_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
   nonroot_indegree v hv := by
     rw [q15_indegree]
     fin_cases v <;> first | decide | exact absurd rfl hv
-  leaf_injective := q15_leaf_injective hX h
+  leaf_injective := quartetLeaf9_injective hX h
   leaf_indegree x := by
     rw [q15_indegree]
     have := quartetLeaf9_mem (a := a) (b := b) (c := c) x

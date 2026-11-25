@@ -235,7 +235,7 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   -- the network `Q'` of Corollary 2, whose only cycle `D'` is that of `D`
   obtain ⟨hQ'₀, -, hcount, htypes, -⟩ := corollary2Net_spec hQ hQ.metric
   set P := IsTwoOneOrThree Q with hP_def
-  set D' := {e | contractNetFirstArc hQ.binary hQ.levelOne P e ∈ D} with hD'_def
+  set D' := {e | contractNetArc hQ.binary hQ.levelOne P e ∈ D} with hD'_def
   have hD'c : IsCycle (corollary2Net hQ).graph D' := isCycle_contractNet_preimage hDc hnotP
   have hcount1 : {K | IsCycle Q.graph K ∧ ¬ P K}.ncard = 1 := by
     rw [Set.ncard_eq_one]
@@ -255,10 +255,10 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   -- `Q'` is a rooting of Figure 17
   obtain ⟨a, b, c, d, hd4, s, φ, hrφ⟩ := exists_rootedIso_fourOne hQ'₀ hD₀ hone'
   -- the nodes and arcs of `Q⊕` of those of the rooting
-  set n : Fin 9 → V := fun i => contractNetRep hQ.binary hQ.levelOne P (φ.vert i) with hn_def
-  set β : Fin 9 → E := fun j => contractNetFirstArc hQ.binary hQ.levelOne P (φ.arc j) with hβ_def
-  have hninj : Function.Injective n := contractNetRep_injective.comp φ.vert.injective
-  have hβinj : Function.Injective β := contractNetFirstArc_injective.comp φ.arc.injective
+  set n : Fin 9 → V := fun i => contractNetVertex hQ.binary hQ.levelOne P (φ.vert i) with hn_def
+  set β : Fin 9 → E := fun j => contractNetArc hQ.binary hQ.levelOne P (φ.arc j) with hβ_def
+  have hninj : Function.Injective n := (contractNetVertex_injective hQ.binary hQ.levelOne P).comp φ.vert.injective
+  have hβinj : Function.Injective β := (contractNetArc_injective hQ.binary hQ.levelOne P).comp φ.arc.injective
   have hD'φ : φ.arc '' ↑(fig17CycArcs s) = D' :=
     hone' _ (IsCycle.image_of_hom φ.vert.injective φ.arc.injective φ.source φ.target
       (isCycle_fig17Root s))
@@ -268,10 +268,10 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
     rfl
   have hends : ∀ j ∈ fig17CycArcs s, Q.graph.source (β j) = n (fig17RootSrc s j) ∧
       Q.graph.target (β j) = n (fig17RootTgt s j) := fun j hj => by
-    obtain ⟨h₁, h₂⟩ := contractNetFirstArc_ends hDc hnotP ((hmem j).1 hj)
+    obtain ⟨h₁, h₂⟩ := contractNetArc_ends hDc hnotP ((hmem j).1 hj)
     exact ⟨h₁.trans (by rw [φ.source]), h₂.trans (by rw [φ.target])⟩
   have hroot : ∀ i, n i = Q.root → i = 8 := fun i h => by
-    have := eq_root_of_contractNetRep_eq_root h
+    have := eq_root_of_contractNetVertex_eq_root h
     rw [φ.root] at this
     exact φ.vert.injective this
   have h48 : ∀ i : Fin 4, fig17Node i ≠ 8 := by decide
@@ -347,7 +347,7 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
       x ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u i) := by
     intro i x hx
     apply mem_nodeBlock_sdNode_of_walks hQ
-    rw [← contractNetRep_leaf (hQ := hQ.binary) (h1 := hQ.levelOne) (P := P) x]
+    rw [← contractNetVertex_leaf (hQ := hQ.binary) (h1 := hQ.levelOne) (P₀ := P) x]
     apply walks_compl_of_contractNet_walks hDc hnotP
     rw [hx]
     rcases fig17_witness s i with ⟨j, hj, hs, ht⟩ | ⟨j₁, j₂, hj₁, hj₂, ht₁, hs₁₂, ht₂⟩
