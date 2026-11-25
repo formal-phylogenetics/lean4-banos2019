@@ -723,6 +723,25 @@ theorem isReducible_contractSet {θ : MetricData E} (hθ : IsMetricNetwork Q θ)
         · rw [← contractSet_outdegree_of_not hQ h1 hw]
           exact hc.2
 
+/-- **With no cycle satisfying `P`, contracting renames the nodes only**: the representatives and
+the arcs identify the contracted network with `Q`. -/
+theorem isContraction_contractSet_of_forall_not (hP : ∀ C, IsCycle Q.graph C → ¬ P C) :
+    IsContraction Q (contractRooted Q P) (contractSetRep hQ h1) Subtype.val := by
+  have hnot : ∀ w, ¬ InPCycle Q P w := fun w ⟨C, hC, hPC, _⟩ => hP C hC hPC
+  have hr2 := hQ.2.1
+  refine
+    { inj_v := contractSetRep_injective hQ h1
+      inj_e := Subtype.val_injective
+      source := fun e => contractSetRep_mk_of_not hQ h1 (hnot _)
+      target := fun e => contractSetRep_target hQ h1 e
+      range_v := fun s => ⟨fun _ h => by omega, fun _ => ⟨Quot.mk _ s,
+        contractSetRep_mk_of_not hQ h1 (hnot s)⟩⟩
+      range_e := fun a => ⟨fun _ h => by omega, fun _ =>
+        ⟨⟨a, fun C hC hPC => absurd hPC (hP C hC)⟩, rfl⟩⟩
+      leaf := contractSetRep_leaf hQ h1
+      root_one := fun h => by omega
+      root_ne := fun _ => contractSetRep_root hQ h1 }
+
 end Set
 
 end Banos2019

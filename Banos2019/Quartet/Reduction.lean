@@ -898,11 +898,87 @@ theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E} (hθ' :
       (P := IsTwoOneOrThree Q) fun _ _ hC => ncard_sub_eq_two_of_isTwoOneOrThree hC
   exact ⟨⟨hb, h1', hlsa', hQ.card_taxa, hθ''⟩, hcf, hnum, hcyc, hcut⟩
 
+/-- With no cycle inducing a `2₁`- or `2₃`-cycle, contracting them changes nothing. -/
+theorem cf_contractRooted_of_forall_not (hQ : IsLSAQuartet Q θ)
+    (hP : ∀ C, IsCycle Q.graph C → ¬ IsTwoOneOrThree Q C) :
+    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  have hK := isContraction_contractSet_of_forall_not hQ.binary hQ.levelOne hP
+  have htwo : ∃ x y : X, x ≠ y := by
+    have : Nontrivial X := hQ.nontrivial
+    exact exists_pair_ne X
+  funext q
+  exact (hK.nmscCF_eq hQ.binary.1 htwo θ (fun a _ h1 => by have := hQ.binary.2.1; omega)
+    le_rfl q).symm
+
+/-- **One step of Corollary 2**: contracting a cycle `C` inducing a `2₁`- or `2₃`-cycle does not
+change the concordance factors (Lemma 7 or 8), and the network obtained, with its nodes of degree two
+suppressed (`contractNet`), is an LSA quartet network with one cycle fewer. -/
+theorem corollary2_step (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C) (hCP : IsTwoOneOrThree Q C) :
+    IsLSAQuartet (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
+      cf Q θ = cf (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
+      {D | IsCycle (contractNet Q hQ.binary hQ.levelOne (· = C)).graph D}.ncard <
+        {D | IsCycle Q.graph D}.ncard := by
+  obtain ⟨hb, h1', hlsa', hθ', hcf, hnum, -, -⟩ :=
+    contractNet_spec hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric (P := (· = C))
+      fun _ _ hC' => hC' ▸ ncard_sub_eq_two_of_isTwoOneOrThree hCP
+  refine ⟨⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, ?_, ?_⟩
+  · rw [hcf]
+    obtain ⟨v, h | h⟩ := hCP
+    · exact lemma7 hQ h
+    · exact lemma8 hQ h
+  · rw [hnum]
+    exact Set.ncard_lt_ncard ⟨fun D hD => hD.1, fun hsub => (hsub hC).2 rfl⟩ (Set.toFinite _)
+
+/-- **Contracting the remaining cycles after one step of Corollary 2** has the concordance factors
+of contracting the cycles inducing `2₁`- and `2₃`-cycles of `Q⊕` at once: the cycles of the network
+of the step that induce `2₁`- and `2₃`-cycles are those of `Q⊕` other than `C`
+(`contractNet_spec`), and the two contracted networks, with their nodes of degree two suppressed,
+are the same network up to the names of their nodes and arcs, with the same lengths along their
+chains and the same inheritance probabilities. -/
+theorem cf_contractRooted_contractNet (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C)
+    (hCP : IsTwoOneOrThree Q C) :
+    cf (contractRooted (contractNet Q hQ.binary hQ.levelOne (· = C))
+        (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C))))
+      (contractMetric _ (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C)))
+        (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ)) =
+      cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  sorry
+
+omit [Fintype V] [Fintype E] in
+/-- **Corollary 2, by induction on the number of cycles**, for networks on `Type`. -/
+theorem corollary2_aux (n : ℕ) :
+    ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
+      IsLSAQuartet Q θ → {D | IsCycle Q.graph D}.ncard = n →
+        cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro V' E' _ _ Q θ hQ hn
+  by_cases hex : ∃ C, IsCycle Q.graph C ∧ IsTwoOneOrThree Q C
+  · obtain ⟨C, hC, hCP⟩ := hex
+    obtain ⟨hQ₁, hcf, hlt⟩ := corollary2_step hQ hC hCP
+    rw [hcf, ih _ (hn ▸ hlt) hQ₁ rfl, cf_contractRooted_contractNet hQ hC hCP]
+  · push Not at hex
+    exact cf_contractRooted_of_forall_not hQ hex
+
 /-- **Corollary 2** (`cor:2isgood`): contracting all cycles that induce `2₁`- or `2₃`-cycles does not
-change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`. -/
+change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`.
+
+The paper's proof applies Lemmas 7 and 8 to these cycles one after the other. Contracting one of them,
+`C`, does not change the concordance factors (`corollary2_step`, by Lemma 7 or 8); the network
+obtained, with its nodes of degree two suppressed, is an LSA quartet network with the other cycles
+(`contractNet_spec`), to which the induction applies (`corollary2_aux`); and contracting its cycles
+inducing `2₁`- and `2₃`-cycles has the concordance factors of contracting those of `Q⊕` at once
+(`cf_contractRooted_contractNet`). -/
 theorem corollary2 (hQ : IsLSAQuartet Q θ) :
     cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
-  sorry
+  by_cases hex : ∃ C, IsCycle Q.graph C ∧ IsTwoOneOrThree Q C
+  · obtain ⟨C, hC, hCP⟩ := hex
+    obtain ⟨hQ₁, hcf, -⟩ := corollary2_step hQ hC hCP
+    rw [hcf, corollary2_aux _ hQ₁ rfl, cf_contractRooted_contractNet hQ hC hCP]
+  · push Not at hex
+    exact cf_contractRooted_of_forall_not hQ hex
 
 /-- The law at the top of an arc does not depend on the inheritance probabilities of arcs not below
 it. -/
