@@ -441,7 +441,8 @@ meta def solutionResults : List Name :=
   [``Banos2019Challenge.theorem3, ``Banos2019Challenge.theorem4, ``Banos2019Challenge.proposition5,
    ``Banos2019Challenge.equation1_balanced, ``Banos2019Challenge.lsa_isLSA,
    ``Banos2019Challenge.root_reaches, ``Banos2019Challenge.not_forGenericParams_false,
-   ``Banos2019Challenge.example6, ``Banos2019Challenge.example7]
+   ``Banos2019Challenge.example6, ``Banos2019Challenge.example7,
+   ``Banos2019Challenge.fig17_fig18_unrooted, ``Banos2019Challenge.fig17_fig18_tilde]
 
 /-- Lean's standard axioms. -/
 meta def standardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
