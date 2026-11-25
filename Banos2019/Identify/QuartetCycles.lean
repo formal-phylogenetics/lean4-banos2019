@@ -1,6 +1,6 @@
 module
 
-public import Banos2019.Identify.Blocks
+public import Banos2019.Identify.CycleOrder
 
 /-!
 # The cycles of `Q⁻_s` and those of `N⁻` (Baños 2019, Sections 7–9)

@@ -1,7 +1,6 @@
 module
 
-public import Banos2019.CycleProperty
-public import Banos2019.Network.CycleFacts
+public import Banos2019.Identify.HybridBlock
 
 /-!
 # The blocks of a cycle of `N⁻` (Baños 2019, Sections 3, 7 and 8)
@@ -11,16 +10,12 @@ and each component holds at least one taxon: the blocks of `C` are the taxa of t
 block for each node of `C`, and the block of the hybrid node is the set of taxa descending from it. The
 proofs of Sections 8 and 9 use these facts throughout, without stating them.
 
-* `isConnected_unrooted_graph`, `unrooted_isLevelOne`: `N⁻` is connected and level-1.
-* `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has exactly
-  one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
 * `blockNode G C x`: the node of `C` whose block contains `x`; `sameBlock_iff_blockNode_eq`,
   `exists_blockNode_eq`, `blockNode_eq_iff_descendsFrom`.
 * `separatesQuartet_iff`: the cycle `C` separates `s` when `blockNode` is injective on `s` and sends a
-  taxon of `s` to the hybrid node.
-* `blockNodes`, `JoinedAvoiding`: the blocks of `x` and `y` are joined along `C` avoiding the blocks of
-  the taxa `T`; `adjacentBlocks_iff_forall_joinedAvoiding`: two blocks are adjacent exactly when they
-  are so joined for every set of four taxa separated by `C` that contains them.
+  taxon of `s` to the hybrid node; `four_le_ncard_of_separatesQuartet`.
+* `exists_separatesQuartet_of_not_sameBlock`: two taxa in different blocks of a cycle of size at least
+  four are in a set of four taxa that the cycle separates.
 -/
 
 @[expose] public noncomputable section
@@ -32,173 +27,9 @@ namespace Banos2019
 
 variable {V E X : Type*}
 
-/-! ### Cycles of a directed multigraph -/
-
-section Multigraph
-
-variable {G : DirectedMultigraph V E}
-
-/-- The nodes of a cycle form a nonempty set. -/
-theorem IsCycle.cycleNodes_nonempty {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).Nonempty := by
-  obtain ⟨k, v, e, hC, rfl⟩ := hC
-  exact ⟨G.source (e ⟨0, hC.pos⟩), e ⟨0, hC.pos⟩, ⟨_, rfl⟩, Or.inl rfl⟩
-
-/-- Taxa in the same block of a set of edges are in the same block of a smaller set. -/
-theorem SameBlock.mono {ℓ : X → V} {D D' : Set E} (hD : D ⊆ D') {x y : X}
-    (h : SameBlock G ℓ D' x y) : SameBlock G ℓ D x y :=
-  Relation.ReflTransGen.mono (fun _ _ ⟨f, hf, hl⟩ => ⟨f, fun hfD => hf (hD hfD), hl⟩) _ _ h
-
-/-- A cycle has a node outside a set with fewer elements than the size of the cycle. -/
-theorem IsCycle.exists_mem_cycleNodes_notMem {C : Set E} (hC : IsCycle G C) {F : Set V}
-    (hF : F.Finite) (h : F.ncard < C.ncard) : ∃ u ∈ cycleNodes G C, u ∉ F :=
-  Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes hC]) hF
-
-/-- **In a connected graph, every node is joined to a node of a cycle `C` by a walk avoiding the edges
-of `C`**: along a walk to a node of `C`, stop at the first node of `C`. -/
-theorem exists_walks_compl_of_isConnected (hG : G.IsConnected) {C : Set E} (hC : IsCycle G C)
-    (a : V) : ∃ u ∈ cycleNodes G C, G.Walks Cᶜ u a := by
-  obtain ⟨u₀, hu₀⟩ := hC.cycleNodes_nonempty
-  have hw := hG a u₀
-  induction hw using Relation.ReflTransGen.head_induction_on with
-  | refl => exact ⟨u₀, hu₀, .refl⟩
-  | @head a b hab _ ih =>
-    obtain ⟨u, hu, hub⟩ := ih
-    obtain ⟨f, -, hf⟩ := hab
-    by_cases hfC : f ∈ C
-    · refine ⟨a, ?_, .refl⟩
-      rcases hf with ⟨h, -⟩ | ⟨-, h⟩
-      · exact ⟨f, hfC, Or.inl h⟩
-      · exact ⟨f, hfC, Or.inr h⟩
-    · exact ⟨u, hu, hub.tail ⟨f, hfC, hf.symm⟩⟩
-
-end Multigraph
-
-/-! ### Four distinct elements -/
-
-section Four
-
-variable {α β : Type*} [DecidableEq α]
-
-/-- Four distinct elements make a set of four. -/
-theorem card_four_of_ne {a b c d : α} (hab : a ≠ b) (hac : a ≠ c) (had : a ≠ d) (hbc : b ≠ c)
-    (hbd : b ≠ d) (hcd : c ≠ d) : #({a, b, c, d} : Finset α) = 4 := by
-  rw [card_insert_of_notMem (by simp [hab, hac, had]), card_insert_of_notMem (by simp [hbc, hbd]),
-    card_pair hcd]
-
-/-- A map taking four elements to four distinct values is injective on them. -/
-theorem injOn_four {f : α → β} {a b c d : α} (hab : f a ≠ f b) (hac : f a ≠ f c) (had : f a ≠ f d)
-    (hbc : f b ≠ f c) (hbd : f b ≠ f d) (hcd : f c ≠ f d) :
-    Set.InjOn f ↑({a, b, c, d} : Finset α) := by
-  intro x hx y hy hxy
-  simp only [coe_insert, coe_singleton, Set.mem_insert_iff, Set.mem_singleton_iff] at hx hy
-  rcases hx with rfl | rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl | rfl <;>
-    first | rfl | exact absurd hxy ‹_› | exact absurd hxy.symm ‹_›
-
-/-- Four elements making a set of four are distinct. -/
-theorem distinct4_of_card_eq_four {a b c d : α} (h : #({a, b, c, d} : Finset α) = 4) :
-    Distinct4 a b c d := by
-  have h3 : ∀ p q r : α, #({p, q, r} : Finset α) ≤ 3 := fun p q r => card_le_three
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> rintro rfl
-  · have := h3 a c d
-    simp_all
-  · have := h3 a b d
-    rw [show ({a, b, a, d} : Finset α) = {a, b, d} by ext; simp; tauto] at h
-    omega
-  · have := h3 a b c
-    rw [show ({a, b, c, a} : Finset α) = {a, b, c} by ext; simp; tauto] at h
-    omega
-  · have := h3 a b d
-    rw [show ({a, b, b, d} : Finset α) = {a, b, d} by ext; simp] at h
-    omega
-  · have := h3 a b c
-    rw [show ({a, b, c, b} : Finset α) = {a, b, c} by ext; simp; tauto] at h
-    omega
-  · have := h3 a b c
-    rw [show ({a, b, c, c} : Finset α) = {a, b, c} by ext; simp] at h
-    omega
-
-/-- Four distinct elements make a set of four. -/
-theorem card_eq_four_of_distinct4 {a b c d : α} (h : Distinct4 a b c d) :
-    #({a, b, c, d} : Finset α) = 4 :=
-  card_four_of_ne h.1 h.2.1 h.2.2.1 h.2.2.2.1 h.2.2.2.2.1 h.2.2.2.2.2
-
-end Four
-
-/-! ### `N⁻` is connected and level-1 -/
-
-section Unrooted
-
-variable {N : RootedNetwork V E X}
-
-/-- **`N⁻` is connected.** -/
-theorem isConnected_unrooted_graph (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) :
-    (unrooted N hN hX).graph.IsConnected := by
-  sorry
-
-variable [Finite E]
-
-/-- **`N⁻` is level-1**: two cycles sharing an edge share its ends, and two cycles with a common node
-are the same (Lemma 3). -/
-theorem unrooted_isLevelOne (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
-    (hX : Nontrivial X) : IsLevelOne (unrooted N hN hX).graph := by
-  rintro C C' hC hC' ⟨f, hf, hf'⟩
-  exact (lemma3_unrooted hN h1 hX hC).2.2 C' hC'
-    ⟨_, ⟨f, hf, Or.inl rfl⟩, ⟨f, hf', Or.inl rfl⟩⟩
-
-variable {hN : IsBinaryRootedNetwork N} {hX : Nontrivial X}
-
-/-- **A cycle of `N⁻` has a hybrid node** (Lemma 3). -/
-theorem exists_isHybridNodeOf (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) :
-    ∃ v, IsHybridNodeOf (unrooted N hN hX) C v := by
-  obtain ⟨⟨v, ⟨-, h₁, h₂, hne, hd₁, hd₂, ht₁, ht₂⟩, -⟩, h2, -⟩ := lemma3_unrooted hN h1 hX hC
-  obtain ⟨v, hv, -⟩ := (lemma3_unrooted hN h1 hX hC).1
-  obtain ⟨hvC, g₁, g₂, hne, hd₁, hd₂, ht₁, ht₂⟩ := hv
-  exact ⟨v, g₁, h2 v hvC g₁ hd₁ ht₁, g₂, h2 v hvC g₂ hd₂ ht₂, hne, hd₁, hd₂, ht₁, ht₂⟩
-
-/-- The hybrid node of a cycle is a node of the cycle. -/
-theorem IsHybridNodeOf.mem_cycleNodes {V' E' X' : Type*} {G : SemidirectedNetwork V' E' X'}
-    {C : Set E'} {v : V'} (hv : IsHybridNodeOf G C v) : v ∈ cycleNodes G.graph C := by
-  obtain ⟨g, hg, -, -, -, -, -, hgt, -⟩ := hv
-  exact ⟨g, hg, Or.inr hgt⟩
-
-/-- **A cycle of `N⁻` has only one hybrid node** (Lemma 3). -/
-theorem IsHybridNodeOf.eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v v'}
-    (hv : IsHybridNodeOf (unrooted N hN hX) C v) (hv' : IsHybridNodeOf (unrooted N hN hX) C v') :
-    v = v' := by
-  obtain ⟨v₀, -, huniq⟩ := (lemma3_unrooted hN h1 hX hC).1
-  have key : ∀ u, IsHybridNodeOf (unrooted N hN hX) C u → u = v₀ := fun u hu => by
-    obtain ⟨g₁, hg₁, g₂, hg₂, hne, hd₁, hd₂, ht₁, ht₂⟩ := hu
-    exact huniq u ⟨⟨g₁, hg₁, Or.inr ht₁⟩, g₁, g₂, hne, hd₁, hd₂, ht₁, ht₂⟩
-  rw [key v hv, key v' hv']
-
-/-- **A hybrid node of `N⁻` lies on only one cycle** (Lemma 3). -/
-theorem IsHybridNodeOf.cycle_eq (h1 : IsLevelOne N.graph) {C C' : Set _} (hC : IsCycle (unrooted N hN hX).graph C)
-    (hC' : IsCycle (unrooted N hN hX).graph C') {v} (hv : IsHybridNodeOf (unrooted N hN hX) C v)
-    (hv' : IsHybridNodeOf (unrooted N hN hX) C' v) : C = C' :=
-  (lemma3_unrooted hN h1 hX hC).2.2 C' hC' ⟨v, hv.mem_cycleNodes, hv'.mem_cycleNodes⟩
-
-end Unrooted
-
-/-! ### The blocks of a cycle of `N⁻` -/
-
 section Blocks
 
 variable {N : RootedNetwork V E X} [Finite E] {hN : IsBinaryRootedNetwork N} {hX : Nontrivial X}
-
-/-- **Every node of a cycle of `N⁻` has a taxon in its block**: what hangs from the node, off the
-cycle, ends at taxa. -/
-theorem nodeBlock_nonempty (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
-    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) :
-    (nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u).Nonempty := by
-  sorry
-
-/-- **The block of the hybrid node is the set of taxa descending from it**: a semidirected path from
-the hybrid node leaves it by its child edge and does not come back to the cycle. -/
-theorem mem_nodeBlock_iff_descendsFrom (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {v}
-    (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x : X) :
-    x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C v ↔
-      DescendsFrom (unrooted N hN hX) v x := by
-  sorry
 
 /-- The node of the cycle `C` whose block contains the taxon `x`. -/
 def blockNode {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (x : X') : V' :=
@@ -322,38 +153,6 @@ theorem four_le_ncard_of_separatesQuartet (h1 : IsLevelOne N.graph) {C : Set _}
   refine Set.ncard_le_ncard ?_ (Set.toFinite _)
   rintro _ ⟨x, -, rfl⟩
   exact blockNode_mem hC x
-
-/-! ### The order of the blocks around a cycle -/
-
-/-- The nodes of the cycle `C` whose blocks contain a taxon of `T`. -/
-def blockNodes {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (T : Set X') :
-    Set V' :=
-  {u | u ∈ cycleNodes G.graph C ∧ ∃ x ∈ T, x ∈ nodeBlock G.graph G.leaf C u}
-
-/-- The blocks of `x` and `y` are *joined along `C` avoiding the blocks of `T`*: in the cycle `C` with
-the nodes of the blocks of the taxa of `T` removed, the nodes of the blocks of `x` and `y` are
-connected. -/
-def JoinedAvoiding {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (T : Set X')
-    (x y : X') : Prop :=
-  ∃ u w, u ∈ cycleNodes G.graph C ∧ w ∈ cycleNodes G.graph C ∧
-    x ∈ nodeBlock G.graph G.leaf C u ∧ y ∈ nodeBlock G.graph G.leaf C w ∧
-    Relation.ReflTransGen
-      (fun a b => G.graph.AdjOn C a b ∧ a ∉ blockNodes G C T ∧ b ∉ blockNodes G C T) u w
-
-/-- **Two blocks of a cycle of size at least four are adjacent exactly when they are joined avoiding
-the other two blocks of every set of four taxa that the cycle separates and that contains them.**
-Adjacent blocks are joined by their edge. Two blocks that are not adjacent leave a node on each of the
-two arcs of the cycle between them, the hybrid node among them when it is not one of the two; taxa in
-the blocks of these nodes separate them. -/
-theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOne N.graph) {C : Set _}
-    (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard) {v}
-    (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x y : X) :
-    AdjacentBlocks (unrooted N hN hX) C x y ↔
-      ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y ∧
-        ∀ z z', #({x, y, z, z'} : Finset X) = 4 →
-          SeparatesQuartet (unrooted N hN hX) C v {x, y, z, z'} →
-          JoinedAvoiding (unrooted N hN hX) C {z, z'} x y := by
-  sorry
 
 end Blocks
 
