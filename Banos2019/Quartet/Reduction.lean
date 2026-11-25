@@ -7,6 +7,7 @@ public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Quartet.HybridGlue
 public import Banos2019.Quartet.ReduceSpec
 public import Banos2019.Quartet.DisjointNet
+public import Banos2019.Quartet.ContractCompose
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -947,7 +948,14 @@ theorem cf_contractRooted_contractNet (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.g
       (contractMetric _ (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C)))
         (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ)) =
       cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
-  sorry
+  have hO : SelectsCycle Q (· = C) C :=
+    ⟨hC, rfl, fun _ _ h => h, ncard_sub_eq_two_of_isTwoOneOrThree hCP⟩
+  have hQ₁ := (corollary2_step hQ hC hCP).1
+  exact cf_contractRooted_contractNet_eq (P := IsTwoOneOrThree Q)
+    (P₁ := IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C))) hQ.binary hQ.levelOne
+    (fun _ _ hD => ncard_sub_eq_two_of_isTwoOneOrThree hD) hO hCP hQ₁.binary hQ₁.levelOne
+    (fun _ hD => contractNet_exists_inducesCycleType_or_iff hQ.binary hQ.levelOne hO hD 2 1 2 3)
+    hQ.metric.1 hQ₁.metric.1
 
 omit [Fintype V] [Fintype E] in
 /-- **Corollary 2, by induction on the number of cycles**, for networks on `Type`. -/
