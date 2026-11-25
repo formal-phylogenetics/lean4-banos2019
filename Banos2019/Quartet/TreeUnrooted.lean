@@ -191,7 +191,7 @@ theorem cutAt_unrooted_iff (g : SemidirectedArc hM.1 hM.2 hX) (A : Set X) :
         tauto
       · rw [← crosses_iff_not_iff, hS, (sdArc_injective hM.1 hM.2 hX).eq_iff]
     · ext x
-      simp only [Set.mem_preimage, Set.mem_ofPred_eq, sdVert_leaf]
+      simp only [Set.mem_preimage, Set.mem_ofPred_eq]
       rw [← hA]
       rfl
 
@@ -433,7 +433,8 @@ theorem unrootedLength_eq_cutLength [Fintype V] [Fintype E] [Fintype X] {M : Roo
         M.graph.source (sdArc hM.1 hM.2 hX g) = M.root then θ.length e₀ else 0) := by
     intro g
     rw [cutAt_unrooted_iff hM hl hX g, semidirectedMetric_length, hr]
-    split_ifs <;> simp_all <;> rfl
+    split_ifs <;> simp_all
+    rfl
   have hK : (∑ g, if CutAt M.graph M.leaf (sdArc hM.1 hM.2 hX g) ↑A ∧
       M.graph.source (sdArc hM.1 hM.2 hX g) = M.root then θ.length e₀ else 0) =
       if CutAt M.graph M.leaf e₀ ↑A then θ.length e₀ else 0 := by
@@ -441,7 +442,7 @@ theorem unrootedLength_eq_cutLength [Fintype V] [Fintype E] [Fintype X] {M : Roo
     · rw [if_congr (and_iff_left hg₁) rfl rfl,
         ← cutAt_root_iff hM.1 (sdArc_ne_sdRootArc hM.1 hM.2 hX g₁).symm he₀ hg₁ hroot]
     · intro g _ hg
-      rw [if_neg]
+      rw [ite_eq_right]
       rintro ⟨-, h⟩
       exact hg (eq_of_source_sdArc_eq_lsa hM.1 hM.2 hX (h.trans hr.symm) (hg₁.trans hr.symm))
     · exact fun h => absurd (mem_univ g₁) h

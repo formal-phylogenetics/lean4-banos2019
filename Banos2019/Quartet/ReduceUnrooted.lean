@@ -194,11 +194,11 @@ theorem outdegree_unrootAt [Finite E] (h2 : M.graph.outdegree M.root = 2) (u : {
   rw [hset]
   rw [hall] at h1
   by_cases ht : M.graph.target e₀ = u.1
-  · rw [if_pos (hpe₀.2 ht), if_pos ht] at h1
-    rw [if_pos ht]
+  · rw [ite_eq_left (hpe₀.2 ht), ite_eq_left ht] at h1
+    rw [ite_eq_left ht]
     omega
-  · rw [if_neg (fun h => ht (hpe₀.1 h)), if_neg ht] at h1
-    rw [if_neg ht]
+  · rw [ite_eq_right (fun h => ht (hpe₀.1 h)), ite_eq_right ht] at h1
+    rw [ite_eq_right ht]
     omega
 
 /-- **The nodes that the suppression of `unrootAt M hP e₀` keeps are those that are not chain nodes
@@ -351,9 +351,9 @@ theorem reduceVert_source (g : SemidirectedArc hb.1 hb.2 hX) :
   unfold reduceVert
   rw [sdVert_source]
   by_cases h : M.graph.source (reduceArc hM hb hX g) = M.root
-  · rw [if_pos h, if_pos (hroot.1 h), hK.target]
+  · rw [ite_eq_left h, ite_eq_left (hroot.1 h), hK.target]
     rfl
-  · rw [if_neg h, if_neg (fun h' => h (hroot.2 h')), hsrc]
+  · rw [ite_eq_right h, ite_eq_right (fun h' => h (hroot.2 h')), hsrc]
     rfl
 
 theorem reduceVert_target (g : SemidirectedArc hb.1 hb.2 hX) :
@@ -369,6 +369,7 @@ theorem reduceVert_leaf (x : X) :
   rw [sdVert_leaf, hM.isContraction.leaf]
   rfl
 
+omit [Fintype V] in
 /-- The chain of `M` from a node other than the root, to its end, as a trail of `unrootAt M hP e₀`. -/
 theorem exists_isUTrail_unrootAt_chainEnd {e₀ : E} (he₀ : M.graph.source e₀ = M.root) {t : V}
     (ht : t ≠ M.root) :
@@ -428,7 +429,7 @@ theorem exists_isUTrail_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     have ht₀ : M.graph.target e₀ ≠ M.root := hP.target_ne_root e₀
     obtain ⟨hE₀, S₀, hS₀, hS₀mem⟩ := exists_isUTrail_unrootAt_chainEnd hM he₀ ht₀
     have hsrc := reduceVert_source hM hb hX h2 hl g
-    rw [if_pos hroot] at hsrc
+    rw [ite_eq_left hroot] at hsrc
     have htgt := reduceVert_target hM hb hX g
     have hEE : chainEnd hP (M.graph.target e₀) ≠ chainEnd hP (M.graph.target ε) := by
       rw [← hsrc, ← htgt]
@@ -484,7 +485,7 @@ theorem exists_isUTrail_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       hcyc ε rfl rfl (hS₁mem _ h).1.reaches
     have hB := IsUTrail.cons hj hsS₁ hS₁
     have hsrc := reduceVert_source hM hb hX h2 hl g
-    rw [if_neg hroot] at hsrc
+    rw [ite_eq_right hroot] at hsrc
     refine ⟨⟨M.graph.source ε, hroot⟩, ⟨chainEnd hP (M.graph.target ε), hE₁⟩,
       insert ⟨M.graph.source ε, hroot⟩ S₁, ?_, hsrc.symm, (reduceVert_target hM hb hX g).symm, ?_⟩
     · have hset : reduceChainOf hM hb hX g =
@@ -576,7 +577,6 @@ theorem eq_of_mem_reduceChainOf {f : {e // e ≠ reduceRootArc hM hb hX}}
       ((source_reduceArc_eq_root_iff hM hb hX h2 hl g).1 hgr)
       ((source_reduceArc_eq_root_iff hM hb hX h2 hl g').1 hgr')
 
-include h2 hl in
 /-- The chain of `reduceRootArc` has no hybrid arc: it is the arc that the unrooted network of
 `reduceNet M` merges, a tree arc. -/
 theorem not_isHybridArc_of_isOnChain_reduceRootArc {f : E}
@@ -595,7 +595,6 @@ theorem not_isHybridArc_of_isOnChain_reduceRootArc {f : E}
   unfold IsHybridArc at this
   omega
 
-include h2 hl in
 /-- **A hybrid arc on the chain of an edge is the last arc of the chain of the arc of the edge.** -/
 theorem eq_lastArc_of_mem_reduceChainOf {g : SemidirectedArc hb.1 hb.2 hX}
     {f : {e // e ≠ reduceRootArc hM hb hX}} (hf : f ∈ reduceChainOf hM hb hX g)
@@ -605,7 +604,7 @@ theorem eq_lastArc_of_mem_reduceChainOf {g : SemidirectedArc hb.1 hb.2 hX}
       unfold IsHybridArc at hh
       rw [hc.1] at hh
       omega)
-  · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX h2 hl hf)
+  · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX hf)
 
 omit [Fintype V] in
 /-- A sum over the arcs other than `e₀` satisfying `p`, which `e₀` does not. -/
@@ -666,7 +665,7 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
   rw [semidirectedMetric_length]
   by_cases hroot : M.graph.source ε = M.root
   · have hroot' := (source_reduceArc_eq_root_iff hM hb hX h2 hl g).1 hroot
-    rw [if_pos hroot', hLε, hL₀]
+    rw [ite_eq_left hroot', hLε, hL₀]
     -- the merged edge
     set p : E → Prop := fun e => M.IsOnChain ε e ∨ (M.IsOnChain e₀ e ∧ e ≠ e₀)
     have hset : reduceChainOf hM hb hX g = {f : {e // e ≠ e₀} | p f.1} := by
@@ -680,8 +679,8 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       intro f hf
       show (if M.graph.source f.1 = M.root then θ.length f.1 + θ.length e₀ else θ.length f.1) = _
       by_cases hfε : f.1 = ε
-      · rw [if_pos (hfε ▸ hroot), if_pos hfε]
-      · rw [if_neg hfε, add_zero, if_neg]
+      · rw [ite_eq_left (hfε ▸ hroot), ite_eq_left hfε]
+      · rw [ite_eq_right hfε, add_zero, ite_eq_right]
         rcases hf with hf | ⟨hf, -⟩
         · exact hsrc hf hfε
         · exact hsrc hf f.2
@@ -689,7 +688,7 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       (fun h => h.elim hnot₀ (fun h' => h'.2 rfl))
       (fun e => θ.length e + if e = ε then θ.length e₀ else 0), sum_add_distrib]
     have hpε : p ε := Or.inl (Or.inl rfl)
-    simp only [Finset.sum_ite_eq', Finset.mem_filter, Finset.mem_univ, true_and, if_pos hpε]
+    simp only [Finset.sum_ite_eq', Finset.mem_filter, Finset.mem_univ, true_and, ite_eq_left hpε]
     have hdis : ∀ x, M.IsOnChain ε x → ¬ M.IsOnChain e₀ x := fun x h₁ h₂ =>
       hεe₀ (IsOnChain.unique h₁ h₂ (not_isChainVertex_source_reduceArc hM hb hX g) hc₀)
     have h₀₀ : M.IsOnChain e₀ e₀ := Or.inl rfl
@@ -699,15 +698,15 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     by_cases h₁ : M.IsOnChain ε x
     · have h₂ : ¬ M.IsOnChain e₀ x := hdis x h₁
       have h₃ : x ≠ e₀ := fun h => hnot₀ (h ▸ h₁)
-      simp [p, h₁, h₂, h₃]
+      simp [h₁, h₂, h₃]
     · by_cases h₃ : x = e₀
       · rw [h₃]
-        simp [p, hnot₀, h₀₀]
-      · by_cases h₂ : M.IsOnChain e₀ x <;> simp [p, h₁, h₂, h₃]
+        simp [hnot₀, h₀₀]
+      · by_cases h₂ : M.IsOnChain e₀ x <;> simp [h₁, h₂, h₃]
   · have hroot' : ¬ (reduceNet M hP).graph.source (sdArc hb.1 hb.2 hX g) =
         lsa hb.1 Set.univ Set.univ_nonempty := fun h =>
       hroot ((source_reduceArc_eq_root_iff hM hb hX h2 hl g).2 h)
-    rw [if_neg hroot', hLε]
+    rw [ite_eq_right hroot', hLε]
     have hset : reduceChainOf hM hb hX g = {f : {e // e ≠ e₀} | M.IsOnChain ε f.1} := by
       ext f
       show (M.IsOnChain ε f.1 ∨ (M.graph.source ε = M.root ∧ M.IsOnChain e₀ f.1)) ↔
@@ -717,7 +716,7 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
         (unrootAtMetric M e₀ θ).length f = θ.length f.1 := by
       intro f hf
       show (if M.graph.source f.1 = M.root then θ.length f.1 + θ.length e₀ else θ.length f.1) = _
-      rw [if_neg]
+      rw [ite_eq_right]
       by_cases hfε : f.1 = ε
       · rw [hfε]
         exact hroot
@@ -745,7 +744,7 @@ theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ) (g : Semi
     simp only [Set.mem_ofPred_eq, Set.mem_singleton_iff]
     constructor
     · rintro ⟨hf, hh⟩
-      exact Subtype.ext (eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hh)
+      exact Subtype.ext (eq_lastArc_of_mem_reduceChainOf hM hb hX hf hh)
     · rintro rfl
       exact ⟨Or.inl (NMSC.isOnChain_lastArc hP _), hhyb⟩
   rw [hset, finprod_mem_singleton, semidirectedMetric_inheritance,
@@ -816,12 +815,12 @@ theorem nonempty_sdMetricIso_suppress_unrootAt (hθ : M.IsNormalized θ) :
         Or.inl (NMSC.isOnChain_lastArc hP _), h⟩
     · rintro ⟨f, hf, hd⟩
       have hd' : M.IsHybridArc f.1 := hd
-      rw [← eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hd']
+      rw [← eq_lastArc_of_mem_reduceChainOf hM hb hX hf hd']
       exact hd'
   · have hd' : M.IsHybridArc f.1 := hd
     apply Subtype.ext
     show M.graph.target f.1 = reduceVert hM hb hX (R.graph.target g)
-    rw [eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hd', NMSC.target_lastArc,
+    rw [eq_lastArc_of_mem_reduceChainOf hM hb hX hf hd', NMSC.target_lastArc,
       reduceVert_target]
   · rw [Equiv.eq_symm_apply]
     exact Subtype.ext (Subtype.ext (reduceVert_leaf hM hb hX x))

@@ -897,6 +897,7 @@ def AdjacentBlocks {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Se
   ∃ e ∈ C, ∃ u w, Joins G.graph e u w ∧ x ∈ nodeBlock G.graph G.leaf C u ∧
     y ∈ nodeBlock G.graph G.leaf C w
 
+omit [Fintype V] [Fintype X] in
 /-- Around a 4-cycle `C` of `N⁻`, with nodes `u 0, …, u 3` in order, the blocks of `u i` and `u j` are
 adjacent exactly when `u i` and `u j` are consecutive: two nodes of a cycle are not joined by a walk
 avoiding it. -/

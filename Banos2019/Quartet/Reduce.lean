@@ -78,10 +78,12 @@ section Chain
 
 variable {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
 
+omit [Fintype V] in
 /-- **The length of an arc of `reduceNet M hM` is the total length of its chain of arcs of `M`.** -/
 theorem reduceMetric_length (θ : MetricData E) (e : ReduceArc M hM) :
     (reduceMetric M hM θ).length e = ∑ f ∈ reduceChain M hM e, θ.length f := rfl
 
+omit [Fintype V] in
 theorem mem_reduceChain_self (e : ReduceArc M hM) :
     (finContractArc (M.suppress hM) e).1 ∈ reduceChain M hM e :=
   mem_filter.2 ⟨mem_univ _, Or.inl rfl⟩
@@ -94,9 +96,11 @@ theorem disjoint_reduceChain {e e' : ReduceArc M hM} (hne : e ≠ e') :
     (finContractArc _ e).2 (finContractArc _ e').2
   exact (isContraction_finContract _ (suppress_isPhylogenetic hM)).inj_e (Subtype.ext h)
 
+omit [Fintype V] in
 theorem reduceLastArc_mem (e : ReduceArc M hM) : reduceLastArc M hM e ∈ reduceChain M hM e :=
   mem_filter.2 ⟨mem_univ _, NMSC.isOnChain_lastArc _ _⟩
 
+omit [Fintype V] in
 /-- **The inheritance of an arc of `reduceNet M hM` is that of the last arc of its chain.** -/
 theorem reduceMetric_inheritance {θ : MetricData E} (hθ : M.IsNormalized θ) (e : ReduceArc M hM) :
     (reduceMetric M hM θ).inheritance e = θ.inheritance (reduceLastArc M hM e) :=

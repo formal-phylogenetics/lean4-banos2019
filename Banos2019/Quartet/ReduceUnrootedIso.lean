@@ -244,7 +244,7 @@ theorem nonempty_sdMetricIso_suppress_deleteHybridEdge [Fintype V] [Fintype E] [
   · -- the root has outdegree two: merging either arc at the root
     have he₀ := source_reduceRootArc hM hb hX h2r hl
     have ht₀ : ¬ M.IsHybridArc (reduceRootArc hM hb hX) :=
-      not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX h2r hl (Or.inl rfl)
+      not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX (Or.inl rfl)
     obtain ⟨ιU⟩ := nonempty_sdMetricIso_unrootAt_swap hP (deleteArcMetric Q hE θ) her he₀ h2r hter
       ht₀
     obtain ⟨ι₁⟩ := nonempty_sdMetricIso_suppress_unrootAt hM hb hX h2r hl hθM
@@ -305,7 +305,7 @@ theorem nonempty_sdMetricIso_suppress_contractCycles [Fintype X] (hlsa : Q.IsLSA
       change ¬ 2 ≤ Q.graph.indegree (Q.graph.target (sdRootArc hQ.1 hQ.2 hX))
       omega
     have he₀ := source_reduceRootArc hM hb hX h2 hl
-    have ht₀ := not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX h2 hl (Or.inl rfl)
+    have ht₀ := not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX (Or.inl rfl)
     obtain ⟨ιU⟩ := nonempty_sdMetricIso_unrootAt_swap (contractSet_isPhylogenetic hQ h1)
       (contractMetric Q (· = C) θ) her he₀ h2 hter ht₀
     obtain ⟨ι₁⟩ := nonempty_sdMetricIso_suppress_unrootAt hM hb hX h2 hl hθM

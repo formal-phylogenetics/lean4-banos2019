@@ -1169,6 +1169,7 @@ theorem lemma8 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 3) :
 def IsTwoOneOrThree (Q : RootedNetwork V E X) (C : Set E) : Prop :=
   ∃ v, InducesCycleType Q C v 2 1 ∨ InducesCycleType Q C v 2 3
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- The cycles inducing `2₁`- and `2₃`-cycles induce 2-cycles. -/
 theorem ncard_sub_eq_two_of_isTwoOneOrThree {C : Set E} (hC : IsTwoOneOrThree Q C) :
     C.ncard - (if Q.root ∈ cycleNodes Q.graph C then 1 else 0) = 2 := by
@@ -1311,6 +1312,7 @@ theorem arcLaw_withPair {N : RootedNetwork V E X} {r : V} (hc : IsCut N r) {h₁
   unfold arcLaw
   rw [hm, withPair_length]
 
+omit [Fintype E] [Fintype X] in
 /-- Lifting a forest to a vertex `v` whose only child arc is `c` injects it at `v`, with nothing below
 `v`. -/
 theorem liftInj_eq_cutInj {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {v : V} {c : E}
@@ -1320,19 +1322,19 @@ theorem liftInj_eq_cutInj {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {v :
   funext w
   unfold liftInj cutInj
   by_cases hvw : N.graph.Reaches v w
-  · rw [if_pos hvw]
+  · rw [ite_eq_left hvw]
     rcases eq_or_reaches_of_unique_child hcu hvw with rfl | h
     · have hnot : w ∉ belowSet N c := hc ▸ source_notMem_belowSet hN c
-      rw [if_neg hnot, hinj, empty_union, if_pos hc.symm, if_pos rfl]
+      rw [ite_eq_right hnot, hinj, empty_union, ite_eq_left hc.symm, ite_eq_left rfl]
     · have hmem : w ∈ belowSet N c := mem_belowSet.2 h
       have hne : w ≠ N.graph.source c := fun h' => source_notMem_belowSet hN c (h' ▸ hmem)
       have hne' : w ≠ v := fun h' => hne (h'.trans hc.symm)
-      rw [if_pos hmem, if_neg hne, if_neg hne', empty_union]
-  · rw [if_neg hvw]
+      rw [ite_eq_left hmem, ite_eq_right hne, ite_eq_right hne', empty_union]
+  · rw [ite_eq_right hvw]
     have hnot : w ∉ belowSet N c := fun h =>
       hvw (Relation.ReflTransGen.head ⟨c, hc, rfl⟩ (mem_belowSet.1 h))
     have hne : w ≠ N.graph.source c := fun h => hvw (by rw [h, hc]; exact .refl)
-    rw [if_neg hnot, if_neg hne, union_empty]
+    rw [ite_eq_right hnot, ite_eq_right hne, union_empty]
 
 /-- **The split of the two lineages at the hybrid node of a cycle inducing a `2₂`-cycle**, the
 common part of the two cases of Lemma 9. With `K` the lineages at the top of the child edge `c` of
@@ -1603,14 +1605,14 @@ theorem lemma9_of_root_notMem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q 
     by_cases hvw : Q.graph.Reaches v w
     · have htw : Q.graph.Reaches t w := (Relation.ReflTransGen.single ⟨h₁, hat, hh₁⟩).trans hvw
       have hwt : w ≠ t := fun h => hN.acyclic t (Relation.TransGen.head' ⟨h₁, hat, hh₁⟩ (h ▸ hvw))
-      rw [if_pos hvw, if_pos htw, if_neg hwt]
-    · rw [if_neg hvw]
+      rw [ite_eq_left hvw, ite_eq_left htw, ite_eq_right hwt]
+    · rw [ite_eq_right hvw]
       by_cases htw : Q.graph.Reaches t w
       · have hwt : w = t := (hchild w htw).resolve_right hvw
         subst hwt
-        rw [if_pos htw, if_pos rfl, hinjt, empty_union, if_pos hat.symm, if_pos hbt.symm]
+        rw [ite_eq_left htw, ite_eq_left rfl, hinjt, empty_union, ite_eq_left hat.symm, ite_eq_left hbt.symm]
       · have hwt : w ≠ t := fun h => htw (h ▸ .refl)
-        rw [if_neg htw, if_neg (hat ▸ hwt), if_neg (hbt ▸ hwt), union_empty, union_empty]
+        rw [ite_eq_right htw, ite_eq_right (hat ▸ hwt), ite_eq_right (hbt ▸ hwt), union_empty, union_empty]
   obtain ⟨hgood, -⟩ := good_of_arcLaw_ne_zero hN hcut (validInj_taxaInj univ) hG
   -- `Q₀⊕`: the contracted node is the top
   obtain ⟨t', -⟩ := (⟨t, hK⟩ : ∃ t, IsContractible Q C t)
@@ -1887,7 +1889,7 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
       cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩ (validInj_of_arcLaw_ne_zero hN₀ hcut₀ hcr₀
         (validInj_taxaInj univ) (by rw [hlaw]; exact hG))
         (v := (contractRooted Q (· = C)).graph.source c₀)
-        (by simp only [liftInj, if_true]; exact mem_union_right _ hD) hcardG hDq
+        (by simp only [liftInj, ite_true]; exact mem_union_right _ hD) hcardG hDq
     have hW : ∀ (e : E) (t₁ t₂ : Finset (Finset X)), Q.graph.target e = v →
         (Q.graph.source e = Q.graph.source h₁ → t₁ = G) →
         (Q.graph.source e = Q.graph.source h₂ → t₂ = G) → (t₁ = ∅ ∨ t₂ = ∅) →
@@ -1897,12 +1899,12 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
       intro e t₁ t₂ he h₁' h₂' _ hJ
       refine cherryMass_of_mem hN hθ ⟨le_rfl, zero_le_one⟩ hJ (v := Q.graph.source e) ?_ hcardG hDq
       unfold hybInj
-      rw [if_neg (hsv e he)]
+      rw [ite_eq_right (hsv e he)]
       rcases mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂ e he with rfl | rfl
       · rw [h₁' rfl]
-        exact mem_union_right _ (mem_union_left _ (by rw [if_pos rfl]; exact hD))
+        exact mem_union_right _ (mem_union_left _ (by rw [ite_eq_left rfl]; exact hD))
       · rw [h₂' rfl]
-        exact mem_union_right _ (mem_union_right _ (by rw [if_pos rfl]; exact hD))
+        exact mem_union_right _ (mem_union_right _ (by rw [ite_eq_left rfl]; exact hD))
     have hlinD : ∀ x, x ∈ lineages G ∨ x ∈ lineages (∅ : Finset (Finset X)) →
         Q.graph.Reaches v (Q.leaf x) := fun x hx => by
       rcases hx with hx | hx
@@ -1967,7 +1969,7 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
           (if u = Q.graph.source h₂ then {{x₂}} else ∅)) := fun u hu => by
       rw [hJdef]
       unfold hybInj
-      rw [if_neg hu]
+      rw [ite_eq_right hu]
     -- the lineage that reaches the root, and the one that reaches `w`
     have hvr : v ≠ Q.root := fun h => by
       have := hN.root_indegree
@@ -1982,13 +1984,13 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
         xr ≠ xw ∧ J Q.root = {{xr}} ∧ J w = {{xw}} := by
       rcases hab' with ⟨h₁r, h₂w⟩ | ⟨h₁w, h₂r⟩
       · refine ⟨x₁, x₂, Or.inl ⟨rfl, rfl⟩, hx₁₂, ?_, ?_⟩
-        · rw [hJu _ hvr', hinjr, if_pos h₁r.symm, if_neg (h₂w ▸ fun h => hwr h.symm),
+        · rw [hJu _ hvr', hinjr, ite_eq_left h₁r.symm, ite_eq_right (h₂w ▸ fun h => hwr h.symm),
             union_empty, empty_union]
-        · rw [hJu _ hvw', hinjw, if_neg (h₁r ▸ hwr), if_pos h₂w.symm, empty_union, empty_union]
+        · rw [hJu _ hvw', hinjw, ite_eq_right (h₁r ▸ hwr), ite_eq_left h₂w.symm, empty_union, empty_union]
       · refine ⟨x₂, x₁, Or.inr ⟨rfl, rfl⟩, hx₁₂.symm, ?_, ?_⟩
-        · rw [hJu _ hvr', hinjr, if_neg (h₁w ▸ fun h => hwr h.symm), if_pos h₂r.symm,
+        · rw [hJu _ hvr', hinjr, ite_eq_right (h₁w ▸ fun h => hwr h.symm), ite_eq_left h₂r.symm,
             empty_union, empty_union]
-        · rw [hJu _ hvw', hinjw, if_pos h₁w.symm, if_neg (h₂r ▸ hwr), union_empty, empty_union]
+        · rw [hJu _ hvw', hinjw, ite_eq_left h₁w.symm, ite_eq_right (h₂r ▸ hwr), union_empty, empty_union]
     have hvx : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = xr ∨ x = xw := fun x => by
       rw [hbelowv]
       rcases hrw with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
@@ -2017,7 +2019,7 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
             exact hyw hu
           · rw [h', h.2] at hu
             exact hyr hu
-        rw [if_neg hne₁, if_neg hne₂, union_empty, union_empty]
+        rw [ite_eq_right hne₁, ite_eq_right hne₂, union_empty, union_empty]
       unfold arcLaw
       rw [hlow]
     have hlaw₀ : arcLaw (contractRooted Q (· = C)) (Quot.mk _ y) hcy₀ (contractMetric Q (· = C) θ) 0
@@ -2042,7 +2044,7 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
           have := (mk_eq_mk_iff_of_notMem hcyc (hSy x hx)).1 h
           exact hSy x hx (this ▸ hroot)
         unfold liftInj
-        rw [if_neg hnb, if_neg hns, union_empty]
+        rw [ite_eq_right hnb, ite_eq_right hns, union_empty]
       unfold arcLaw
       rw [hlow₀]
       refine sum_congr rfl fun F₁ _ => ?_
@@ -2492,17 +2494,17 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
     · refine cherryMass_of_mem hN hθ ⟨le_rfl, zero_le_one⟩ (hvalid G ∅ (Or.inl ⟨rfl, rfl⟩))
         (v := Q.graph.source h₁) ?_ hcard2 hDq
       unfold hybInj
-      rw [if_neg (hsv h₁ hh₁)]
-      exact mem_union_right _ (mem_union_left _ (by rw [if_pos rfl]; exact hD))
+      rw [ite_eq_right (hsv h₁ hh₁)]
+      exact mem_union_right _ (mem_union_left _ (by rw [ite_eq_left rfl]; exact hD))
     · refine cherryMass_of_mem hN hθ ⟨le_rfl, zero_le_one⟩ (hvalid ∅ G (Or.inr ⟨rfl, rfl⟩))
         (v := Q.graph.source h₂) ?_ hcard2 hDq
       unfold hybInj
-      rw [if_neg (hsv h₂ hh₂)]
-      exact mem_union_right _ (mem_union_right _ (by rw [if_pos rfl]; exact hD))
+      rw [ite_eq_right (hsv h₂ hh₂)]
+      exact mem_union_right _ (mem_union_right _ (by rw [ite_eq_left rfl]; exact hD))
     · exact cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩ (validInj_of_arcLaw_ne_zero hN₀ hcut₀ hcr₀
         (validInj_taxaInj univ) (by rw [hlaw]; exact hG))
         (v := (contractRooted Q (· = C)).graph.source c₀)
-        (by simp only [liftInj, if_true]; exact mem_union_right _ hD) hcard2 hDq
+        (by simp only [liftInj, ite_true]; exact mem_union_right _ hD) hcard2 hDq
   -- two roots: the lineages of `a` and `b`, which go to `Q_a⊕` or `Q_b⊕` when they take different
   -- hybrid edges
   have htwo : ∀ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G ≠ 0 → ∀ R₁ R₂, R₁ ≠ R₂ →
@@ -2788,6 +2790,7 @@ theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E
     fun C _ => φ.edge.injective.image_injective.eq_iff
   exact ⟨ι.symm.trans ((φ.contractCycles hcyc).suppress.trans ι')⟩
 
+omit [Fintype V] in
 /-- **`Q_a⊕` as an LSA quartet network**: when the only cycle `C` of `Q⊕` induces a `3₂`-cycle with
 the taxa `a`, `b` below its hybrid node `v`, `Q_a⊕` is an LSA quartet network without cycles. -/
 theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
@@ -2803,6 +2806,7 @@ theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
     (a := a) (b := b)
   exact ⟨⟨hb, fun C₁ _ hC₁ => absurd hC₁ (h0 C₁), hl, hQ.card_taxa, hθ⟩, h0⟩
 
+omit [Fintype V] in
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
 nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
 edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. The unrooted network of `Q_a⊕` is

@@ -576,7 +576,7 @@ section Valid
 
 variable {N : RootedNetwork V E X} {v : V} {h₁ h₂ : E}
 
-omit [Fintype V] [Fintype E] in
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- **The forests at the sources of the hybrid arcs make a valid injection** when they are binary
 forests on disjoint sets of lineages that no other vertex carries, at distinct vertices carrying
 nothing else. -/
@@ -620,6 +620,7 @@ theorem validInj_hybInj {inj : V → Finset (Finset X)} (hinj : ValidInj inj)
 
 end Valid
 
+omit [Fintype X] in
 /-- **Singletons do not change `quartetValue`**: they are neither clusters of two lineages nor
 cherries. -/
 theorem quartetValue_union_of_card_eq_one (q : QuartetTree X) {S F : Finset (Finset X)}

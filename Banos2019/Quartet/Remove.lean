@@ -170,7 +170,7 @@ cycle. -/
 theorem exists_fig18 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     {C : Set E} {v : V} (hC : InducesCycleType Q C v 3 2) (hone : ∀ C', IsCycle Q.graph C' → C' = C)
     {a b : X} (hab : a ≠ b) (hD : {x | Q.graph.Reaches v (Q.leaf x)} = {a, b}) :
-    ∃ (c d : X) (h : Distinct4 a b c d) (len : Fin 8 → ℝ) (γ : ℝ), (∀ i, 0 < len i) ∧ 0 < γ ∧
+    ∃ (c d : X) (_ : Distinct4 a b c d) (len : Fin 8 → ℝ) (γ : ℝ), (∀ i, 0 < len i) ∧ 0 < γ ∧
       γ < 1 ∧ InducesNetwork hQ (fig18 a b c) (figMetric len γ) := by
   -- `Q⊕` is one of four rootings of Figure 18, the root on the edge `m` of the figure
   obtain ⟨c, d, h4, s, φ, hr⟩ := exists_rootedIso_threeTwo hQ hC hone hab hD
@@ -202,9 +202,9 @@ theorem exists_fig18 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   have hsum := inheritance_add_eq_one hQ.metric.1 h2 h67 (hv5 6 (Or.inl rfl)) (hv5 7 (Or.inr rfl))
   refine ⟨c, d, h4, len, γ, hlen, hγ₀, hγ₁, ?_⟩
   have hlenm : θ.length (φ.arc m.castSucc) + θ.length (φ.arc 8) = len m := by
-    simp only [hlen_def, if_pos rfl]
+    simp only [hlen_def, ite_eq_left rfl]
   have hlen' : ∀ j : Fin 8, j ≠ m → θ.length (φ.arc j.castSucc) = len j := fun j hj => by
-    simp only [hlen_def, if_neg hj]
+    simp only [hlen_def, ite_eq_right hj]
   have hinh : ∀ j : Fin 8, j = 6 ∨ j = 7 →
       (figMetric len γ).inheritance j = θ.inheritance (φ.arc j.castSucc) := by
     rintro j (rfl | rfl)

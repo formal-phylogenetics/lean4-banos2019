@@ -55,6 +55,7 @@ end Below
 
 variable [Fintype V] [Fintype E] [Fintype X] {Q : RootedNetwork V E X}
 
+omit [Fintype V] [Fintype X] in
 /-- **The child of the hybrid node of the only cycle is the parent of the two taxa below the hybrid
 node**: it is not a leaf, and its two child arcs end at the leaves `a` and `b`. Below it every node
 has a single parent (a second parent would put it on a cycle, the only cycle `C`, and make it the
@@ -264,6 +265,7 @@ theorem condCF_contractRooted_cherry_of_single_cycle (hQ : IsBinaryRootedNetwork
   exact condCF_cherry_one (hK.isPhylogenetic hQ.1) (isCut_contract hC hcut hS) (hK.isMetric hθ) hX
     hcr huniq₀ hab hbelow₀ hr₀ harcs₀ q
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- **The edge out of a hybrid node has the length of the corresponding edge**: for an isomorphism
 `φ` of the metric unrooted networks of two binary level-1 LSA networks, the edge `c` out of a hybrid
 node `v`, a tree edge of `Q⁻` from `v`, goes to the edge of `Q̃⁻` from `φ v` that is not hybrid, the
@@ -339,7 +341,7 @@ theorem length_child_eq_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E']
     rw [hd, hc']
     exact hvr'
   have hlen := φ.length cb
-  rw [semidirectedMetric_length, semidirectedMetric_length, if_neg hds, if_neg hcs, hd, hcb] at hlen
+  rw [semidirectedMetric_length, semidirectedMetric_length, ite_eq_right hds, ite_eq_right hcs, hd, hcb] at hlen
   exact hlen
 
 end Banos2019
