@@ -15,6 +15,13 @@ and generic parameters.
 
 * `bcSets`: the set `S`.
 * `lemma14`, `lemma15`, `lemma16`, `theorem4`; `proposition12`, `proposition13` (Section 9).
+* `complementBlock` (`Y_a`), `extensions` (`Z_T`) and the constructions of the proofs of Lemmas 15
+  and 16 from `S` and from the comparisons of concordance factors.
+
+The facts on the cycles of `N⁻` and of `Q⁻_s` that the proofs use are in `Identify/`: the blocks of a
+cycle (`Identify/Blocks.lean`, `Identify/HybridBlock.lean`), their order (`Identify/CycleOrder.lean`),
+and the cycles that a cycle of `N⁻` induces in `Q⁻_s` (`Identify/QuartetCycles.lean`). The network
+refuting Proposition 13 as printed is in `Identify/Counterexample.lean`.
 -/
 
 @[expose] public noncomputable section

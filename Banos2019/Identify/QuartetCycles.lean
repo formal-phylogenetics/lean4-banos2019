@@ -1635,6 +1635,7 @@ section Targets
 
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] {N : RootedNetwork V E X}
 
+omit [Fintype V] [Fintype E] in
 /-- **The hybrid node determined by `s`** (Section 7): `s` determines the hybrid node `v` of `N⁻`
 exactly when the cycle `C_v` of `N⁻` separates `s`, its four taxa in four distinct `v`-blocks, one of
 them in the hybrid block. The 4-cycle of `Q⁻_s` is the cycle that `C_v` induces on `s`. -/
@@ -1729,6 +1730,7 @@ theorem determines_iff_separatesQuartet (hN : IsBinaryRootedNetwork N) (h1 : IsL
     rw [← ncard_cycleNodes hC', cycleNodes_eq_range_blockNode hQb h1Q hC', ← Set.image_univ,
       Set.ncard_image_of_injective _ hinj, Set.ncard_univ, hcardQ]
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- **The order of the blocks of the 4-cycle of `Q⁻_s`** is that of the blocks of `C_v` that contain
 taxa of `s`: the blocks of `a` and `c` are adjacent in the 4-cycle of `Q⁻_s` exactly when they are
 joined along `C_v` avoiding the blocks of the other two taxa. -/
@@ -1854,6 +1856,7 @@ theorem adjacentBlocks_quartetUnrooted_iff [DecidableEq X] (hN : IsBinaryRootedN
     ⟨hmem hc hac.symm hbc.symm, hmem hds hda hbd.symm⟩ ⟨hmem ha hba.symm hac, hmem hds hbd.symm hdc⟩
     ⟨hmem hbs hba hbc, hmem hds hda hdc⟩ J₁ J₂ hJ
 
+omit [Fintype E] in
 /-- **A `3₂`-cycle of `Q⁻_s` comes from a cycle of `N⁻`**, with the same hybrid node: the two taxa
 `p`, `q` of `s` below the hybrid node are in the hybrid block of the cycle of `N⁻`, and the other two
 taxa `r`, `t` of `s` are in two other blocks, distinct from each other. -/
