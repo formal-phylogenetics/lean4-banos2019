@@ -1,0 +1,12 @@
+{
+  "challenge_module": "Banos2019.Challenge",
+  "solution_module": "Banos2019.Solution",
+  "theorem_names": [
+    "Banos2019Challenge.theorem3",
+    "Banos2019Challenge.theorem4",
+    "Banos2019Challenge.proposition5"
+  ],
+  "definition_names": [],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "enable_nanoda": true
+}
