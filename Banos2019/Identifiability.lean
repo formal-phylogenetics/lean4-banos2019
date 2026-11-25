@@ -31,8 +31,9 @@ generic conditions (`Identify/TildeDefs.lean`, `Identify/NonDegenerate.lean`), t
 (`Identify/TildeBase.lean`, with `Identify/TreeIso.lean`), the induced networks
 (`Identify/InducedCycles.lean`), the gluing of two networks at leaves (`Identify/Glue.lean`), the tree
 of cycles (`Identify/TreeOfCycles.lean`), the leaf cycle and a cycle whose blocks are single taxa
-(`Identify/TildeCycle.lean`), and the cycle data that Lemmas 15 and 16 give and that pass to the
-induced networks (`Identify/SameData.lean`, with the order of the blocks of their cycles in
+(`Identify/TildeCycle.lean`), and the 4-network blocks and cycle data that Lemmas 14, 15 and 16 give
+and that pass to the induced networks (`Identify/SameData.lean`, with the order of the blocks of their
+cycles in
 `Identify/InducedOrder.lean`).
 -/
 
@@ -168,26 +169,31 @@ the same taxa, with parameters satisfying `G` and the same orderings of concorda
 isomorphic networks `Ñ`.
 
 The proof is the paper's. `G` is the conditions `GoodParams`, which hold for generic parameters
-(`forGenericParams_goodParams`), with the conclusions of Lemmas 15 and 16 for the functions these
-lemmas give (`GivesBlocks`, `GivesAdjacency`). Lemmas 15 and 16 give the cycle data: every cycle of
-size at least four of `N₁⁻` has a cycle of `N₂⁻` with the same blocks, size, order of the blocks and,
-for size at least five, hybrid block (`sameCycleData_of_gives`), and these data pass to the networks
-induced on sets of taxa (`SameCycleData.inducedLSA`). The induction is on the number of cycles of
-size at least four of `N₁⁻` (`tildeDeterminedData`, `Identify/TildeInduction.lean`). Without such a
-cycle, `Ñ₁` and `Ñ₂` are trees, the orderings give the quartet trees they display, and these
-determine the trees (Semple and Steel 2003; `tildeDetermined_zero`). With one cycle `C_v`, the cycle
-data give a cycle of `N₂⁻` with the same blocks, size, order of the blocks and hybrid block. When the
-blocks are single taxa, `Ñ` is that cycle with a taxon at each node
-(`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block `P_u` of at least two taxa, read
-from the network induced on `P_u ∪ {q}` with an outgroup `q`, is joined to the node `u`: `Ñ` is the
-gluing at `u` of the networks `Ñ` of the networks induced on `P_u ∪ {q}`, which has no cycle of size
-at least four, and on the other taxa with one taxon of `P_u`, which has fewer taxa
-(`tildeDeterminedData_one`, by induction on the number of taxa). With more cycles, following
-Definition 13, a leaf of `T`, the tree of cycles of `Ñ`, arises from a cycle `C_v` all of whose
-`v`-blocks but one, `S_2`, the block of a node `u`, are 4-network blocks (`exists_leaf_bigCycle`);
-every other cycle of size at least four then has the taxa of `S_1 = X ∖ S_2` in one of its blocks.
-The networks `Ñ` of the networks induced on `S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}` have fewer cycles of
-size at least four, and `Ñ` is obtained by identifying `s_1` in one with `s_2` in the other and
+(`forGenericParams_goodParams`), with the conclusions of Lemmas 14, 15 and 16 for the functions these
+lemmas give (`GivesFourNetworkBlocks`, `GivesBlocks`, `GivesAdjacency`). Lemma 14 gives the same
+4-network blocks of `N₁⁻` and `N₂⁻` (`sameFourNetworkBlocks_of_gives`). Lemmas 15 and 16 give the
+cycle data: every cycle of size at least four of `N₁⁻` has a cycle of `N₂⁻` with the same blocks,
+size, order of the blocks and, for size at least five, hybrid block, and every such cycle of `N₂⁻`
+has one of `N₁⁻` (`sameCycleData_of_gives`). These data pass to the networks induced on sets of taxa
+(`SameCycleData.inducedLSA`), and give their 4-network blocks (`sameFourNetworkBlocks_inducedLSA`).
+The induction is on the number of cycles of size at least four of `N₁⁻` (`tildeDeterminedData`,
+`Identify/TildeInduction.lean`). Without such a cycle, `Ñ₁` and `Ñ₂` are trees, the orderings give
+the quartet trees they display, and these determine the trees (Semple and Steel 2003;
+`tildeDetermined_zero`). With one cycle `C_v`, the cycle data give a cycle of `N₂⁻` with the same
+blocks, size, order of the blocks and hybrid block. When the blocks are single taxa, `Ñ` is that
+cycle with a taxon at each node (`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block
+`P_u` of at least two taxa, read from the network induced on `P_u ∪ {q}` with an outgroup `q`, is
+joined to the node `u`: `Ñ` is the gluing at `u` of the networks `Ñ` of the networks induced on
+`P_u ∪ {q}`, which has no cycle of size at least four, and on the other taxa with one taxon of
+`P_u`, which has fewer taxa (`tildeDeterminedData_one`, by induction on the number of taxa). With
+more cycles, following Definition 13, a leaf of `T₁`, the tree of cycles of `Ñ₁`, arises from a cycle
+`C_v` of `N₁⁻` all of whose `v`-blocks but one, `S_2`, the block of a node `u`, are 4-network blocks
+(`exists_leaf_bigCycle`); every other cycle of size at least four then has the taxa of
+`S_1 = X ∖ S_2` in one of its blocks. The cycle of `N₂⁻` with the same blocks, all of them but `S_2`
+4-network blocks of `N₂⁻` (Lemma 14), gives a leaf of `T₂`, the tree of cycles of `Ñ₂`, and its node
+with the block `S_2` (`exists_isLeafNode_counterpart`); both networks split at these leaves. The
+networks `Ñ` of the networks induced on `S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}` have fewer cycles of size
+at least four, and `Ñ` is obtained by identifying `s_1` in one with `s_2` in the other and
 suppressing that node (`tildeDeterminedData_of_lt`, `tilde_sdIso_glue`, `glue_congr`).
 
 The induced networks `N⁻_{S_i ∪ {s_j}}` (Definition 10) are read as `(N⊕_Y)⁻`, the network `N⁻` of the
@@ -214,19 +220,26 @@ theorem theorem4 (hX : Nontrivial X) :
         ∀ θ₁ θ₂, IsMetricNetwork N₁ θ₁ → IsMetricNetwork N₂ θ₂ → G V₁ E₁ N₁ θ₁ → G V₂ E₂ N₂ θ₂ →
           SameOrdering (cf N₁ θ₁) (cf N₂ θ₂) →
           Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by
-  -- the functions of Lemmas 15 and 16
+  -- the functions of Lemmas 14, 15 and 16
+  obtain ⟨F, h14⟩ := lemma14 hX
   obtain ⟨B, K, H, h15⟩ := lemma15 hX
   obtain ⟨A, h16⟩ := lemma16 hX
   refine ⟨fun V E _ _ N θ => GoodParams hX N θ ∧ ∀ hN : IsBinaryRootedNetwork N,
-      IsLevelOne N.graph → GivesBlocks B K H hN hX θ ∧ GivesAdjacency A hN hX θ,
+      IsLevelOne N.graph → GivesFourNetworkBlocks F hN hX θ ∧ GivesBlocks B K H hN hX θ ∧
+        GivesAdjacency A hN hX θ,
     fun V E _ _ N hN h1 => (forGenericParams_goodParams hN h1 hX).and
-      (((h15 V E N hN h1).and (h16 V E N hN h1)).mono fun θ h _ _ => h), ?_⟩
+      (((h14 V E N hN h1).and ((h15 V E N hN h1).and (h16 V E N hN h1))).mono
+        fun θ h _ _ => h), ?_⟩
   intro V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord
-  obtain ⟨h15₁, h16₁⟩ := hG₁.2 hN₁ h1₁
-  obtain ⟨h15₂, h16₂⟩ := hG₂.2 hN₂ h1₂
-  -- the cycle data that Lemmas 15 and 16 give, and the induction
+  obtain ⟨h14₁, h15₁, h16₁⟩ := hG₁.2 hN₁ h1₁
+  obtain ⟨h14₂, h15₂, h16₂⟩ := hG₂.2 hN₂ h1₂
+  -- the cycle data that Lemmas 15 and 16 give, in both directions, the 4-network blocks that
+  -- Lemma 14 gives, and the induction
   exact tildeDeterminedData _ X hX V₁ E₁ V₂ E₂ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁.1 hG₂.1 hord
-    (sameCycleData_of_gives hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁.1 hG₂.1 hord h15₁ h15₂ h16₁ h16₂) rfl
+    (sameCycleData_of_gives hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁.1 hG₂.1 hord h15₁ h15₂ h16₁ h16₂)
+    (sameCycleData_of_gives hN₂ hN₁ h1₂ h1₁ hX hθ₂ hθ₁ hG₂.1 hG₁.1 (fun q r h => (hord q r h).symm)
+      h15₂ h15₁ h16₂ h16₁)
+    (sameFourNetworkBlocks_of_gives hN₁ hN₂ hX hθ₁ hθ₂ hord h14₁ h14₂) rfl
 
 variable {V E : Type*} [Fintype V] [Fintype E]
 

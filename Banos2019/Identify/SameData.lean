@@ -9,19 +9,27 @@ public import Banos2019.Identify.InducedOrder
 
 Two networks on the same taxa have the *same cycle data* (`SameCycleData`) when every cycle of size
 at least four of `N₁⁻` has a counterpart in `N₂⁻` with the same size, the same blocks, the same
-adjacent blocks and, for size at least five, the same hybrid block. The proof of Theorem 4 reads
-these data from the orderings of the concordance factors by Lemmas 15 and 16 (TeX l.1182 and
-l.1186), and its induction uses them for the networks induced on sets of taxa.
+adjacent blocks and, for size at least five, the same hybrid block; they have the *same 4-network
+blocks* (`SameFourNetworkBlocks`) when two taxa are in one 4-network block of `N₁⁻` exactly when they
+are in one 4-network block of `N₂⁻`. The proof of Theorem 4 reads these data from the orderings of
+the concordance factors by Lemmas 14, 15 and 16 (TeX l.1182 and l.1186), and its induction uses them
+for the networks induced on sets of taxa.
 
-* `GivesBlocks`, `GivesAdjacency`: the conclusions of Lemmas 15 and 16 at given parameters, for given
-  functions of `S` and of the comparisons of concordance factors.
-* `sameCycleData_of_gives`: two networks with the same orderings, at parameters where the
-  conclusions of Lemmas 15 and 16 hold for the same functions, have the same cycle data.
+* `GivesFourNetworkBlocks`, `GivesBlocks`, `GivesAdjacency`: the conclusions of Lemmas 14, 15 and 16
+  at given parameters, for given functions of `S` and of the comparisons of concordance factors.
+* `bcSets_eq_of_sameOrdering`: the same orderings give the same set `S`.
+* `sameFourNetworkBlocks_of_gives`, `sameCycleData_of_gives`: two networks with the same orderings,
+  at parameters where the conclusions of Lemma 14, and of Lemmas 15 and 16, hold for the same
+  functions, have the same 4-network blocks and the same cycle data.
 * `joinedAvoiding_of_sameBlock_of_adjacentBlocks`: two cycles with the same blocks and the same
   adjacent blocks join the same blocks avoiding the same blocks.
 * `SameCycleData.inducedLSA`: the same cycle data pass to the networks induced on a set of taxa,
   whose cycles are traces of those of `N⁻` (`Identify/InducedCycles.lean`) with the order of
   `adjacentBlocks_induced_iff`.
+* `sameFourNetworkBlocks_of_sameCycleData`, `sameFourNetworkBlocks_inducedLSA`: the cycle data in
+  both directions give the same 4-network blocks, since two taxa are in distinct 4-network blocks
+  exactly when a cycle of size at least four separates them (`sameBlock_bigCycleEdges_iff`); so the
+  networks induced on a set of taxa have the same 4-network blocks.
 -/
 
 @[expose] public noncomputable section
@@ -52,7 +60,22 @@ def SameCycleData {V₁ E₁ V₂ E₂ X' : Type*} (G₁ : SemidirectedNetwork V
       (∀ x y, AdjacentBlocks G₁ C₁ x y ↔ AdjacentBlocks G₂ C₂ x y) ∧
       (5 ≤ C₁.ncard → ∀ x, DescendsFrom G₁ v₁ x ↔ DescendsFrom G₂ v₂ x)
 
+/-- **The same 4-network blocks**: two taxa are in one 4-network block of `G₁` exactly when they are
+in one 4-network block of `G₂`. -/
+def SameFourNetworkBlocks {V₁ E₁ V₂ E₂ X' : Type*} (G₁ : SemidirectedNetwork V₁ E₁ X')
+    (G₂ : SemidirectedNetwork V₂ E₂ X') : Prop :=
+  ∀ x y, SameBlock G₁.graph G₁.leaf (familyEdges (cyclesOfSizeAtLeast G₁.graph 4)) x y ↔
+    SameBlock G₂.graph G₂.leaf (familyEdges (cyclesOfSizeAtLeast G₂.graph 4)) x y
+
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
+
+/-- **The conclusion of Lemma 14** at the parameters `θ`, for the function `F`: `F S` gives the
+4-network blocks of `N⁻`. -/
+def GivesFourNetworkBlocks (F : Set (Finset X) → X → X → Prop) {N : RootedNetwork V E X}
+    (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) (θ : MetricData E) : Prop :=
+  IsMetricNetwork N θ → ∀ x y, (F (bcSets N θ) x y ↔
+    SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
+      (familyEdges (cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)) x y)
 
 /-- **The conclusion of Lemma 15** at the parameters `θ`, for the functions `B`, `K`, `H`: for every
 set `s ∈ S` determining the hybrid node `w` of a cycle `C_w` of `N⁻`, `B S s` gives the blocks of
@@ -79,6 +102,30 @@ def GivesAdjacency (A : (QuartetTree X → QuartetTree X → Prop) → Finset X 
       Determines hN s hs.1 w.1.1 → ∀ x y,
         (A (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
           AdjacentBlocks (unrooted N hN hX) C x y)
+
+/-- **The same orderings give the same set `S`**: the Big Cycle property of a set of four taxa is
+read from the comparisons of its concordance factors (`bcSetsOf_cf`). -/
+theorem bcSets_eq_of_sameOrdering {V' E' : Type} [Fintype V'] [Fintype E']
+    {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} {θ₁ : MetricData E}
+    {θ₂ : MetricData E'} (hord : SameOrdering (cf N₁ θ₁) (cf N₂ θ₂)) :
+    bcSets N₁ θ₁ = bcSets N₂ θ₂ := by
+  have hR : (fun q r : QuartetTree X => q.taxa = r.taxa ∧ cf N₁ θ₁ q ≤ cf N₁ θ₁ r) =
+      fun q r => q.taxa = r.taxa ∧ cf N₂ θ₂ q ≤ cf N₂ θ₂ r :=
+    funext₂ fun q r => propext (and_congr_right (hord q r))
+  rw [← bcSetsOf_cf, hR, bcSetsOf_cf]
+
+/-- **Lemma 14 gives the same 4-network blocks**: for two networks with the same orderings of
+concordance factors, at parameters where the conclusion of Lemma 14 holds for the same function `F`,
+the set `S` is the same (`bcSets_eq_of_sameOrdering`), and `F S` gives the 4-network blocks of
+both. -/
+theorem sameFourNetworkBlocks_of_gives {V' E' : Type} [Fintype V'] [Fintype E']
+    {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
+    (hN₂ : IsBinaryRootedNetwork N₂) (hX : Nontrivial X) {θ₁ : MetricData E} {θ₂ : MetricData E'}
+    (hθ₁ : IsMetricNetwork N₁ θ₁) (hθ₂ : IsMetricNetwork N₂ θ₂)
+    (hord : SameOrdering (cf N₁ θ₁) (cf N₂ θ₂)) {F : Set (Finset X) → X → X → Prop}
+    (h14₁ : GivesFourNetworkBlocks F hN₁ hX θ₁) (h14₂ : GivesFourNetworkBlocks F hN₂ hX θ₂) :
+    SameFourNetworkBlocks (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX) := fun x y => by
+  rw [← h14₁ hθ₁ x y, ← h14₂ hθ₂ x y, bcSets_eq_of_sameOrdering hord]
 
 /-- **Lemmas 15 and 16 give the same cycle data**: for two networks with parameters satisfying
 `GoodParams` and the same orderings of concordance factors, at which the conclusions of Lemmas 15 and
@@ -118,8 +165,7 @@ theorem sameCycleData_of_gives {V' E' : Type} [Fintype V'] [Fintype E']
   have hR : (fun q r : QuartetTree X => q.taxa = r.taxa ∧ cf N₁ θ₁ q ≤ cf N₁ θ₁ r) =
       fun q r => q.taxa = r.taxa ∧ cf N₂ θ₂ q ≤ cf N₂ θ₂ r :=
     funext₂ fun q r => propext (and_congr_right (hord q r))
-  have hSS : bcSets N₁ θ₁ = bcSets N₂ θ₂ := by
-    rw [← bcSetsOf_cf, hR, bcSetsOf_cf]
+  have hSS : bcSets N₁ θ₁ = bcSets N₂ θ₂ := bcSets_eq_of_sameOrdering hord
   -- `s` has the Big Cycle property, so a cycle `C₂` of `N₂⁻` of size at least four separates it
   have hs₁ : s ∈ bcSets N₁ θ₁ := (mem_bcSets_iff_of_lemma12 h12₁ s h4).2 ⟨C₁, v₁, hC₁4, hsep₁⟩
   have hs₂ : s ∈ bcSets N₂ θ₂ := hSS ▸ hs₁
@@ -339,5 +385,66 @@ theorem SameCycleData.inducedLSA {V' E' : Type} [Fintype V'] [Fintype E']
           ((blockNode_eq_iff_descendsFrom h1₂ hC₂ hv₂ a).symm.trans
             ((blockNode_eq_hybrid_iff_induced hN₂ h1₂ hX hY hC₂'c hw₂ hC₂ hv₂ hwv₂ a.2).trans
               (blockNode_eq_iff_descendsFrom h1Y₂ hC₂'c hw₂ a))))))
+
+omit [Fintype X] [DecidableEq X] [Fintype V] in
+/-- **Two taxa are in one 4-network block exactly when no cycle of size at least four separates
+them** (Lemma 4). -/
+theorem sameBlock_bigCycleEdges_iff {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) (x y : X) :
+    SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
+        (familyEdges (cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)) x y ↔
+      ∀ C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4,
+        SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y := by
+  refine ⟨fun h C hC => h.mono (Set.subset_sUnion_of_mem hC), fun h => by_contra fun hn => ?_⟩
+  obtain ⟨C, hC, hCxy⟩ := lemma4 (unrooted N hN hX).leaf (unrooted_isConnected hN hX)
+    (unrooted_isLevelOne hN h1 hX) (fun C (hC : C ∈ cyclesOfSizeAtLeast _ 4) => hC.1) hn
+  exact hCxy (h C hC)
+
+omit [Fintype X] [DecidableEq X] [Fintype V] in
+/-- Taxa in one 4-network block of `N₁⁻` are in one 4-network block of `N₂⁻` when every cycle of
+size at least four of `N₂⁻` has a counterpart in `N₁⁻` with the same blocks: no cycle of size at
+least four of `N₂⁻` separates them (`sameBlock_bigCycleEdges_iff`). -/
+theorem sameBlock_bigCycleEdges_of_sameCycleData {V' E' : Type} [Fintype E']
+    {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
+    (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph)
+    (hX : Nontrivial X) (hD' : SameCycleData (unrooted N₂ hN₂ hX) (unrooted N₁ hN₁ hX)) {x y : X}
+    (h : SameBlock (unrooted N₁ hN₁ hX).graph (unrooted N₁ hN₁ hX).leaf
+      (familyEdges (cyclesOfSizeAtLeast (unrooted N₁ hN₁ hX).graph 4)) x y) :
+    SameBlock (unrooted N₂ hN₂ hX).graph (unrooted N₂ hN₂ hX).leaf
+      (familyEdges (cyclesOfSizeAtLeast (unrooted N₂ hN₂ hX).graph 4)) x y := by
+  rw [sameBlock_bigCycleEdges_iff hN₁ h1₁ hX] at h
+  refine (sameBlock_bigCycleEdges_iff hN₂ h1₂ hX x y).2 fun C₂ hC₂ => ?_
+  obtain ⟨v₂, hv₂⟩ := exists_isHybridNodeOf h1₂ hC₂.1
+  obtain ⟨C₁, -, hC₁, -, -, hB, -⟩ := hD' C₂ hC₂ v₂ hv₂
+  exact (hB x y).2 (h C₁ hC₁)
+
+omit [Fintype X] [DecidableEq X] [Fintype V] in
+/-- **The cycle data in both directions give the same 4-network blocks**: two taxa are in distinct
+4-network blocks exactly when a cycle of size at least four separates them, and its counterpart, with
+the same blocks, separates them too. -/
+theorem sameFourNetworkBlocks_of_sameCycleData {V' E' : Type} [Fintype E']
+    {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
+    (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph)
+    (hX : Nontrivial X) (hD : SameCycleData (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX))
+    (hD' : SameCycleData (unrooted N₂ hN₂ hX) (unrooted N₁ hN₁ hX)) :
+    SameFourNetworkBlocks (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX) := fun _ _ =>
+  ⟨sameBlock_bigCycleEdges_of_sameCycleData hN₁ hN₂ h1₁ h1₂ hX hD',
+    sameBlock_bigCycleEdges_of_sameCycleData hN₂ hN₁ h1₂ h1₁ hX hD⟩
+
+omit [DecidableEq X] in
+/-- **The same 4-network blocks for the networks induced on `Y`**: the cycle data in both
+directions pass to them (`SameCycleData.inducedLSA`) and give their 4-network blocks
+(`sameFourNetworkBlocks_of_sameCycleData`). -/
+theorem sameFourNetworkBlocks_inducedLSA {V' E' : Type} [Fintype V'] [Fintype E']
+    {N₁ : RootedNetwork V E X} {N₂ : RootedNetwork V' E' X} (hN₁ : IsBinaryRootedNetwork N₁)
+    (hN₂ : IsBinaryRootedNetwork N₂) (h1₁ : IsLevelOne N₁.graph) (h1₂ : IsLevelOne N₂.graph)
+    (hX : Nontrivial X) (hD : SameCycleData (unrooted N₁ hN₁ hX) (unrooted N₂ hN₂ hX))
+    (hD' : SameCycleData (unrooted N₂ hN₂ hX) (unrooted N₁ hN₁ hX)) {Y : Set X}
+    (hY : Y.Nontrivial) :
+    SameFourNetworkBlocks (inducedLSAUnrooted N₁ hN₁ Y hY) (inducedLSAUnrooted N₂ hN₂ Y hY) :=
+  sameFourNetworkBlocks_of_sameCycleData (inducedLSA_isBinaryRootedNetwork hN₁ hY)
+    (inducedLSA_isBinaryRootedNetwork hN₂ hY) (inducedLSA_isLevelOne hN₁ h1₁ hY)
+    (inducedLSA_isLevelOne hN₂ h1₂ hY) hY.coe_sort (hD.inducedLSA hN₁ hN₂ h1₁ h1₂ hX hY)
+    (hD'.inducedLSA hN₂ hN₁ h1₂ h1₁ hX hY)
 
 end Banos2019
