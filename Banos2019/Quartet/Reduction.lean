@@ -10,6 +10,8 @@ public import Banos2019.Quartet.DisjointNet
 public import Banos2019.Quartet.ContractCompose
 public import Banos2019.Quartet.QuartetLSA
 public import Banos2019.Quartet.UnrootedIso
+public import Banos2019.Quartet.ThreeTwoCherry
+public import Banos2019.Quartet.DisjointTree
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -2425,7 +2427,11 @@ theorem isLSAQuartet_disjointNet (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     (hab : a ≠ b) (hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b) :
     IsLSAQuartet (disjointNet Q v h₁ h₂ a b) (disjointMetric Q v h₁ h₂ θ) ∧
       ∀ D, ¬ IsCycle (disjointNet Q v h₁ h₂ a b).graph D := by
-  sorry
+  obtain ⟨hb, hl, hθ⟩ := disjointNet_spec hQ.binary hQ.levelOne hone hC.2.1 hC.2.2.1 hne hh₁ hh₂
+    hab hbelow hQ.metric
+  have h0 := disjointNet_not_isCycle hQ.binary hQ.levelOne hone hC.2.1 hC.2.2.1 hne hh₁ hh₂
+    (a := a) (b := b)
+  exact ⟨⟨hb, fun C₁ _ hC₁ => absurd hC₁ (h0 C₁), hl, hQ.card_taxa, hθ⟩, h0⟩
 
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
 nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
@@ -2470,11 +2476,12 @@ theorem probLineages_condCF_eq_of_threeTwo (hQ : IsLSAQuartet Q θ) (hQ' : IsLSA
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
-    (hD : IsCycleType hQ.unrooted D 3 2)
+    (hD : IsCycle hQ.unrooted.graph D)
     (hone : ∀ C', IsCycle Q.graph C' → C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)
     (hone' : ∀ C', IsCycle Q'.graph C' →
       C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D))
     {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial} (hw : IsHybridNodeOf hQ.unrooted D w)
+    (hk : {x | DescendsFrom hQ.unrooted w x}.ncard = 2)
     {c : E} (hc : Q.graph.source c = sdVert hQ.binary.1 hQ.nontrivial w) {c' : E'}
     (hc' : Q'.graph.source c' = sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
     (c₀ : {e // ∀ C', IsCycle Q.graph C' →
@@ -2490,7 +2497,31 @@ theorem probLineages_condCF_eq_of_threeTwo (hQ : IsLSAQuartet Q θ) (hQ' : IsLSA
             (φ.edge '' D)))
           (contractMetric Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
             (φ.edge '' D)) θ') c₀' 1 q := by
-  sorry
+  have hC := inducesCycleType_liftEdges_of_isHybridNodeOf hQ hD hw
+  have hC' := inducesCycleType_liftEdges_of_isHybridNodeOf hQ' (φ.isCycle_image hD)
+    (φ.isHybridNodeOf_image hw)
+  obtain ⟨a, b, hab, hs⟩ := Set.ncard_eq_two.1 hk
+  have hbelowD : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b := fun x => by
+    have := Set.ext_iff.1 hs x
+    simpa using this
+  have hbelow : ∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔
+      x = a ∨ x = b := fun x =>
+    (descendsFrom_semidirected_iff _ _ _ w hC.2.2.1 x).symm.trans (hbelowD x)
+  have hbelow' : ∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+      (Q'.leaf x) ↔ x = a ∨ x = b := fun x =>
+    (descendsFrom_semidirected_iff _ _ _ (φ.vert w) hC'.2.2.1 x).symm.trans
+      ((φ.descendsFrom_iff w x).trans (hbelowD x))
+  have hl := length_child_eq_of_sdMetricIso hQ.binary hQ.levelOne hQ.isLSA hQ'.binary hQ'.isLSA
+    hQ.nontrivial φ hC.2.2.1 hC'.2.2.1 hc hc'
+  obtain ⟨hP1, hP2⟩ := probLineages_cherry_of_single_cycle hQ.binary hQ.levelOne hC.1 hone hC.2.1
+    hC.2.2.1 hc hab hbelow hQ.metric.1
+  obtain ⟨hP1', hP2'⟩ := probLineages_cherry_of_single_cycle hQ'.binary hQ'.levelOne hC'.1 hone'
+    hC'.2.1 hC'.2.2.1 hc' hab hbelow' hQ'.metric.1
+  refine ⟨by rw [hP1, hP1', hl], by rw [hP2, hP2', hl], fun q => ?_⟩
+  rw [condCF_contractRooted_cherry_of_single_cycle hQ.binary hQ.levelOne hC.1 hone hC.2.1 hC.2.2.1
+      hc hab hbelow hQ.metric.1 hQ.card_taxa c₀ hc₀ q,
+    condCF_contractRooted_cherry_of_single_cycle hQ'.binary hQ'.levelOne hC'.1 hone' hC'.2.1
+      hC'.2.2.1 hc' hab hbelow' hQ'.metric.1 hQ'.card_taxa c₀' hc₀' q]
 
 
 omit [Fintype X] in
@@ -2744,7 +2775,7 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
         C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) → e ∉ C'} :=
       ⟨c', fun C' _ hC'e => hC'e ▸
         notMem_of_source_eq_hybrid hQ'.binary hQ'.levelOne hC'.1 hC'.2.1 hC'.2.2.1 hc'⟩
-    have e := probLineages_condCF_eq_of_threeTwo hQ hQ' φ hD hone hone' hw hc hc' c₀ rfl c₀' rfl
+    have e := probLineages_condCF_eq_of_threeTwo hQ hQ' φ hDc hone hone' hw hk hc hc' c₀ rfl c₀' rfl
     have hne₁ : sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁ ≠
         sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂ := fun h => hne (sdArc_injective _ _ _ h)
     have hne' : sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁) ≠
