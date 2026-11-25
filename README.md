@@ -177,7 +177,7 @@ From [Section 10 of the report](docs/Banos2019/REPORT.md#10-the-paper-in-the-lit
 
 ## What's next
 
-A private `NEXT.md` holds the candidate follow-up papers. [Section 11 of the report](docs/Banos2019/REPORT.md#11-whats-next)
+ [Section 11 of the report](docs/Banos2019/REPORT.md#11-whats-next)
 says what the formalization holds for reuse.
 
 ## Credits

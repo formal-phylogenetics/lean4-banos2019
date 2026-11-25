@@ -668,7 +668,7 @@ repository.
 
 ## 11. What's next
 
-Plans for follow-up papers are kept in `NEXT.md`, which is not published. Below: what the formalization holds for
+Below: what the formalization holds for
 reuse.
 
 ### The formalization

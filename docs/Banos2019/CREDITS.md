@@ -53,8 +53,7 @@ How it was made:
   [`scripts/check_kernels.sh`](../../scripts/check_kernels.sh) (04:55), Lean's kernel and NanoDa, through Comparator, accept the eleven theorems of the
   Challenge, and con-ron accepts them, in an export of 50,734 declarations.
 - **Documents** (03:57 to the end): this file, the report and the README by one agent, with a sub-agent that checked
-  the literature section's claims against their sources; the private `NEXT.md` by another agent (03:57–05:42), with two
-  sub-agents that checked it.
+  the literature section's claims against their sources.
 
 The same session also coordinated work on other repositories of the collection, which the main session's figures
 below include and the sub-agents' figures do not: the move of the collection to new releases of its libraries, the
