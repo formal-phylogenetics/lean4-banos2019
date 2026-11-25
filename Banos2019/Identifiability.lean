@@ -481,10 +481,114 @@ theorem lemma15 (hX : Nontrivial X) :
       simp only [hybridBlock, hHT, exists_eq_left, Set.mem_ofPred_eq, hZa]
       exact blockNode_eq_iff_descendsFrom h1 hC hw x
 
+/-! ### The order of the blocks from the orderings (proof of Lemma 16) -/
+
+/-- The sets of four taxa with the Big Cycle property, read from the comparisons `R` of the
+concordance factors of quartet trees on the same four taxa: no two of their trees compare both ways. -/
+def bcSetsOf (R : QuartetTree X → QuartetTree X → Prop) : Set (Finset X) :=
+  {s | #s = 4 ∧ ∀ q ∈ treesOn s, ∀ r ∈ treesOn s, q ≠ r → ¬ (R q r ∧ R r q)}
+
+/-- `q` is `q^BC_s`, read from the comparisons `R`: below the other two trees on `s`. -/
+def IsBCQuartetOf (R : QuartetTree X → QuartetTree X → Prop) (s : Finset X) (q : QuartetTree X) :
+    Prop :=
+  q ∈ treesOn s ∧ ∀ r ∈ treesOn s, r ≠ q → R q r ∧ ¬ R r q
+
+section Comparisons
+
+variable {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X} {θ : MetricData E}
+
+/-- The Big Cycle property, with the instances of this section. -/
+theorem bigCycleOn_iff_mem_bcSets {s : Finset X} (hs : #s = 4) :
+    BigCycleOn (cf N θ) s ↔ s ∈ bcSets N θ :=
+  ⟨fun h => ⟨hs, by convert h⟩, fun h => by convert h.2⟩
+
+/-- The comparisons of the concordance factors give `S`. -/
+theorem bcSetsOf_cf :
+    bcSetsOf (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) = bcSets N θ := by
+  ext s
+  simp only [bcSetsOf, Set.mem_ofPred_eq]
+  constructor
+  · rintro ⟨hs, h⟩
+    refine (bigCycleOn_iff_mem_bcSets hs).1 fun q hq r hr hqr hcf => h q hq r hr hqr ?_
+    have hq' := (mem_filter.1 hq).2
+    have hr' := (mem_filter.1 hr).2
+    exact ⟨⟨hq'.trans hr'.symm, hcf.le⟩, ⟨hr'.trans hq'.symm, hcf.ge⟩⟩
+  · intro h
+    refine ⟨h.1, fun q hq r hr hqr ⟨h₁, h₂⟩ => ?_⟩
+    exact (bigCycleOn_iff_mem_bcSets h.1).2 h q hq r hr hqr (le_antisymm h₁.2 h₂.2)
+
+/-- The comparisons of the concordance factors give `q^BC_s`. -/
+theorem isBCQuartetOf_cf (s : Finset X) (q : QuartetTree X) :
+    IsBCQuartetOf (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s q ↔
+      IsBCQuartet (cf N θ) s q := by
+  unfold IsBCQuartetOf IsBCQuartet
+  refine and_congr_right fun hq => forall₂_congr fun r hr => imp_congr_right fun _ => ?_
+  have hqr : q.taxa = r.taxa := (mem_filter.1 hq).2.trans (mem_filter.1 hr).2.symm
+  constructor
+  · rintro ⟨⟨-, h₁⟩, h₂⟩
+    exact lt_of_le_of_ne h₁ fun h => h₂ ⟨hqr.symm, h.ge⟩
+  · intro h
+    exact ⟨⟨hqr, h.le⟩, fun ⟨_, h'⟩ => not_le.2 h h'⟩
+
+/-- **Proposition 11 for a set of four taxa that `C_v` separates**: `q^BC ≠ xy|zz'` exactly when the
+blocks of `x` and `y` are joined along `C_v` avoiding those of `z` and `z'`. The 4-cycle of `Q⁻_{xyzz'}`
+is the cycle induced by `C_v`, with the same order of the blocks. -/
+theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hX : Nontrivial X) (hθ : IsMetricNetwork N θ)
+    (hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s))
+    {C : Set _} (hC4 : 4 ≤ C.ncard) {w : SemidirectedVertex hN.1 hX}
+    {x y z z' : X} (h : Distinct4 x y z z')
+    (hsep : SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'}) :
+    ¬ IsBCQuartet (cf N θ) {x, z, y, z'} (quartetTree x y z z' h) ↔
+      JoinedAvoiding (unrooted N hN hX) C {z, z'} x y := by
+  obtain ⟨hxy, hxz, hxz', hyz, hyz', hzz'⟩ := h
+  have hD : Distinct4 x z y z' := ⟨hxz, hxy, hxz', hyz.symm, hzz', hyz'⟩
+  have heq : ({x, z, y, z'} : Finset X) = {x, y, z, z'} := by
+    ext m
+    simp only [mem_insert, mem_singleton]
+    tauto
+  have h4 : #({x, z, y, z'} : Finset X) = 4 := card_eq_four_of_distinct4 hD
+  have hsep' : SeparatesQuartet (unrooted N hN hX) C w {x, z, y, z'} := by
+    rw [heq]
+    exact hsep
+  have hbc : BigCycleOn (cf N θ) {x, z, y, z'} :=
+    (bigCycleOn_iff_mem_bcSets h4).2 ((hS _ h4).2 ⟨C, w, hC4, hsep'⟩)
+  obtain ⟨CQ, wQ, hCQ, hCQ4, hwQ, hwQv⟩ :=
+    (determines_iff_separatesQuartet hN h1 hX h4 w).2 ⟨C, hsep'⟩
+  have h11 := proposition11 hN h1 hθ hD h4 hbc hCQ hCQ4
+  have hadj := adjacentBlocks_quartetUnrooted_iff hN h1 hX h4 hsep' hCQ hCQ4 hwQ hwQv
+    (a := x) (c := y) (by simp) (by simp) hxy
+  have herase : (({x, z, y, z'} : Finset X).erase x).erase y = {z, z'} := by
+    ext m
+    simp only [mem_erase, mem_insert, mem_singleton]
+    constructor
+    · rintro ⟨hmy, hmx, hm⟩
+      tauto
+    · rintro (rfl | rfl)
+      · exact ⟨hyz.symm, hxz.symm, Or.inr (Or.inl rfl)⟩
+      · exact ⟨hyz'.symm, hxz'.symm, Or.inr (Or.inr (Or.inr rfl))⟩
+  have hcoe : (↑({z, z'} : Finset X) : Set X) = {z, z'} := by simp
+  rw [herase, hcoe] at hadj
+  exact (not_congr h11).trans (not_not.trans hadj)
+
+end Comparisons
+
 /-- **Lemma 16** (`orderofcycles`): for generic parameters, the order of the blocks around each cycle
 `C_v` of size at least four (which blocks are adjacent) is determined by the orderings of the
 concordance factors: the function `A` sees only how the concordance factors of quartet trees on the same
-four taxa compare (Definition 15). -/
+four taxa compare (Definition 15).
+
+The proof is the paper's: the blocks, the size and, for `k_v ≥ 5`, the hybrid block come from Lemma 15,
+and the order from `q^BC` of the sets of four taxa that `C_v` separates, by Proposition 11. For `k_v = 4`
+these are the sets with one taxon in each block. For `k_v ≥ 5` the paper finds the two blocks adjacent to
+the hybrid block `A_1` with the test `q^BC_{a₁aⱼxy} ≠ a₁aⱼ|xy` for all `x, y` in other blocks, and
+continues around the cycle.
+Departure from the paper: the continuation step is printed as `q^BC_{a₁aⱼa_px} ≠ a₁aⱼ|xa_p`, which does
+not involve the block `A_q` whose neighbour it looks for. The proof applies the test of the first step,
+with a taxon of the hybrid block among the four, to every pair of blocks: two blocks are adjacent exactly
+when `q^BC_{xyzz'} ≠ xy|zz'` for all `z, z'` such that `x, y, z, z'` are in four distinct blocks, one of
+them the hybrid block. -/
 theorem lemma16 (hX : Nontrivial X) :
     ∃ A : (QuartetTree X → QuartetTree X → Prop) → Finset X → X → X → Prop,
       ∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X)
@@ -494,7 +598,101 @@ theorem lemma16 (hX : Nontrivial X) :
             Determines hN s hs.1 w.1.1 → ∀ x y,
               (A (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
                 AdjacentBlocks (unrooted N hN hX) C x y) := by
-  sorry
+  -- the blocks, the size and the hybrid block of the cycle, from `S` (Lemma 15)
+  obtain ⟨B, K, H, h15⟩ := lemma15 hX
+  refine ⟨fun R s x y => ¬ B (bcSetsOf R) s x y ∧ ∀ z z' (h : Distinct4 x y z z'),
+      ¬ B (bcSetsOf R) s x z → ¬ B (bcSetsOf R) s x z' → ¬ B (bcSetsOf R) s y z →
+      ¬ B (bcSetsOf R) s y z' → ¬ B (bcSetsOf R) s z z' →
+      (K (bcSetsOf R) s = 4 ∨ x ∈ H (bcSetsOf R) s ∨ y ∈ H (bcSetsOf R) s ∨
+        z ∈ H (bcSetsOf R) s ∨ z' ∈ H (bcSetsOf R) s) →
+      ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h), ?_⟩
+  intro V E _ _ N hN h1
+  refine ((h15 V E N hN h1).and (lemma12 hN h1 hX)).imp fun θ h => ?_
+  rintro hθ s hs C w hC hw hdet x y
+  obtain ⟨h15θ, h12⟩ := h
+  obtain ⟨hB, hK, hH⟩ := h15θ hθ s hs C w hC hw hdet
+  simp only [bcSetsOf_cf, isBCQuartetOf_cf]
+  -- `s` is separated by `C_w`
+  obtain ⟨C', hsep⟩ := (determines_iff_separatesQuartet hN h1 hX hs.1 w).1 hdet
+  rw [← hw.cycle_eq h1 hC hsep.1 hsep.2.1] at hsep
+  have hC4 := four_le_ncard_of_separatesQuartet h1 hC hw hs.1 hsep
+  set β := blockNode (unrooted N hN hX) C
+  have hBβ : ∀ a b, B (bcSets N θ) s a b ↔ β a = β b :=
+    fun a b => (hB a b).trans (sameBlock_iff_blockNode_eq h1 hC a b)
+  rw [adjacentBlocks_iff_forall_joinedAvoiding h1 hC hC4 hw x y, ← hB x y]
+  refine and_congr_right fun hxy => forall₂_congr fun z z' => ?_
+  rw [hBβ] at hxy
+  -- the sets of four taxa that `C_w` separates, from the blocks and the hybrid block
+  have hsepiff : ∀ h : Distinct4 x y z z',
+      ((¬ B (bcSets N θ) s x z ∧ ¬ B (bcSets N θ) s x z' ∧ ¬ B (bcSets N θ) s y z ∧
+        ¬ B (bcSets N θ) s y z' ∧ ¬ B (bcSets N θ) s z z') ∧
+        (K (bcSets N θ) s = 4 ∨ x ∈ H (bcSets N θ) s ∨ y ∈ H (bcSets N θ) s ∨
+          z ∈ H (bcSets N θ) s ∨ z' ∈ H (bcSets N θ) s)) ↔
+      SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} := by
+    intro h
+    simp only [hBβ]
+    rw [separatesQuartet_iff h1 hC hw]
+    have := hN.1.finite_vertices
+    by_cases h4 : C.ncard = 4
+    · -- four blocks on a 4-cycle: one of them is the hybrid block
+      refine ⟨fun ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, _⟩ => ?_, fun ⟨hinj, _⟩ => ?_⟩
+      · have hinj := injOn_four hxy hxz hxz' hyz hyz' hzz'
+        have hnodes : β '' ↑({x, y, z, z'} : Finset X) =
+            cycleNodes (unrooted N hN hX).graph C := by
+          refine Set.eq_of_subset_of_ncard_le ?_ ?_ (Set.toFinite _)
+          · rintro _ ⟨m, -, rfl⟩
+            exact blockNode_mem hC m
+          · rw [ncard_cycleNodes hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
+              card_eq_four_of_distinct4 h]
+        obtain ⟨m, hm, hmw⟩ := hnodes ▸ hw.mem_cycleNodes
+        exact ⟨hinj, m, hm, hmw⟩
+      · refine ⟨⟨fun e => h.2.1 (hinj (by simp) (by simp) e), fun e => h.2.2.1 (hinj (by simp)
+          (by simp) e), fun e => h.2.2.2.1 (hinj (by simp) (by simp) e),
+          fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e),
+          fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)⟩, Or.inl (hK.trans h4)⟩
+    · -- at least five blocks: the hybrid block is `H`
+      have hH5 := hH (by omega)
+      have hK4 : K (bcSets N θ) s ≠ 4 := hK ▸ h4
+      have hmemH : ∀ m, m ∈ H (bcSets N θ) s ↔ β m = w := fun m => by
+        rw [hH5]
+        exact (blockNode_eq_iff_descendsFrom h1 hC hw m).symm
+      simp only [hmemH, hK4, false_or]
+      constructor
+      · rintro ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩
+        refine ⟨injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
+        rcases hhyb with hm | hm | hm | hm
+        · exact ⟨x, by simp, hm⟩
+        · exact ⟨y, by simp, hm⟩
+        · exact ⟨z, by simp, hm⟩
+        · exact ⟨z', by simp, hm⟩
+      · rintro ⟨hinj, m, hm, hmw⟩
+        refine ⟨⟨fun e => h.2.1 (hinj (by simp) (by simp) e), fun e => h.2.2.1 (hinj (by simp)
+          (by simp) e), fun e => h.2.2.2.1 (hinj (by simp) (by simp) e),
+          fun e => h.2.2.2.2.1 (hinj (by simp) (by simp) e),
+          fun e => h.2.2.2.2.2 (hinj (by simp) (by simp) e)⟩, ?_⟩
+        simp only [mem_insert, mem_singleton] at hm
+        rcases hm with rfl | rfl | rfl | rfl
+        · exact Or.inl hmw
+        · exact Or.inr (Or.inl hmw)
+        · exact Or.inr (Or.inr (Or.inl hmw))
+        · exact Or.inr (Or.inr (Or.inr hmw))
+  -- for a set that `C_w` separates, `q^BC ≠ xy|zz'` exactly when the blocks of `x` and `y` are
+  -- joined avoiding those of `z` and `z'` (Proposition 11)
+  have hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s) :=
+    fun s h4 => ⟨fun h => (h12 hθ s h4).1 h.2, fun h => ⟨h4, (h12 hθ s h4).2 h⟩⟩
+  have hcore : ∀ h : Distinct4 x y z z', SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} →
+      (¬ IsBCQuartet (cf N θ) {x, z, y, z'} (quartetTree x y z z' h) ↔
+        JoinedAvoiding (unrooted N hN hX) C {z, z'} x y) := fun h hsep' =>
+    not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep'
+  constructor
+  · intro hL h4' hsep'
+    have h := distinct4_of_card_eq_four h4'
+    obtain ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩ := (hsepiff h).2 hsep'
+    exact (hcore h hsep').1 (hL h hxz hxz' hyz hyz' hzz' hhyb)
+  · intro hR h hxz hxz' hyz hyz' hzz' hhyb
+    have hsep' := (hsepiff h).1 ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩
+    exact (hcore h hsep').2 (hR (card_eq_four_of_distinct4 h) hsep')
 
 /-- **Theorem 4** (`thm::main`): under the network multispecies coalescent, for generic parameters, the
 orderings of the quartet concordance factors identify the semidirected topological network `Ñ` obtained

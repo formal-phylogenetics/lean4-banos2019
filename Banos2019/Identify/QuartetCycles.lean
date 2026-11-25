@@ -42,7 +42,7 @@ theorem determines_iff_separatesQuartet (hN : IsBinaryRootedNetwork N) (h1 : IsL
 /-- **The order of the blocks of the 4-cycle of `Q⁻_s`** is that of the blocks of `C_v` that contain
 taxa of `s`: the blocks of `a` and `c` are adjacent in the 4-cycle of `Q⁻_s` exactly when they are
 joined along `C_v` avoiding the blocks of the other two taxa. -/
-theorem adjacentBlocks_quartetUnrooted_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+theorem adjacentBlocks_quartetUnrooted_iff [DecidableEq X] (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {v : SemidirectedVertex hN.1 hX}
     (hsep : SeparatesQuartet (unrooted N hN hX) C v s) {C' : Set _}
     (hC' : IsCycle (quartetUnrooted N hN s hs).graph C') (hC'4 : C'.ncard = 4) {w}

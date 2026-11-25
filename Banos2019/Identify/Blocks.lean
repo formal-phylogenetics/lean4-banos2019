@@ -120,6 +120,34 @@ theorem injOn_four {f : α → β} {a b c d : α} (hab : f a ≠ f b) (hac : f a
   rcases hx with rfl | rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl | rfl <;>
     first | rfl | exact absurd hxy ‹_› | exact absurd hxy.symm ‹_›
 
+/-- Four elements making a set of four are distinct. -/
+theorem distinct4_of_card_eq_four {a b c d : α} (h : #({a, b, c, d} : Finset α) = 4) :
+    Distinct4 a b c d := by
+  have h3 : ∀ p q r : α, #({p, q, r} : Finset α) ≤ 3 := fun p q r => card_le_three
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> rintro rfl
+  · have := h3 a c d
+    simp_all
+  · have := h3 a b d
+    rw [show ({a, b, a, d} : Finset α) = {a, b, d} by ext; simp; tauto] at h
+    omega
+  · have := h3 a b c
+    rw [show ({a, b, c, a} : Finset α) = {a, b, c} by ext; simp; tauto] at h
+    omega
+  · have := h3 a b d
+    rw [show ({a, b, b, d} : Finset α) = {a, b, d} by ext; simp] at h
+    omega
+  · have := h3 a b c
+    rw [show ({a, b, c, b} : Finset α) = {a, b, c} by ext; simp; tauto] at h
+    omega
+  · have := h3 a b c
+    rw [show ({a, b, c, c} : Finset α) = {a, b, c} by ext; simp] at h
+    omega
+
+/-- Four distinct elements make a set of four. -/
+theorem card_eq_four_of_distinct4 {a b c d : α} (h : Distinct4 a b c d) :
+    #({a, b, c, d} : Finset α) = 4 :=
+  card_four_of_ne h.1 h.2.1 h.2.2.1 h.2.2.2.1 h.2.2.2.2.1 h.2.2.2.2.2
+
 end Four
 
 /-! ### `N⁻` is connected and level-1 -/
@@ -343,7 +371,7 @@ the other two blocks of every set of four taxa that the cycle separates and that
 Adjacent blocks are joined by their edge. Two blocks that are not adjacent leave a node on each of the
 two arcs of the cycle between them, the hybrid node among them when it is not one of the two; taxa in
 the blocks of these nodes separate them. -/
-theorem adjacentBlocks_iff_forall_joinedAvoiding (h1 : IsLevelOne N.graph) {C : Set _}
+theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOne N.graph) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : 4 ≤ C.ncard) {v}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (x y : X) :
     AdjacentBlocks (unrooted N hN hX) C x y ↔
