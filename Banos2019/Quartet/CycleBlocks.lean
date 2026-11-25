@@ -762,6 +762,17 @@ theorem not_inducesCycleType_two_two_of_four (hN : IsBinaryRootedNetwork N)
   rw [hpair, sum_pair (Ne.symm hbv), nodeBlock_hybrid hN h1 hcyc hv h2, hk, hX] at hsum
   omega
 
+/-- **A cycle of an LSA network has at most as many nodes other than the root as taxa** (proof of
+Lemma 5): their blocks are pairwise disjoint and nonempty. -/
+theorem card_cycleNodesOffRoot_le (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hlsa : N.IsLSANetwork) {C : Set E} (hC : IsCycle N.graph C) :
+    #(cycleNodesOffRoot N C) ≤ Fintype.card X := by
+  have h := sum_ncard_nodeBlock_le h1 hC
+  have hle := card_nsmul_le_sum (cycleNodesOffRoot N C) _ 1 fun u hu =>
+    one_le_ncard_nodeBlock hN h1 hlsa hC hu
+  rw [smul_eq_mul, mul_one] at hle
+  omega
+
 end Several
 
 end Banos2019
