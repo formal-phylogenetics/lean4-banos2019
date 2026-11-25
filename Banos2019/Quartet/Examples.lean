@@ -4,6 +4,7 @@ public import Banos2019.Quartet.Reduction
 public import Banos2019.Quartet.Fig15
 public import Banos2019.Quartet.Fig16
 public import Banos2019.Quartet.Fig17
+public import Banos2019.Quartet.Fig18
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!
@@ -18,9 +19,10 @@ network whose metric unrooted network is isomorphic to the figure.
 
 * `InducesNetwork.len_pos`, `InducesNetwork.inheritance_mem_Ioo`: the parameters of such a figure are
   those of a metric network.
-* `inducesNetwork_of_rooting`, `inducesNetwork_q15`, `inducesNetwork_q16`, `inducesNetwork_q17`: the
-  rootings `q15`, `q16`, `q17` of Figures 15, 16 and 17 induce them. Examples 2, 3 and 4 apply Lemma 9
-  or 10 to these rootings, after Proposition 5, and equation (1) to the trees they give.
+* `inducesNetwork_of_rooting`, `inducesNetwork_q15`, `inducesNetwork_q16`, `inducesNetwork_q17`,
+  `inducesNetwork_q18`: the rootings `q15`, `q16`, `q17`, `q18` of Figures 15–18 induce them.
+  Examples 2, 3 and 4 apply Lemma 9 or 10 to these rootings, after Proposition 5, and equation (1) to
+  the trees they give; Example 5 applies Lemma 11.
 -/
 
 @[expose] public noncomputable section
@@ -31,9 +33,6 @@ open scoped Classical
 namespace Banos2019
 
 variable {X : Type*} [Fintype X] [DecidableEq X]
-
-/-- The leaves `a, b, c, d` at the nodes `0, 1, 2, 3`. -/
-def figLeaf (a b c : X) (x : X) : Fin 8 := if x = a then 0 else if x = b then 1 else if x = c then 2 else 3
 
 /-- A semidirected network on `Fin 8` given by the ends of its edges, its two hybrid edges `6` and `7`,
 and the leaves `a, b, c, d` at `0, 1, 2, 3`. -/
@@ -281,6 +280,116 @@ theorem inducesNetwork_q16 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
     (by simp [q16Metric]) (by intro j hj; fin_cases j <;> first | exact absurd rfl hj | rfl)
     (by intro j; fin_cases j <;> simp [figMetric, q16Metric])
 
+/-- **The metric unrooted network of `q18` is Figure 18.** -/
+theorem inducesNetwork_q18 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q18 a b c) (q18Metric len γ)) :
+    InducesNetwork hQ (fig18 a b c) (figMetric len γ) := by
+  have hP := hQ.binary.1
+  have hB := hQ.binary.2
+  have hXn := hQ.nontrivial
+  have hl : lsa hP Set.univ Set.univ_nonempty = 8 :=
+    IsLeastStableAncestor.unique hP (lsa_spec hP _ _) (q18_isLSANetwork h)
+  have hr : (rootTreeArc hP hB hXn).1 = 8 := by
+    obtain ⟨hs, ht⟩ := rootTreeArc_spec hP hB hXn
+    have hs' : q18Src (rootTreeArc hP hB hXn).1 = 8 := by
+      rw [← hl]
+      exact congrArg Subtype.val hs
+    have ht' : (q18 a b c).IsTreeArc (rootTreeArc hP hB hXn).1 :=
+      (belowNetwork_isTreeArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+        (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+        hP (lsa_spec hP _ _).1 _).1 ht
+    rw [q18_isTreeArc_iff] at ht'
+    have key : ∀ r : Fin 9, q18Src r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8 := by decide
+    exact key _ hs' ht'
+  -- the nodes and the edges of `Q⁻`: those of `q18` but the root and the edge `8`
+  have hv : ∀ v : SemidirectedVertex hP hXn, v.1.1 ≠ Fin.last 8 := fun v hv => v.2 (Subtype.ext
+    (show v.1.1 = lsa hP Set.univ Set.univ_nonempty by rw [hv]; exact hl.symm))
+  have he : ∀ e : SemidirectedArc hP hB hXn, e.1.1 ≠ Fin.last 8 := fun e he =>
+    e.2 (Subtype.ext (by rw [he]; exact hr.symm))
+  let vert : SemidirectedVertex hP hXn ≃ Fin 8 :=
+    { toFun := fun v => v.1.1.castPred (hv v)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun v => v.1) hi
+          simp only at this
+          rw [this]
+          exact hl)⟩
+      left_inv := fun v => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  let edge : SemidirectedArc hP hB hXn ≃ Fin 8 :=
+    { toFun := fun e => e.1.1.castPred (he e)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun e => e.1) hi
+          simp only at this
+          rw [this]
+          exact hr)⟩
+      left_inv := fun e => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  have hvert : ∀ v, (vert v).castSucc = v.1.1 := fun v => Fin.castSucc_castPred _ (hv v)
+  have hedge : ∀ e, (edge e).castSucc = e.1.1 := fun e => Fin.castSucc_castPred _ (he e)
+  -- the ends of the edges of `Q⁻`: the edge `6` from the root is merged into one from `7`
+  have hroot : ∀ e : SemidirectedArc hP hB hXn,
+      (lsaPlus hP hXn).graph.source e.1 = (lsaPlus hP hXn).root ↔ q18Src e.1.1 = 8 := by
+    intro e
+    rw [← hl]
+    exact ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
+  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 = if q18Src e.1.1 = 8 then 7 else q18Src e.1.1 := by
+    intro e
+    show ((unrootAt (lsaPlus hP hXn) (lsaPlus_isPhylogenetic hP hXn)
+      (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
+    simp only [unrootAt]
+    by_cases h8 : q18Src e.1.1 = 8
+    · rw [dite_eq_left ((hroot e).2 h8), ite_eq_left h8]
+      show q18Tgt (rootTreeArc hP hB hXn).1 = 7
+      rw [hr]
+      rfl
+    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), ite_eq_right h8]
+      rfl
+  have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = q18Tgt e.1.1 := fun e => rfl
+  have hdir : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>
+    ((belowNetwork_isHybridArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+      (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+      hP (lsa_spec hP _ _).1 e.1).trans (q18_isHybridArc_iff e.1.1))
+  have fsrc : ∀ j : Fin 8, ((fig18 a b c).graph.source j).castSucc =
+      if q18Src j.castSucc = 8 then 7 else q18Src j.castSucc := by
+    show ∀ j : Fin 8, ((![4, 4, 6, 7, 5, 7, 7, 6] : Fin 8 → Fin 8) j).castSucc =
+      if q18Src j.castSucc = 8 then 7 else q18Src j.castSucc
+    decide
+  have ftgt : ∀ j : Fin 8, ((fig18 a b c).graph.target j).castSucc = q18Tgt j.castSucc := by
+    show ∀ j : Fin 8, ((![0, 1, 2, 3, 4, 6, 5, 5] : Fin 8 → Fin 8) j).castSucc = q18Tgt j.castSucc
+    decide
+  have hjs : ∀ e, (fig18 a b c).graph.source (edge e) = vert (hQ.unrooted.graph.source e) := fun e =>
+    Fin.castSucc_injective _ (by rw [hvert, hsrc, fsrc, hedge])
+  have hjt : ∀ e, (fig18 a b c).graph.target (edge e) = vert (hQ.unrooted.graph.target e) := fun e =>
+    Fin.castSucc_injective _ (by rw [hvert, htgt, ftgt, hedge])
+  refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => Or.inl ⟨hjs e, hjt e⟩, fun e _ => ⟨hjs e, hjt e⟩,
+    fun x => ?_⟩, fun e => ?_, fun e _ => ?_⟩⟩
+  · rw [hdir, ← hedge e]
+    show edge e = 6 ∨ edge e = 7 ↔ _
+    generalize edge e = j
+    revert j
+    decide
+  · apply Fin.castSucc_injective
+    rw [hvert]
+    rfl
+  · simp only [figMetric, unrootedMetric, semidirectedMetric]
+    rw [hr, ← hedge e]
+    split_ifs with h8
+    · have h8' : q18Src (edge e).castSucc = 8 := by rw [hedge e]; exact (hroot e).1 h8
+      have h6 : edge e = 6 := by
+        have key : ∀ j : Fin 8, q18Src j.castSucc = 8 → j = 6 := by decide
+        exact key _ h8'
+      rw [h6]
+      simp [q18Metric]
+    · have h8' : q18Src (edge e).castSucc ≠ 8 := fun h' => h8 ((hroot e).2 (by rwa [← hedge e]))
+      generalize edge e = j at h8'
+      fin_cases j <;> first | exact absurd (by decide) h8' | simp [q18Metric]
+  · show (figMetric len γ).inheritance (edge e) = (q18Metric len γ).inheritance e.1.1
+    rw [← hedge e]
+    generalize edge e = j
+    fin_cases j <;> simp [figMetric, q18Metric]
+
 /-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with `xᵢ = e^{-tᵢ}`:
 `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
 `CF_{AC|BD} = CF_{AD|BC} = (1-γ)²(⅓x₁x₂x₃) + 2γ(1-γ)(⅓x₁x₂) + γ²(⅓x₁x₂x₄)`. -/
@@ -456,7 +565,115 @@ theorem example5 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 / 3 * (x₁ * x₄)),
         (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
           γ ^ 2 * (1 / 3 * (x₁ * x₄))) := by
-  sorry
+  intro x₁ x₂ x₃ x₄
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  -- the rooting `q18` of Figure 18, with the same concordance factors (Proposition 5)
+  have hX := hQ.card_taxa
+  have hlen := hiso.len_pos
+  obtain ⟨hγ₀, hγ₁⟩ := hiso.inheritance_mem_Ioo
+  have hQ' := isLSAQuartet_q18 hX h hlen hγ₀ hγ₁
+  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q18 h hQ').some.symm⟩
+  -- Lemma 11 at the `3₂`-cycle of `q18`: hybrid node `5`, hybrid edges `6` (`γ`) and `7`, child
+  -- edge `4`, with `a` and `b` below `5`
+  have hT := inducesCycleType_q18 hX h
+  have h4C : (4 : Fin 9) ∉ (↑q18Cycle : Set (Fin 9)) := by decide
+  let c₀ : {e // ∀ C', IsCycle (q18 a b c).graph C' → C' = ↑q18Cycle → e ∉ C'} :=
+    ⟨4, fun C' _ hC' => hC' ▸ h4C⟩
+  have hla : (q18 a b c).leaf a = 0 := by rw [q18_leaf_eq, quartetLeaf9_a]
+  have hlb : (q18 a b c).leaf b = 1 := by rw [q18_leaf_eq, quartetLeaf9_b h]
+  have ha : (q18 a b c).graph.Reaches 5 ((q18 a b c).leaf a) := by
+    rw [hla]; exact (Relation.ReflTransGen.single ⟨4, rfl, rfl⟩).tail ⟨0, rfl, rfl⟩
+  have hb : (q18 a b c).graph.Reaches 5 ((q18 a b c).leaf b) := by
+    rw [hlb]; exact (Relation.ReflTransGen.single ⟨4, rfl, rfl⟩).tail ⟨1, rfl, rfl⟩
+  have hL := fun q => lemma11 hQ' hT (h₁ := 6) (h₂ := 7) (by decide) rfl rfl (c := 4) rfl c₀ rfl
+    h.1 ha hb q
+  have hinh : (q18Metric len γ).inheritance 6 = γ := rfl
+  -- `P(K = 1) = 1 - x₁`, `P(K = 2) = x₁`, `CF(Q₀⊕ | K = 1) = (1, 0, 0)`
+  obtain ⟨p₁, p₂⟩ := probLineages_q18 hX h hlen hγ₀ hγ₁
+  have hK := condCF_contract_q18 hX h hlen hγ₀ hγ₁ c₀ rfl
+  -- the trees `Q₁⊕`, `Q₂⊕` (equation (1))
+  obtain ⟨s₁, s₂, s₃⟩ := cf_deleteArc_q18_seven hX h hlen hγ₀ hγ₁
+  obtain ⟨u₁, u₂, u₃⟩ := cf_deleteArc_q18_six hX h hlen hγ₀ hγ₁
+  -- the trees `Q_a⊕`, `Q_b⊕` (equation (1)): the splits `ad|bc` and `ac|bd`, of length `t₃`
+  obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
+  have hA := cf_disjointNet_q18 hX h (u₁ := a) (u₂ := b) (Or.inl ⟨rfl, rfl⟩) (len := len) γ
+  have hB := cf_disjointNet_q18 hX h (u₁ := b) (u₂ := a) (Or.inr ⟨rfl, rfl⟩) (len := len) γ
+  obtain ⟨a₁, a₂, a₃⟩ := cf_qDisj (u₁ := a) (u₂ := b) (u₃ := c) (u₄ := d) hX h hlen
+    ⟨hbc, Ne.symm hab, hbd, Ne.symm hac, hcd, had⟩
+  obtain ⟨b₁, b₂, b₃⟩ := cf_qDisj (u₁ := b) (u₂ := a) (u₃ := c) (u₄ := d) hX
+    ⟨Ne.symm hab, hbc, hbd, hac, had, hcd⟩ hlen (distinct4_acbd h)
+  have q₁ : quartetTree b c a d ⟨hbc, Ne.symm hab, hbd, Ne.symm hac, hcd, had⟩ =
+      quartetTree a d b c (distinct4_adbc h) :=
+    Subtype.ext (by simp only [quartetTree]; rw [Finset.pair_comm])
+  have q₂ : quartetTree b a c d (distinct4_acbd ⟨hbc, Ne.symm hab, hbd, Ne.symm hac, hcd, had⟩) =
+      quartetTree a b c d h :=
+    Subtype.ext (by simp only [quartetTree]; rw [Finset.pair_comm b a])
+  have q₃ : quartetTree b d c a (distinct4_adbc ⟨hbc, Ne.symm hab, hbd, Ne.symm hac, hcd, had⟩) =
+      quartetTree a c b d (distinct4_acbd h) :=
+    Subtype.ext (by simp only [quartetTree]; rw [Finset.pair_comm b d, Finset.pair_comm c a,
+      Finset.pair_comm])
+  have q₄ : quartetTree a d c b (distinct4_adbc (distinct4_acbd h)) =
+      quartetTree a d b c (distinct4_adbc h) :=
+    Subtype.ext (by simp only [quartetTree]; rw [Finset.pair_comm c b])
+  rw [q₁] at a₁
+  rw [q₂] at a₂
+  rw [q₃] at a₃
+  rw [q₄] at b₃
+  -- the cherry `{a, b}` is a cherry of `ab|cd` only
+  have m₁ : ({a, b} : Finset X) ∈ (quartetTree a b c d h).val := by simp
+  have m₂ : ({a, b} : Finset X) ∉ (quartetTree a c b d (distinct4_acbd h)).val := by
+    simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton, not_or]
+    refine ⟨fun e => hbc ?_, fun e => hab ?_⟩
+    · have : b ∈ ({a, c} : Finset X) := e ▸ by simp
+      simp only [mem_insert, mem_singleton] at this
+      exact this.resolve_left (Ne.symm hab)
+    · have : a ∈ ({b, d} : Finset X) := e ▸ by simp
+      simp only [mem_insert, mem_singleton] at this
+      exact this.resolve_right had
+  have m₃ : ({a, b} : Finset X) ∉ (quartetTree a d b c (distinct4_adbc h)).val := by
+    simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton, not_or]
+    refine ⟨fun e => hbd ?_, fun e => hab ?_⟩
+    · have : b ∈ ({a, d} : Finset X) := e ▸ by simp
+      simp only [mem_insert, mem_singleton] at this
+      exact this.resolve_left (Ne.symm hab)
+    · have : a ∈ ({b, c} : Finset X) := e ▸ by simp
+      simp only [mem_insert, mem_singleton] at this
+      exact this.resolve_right hac
+  show (cf Q θ _, cf Q θ _, cf Q θ _) = _
+  rw [hcf, hL, hL, hL, hinh, p₁, p₂, hK, hK, hK, hA, hB, ite_eq_left m₁, ite_eq_right m₂,
+    ite_eq_right m₃]
+  refine Prod.ext ?_ (Prod.ext ?_ ?_)
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+          (quartetTree a b c d h) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
+          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a b c d h) +
+        (1 - x₁) * (2 * γ * (1 - γ)) * 1 + x₁ * (γ * (1 - γ)) *
+          (cf (qDisj a b c) (qDisjMetric len) (quartetTree a b c d h) +
+            cf (qDisj b a c) (qDisjMetric len) (quartetTree a b c d h)) =
+        (1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) + 2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
+          γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄)) := by
+      rw [s₁, u₁, a₂, b₂]; ring
+    convert key using 8
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+          (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
+          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) +
+        (1 - x₁) * (2 * γ * (1 - γ)) * 0 + x₁ * (γ * (1 - γ)) *
+          (cf (qDisj a b c) (qDisjMetric len) (quartetTree a c b d (distinct4_acbd h)) +
+            cf (qDisj b a c) (qDisjMetric len) (quartetTree a c b d (distinct4_acbd h))) =
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₄)) := by
+      rw [s₂, u₂, a₃, b₁]; ring
+    convert key using 8
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+          (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
+          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) +
+        (1 - x₁) * (2 * γ * (1 - γ)) * 0 + x₁ * (γ * (1 - γ)) *
+          (cf (qDisj a b c) (qDisjMetric len) (quartetTree a d b c (distinct4_adbc h)) +
+            cf (qDisj b a c) (qDisjMetric len) (quartetTree a d b c (distinct4_adbc h))) =
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₄)) := by
+      rw [s₃, u₃, a₁, b₃]; ring
+    convert key using 8
 
 /-- **Example 6** (`ex::cpbc`): the `3₂`-cycle of Figure 18 with `γ = 1/2`, `t₁ = t₂ = -log(6/7)`,
 `t₃ = -log(1/14)`, `t₄ = -log(13/14)` has `CF = (32/98, 33/98, 33/98)`: it is not treelike. -/
