@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Correspondence
+public import Banos2019.Quartet.Fig18
 public import Banos2019.Quartet.Generic
 
 /-!
@@ -47,6 +48,47 @@ def segmentsI : Set (ℝ × ℝ × ℝ) :=
   simplex2 ∩ {p | (1 / 6 < p.1 ∧ p.2.1 = p.2.2) ∨ (1 / 6 < p.2.1 ∧ p.1 = p.2.2) ∨
     (1 / 6 < p.2.2 ∧ p.1 = p.2.1)}
 
+/-- The concordance factors of the `3₂`-cycle of Figure 18 (equation (9)) with `γ = 1/2` and
+`x₄ = x₂` reach every point `(1 - 2y, y, y)` with `0 < y < 5/12`: for `x₂` close to `1` and `x₃`
+close to `0` the factor of `x₁` in `CF_{AC|BD}` exceeds `y`, and `x₁ ∈ (0, 1)` makes it `y`. -/
+theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
+    ∃ len : Fin 8 → ℝ, (∀ i, 0 < len i) ∧
+      let x₁ := Real.exp (-len 4); let x₂ := Real.exp (-len 7); let x₃ := Real.exp (-len 5)
+      let x₄ := Real.exp (-len 6); let γ : ℝ := 1 / 2
+      ((1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) + 2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
+          γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄)),
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₄)),
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₄))) = (1 - 2 * y, y, y) := by
+  set δ := 5 / 12 - y with hδ
+  have hδ₀ : 0 < δ := by linarith
+  set u : ℝ := 1 - δ / 2 with hu
+  set w : ℝ := δ / 2 with hw
+  set K : ℝ := u / 6 + 1 / 4 - w / 12 with hK
+  have hu₀ : 0 < u := by linarith
+  have hu₁ : u < 1 := by linarith
+  have hw₀ : 0 < w := by linarith
+  have hw₁ : w < 1 := by linarith
+  have hKy : y < K := by rw [hK, hu, hw]; linarith
+  have hK₀ : 0 < K := by linarith
+  set t : ℝ := y / K with ht
+  have ht₀ : 0 < t := div_pos hy₀ hK₀
+  have ht₁ : t < 1 := (div_lt_one hK₀).2 hKy
+  have hpos : ∀ z : ℝ, 0 < z → z < 1 → 0 < -Real.log z := fun z h₀ h₁ =>
+    neg_pos.2 (Real.log_neg h₀ h₁)
+  have hexp : ∀ z : ℝ, 0 < z → Real.exp (-(-Real.log z)) = z := fun z h₀ => by
+    rw [neg_neg, Real.exp_log h₀]
+  refine ⟨![1, 1, 1, 1, -Real.log t, -Real.log w, -Real.log u, -Real.log u], fun i => ?_, ?_⟩
+  · have h₁ := hpos _ ht₀ ht₁
+    have h₂ := hpos _ hw₀ hw₁
+    have h₃ := hpos _ hu₀ hu₁
+    fin_cases i <;> simp [h₁, h₂, h₃]
+  · simp only [Matrix.cons_val, Fin.isValue]
+    rw [hexp t ht₀, hexp w hw₀, hexp u hu₀]
+    have hty : t * K = y := by rw [ht]; field_simp
+    refine Prod.ext ?_ (Prod.ext ?_ ?_) <;> simp only <;> rw [← hty, hK] <;> ring
+
 /-- **Proposition 7** (`prop:3c2`): if `Q⁻` has a `3₂`-cycle, `CF(Q)` lies in `I`; and every point of `I`
 off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim for every
 point of `I`. Its proof shows that the image is the union of the three open segments, which do not
@@ -59,7 +101,59 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
         ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q : RootedNetwork V' E' X)
           (θ : MetricData E'), IsLSAQuartet Q θ ∧ (∃ C v, InducesCycleType Q C v 3 2) ∧
             CF Q θ a b c d habcd = p := by
-  sorry
+  refine ⟨fun hQ h32 => ?_, fun p hp hp₁ hp₂ hp₃ => ?_⟩
+  · sorry
+  · -- the network of Figure 18, with the taxa below its hybrid node in the cherry of the large
+    -- concordance factor, and parameters on the segment
+    obtain ⟨x, y, z⟩ := p
+    obtain ⟨⟨-, -, -, hsum⟩, hI⟩ := hp
+    simp only at hsum hI hp₁ hp₂ hp₃
+    -- Figure 18 on the labels `a', b', c', d'` gives `(1 - 2y, y, y)` for every `0 < y < 5/12`
+    have hreal : ∀ {a' b' c' d' : X} (h' : Distinct4 a' b' c' d') {y : ℝ}, 0 < y → y < 5 / 12 →
+        ∃ len : Fin 8 → ℝ, ∃ hQ : IsLSAQuartet (q18 a' b' c') (q18Metric len (1 / 2)),
+          CF (q18 a' b' c') (q18Metric len (1 / 2)) a' b' c' d' h' = (1 - 2 * y, y, y) := by
+      intro a' b' c' d' h' y hy₀ hy₁
+      obtain ⟨len, hlen, hcf⟩ := exists_fig18_params hy₀ hy₁
+      have hQ := isLSAQuartet_q18 hX h' hlen (by norm_num : (0 : ℝ) < 1 / 2) (by norm_num)
+      refine ⟨len, hQ, ?_⟩
+      rw [example5 h' hQ len (1 / 2) (inducesNetwork_q18 h' hQ)]
+      exact hcf
+    have h32 : ∀ {a' b' c' d' : X}, Distinct4 a' b' c' d' → ∃ C v, InducesCycleType (q18 a' b' c') C v 3 2 :=
+      fun h' => exists_inducesCycleType_q18 hX h'
+    rcases hI with ⟨hx, hyz⟩ | ⟨hy, hxz⟩ | ⟨hz, hxy⟩
+    · -- `a, b` below the hybrid node
+      obtain ⟨len, hQ, hcf⟩ := hreal habcd hp₂ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a b c, q18Metric len (1 / 2), hQ,
+        h32 habcd, ?_⟩
+      rw [hcf, Prod.mk.injEq, Prod.mk.injEq]
+      exact ⟨by linarith, rfl, hyz⟩
+    · -- `a, c` below the hybrid node
+      obtain ⟨len, hQ, hcf⟩ := hreal (distinct4_acbd habcd) hp₁ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a c b, q18Metric len (1 / 2), hQ,
+        h32 (distinct4_acbd habcd), ?_⟩
+      simp only [CF, Prod.mk.injEq] at hcf ⊢
+      obtain ⟨h₁, h₂, h₃⟩ := hcf
+      have e : quartetTree a d c b (distinct4_adbc (distinct4_acbd habcd)) =
+          quartetTree a d b c (distinct4_adbc habcd) :=
+        quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm c b])
+      rw [e] at h₃
+      dsimp only at hxz hy
+      exact ⟨h₂, by rw [h₁]; linarith, h₃.trans hxz⟩
+    · -- `a, d` below the hybrid node
+      obtain ⟨len, hQ, hcf⟩ := hreal (distinct4_adbc habcd) hp₁ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a d b, q18Metric len (1 / 2), hQ,
+        h32 (distinct4_adbc habcd), ?_⟩
+      simp only [CF, Prod.mk.injEq] at hcf ⊢
+      obtain ⟨h₁, h₂, h₃⟩ := hcf
+      have e₁ : quartetTree a b d c (distinct4_acbd (distinct4_adbc habcd)) =
+          quartetTree a b c d habcd := quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm d c])
+      have e₂ : quartetTree a c d b (distinct4_adbc (distinct4_adbc habcd)) =
+          quartetTree a c b d (distinct4_acbd habcd) :=
+        quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm d b])
+      rw [e₁] at h₂
+      rw [e₂] at h₃
+      dsimp only at hxy hz
+      exact ⟨h₂, h₃.trans hxy, by rw [h₁]; linarith⟩
 
 /-- **Proposition 8** (`prop::cpcycle`): if the taxa of `Q` satisfy the Cycle property, `Q⁻` contains a
 `3₂`-cycle or a 4-cycle. -/
