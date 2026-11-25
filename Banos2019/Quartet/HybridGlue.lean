@@ -414,6 +414,115 @@ theorem hybridPoly_eq {G : Finset (Finset X)} (hG : IsGoodForest G) (h2 : #(root
     rw [hP, hP, hP, h2' R₁ R₂ hne hR, h2' R₂ R₁ (Ne.symm hne) (by rw [hR, pair_comm])]
     ring
 
+/-- The polynomial for a forest with one root: the root takes `h₁` or `h₂`. -/
+theorem hybridPoly_one_root {G : Finset (Finset X)} (hG : IsGoodForest G) (h1 : #(roots G) = 1)
+    (ℓ₁ ℓ₂ : ℝ) (W : Finset (Finset X) → Finset (Finset X) → ℝ) (γ : ℝ) :
+    hybridPoly G ℓ₁ ℓ₂ W γ = γ * W G ∅ + (1 - γ) * W ∅ G := by
+  have hK0 : ∀ ℓ (t : Finset (Finset X)), kingmanTransition ℓ ∅ t = if t = ∅ then 1 else 0 :=
+    fun ℓ t => kingmanTransition_of_card_roots_le_one isForest_empty (by simp [roots]) ℓ t
+  have hall : forestBelow G (roots G) = G := by
+    have := (forestBelow_union hG (empty_subset (roots G))).1
+    rwa [forestBelow_empty_right, empty_union, sdiff_empty] at this
+  have hsum : ∀ A B : Finset (Finset X), (∀ ℓ t, kingmanTransition ℓ A t = if t = A then 1 else 0) →
+      (∀ ℓ t, kingmanTransition ℓ B t = if t = B then 1 else 0) →
+      ∑ t₁, ∑ t₂, kingmanTransition ℓ₁ A t₁ * kingmanTransition ℓ₂ B t₂ * W t₁ t₂ = W A B := by
+    intro A B hA hB
+    rw [Finset.sum_eq_single A (fun b _ hb => sum_eq_zero fun b₂ _ => by
+      rw [hA, ite_eq_right hb, zero_mul, zero_mul]) (by simp)]
+    rw [Finset.sum_eq_single B (fun b _ hb => by rw [hA, hB, ite_eq_right hb, mul_zero, zero_mul])
+      (by simp)]
+    rw [hA, hB, ite_eq_left rfl, ite_eq_left rfl, one_mul, one_mul]
+  have hps : ∀ R : Finset X, ({R} : Finset (Finset X)).powerset = {∅, {R}} := by
+    intro R
+    ext A
+    simp only [mem_powerset, mem_insert, mem_singleton, subset_singleton_iff]
+  obtain ⟨R, hR⟩ := card_eq_one.1 h1
+  have hRm : R ∈ roots G := hR ▸ mem_singleton_self R
+  have hGR : forestBelow G {R} = G := by rw [← hR, hall]
+  have hK1 : ∀ ℓ t, kingmanTransition ℓ G t = if t = G then 1 else 0 := fun ℓ t => by
+    rw [← hGR]
+    exact kingmanTransition_forestBelow_singleton hG hRm ℓ t
+  unfold hybridPoly
+  rw [hR, hps R, sum_pair (by simp), sdiff_empty, Finset.sdiff_self, card_empty,
+    card_singleton, forestBelow_empty_right, hGR, hsum ∅ G hK0 hK1, hsum G ∅ hK1 hK0]
+  ring
+
+/-- The polynomial for a forest with two roots: both on `h₁`, both on `h₂`, or one on each. -/
+theorem hybridPoly_two_roots {G : Finset (Finset X)} (hG : IsGoodForest G) {R₁ R₂ : Finset X}
+    (hne : R₁ ≠ R₂) (hR : roots G = {R₁, R₂}) (ℓ₁ ℓ₂ : ℝ)
+    (W : Finset (Finset X) → Finset (Finset X) → ℝ) (γ : ℝ) :
+    hybridPoly G ℓ₁ ℓ₂ W γ = γ ^ 2 * hybridPoly G ℓ₁ ℓ₂ W 1 + (1 - γ) ^ 2 * hybridPoly G ℓ₁ ℓ₂ W 0 +
+      γ * (1 - γ) * (W (forestBelow G {R₁}) (forestBelow G {R₂}) +
+        W (forestBelow G {R₂}) (forestBelow G {R₁})) := by
+  have hK0 : ∀ ℓ (t : Finset (Finset X)), kingmanTransition ℓ ∅ t = if t = ∅ then 1 else 0 :=
+    fun ℓ t => kingmanTransition_of_card_roots_le_one isForest_empty (by simp [roots]) ℓ t
+  have hall : forestBelow G (roots G) = G := by
+    have := (forestBelow_union hG (empty_subset (roots G))).1
+    rwa [forestBelow_empty_right, empty_union, sdiff_empty] at this
+  have hsum : ∀ A B : Finset (Finset X), (∀ ℓ t, kingmanTransition ℓ A t = if t = A then 1 else 0) →
+      (∀ ℓ t, kingmanTransition ℓ B t = if t = B then 1 else 0) →
+      ∑ t₁, ∑ t₂, kingmanTransition ℓ₁ A t₁ * kingmanTransition ℓ₂ B t₂ * W t₁ t₂ = W A B := by
+    intro A B hA hB
+    rw [Finset.sum_eq_single A (fun b _ hb => sum_eq_zero fun b₂ _ => by
+      rw [hA, ite_eq_right hb, zero_mul, zero_mul]) (by simp)]
+    rw [Finset.sum_eq_single B (fun b _ hb => by rw [hA, hB, ite_eq_right hb, mul_zero, zero_mul])
+      (by simp)]
+    rw [hA, hB, ite_eq_left rfl, ite_eq_left rfl, one_mul, one_mul]
+  have hsumL : ∀ B : Finset (Finset X), ∑ t₁, ∑ t₂, kingmanTransition ℓ₁ ∅ t₁ *
+      kingmanTransition ℓ₂ B t₂ * W t₁ t₂ = ∑ t₂, kingmanTransition ℓ₂ B t₂ * W ∅ t₂ := by
+    intro B
+    rw [Finset.sum_eq_single ∅ (fun b _ hb => sum_eq_zero fun b₂ _ => by
+      rw [hK0, ite_eq_right hb, zero_mul, zero_mul]) (by simp)]
+    simp only [hK0, ite_eq_left, one_mul]
+  have hsumR : ∀ A : Finset (Finset X), ∑ t₁, ∑ t₂, kingmanTransition ℓ₁ A t₁ *
+      kingmanTransition ℓ₂ ∅ t₂ * W t₁ t₂ = ∑ t₁, kingmanTransition ℓ₁ A t₁ * W t₁ ∅ := by
+    intro A
+    refine sum_congr rfl fun t₁ _ => ?_
+    rw [Finset.sum_eq_single ∅ (fun b _ hb => by rw [hK0, ite_eq_right hb, mul_zero, zero_mul])
+      (by simp)]
+    rw [hK0, ite_eq_left rfl, mul_one]
+  have hps : ∀ R : Finset X, ({R} : Finset (Finset X)).powerset = {∅, {R}} := by
+    intro R
+    ext A
+    simp only [mem_powerset, mem_insert, mem_singleton, subset_singleton_iff]
+  have hR₁ : R₁ ∈ roots G := hR ▸ mem_insert_self _ _
+  have hR₂ : R₂ ∈ roots G := hR ▸ mem_insert_of_mem (mem_singleton_self _)
+  have hd₁ : ({R₁, R₂} : Finset (Finset X)) \ {R₁} = {R₂} := by
+    ext x
+    simp only [mem_sdiff, mem_insert, mem_singleton]
+    constructor
+    · rintro ⟨rfl | rfl, h'⟩
+      · exact absurd rfl h'
+      · rfl
+    · rintro rfl
+      exact ⟨Or.inr rfl, fun h' => hne h'.symm⟩
+  have hd₂ : ({R₁, R₂} : Finset (Finset X)) \ {R₂} = {R₁} := by
+    ext x
+    simp only [mem_sdiff, mem_insert, mem_singleton]
+    constructor
+    · rintro ⟨rfl | rfl, h'⟩
+      · rfl
+      · exact absurd rfl h'
+    · rintro rfl
+      exact ⟨Or.inl rfl, hne⟩
+  have hK₁ := kingmanTransition_forestBelow_singleton hG hR₁
+  have hK₂ := kingmanTransition_forestBelow_singleton hG hR₂
+  have hP : ∀ γ, hybridPoly G ℓ₁ ℓ₂ W γ =
+      (1 - γ) ^ 2 * (∑ t₂, kingmanTransition ℓ₂ G t₂ * W ∅ t₂) +
+        γ * (1 - γ) * W (forestBelow G {R₂}) (forestBelow G {R₁}) +
+        (γ * (1 - γ) * W (forestBelow G {R₁}) (forestBelow G {R₂}) +
+        γ ^ 2 * (∑ t₁, kingmanTransition ℓ₁ G t₁ * W t₁ ∅)) := by
+    intro γ
+    unfold hybridPoly
+    rw [hR, sum_powerset_insert (by simpa using hne), hps R₂, sum_pair (by simp),
+      sum_pair (by simp)]
+    rw [insert_empty, sdiff_empty, hd₁, hd₂, Finset.sdiff_self, card_empty, card_singleton,
+      card_singleton, card_pair hne, forestBelow_empty_right, ← hR, hall, hsumL, hsumR,
+      hsum _ _ (hK₂ · ·) (hK₁ · ·), hsum _ _ (hK₁ · ·) (hK₂ · ·)]
+    ring
+  rw [hP, hP, hP]
+  ring
+
 end Poly
 
 section Upper
