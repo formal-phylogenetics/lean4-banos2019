@@ -842,7 +842,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     -- its preimage under `ν_s` in the parameters of `Q⊕_s`
     have hnull := isGenericNull_preimage_chainSum (N := quartetLSA N hN.1 s hs) hA hB hAB hh hZ
     -- and in those of `N`
-    refine isGenericNull_mono (isGenericNull_inducedMetric hN.1 _ hnull) fun θ hθ => ?_
+    refine (isGenericNull_inducedMetric hN.1 _ hnull).mono fun θ hθ => ?_
     simp only [Set.mem_ofPred_eq, not_imp] at hθ
     obtain ⟨hθm, hnbc⟩ := hθ
     have hθs := quartetLSA_isMetricNetwork hN hθm hs

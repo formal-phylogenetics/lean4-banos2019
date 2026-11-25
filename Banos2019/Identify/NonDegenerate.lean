@@ -12,15 +12,14 @@ public import Phylogenetics.NMSC.DisplayedTreeModel
 * `forGenericParams_goodParams`: the conditions `GoodParams` hold for generic parameters.
 
 The paper reads quartet trees from the orderings of concordance factors without stating the first
-condition. Its proof is the analytic argument of `isGenericNull_of_analyticOnNhd`, at a point on the
+condition. Its proof is the analytic argument of lean4-phylogenetics
+(`RootedNetwork.isGenericNull_of_analyticOnNhd`), from normalized parameters, at a point on the
 boundary of the parameters: those of a parent choice (`RootedNetwork.choiceMetric`), where every
 hybrid node keeps one parent with inheritance `1`. There the network behaves as the tree of the
 choice, which in a binary network resolves every set of four taxa
 (`exists_displays_displayedSides_of_isBinary`), so that with positive lengths the quartet tree it
 displays is strictly the most probable (`nmscCF_choiceMetric_alternative_lt`).
 
-* `coordMetric_self_of_isNormalized`, `isGenericNull_of_analyticOnNhd_of_isNormalized`: the analytic
-  argument from normalized parameters, which may have inheritance `0`.
 * `exists_card_displayedCluster_inter_eq_two`, `exists_displays_displayedSides_of_isBinary`: in a
   binary network the tree of a parent choice displays a quartet tree on every set of four taxa.
 * `nmscCF_choiceMetric_alternative_lt`: in the parameters of a parent choice, with positive lengths,
@@ -39,71 +38,6 @@ namespace Banos2019
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] [DecidableEq X]
 
 /-! ### The analytic argument from normalized parameters -/
-
-section Coordinates
-
-variable {N : RootedNetwork V E X}
-
-omit [Fintype V] [Fintype X] [DecidableEq X] in
-/-- A sum over the arcs with the target of `e`, split at `e`. -/
-theorem sum_ite_target_eq_add_sum_filter (γ : E → ℝ) (e : E) :
-    (∑ f, if N.graph.target f = N.graph.target e then γ f else 0) =
-      γ e + ∑ f ∈ univ.filter (fun f => N.graph.target f = N.graph.target e ∧ f ≠ e), γ f := by
-  rw [← Finset.sum_filter, ← Finset.add_sum_erase _ _
-    (Finset.mem_filter.2 ⟨Finset.mem_univ e, rfl⟩ :
-      e ∈ univ.filter (fun f => N.graph.target f = N.graph.target e))]
-  congr 1
-  refine Finset.sum_congr ?_ fun _ _ => rfl
-  ext f
-  simp only [Finset.mem_erase, Finset.mem_filter, Finset.mem_univ, true_and]
-  tauto
-
-omit [Fintype V] [Fintype X] [DecidableEq X] in
-/-- Normalized parameters are `coordMetric` at their own coordinates, for every choice `d` of the
-left-out coordinates. -/
-theorem coordMetric_self_of_isNormalized {θ : MetricData E} (hθ : N.IsNormalized θ) (d : V → E) :
-    coordMetric N d θ.length θ.inheritance = θ := by
-  rcases θ with ⟨ℓ, γ⟩
-  obtain ⟨htree, hsum⟩ := hθ
-  show MetricData.mk ℓ (coordMetric N d ℓ γ).inheritance = MetricData.mk ℓ γ
-  congr 1
-  funext e
-  by_cases he : N.IsHybridArc e
-  · by_cases hde : e = d (N.graph.target e)
-    · rw [coordMetric_inheritance_of_eq he hde]
-      have hs : (∑ f, if N.graph.target f = N.graph.target e then γ f else 0) = 1 := hsum _ he
-      rw [sum_ite_target_eq_add_sum_filter γ e] at hs
-      linarith
-    · exact coordMetric_inheritance_of_ne he hde
-  · rw [coordMetric_inheritance_of_not_isHybridArc he]
-    have hpos : 0 < N.graph.indegree (N.graph.target e) :=
-      (Set.ncard_pos (Set.toFinite _)).2 ⟨e, rfl⟩
-    have ht : N.IsTreeArc e := by
-      unfold IsHybridArc at he
-      unfold IsTreeArc
-      omega
-    exact (htree e ht).symm
-
-omit [Fintype V] [Fintype X] [DecidableEq X] in
-/-- **The analytic argument, from normalized parameters.** A function of the parameters that is
-analytic in the coordinates of `IsGenericNull`, for every choice of the left-out coordinates, and
-nonzero at some normalized parameters (possibly with inheritance `0` or lengths `0`), vanishes only on
-a null set of valid parameters. -/
-theorem isGenericNull_of_analyticOnNhd_of_isNormalized {F : MetricData E → ℝ}
-    (hF : ∀ d : V → E, AnalyticOnNhd ℝ (fun x : (E → ℝ) × (E → ℝ) => F (coordMetric N d x.1 x.2))
-      Set.univ) {θ₀ : MetricData E} (hθ₀ : N.IsNormalized θ₀) (h : F θ₀ ≠ 0) :
-    N.IsGenericNull {θ | N.IsMetric θ ∧ F θ = 0} := by
-  intro d _
-  have hw : F (coordMetric N d θ₀.length θ₀.inheritance) ≠ 0 := by
-    rwa [coordMetric_self_of_isNormalized hθ₀ d]
-  refine measure_mono_null ?_
-    (AnalyticOnNhd.prod_pi_volume_setOf_eq_zero (hF d) ⟨(θ₀.length, θ₀.inheritance), hw⟩)
-  rintro x ⟨θ, ⟨-, hzero⟩, hθ, hℓ, hg⟩
-  show F (coordMetric N d x.1 x.2) = 0
-  rw [← eq_coordMetric hθ hℓ hg]
-  exact hzero
-
-end Coordinates
 
 /-! ### The tree of a parent choice in a binary network -/
 
@@ -245,11 +179,10 @@ theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
   have hr'' : r' ∈ treesOn s.1 :=
     mem_treesOn.2 ((QuartetTree.mem_alternatives.1 hr').1.trans (mem_treesOn.1 hr))
   have hlt := nmscCF_choiceMetric_alternative_lt hN.1 c₀ (θ := θ₁) (fun _ => one_pos) hd hr'
-  refine isGenericNull_mono (isGenericNull_of_analyticOnNhd_of_isNormalized
-    (F := fun θ => nmscCF N θ 0 r - nmscCF N θ 0 r')
+  refine (isGenericNull_of_analyticOnNhd (F := fun θ => nmscCF N θ 0 r - nmscCF N θ 0 r')
     (fun d => (analyticOnNhd_nmscCF_coordMetric N d 0 r).sub
       (analyticOnNhd_nmscCF_coordMetric N d 0 r'))
-    (isNormalized_choiceMetric hN.1 θ₁ c₀) (sub_ne_zero.2 hlt.ne')) fun θ hθ => ?_
+    (isNormalized_choiceMetric hN.1 θ₁ c₀) (sub_ne_zero.2 hlt.ne')).mono fun θ hθ => ?_
   have hm : IsMetricNetwork N θ := by
     by_contra hm
     exact hθ fun h => absurd h hm
