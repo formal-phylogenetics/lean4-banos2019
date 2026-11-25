@@ -1,0 +1,37 @@
+# Reviewed differences between the routes of the Lean proofs and those of the paper's proofs.
+# One line per difference: LABEL<TAB>±OTHER<TAB>reason. TeX lines are those of arXiv:1711.10545v1;
+# the result numbers are those of the published version. `*` records a use the paper makes throughout
+# without citing it. Lemma 6's label (`lem::no2 3_2`) contains a space, so the route check cannot map
+# it to a Lean result; its uses are not checked.
+*	+lem:assos	Lemma 3 (a cycle of a level-1 network has one hybrid node; two cycles share at most one node) is used throughout without citation, whenever the paper speaks of the hybrid node of a cycle, the cycle C_v of a hybrid node v, or its v-blocks; the paper states it at TeX l. 346-350, citing Rosselló and Valiente.
+thm::MRCA	-obs:quartetcoales	Theorem 2 is the root library's NMSC.nmscCF_inducedNetwork, whose proof is the paper's (TeX l. 592-594: the process conditioned at LSA(s), exchangeability of the lineages there). Observation 1 enters it as NMSC.cherryMass_of_mem, on the forests of the coalescent process, so the route does not pass through observation1, which states the same fact for rooted binary trees.
+lem::formula2:1	-pub:prop4	The proof cites Allman, Degnan, Rhodes 2011 (TeX l. 631: their Proposition 11; published: Proposition 4) for the equality of concordance factors of species trees with the same unrooted metric tree. Proposition 4 as printed is an identifiability statement; the step uses root-placement invariance, the source's Theorem 9 and Proposition 11, stated as pub:rootplace.
+lem::formula2:1	+pub:rootplace	See the line above: the step at TeX l. 631 uses root-placement invariance (pub:rootplace).
+lem::formula2:2	-pub:prop3	The proof cites Allman, Degnan, Rhodes 2011 (TeX l. 715: their Propositions 3 and 11; published: Propositions 3 and 4) for the equality of the concordance factors of T_c, T_d and ((a,b):l,(c,d):0). Propositions 3 and 4 as printed are identifiability statements; the step uses root-placement invariance (pub:rootplace).
+lem::formula2:2	-pub:prop4	See the line above (TeX l. 715).
+lem::formula2:2	+pub:rootplace	See the lines above: the step at TeX l. 715 uses root-placement invariance (pub:rootplace).
+prop::CFunrooted	-pub:prop3	The base case cites Allman, Degnan, Rhodes 2011 (TeX l. 811: their Proposition 3; published: Proposition 3) for CF(Q) = CF(Q~) when Q and Q~ are trees with the same unrooted metric tree. Proposition 3 as printed is an identifiability statement; the step uses root-placement invariance (pub:rootplace).
+prop::CFunrooted	+pub:rootplace	See the line above: the base case at TeX l. 811 uses root-placement invariance (pub:rootplace).
+ex:2_2	+prop::CFunrooted	The paper computes the concordance factors of an unrooted quartet network, defined as those of any of its rootings (TeX l. 826, by Corollary 3 and Proposition 5); the Lean proof computes them on an explicit rooting and passes to every LSA quartet network with the same unrooted network by Proposition 5.
+ex:3_1	+prop::CFunrooted	As for Example 2 (TeX l. 826).
+ex:4_1	+prop::CFunrooted	As for Example 2 (TeX l. 826).
+ex:3_2	+prop::CFunrooted	As for Example 2 (TeX l. 826).
+prop:Cfspreserv	+lem:numberofcycles	The induction (TeX l. 912-921) removes 2_2- and 3_1-cycles one at a time and needs the possible cycles of Q- together with a 3_2- or 4-cycle, which Lemmas 5 and 6 give; the paper does not cite them there.
+prop:3c2	+lem:numberofcycles	As for Proposition 6: the reduction at TeX l. 964 uses Lemmas 5 and 6 for the cycles that can accompany the 3_2-cycle, without citing them.
+prop:BCgenerically	+thm::MRCA	The paper identifies the concordance factors of N on s with those of Q-_s (CF_s = CF(Q-_s), TeX l. 821, 826, 938), which is Theorem 2 with Corollary 3; the Lean statement is about N's concordance factors and passes to Q+_s by Theorem 2.
+thm::twocor	+thm::MRCA	As for Proposition 10 (TeX l. 821, 826, 938).
+cor::Cpgen	+thm::MRCA	As for Proposition 10 (TeX l. 821, 826, 938).
+prop:isbc	+thm::MRCA	As for Proposition 10 (TeX l. 821, 826, 938).
+3tax	+thm::MRCA	As for Proposition 10: "s determines v" reads the 4-cycle of Q-_s from N's concordance factors on s (TeX l. 1105).
+3tax	-cfs	Departure from the paper (recorded in lemma13's docstring): Lemma 12 holds for generic parameters and Lemma 13 is stated for given ones (TeX l. 1108, 1111); the proof uses the direction of Lemma 12's proof that holds for all parameters, Proposition 9 and the correspondence of cycles of Q-_s and N-.
+blov	+lem::MRCAproperties	Lemma 1(iii) (LSA(Z) is below LSA(Y) when Z is a subset of Y) is used without citation where the hybrid node of the 4-cycle of Q-_s is read as a node of N- (the map psi, TeX l. 1105, used at l. 1159): a cycle of N- meeting two blocks of s lies below LSA(s).
+orderofcycles	+lem::MRCAproperties	As for Lemma 15 (TeX l. 1105, 1173).
+thm::main	+lem::MRCAproperties	As for Lemma 15 (TeX l. 1105, 1186).
+lem::cpto4c	+lem::MRCAproperties	As for Lemma 15 (TeX l. 1105, 1231).
+pub:prop12	+lem::MRCAproperties	As for Lemma 15 (TeX l. 1105, 1213).
+thm::main	+prop::ancestralinduced	The induction hypothesis is applied to N- restricted to S_i and s_j (Definition 10, TeX l. 1190); its concordance factors are those of N on those taxa by Proposition 1 and Theorem 2, which the paper does not cite there.
+thm::main	+lem::trekmrca	Through Proposition 1, whose proof uses Lemma 17 (see the line above, TeX l. 1190).
+lem::cpto4c	-3tax	Departure from the paper (recorded in proposition13's docstring): Proposition 13 is false as printed; its step "the 4-cycle in Q-_abcd and the 3-cycle in Q-_abce have the same hybrid edges" (TeX l. 1231) fails, and the paper uses Lemma 13 and Theorem 4 only to set up that step. The corrected statement replaces the step by its added hypothesis.
+lem::cpto4c	-thm::main	See the line above (TeX l. 1231).
+pub:prop12	+cor::Cpgen	Departure from the paper (recorded in proposition12's docstring): the proof concludes from Proposition 8 that Q-_s has a 3_2-cycle (TeX l. 1213), but Proposition 8 also allows a 4-cycle; excluding it for generic parameters is Theorem 3, through Corollary 4.
+pub:prop12	+cfs	Lemma 12 is used without citation in "this implies C_v is not a k-cycle for k >= 4" (TeX l. 1213).
