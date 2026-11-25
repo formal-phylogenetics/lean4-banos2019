@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Network.SuppressIso
+public import Banos2019.Basic.Logic.EquivOfInjective
 public import Phylogenetics.NMSC.InducedParams
 
 /-!
@@ -11,7 +12,6 @@ its edges are the arcs of `M` below `ℓ` other than `rootTreeArc`. An edge keep
 source is its source in `M`, or the child of `rootTreeArc` for the other arc out of `ℓ`; it is hybrid
 when it is a hybrid arc of `M`.
 
-* `equivOfInjective`: a type with an injective map to `V` is equivalent to the subtype of its image.
 * `sdVert`, `sdArc`: the node and the arc of `M` of a node and an edge of `semidirected M`, with
   their images (`mem_range_sdVert`, `mem_range_sdArc`) and the ends, hybrid edges and taxa
   (`sdVert_source`, `sdVert_target`, `semidirected_isDirected_iff`, `sdVert_leaf`).
@@ -24,22 +24,6 @@ open Phylogenetics Phylogenetics.RootedNetwork
 namespace Banos2019
 
 variable {V E X : Type*}
-
-/-- A type with an injective map to `V` is equivalent to the subtype of `V` of the image. -/
-def equivOfInjective {A : Type*} (f : A → V) (hf : Function.Injective f) (Q : V → Prop)
-    (hQ : ∀ v, Q v ↔ ∃ a, f a = v) : A ≃ {v // Q v} :=
-  (Equiv.ofInjective f hf).trans (Equiv.subtypeEquivRight fun v => (hQ v).symm)
-
-@[simp] theorem equivOfInjective_apply {A : Type*} (f : A → V) (hf : Function.Injective f)
-    (Q : V → Prop) (hQ : ∀ v, Q v ↔ ∃ a, f a = v) (a : A) :
-    (equivOfInjective f hf Q hQ a).1 = f a := rfl
-
-theorem equivOfInjective_symm_apply {A : Type*} (f : A → V) (hf : Function.Injective f)
-    (Q : V → Prop) (hQ : ∀ v, Q v ↔ ∃ a, f a = v) (v : {v // Q v}) :
-    f ((equivOfInjective f hf Q hQ).symm v) = v.1 := by
-  have := equivOfInjective_apply f hf Q hQ ((equivOfInjective f hf Q hQ).symm v)
-  rw [Equiv.apply_symm_apply] at this
-  exact this.symm
 
 section Desc
 
@@ -123,13 +107,13 @@ theorem semidirected_isDirected_iff (g : SemidirectedArc hM hB hX) :
 def sdVertEquiv : SemidirectedVertex hM hX ≃
     {v : V // M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) v ∧
       v ≠ lsa hM Set.univ Set.univ_nonempty} :=
-  equivOfInjective (sdVert hM hX) (sdVert_injective hM hX) _ fun v => (mem_range_sdVert hM hX v).symm
+  Equiv.ofInjectiveSubtype (sdVert hM hX) (sdVert_injective hM hX) _ fun v => (mem_range_sdVert hM hX v).symm
 
 /-- The edges of `semidirected M`, as the arcs of `M` below the LSA other than `sdRootArc`. -/
 def sdArcEquiv : SemidirectedArc hM hB hX ≃
     {e : E // M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (M.graph.source e) ∧
       e ≠ sdRootArc hM hB hX} :=
-  equivOfInjective (sdArc hM hB hX) (sdArc_injective hM hB hX) _ fun e =>
+  Equiv.ofInjectiveSubtype (sdArc hM hB hX) (sdArc_injective hM hB hX) _ fun e =>
     (mem_range_sdArc hM hB hX e).symm
 
 /-- The LSA of all the taxa has outdegree two, and its arcs are below it. -/

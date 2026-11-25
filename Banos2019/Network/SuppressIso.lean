@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Network.DirectedPath
+public import Banos2019.Basic.Logic.RelationSymm
 
 /-!
 # The chains of a suppressed network and its isomorphisms
@@ -37,8 +38,6 @@ inductive IsUTrail : V → V → Set V → Set E → Prop
       Joins G e a b → a ∉ S → IsUTrail b w S P → IsUTrail a w (insert a S) (insert e P)
 
 variable {G}
-
-theorem Joins.symm {e : E} {a b : V} (h : Joins G e a b) : Joins G e b a := Or.symm h
 
 namespace IsUTrail
 
@@ -93,7 +92,7 @@ theorem reverse (h : IsUTrail G u w S P) : IsUTrail G w u S P := by
   | nil u => exact .nil u
   | @cons e a b w S P hj ha h ih =>
     have hab : a ≠ b := fun h' => ha (h' ▸ h.start_mem)
-    have := ih.append (single hj.symm hab.symm) (by
+    have := ih.append (single (Or.symm hj) hab.symm) (by
       rintro x ⟨hx, hx' | hx'⟩
       · exact hx'
       · rw [Set.mem_singleton_iff.mp hx'] at hx
@@ -147,7 +146,7 @@ theorem IsDPath.isUTrail (hA : G.IsAcyclic) {u w : V} {S : Set V} {P : Set E}
   induction h with
   | nil u => exact .nil u
   | cons e h ih =>
-    exact .cons (Or.inl ⟨rfl, rfl⟩) (fun hm => not_reaches_target_source' hA e
+    exact .cons (Or.inl ⟨rfl, rfl⟩) (fun hm => not_reaches_target_source_of_isAcyclic hA e
       (h.reaches_of_mem hm).1) ih
 
 end Trail
@@ -249,12 +248,6 @@ theorem IsChainOf.mem_of_chainLink [Finite E] {k : ℕ} {p : Fin (k + 1) → V} 
   · exact ⟨a, h'.symm⟩
   · exact ⟨b, h'.symm⟩
 
-theorem reflTransGen_symm_of {r : E → E → Prop} (hr : ∀ a b, r a b → r b a) {a b : E}
-    (h : Relation.ReflTransGen r a b) : Relation.ReflTransGen r b a := by
-  induction h with
-  | refl => exact .refl
-  | tail _ hbc ih => exact ih.head (hr _ _ hbc)
-
 /-- **The edges of a chain are linked through its inner nodes.** -/
 theorem IsChainOf.linked {k : ℕ} {p : Fin (k + 1) → V} {e : Fin k → E}
     (h : IsChainOf G P k p e) (i j : Fin k) :
@@ -276,7 +269,7 @@ theorem IsChainOf.linked {k : ℕ} {p : Fin (k + 1) → V} {e : Fin k → E}
         · exact Or.inl h₁
         · exact Or.inr h₂
   have hk : 0 < k := h.pos
-  exact (reflTransGen_symm_of (fun _ _ => chainLink_symm) (h0 i.val i.isLt)).trans (h0 j.val j.isLt)
+  exact (Relation.ReflTransGen.symm_of_symm (fun _ _ => chainLink_symm) (h0 i.val i.isLt)).trans (h0 j.val j.isLt)
 
 /-- **A chain is the set of edges linked to any one of its edges.** -/
 theorem IsChain.eq_setOf [Finite E] {c : Set E} (hc : IsChain G P c) {g : E} (hg : g ∈ c) :

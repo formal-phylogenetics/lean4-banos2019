@@ -1,7 +1,7 @@
 module
 
 public import Banos2019.Network.Semidirected
-public import Mathlib.Order.Preorder.Finite
+public import Banos2019.Basic.Order.FiniteTotal
 public import Mathlib.Tactic.Order
 
 /-!
@@ -15,7 +15,7 @@ paths of the rooted network in the proof of Lemma 17 and of Proposition 1.
 * `IsDPath`, `IsDPath.append`, `IsDPath.exists_split`, `IsDPath.segment`.
 * `IsDPath.isSDPath`: a directed path is a semidirected path of any semidirected network on the
   same graph.
-* `reachOrder`: the reachability order of an acyclic graph.
+* `reachOrderOfIsAcyclic`: the reachability order of an acyclic graph.
 -/
 
 @[expose] public noncomputable section
@@ -38,7 +38,7 @@ inductive IsDPath : V → V → Set V → Set E → Prop
       IsDPath (G.target e) w S P → IsDPath (G.source e) w (insert (G.source e) S) (insert e P)
 
 /-- The reachability order of an acyclic graph: `u ≤ w` when a directed path leads from `u` to `w`. -/
-@[reducible] def reachOrder (hA : G.IsAcyclic) : PartialOrder V where
+@[reducible] def reachOrderOfIsAcyclic (hA : G.IsAcyclic) : PartialOrder V where
   le := G.Reaches
   le_refl _ := .refl
   le_trans _ _ _ := Relation.ReflTransGen.trans
@@ -50,12 +50,12 @@ inductive IsDPath : V → V → Set V → Set E → Prop
 variable {G}
 
 /-- In an acyclic graph, mutual reachability is equality. -/
-theorem reaches_antisymm (hA : G.IsAcyclic) {a b : V} (h : G.Reaches a b) (h' : G.Reaches b a) :
+theorem reaches_antisymm_of_isAcyclic (hA : G.IsAcyclic) {a b : V} (h : G.Reaches a b) (h' : G.Reaches b a) :
     a = b :=
-  (reachOrder G hA).le_antisymm a b h h'
+  (reachOrderOfIsAcyclic G hA).le_antisymm a b h h'
 
 /-- In an acyclic graph, the target of an arc does not reach its source. -/
-theorem not_reaches_target_source' (hA : G.IsAcyclic) (e : E) :
+theorem not_reaches_target_source_of_isAcyclic (hA : G.IsAcyclic) (e : E) :
     ¬ G.Reaches (G.target e) (G.source e) := fun h =>
   hA _ (Relation.TransGen.head' ⟨e, rfl, rfl⟩ h)
 
@@ -160,7 +160,7 @@ theorem segment (hA : G.IsAcyclic) (h : IsDPath G u w S P) {a b : V} (ha : a ∈
   obtain ⟨S₁, P₁, S₂, P₂, h₁, h₂, rfl, rfl⟩ := h.exists_split ha
   have hb₂ : b ∈ S₂ := by
     rcases hb with hb | hb
-    · rw [reaches_antisymm hA (h₁.reaches_of_mem hb).2 hab]
+    · rw [reaches_antisymm_of_isAcyclic hA (h₁.reaches_of_mem hb).2 hab]
       exact h₂.start_mem
     · exact hb
   obtain ⟨S₃, P₃, S₄, P₄, h₃, h₄, rfl, rfl⟩ := h₂.exists_split hb₂
@@ -168,10 +168,10 @@ theorem segment (hA : G.IsAcyclic) (h : IsDPath G u w S P) {a b : V} (ha : a ∈
     ext s
     constructor
     · rintro ⟨hs | hs | hs, has, hsb⟩
-      · rw [reaches_antisymm hA (h₁.reaches_of_mem hs).2 has]
+      · rw [reaches_antisymm_of_isAcyclic hA (h₁.reaches_of_mem hs).2 has]
         exact h₃.start_mem
       · exact hs
-      · rw [reaches_antisymm hA hsb (h₄.reaches_of_mem hs).1]
+      · rw [reaches_antisymm_of_isAcyclic hA hsb (h₄.reaches_of_mem hs).1]
         exact h₃.end_mem
     · intro hs
       exact ⟨Or.inr (Or.inl hs), h₃.reaches_of_mem hs⟩
@@ -179,10 +179,10 @@ theorem segment (hA : G.IsAcyclic) (h : IsDPath G u w S P) {a b : V} (ha : a ∈
   refine ⟨P₃, h₃, fun e he => Or.inr (Or.inl he), fun e he hae heb => ?_⟩
   rcases he with he | he | he
   · exact absurd (((h₁.reaches_of_mem (h₁.ends_mem he).2).2).trans hae)
-      (not_reaches_target_source' hA e)
+      (not_reaches_target_source_of_isAcyclic hA e)
   · exact he
   · exact absurd (heb.trans (h₄.reaches_of_mem (h₄.ends_mem he).1).1)
-      (not_reaches_target_source' hA e)
+      (not_reaches_target_source_of_isAcyclic hA e)
 
 /-- A walk avoiding a node, from a path avoiding it. -/
 theorem of_reflTransGen_avoiding {b : V}
@@ -238,30 +238,12 @@ theorem isSDPath (hA : G.IsAcyclic) {G' : SemidirectedNetwork V E X} (hG : G'.gr
         exact hpath.step i
     · refine Fin.cons_injective_iff.mpr ⟨fun hm => ?_, hpath.injective⟩
       rw [hS] at hm
-      exact not_reaches_target_source' hA e (h.reaches_of_mem hm).1
+      exact not_reaches_target_source_of_isAcyclic hA e (h.reaches_of_mem hm).1
     · rw [← Fin.succ_last, Fin.cons_succ, hlast]
     · rw [Fin.range_cons, hP]
     · rw [Fin.range_cons, hS]
 
 end IsDPath
-
-/-- A nonempty finite set of a partial order on which the order is total has a greatest element. -/
-theorem exists_greatest_of_total [PartialOrder V] {T : Set V} (hT : T.Finite) (hne : T.Nonempty)
-    (htot : ∀ s ∈ T, ∀ t ∈ T, s ≤ t ∨ t ≤ s) : ∃ g ∈ T, ∀ s ∈ T, s ≤ g := by
-  obtain ⟨g, hg⟩ := hT.exists_maximal hne
-  refine ⟨g, hg.1, fun s hs => ?_⟩
-  rcases htot s hs g hg.1 with h | h
-  · exact h
-  · exact hg.2 hs h
-
-/-- A nonempty finite set of a partial order on which the order is total has a least element. -/
-theorem exists_least_of_total [PartialOrder V] {T : Set V} (hT : T.Finite) (hne : T.Nonempty)
-    (htot : ∀ s ∈ T, ∀ t ∈ T, s ≤ t ∨ t ≤ s) : ∃ g ∈ T, ∀ s ∈ T, g ≤ s := by
-  obtain ⟨g, hg⟩ := hT.exists_minimal hne
-  refine ⟨g, hg.1, fun s hs => ?_⟩
-  rcases htot s hs g hg.1 with h | h
-  · exact hg.2 hs h
-  · exact h
 
 end DPath
 

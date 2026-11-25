@@ -46,7 +46,7 @@ theorem IsDPath.exists_cons {H : DirectedMultigraph V E} (hA : H.IsAcyclic) {u w
   | nil => exact absurd rfl hne
   | @cons e _ S' P' h' =>
     exact ⟨e, S', P', rfl, h', rfl, rfl, fun hm =>
-      not_reaches_target_source' hA e (h'.reaches_of_mem hm).1⟩
+      not_reaches_target_source_of_isAcyclic hA e (h'.reaches_of_mem hm).1⟩
 
 section Network
 
@@ -319,7 +319,7 @@ theorem mem_trekEdges_of_root {Z : Set X} {x y : X} (hx : x ∈ Z) (hy : y ∈ Z
   set f₁ := sdRootArc hN.1 hN.2 hX
   have hsf₁ : N.graph.source f₁ = ρ := (sdRootArc_spec hN.1 hN.2 hX).1
   obtain ⟨tv, htv⟩ := (mem_range_sdVert hN.1 hX (N.graph.target f₁)).mpr
-    ⟨.single ⟨f₁, hsf₁, rfl⟩, fun h => not_reaches_target_source' hN.1.acyclic f₁ (by
+    ⟨.single ⟨f₁, hsf₁, rfl⟩, fun h => not_reaches_target_source_of_isAcyclic hN.1.acyclic f₁ (by
       rw [h, hsf₁]; exact .refl)⟩
   obtain ⟨es, hes⟩ := (mem_range_sdArc hN.1 hN.2 hX fb).mpr ⟨hfb ▸ .refl, hfab.symm⟩
   have hsrc : G.graph.source es = tv := sdVert_injective hN.1 hX

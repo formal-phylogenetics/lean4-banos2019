@@ -55,7 +55,7 @@ theorem HasTrekThrough.symm {m a b : V} {e : E} (h : HasTrekThrough G m a b e) :
 variable [PartialOrder V]
 
 /-- A part of a path, in the reachability order. -/
-theorem seg (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic) {u w : V} {S : Set V}
+theorem IsDPath.segment_le (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic) {u w : V} {S : Set V}
     {P : Set E} (h : IsDPath G u w S P) {a b : V} (ha : a ∈ S) (hb : b ∈ S) (hab : a ≤ b) :
     ∃ P', IsDPath G a b {s | s ∈ S ∧ a ≤ s ∧ s ≤ b} P' ∧ P' ⊆ P ∧
       ∀ e ∈ P, a ≤ G.source e → G.target e ≤ b → e ∈ P' := by
@@ -87,15 +87,15 @@ theorem trek_of_not_below (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsA
     ⟨(hle _ _).mp (hPx.reaches_of_mem hs).1, (hle _ _).mp (hPx.reaches_of_mem hs).2⟩
   have my : ∀ s ∈ Sy, m ≤ s ∧ s ≤ Y₀ := fun s hs =>
     ⟨(hle _ _).mp (hPy.reaches_of_mem hs).1, (hle _ _).mp (hPy.reaches_of_mem hs).2⟩
-  obtain ⟨u, ⟨hux, huy⟩, hu⟩ := exists_greatest_of_total (T := Sx ∩ Sy) (Set.toFinite _)
+  obtain ⟨u, ⟨hux, huy⟩, hu⟩ := Set.Finite.exists_greatest_of_total (T := Sx ∩ Sy) (Set.toFinite _)
     ⟨m, hPx.start_mem, hPy.start_mem⟩ fun s hs t ht =>
       (hPx.total hs.1 ht.1).imp (hle _ _).mp (hle _ _).mp
   have hus : u ≤ G.source e := by
     rcases hPx.mem_or he hux with h | h
     · exact (hle _ _).mp h
     · exact absurd (((hle _ _).mp h).trans (my u huy).2) hY
-  obtain ⟨P₁, hP₁, -, hP₁e⟩ := seg hle hA hPx hux hPx.end_mem (mx u hux).2
-  obtain ⟨P₂, hP₂, -, -⟩ := seg hle hA hPy huy hPy.end_mem (my u huy).2
+  obtain ⟨P₁, hP₁, -, hP₁e⟩ := IsDPath.segment_le hle hA hPx hux hPx.end_mem (mx u hux).2
+  obtain ⟨P₂, hP₂, -, -⟩ := IsDPath.segment_le hle hA hPy huy hPy.end_mem (my u huy).2
   refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1)
     (Ss := ∅) (fun _ h => absurd h (Set.notMem_empty _)) hP₁ hP₂ ?_
     (Or.inl (hP₁e e he hus (mx _ (hPx.ends_mem he).2).2)) ?_
@@ -137,7 +137,7 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
   -- the order along the three paths
   have hst : G.source e ≤ G.target e := (hle _ _).mp (.single ⟨e, rfl, rfl⟩)
   have hts : ¬ G.target e ≤ G.source e := fun h =>
-    not_reaches_target_source' hA e ((hle _ _).mpr h)
+    not_reaches_target_source_of_isAcyclic hA e ((hle _ _).mpr h)
   have mx : ∀ s ∈ Sx, m ≤ s ∧ s ≤ X₀ := fun s hs =>
     ⟨(hle _ _).mp (hPx.reaches_of_mem hs).1, (hle _ _).mp (hPx.reaches_of_mem hs).2⟩
   have my : ∀ s ∈ Sy, m ≤ s ∧ s ≤ Y₀ := fun s hs =>
@@ -157,19 +157,19 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
   have hmy : m ∈ Sy := hPy.start_mem
   have hmb : m ≠ bm := fun h => hts (h ▸ hbm |>.trans (mx _ hsrcx).1)
   -- `a`, the lowest node of `A`
-  obtain ⟨a, ⟨hax, hay, has⟩, ha_low⟩ := exists_greatest_of_total
+  obtain ⟨a, ⟨hax, hay, has⟩, ha_low⟩ := Set.Finite.exists_greatest_of_total
     (T := {v | v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e}) (Set.toFinite _)
     ⟨m, hmx, hmy, (mx _ hsrcx).1⟩ fun s hs t ht => tx s hs.1 t ht.1
   -- `b⁺`, the highest node of `B`
-  obtain ⟨bp, ⟨hbpx, hbpy, hbp⟩, hbp_high⟩ := exists_least_of_total
+  obtain ⟨bp, ⟨hbpx, hbpy, hbp⟩, hbp_high⟩ := Set.Finite.exists_least_of_total
     (T := {v | v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v}) (Set.toFinite _)
     ⟨bm, hbmx, hbmy, hbm⟩ fun s hs t ht => tx s hs.1 t ht.1
   -- `w`, the last node of `P*` above `b⁻` on `Px` or `Py`
-  obtain ⟨w, ⟨hws, hwxy, hwb, hwb'⟩, hw_low⟩ := exists_greatest_of_total
+  obtain ⟨w, ⟨hws, hwxy, hwb, hwb'⟩, hw_low⟩ := Set.Finite.exists_greatest_of_total
     (T := {v | v ∈ Ss ∧ (v ∈ Sx ∨ v ∈ Sy) ∧ v ≤ bm ∧ v ≠ bm}) (Set.toFinite _)
     ⟨m, hPs.start_mem, Or.inl hmx, (mx _ hbmx).1, hmb⟩ fun s hs t ht => ts s hs.1 t ht.1
   have hwc : w ≤ c := hwb.trans hbc
-  obtain ⟨Pwc, hPwc, -, -⟩ := seg hle hA hPs hws hcs hwc
+  obtain ⟨Pwc, hPwc, -, -⟩ := IsDPath.segment_le hle hA hPs hws hcs hwc
   -- the inner nodes of `P*` from `w` to `c` are on neither `Px` nor `Py`
   have inner : ∀ s ∈ {s | s ∈ Ss ∧ w ≤ s ∧ s ≤ c}, s ∈ Sx ∨ s ∈ Sy → s = w ∨ s = c := by
     rintro s ⟨hss, hws', hsc⟩ hsxy
@@ -179,12 +179,12 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
     rcases hcomp with h | h
     · exact Or.inl (le_antisymm (hw_low s ⟨hss, hsxy, h, hsb⟩) hws')
     · exact Or.inr (le_antisymm hsc (hc_high s hss hsxy h hsb))
-  obtain ⟨Pcy, hPcy, -, -⟩ := seg hle hA hPy hcy hPy.end_mem (my c hcy).2
+  obtain ⟨Pcy, hPcy, -, -⟩ := IsDPath.segment_le hle hA hPy hcy hPy.end_mem (my c hcy).2
   have hbm_le_c : ∀ v, c ≤ v → G.target e ≤ v := fun v h => hbm.trans (hbc.trans h)
   by_cases hI : w ∈ Sx ∧ w ≤ G.source e
   · -- cases 3 and 4 with `w` on `Px`: the trek with top `w`
     obtain ⟨hwx, hwsrc⟩ := hI
-    obtain ⟨P₁, hP₁, -, hP₁e⟩ := seg hle hA hPx hwx hPx.end_mem (mx w hwx).2
+    obtain ⟨P₁, hP₁, -, hP₁e⟩ := IsDPath.segment_le hle hA hPx hwx hPx.end_mem (mx w hwx).2
     refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms hP₁
       (hPwc.append hPcy) ?_ (Or.inl (hP₁e e he hwsrc (mx _ htgtx).2)) ?_
     · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨⟨hwx, le_rfl, (mx w hwx).2⟩,
@@ -202,7 +202,7 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
   by_cases hV : w ∈ Sy ∧ bp ≤ w
   · -- case 5 with `w` on `Py`: replace `Py` by `Py` to `w`, `P*` to `c`, `Py` from `c`
     obtain ⟨hwy, hbpw⟩ := hV
-    obtain ⟨Q, hQ, -, -⟩ := seg hle hA hPy hmy hwy (my w hwy).1
+    obtain ⟨Q, hQ, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hwy (my w hwy).1
     refine IH _ _ _ _ hPx he (hQ.append (hPwc.append hPcy)) ?_ ?_
     · rintro (⟨h, -⟩ | h | ⟨h, -⟩)
       · exact hey h
@@ -233,9 +233,9 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
     · -- case 2: the trek with top `a`, one path through `e` to `w`, `P*` to `c` and `Py` to `b`
       have haw : a ≤ w := has.trans (hst.trans htw)
       have habm : a ≤ bm := has.trans (hst.trans hbm)
-      obtain ⟨Q₁, hQ₁, -, -⟩ := seg hle hA hPy hay hbmy habm
-      obtain ⟨Q₂, hQ₂, -, -⟩ := seg hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
-      obtain ⟨Q₃, hQ₃, -, hQ₃e⟩ := seg hle hA hPx hax hwx haw
+      obtain ⟨Q₁, hQ₁, -, -⟩ := IsDPath.segment_le hle hA hPy hay hbmy habm
+      obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
+      obtain ⟨Q₃, hQ₃, -, hQ₃e⟩ := IsDPath.segment_le hle hA hPx hax hwx haw
       refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms
         (hQ₁.append hQ₂) (hQ₃.append (hPwc.append hPcy)) ?_
         (Or.inr (Or.inl (hQ₃e e he has htw))) ?_
@@ -264,18 +264,18 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
         · exact Or.inr (Or.inr h)
         · exact Or.inr (Or.inl h)
     · -- case 5 with `w` on `Px` only: exchange the parts of `Px` and `Py` between `b` and `b'`
-      obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := exists_greatest_of_total
+      obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := Set.Finite.exists_greatest_of_total
         (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ v ≤ w}) (Set.toFinite _)
         ⟨bp, ⟨hbpx, hbpy, hbp⟩, hbpw⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-      obtain ⟨b', ⟨⟨hb'x, hb'y, hb't⟩, hwb''⟩, -⟩ := exists_least_of_total
+      obtain ⟨b', ⟨⟨hb'x, hb'y, hb't⟩, hwb''⟩, -⟩ := Set.Finite.exists_least_of_total
         (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ w ≤ v}) (Set.toFinite _)
         ⟨bm, ⟨hbmx, hbmy, hbm⟩, hwb⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
       have hb'bm : b' ≤ bm := hbm_low b' hb'x hb'y hb't
-      obtain ⟨R₁, hR₁, -, hR₁e⟩ := seg hle hA hPx hmx hbx (mx b hbx).1
-      obtain ⟨R₂, hR₂, -, -⟩ := seg hle hA hPy hby hb'y (hbw.trans hwb'')
-      obtain ⟨R₃, hR₃, -, -⟩ := seg hle hA hPx hb'x hPx.end_mem (mx b' hb'x).2
-      obtain ⟨R₄, hR₄, -, -⟩ := seg hle hA hPy hmy hby (my b hby).1
-      obtain ⟨R₅, hR₅, -, -⟩ := seg hle hA hPx hbx hwx hbw
+      obtain ⟨R₁, hR₁, -, hR₁e⟩ := IsDPath.segment_le hle hA hPx hmx hbx (mx b hbx).1
+      obtain ⟨R₂, hR₂, -, -⟩ := IsDPath.segment_le hle hA hPy hby hb'y (hbw.trans hwb'')
+      obtain ⟨R₃, hR₃, -, -⟩ := IsDPath.segment_le hle hA hPx hb'x hPx.end_mem (mx b' hb'x).2
+      obtain ⟨R₄, hR₄, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hby (my b hby).1
+      obtain ⟨R₅, hR₅, -, -⟩ := IsDPath.segment_le hle hA hPx hbx hwx hbw
       refine IH _ _ _ _ (hR₁.append (hR₂.append hR₃)) (Or.inl (hR₁e e he (mx _ hsrcx).1 hbt))
         (hR₄.append (hR₅.append (hPwc.append hPcy))) ?_ ?_
       · rintro (⟨h, -⟩ | ⟨-, hbt', -⟩ | h | ⟨h, -⟩)
@@ -332,11 +332,11 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
     have hwbp : w ≤ bp := (ty w hwy bp hbpy).resolve_right fun h => hV ⟨hwy, h⟩
     -- cases 1 and 4 with `w` on `Py`: the trek with top `a'`, the node of `A` right above `w`
     -- (in case 1, `a' = a`)
-    obtain ⟨a', ⟨⟨ha'x, ha'y, ha's⟩, ha'w⟩, ha'_low⟩ := exists_greatest_of_total
+    obtain ⟨a', ⟨⟨ha'x, ha'y, ha's⟩, ha'w⟩, ha'_low⟩ := Set.Finite.exists_greatest_of_total
       (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e) ∧ v ≤ w}) (Set.toFinite _)
       ⟨m, ⟨hmx, hmy, (mx _ hsrcx).1⟩, ms w hws⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := seg hle hA hPx ha'x hPx.end_mem (mx a' ha'x).2
-    obtain ⟨Q₂, hQ₂, -, -⟩ := seg hle hA hPy ha'y hwy ha'w
+    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := IsDPath.segment_le hle hA hPx ha'x hPx.end_mem (mx a' ha'x).2
+    obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPy ha'y hwy ha'w
     refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms hQ₁
       (hQ₂.append (hPwc.append hPcy)) ?_ (Or.inl (hQ₁e e he ha's (mx _ htgtx).2)) ?_
     · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨⟨ha'x, le_rfl, (mx a' ha'x).2⟩,
@@ -376,7 +376,7 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
   intro X₀ Y₀ Sx Sy Px Py hm hPx he hPy hey hn
   have hst : G.source e ≤ G.target e := (hle _ _).mp (.single ⟨e, rfl, rfl⟩)
   have hts : ¬ G.target e ≤ G.source e := fun h =>
-    not_reaches_target_source' hA e ((hle _ _).mpr h)
+    not_reaches_target_source_of_isAcyclic hA e ((hle _ _).mpr h)
   have mx : ∀ s ∈ Sx, m ≤ s ∧ s ≤ X₀ := fun s hs =>
     ⟨(hle _ _).mp (hPx.reaches_of_mem hs).1, (hle _ _).mp (hPx.reaches_of_mem hs).2⟩
   have my : ∀ s ∈ Sy, m ≤ s ∧ s ≤ Y₀ := fun s hs =>
@@ -389,14 +389,14 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
   have htgtx : G.target e ∈ Sx := (hPx.ends_mem he).2
   have hmx : m ∈ Sx := hPx.start_mem
   have hmy : m ∈ Sy := hPy.start_mem
-  obtain ⟨a, ⟨hax, hay, has⟩, ha_low⟩ := exists_greatest_of_total
+  obtain ⟨a, ⟨hax, hay, has⟩, ha_low⟩ := Set.Finite.exists_greatest_of_total
     (T := {v | v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e}) (Set.toFinite _)
     ⟨m, hmx, hmy, (mx _ hsrcx).1⟩ fun s hs t ht => tx s hs.1 t ht.1
   by_cases hB : (Sx ∩ Sy ∩ {v | G.target e ≤ v}).Nonempty
   swap
   · -- `B = ∅`: the trek with top `a`
-    obtain ⟨P₁, hP₁, -, hP₁e⟩ := seg hle hA hPx hax hPx.end_mem (mx a hax).2
-    obtain ⟨P₂, hP₂, -, -⟩ := seg hle hA hPy hay hPy.end_mem (my a hay).2
+    obtain ⟨P₁, hP₁, -, hP₁e⟩ := IsDPath.segment_le hle hA hPx hax hPx.end_mem (mx a hax).2
+    obtain ⟨P₂, hP₂, -, -⟩ := IsDPath.segment_le hle hA hPy hay hPy.end_mem (my a hay).2
     refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1)
       (Ss := ∅) (fun _ h => absurd h (Set.notMem_empty _)) hP₁ hP₂ ?_
       (Or.inl (hP₁e e he has (mx _ htgtx).2)) ?_
@@ -410,7 +410,7 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
       · exact Or.inl h
       · exact Or.inr (Or.inl h)
   -- `b⁻`, the lowest node of `B`
-  obtain ⟨bm, ⟨⟨hbmx, hbmy⟩, hbm⟩, hbm_low⟩ := exists_greatest_of_total
+  obtain ⟨bm, ⟨⟨hbmx, hbmy⟩, hbm⟩, hbm_low⟩ := Set.Finite.exists_greatest_of_total
     (T := Sx ∩ Sy ∩ {v | G.target e ≤ v}) (Set.toFinite _) hB fun s hs t ht => tx s hs.1.1 t ht.1.1
   have hmb : bm ≠ m := fun h => hts (h ▸ hbm |>.trans (mx _ hsrcx).1)
   -- `P*`, a path from `m` avoiding `b⁻`
@@ -426,7 +426,7 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
     · rcases hZ₀ with rfl | rfl
       · exact (mx _ hbmx).2
       · exact (my _ hbmy).2
-  obtain ⟨c, ⟨hcs, hcxy, hbc, hcb⟩, hc_high⟩ := exists_least_of_total
+  obtain ⟨c, ⟨hcs, hcxy, hbc, hcb⟩, hc_high⟩ := Set.Finite.exists_least_of_total
     (T := {v | v ∈ Ss ∧ (v ∈ Sx ∨ v ∈ Sy) ∧ bm ≤ v ∧ v ≠ bm}) (Set.toFinite _) ⟨Z₀, hZT⟩
     fun s hs t ht => (hPs.total hs.1 ht.1).imp (hle _ _).mp (hle _ _).mp
   have hcxy' : ¬ (c ∈ Sx ∧ c ∈ Sy) := fun h =>
@@ -434,10 +434,10 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
   rcases hcxy with hcx | hcy
   · -- `c` on `Px`: exchange the parts of the paths below `b⁻`
     have hcy : c ∉ Sy := fun h => hcxy' ⟨hcx, h⟩
-    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := seg hle hA hPx hmx hbmx (mx bm hbmx).1
-    obtain ⟨Q₂, hQ₂, -, -⟩ := seg hle hA hPy hbmy hPy.end_mem (my bm hbmy).2
-    obtain ⟨Q₃, hQ₃, -, -⟩ := seg hle hA hPy hmy hbmy (my bm hbmy).1
-    obtain ⟨Q₄, hQ₄, -, -⟩ := seg hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
+    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := IsDPath.segment_le hle hA hPx hmx hbmx (mx bm hbmx).1
+    obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPy hbmy hPy.end_mem (my bm hbmy).2
+    obtain ⟨Q₃, hQ₃, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hbmy (my bm hbmy).1
+    obtain ⟨Q₄, hQ₄, -, -⟩ := IsDPath.segment_le hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
     have hB' : ({s | s ∈ Sx ∧ m ≤ s ∧ s ≤ bm} ∪ {s | s ∈ Sy ∧ bm ≤ s ∧ s ≤ Y₀}) ∩
         ({s | s ∈ Sy ∧ m ≤ s ∧ s ≤ bm} ∪ {s | s ∈ Sx ∧ bm ≤ s ∧ s ≤ X₀}) ∩
           {v | G.target e ≤ v} = Sx ∩ Sy ∩ {v | G.target e ≤ v} := by

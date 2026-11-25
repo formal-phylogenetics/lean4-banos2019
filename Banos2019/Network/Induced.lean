@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Network.TrekArc
+public import Banos2019.Network.Proposition1
 public import Phylogenetics.NMSC.InducedParams
 
 /-!
@@ -149,7 +150,7 @@ theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Se
       e ∈ P₁ ∪ P₂ ∧ ∀ f ∈ P₁ ∪ P₂, N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source f) := by
   have hA := hN.1.acyclic
   have : Finite V := hN.1.finite_vertices
-  let _ : PartialOrder V := reachOrder N.graph hA
+  let _ : PartialOrder V := reachOrderOfIsAcyclic N.graph hA
   have hle : ∀ a b, N.graph.Reaches a b ↔ a ≤ b := fun _ _ => Iff.rfl
   obtain ⟨x, hx, hex⟩ := hdesc
   -- with one taxon, the LSA is the taxon, and no edge is below it
@@ -190,7 +191,7 @@ theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Se
     by_cases hyb : N.graph.Reaches (N.graph.target e) (N.leaf y)
     · -- `y` below `e`: a path from `m` to `x` or `y` avoids the child of `e`
       have htm : N.graph.target e ≠ m := fun h =>
-        not_reaches_target_source' hA e (h ▸ he)
+        not_reaches_target_source_of_isAcyclic hA e (h ▸ he)
       obtain ⟨Z₀, hZ₀, Sy, Py, hPy, hey⟩ :=
         hmpaths _ (he.tail ⟨e, rfl, rfl⟩) htm
       rcases hZ₀ with rfl | rfl
@@ -208,6 +209,21 @@ theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Se
   · exact hmS _ (Or.inl (h₁.ends_mem hf).1)
   · exact hmS _ (Or.inr (h₂.ends_mem hf).1)
 
+/-- `contractRoot` contracts the edge at the root (Definition 7, step 3). -/
+theorem isContraction_contractRoot (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) :
+    IsContraction M (contractRoot M hM) Subtype.val Subtype.val where
+  inj_v := Subtype.val_injective
+  inj_e := Subtype.val_injective
+  source _ := rfl
+  target _ := rfl
+  range_v s := ⟨fun ⟨c, hc⟩ => hc ▸ c.2, fun h => ⟨⟨s, h⟩, rfl⟩⟩
+  range_e a := ⟨fun ⟨e, he⟩ => he ▸ e.2, fun h => ⟨⟨a, h⟩, rfl⟩⟩
+  leaf _ := rfl
+  root_one h := by
+    simp only [contractRoot, h, ↓reduceDIte]
+    exact ⟨_, Set.Nonempty.some_mem (s := {e | M.graph.source e = M.root}) _, rfl⟩
+  root_ne h := by simp only [contractRoot, h, ↓reduceDIte]
+
 /-- **Proposition 1** (`prop::ancestralinduced`): for a binary rooted network `N` and a set `Z` of at
 least two taxa, `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic as leaf-labelled semidirected networks;
 `proposition1_metric` gives the isomorphism of metric networks. The paper allows any `Z ⊆ X`; with one
@@ -217,8 +233,12 @@ theorem proposition1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h
     {Z : Set X} (hZ : Z.Nontrivial) :
     Nonempty (SDIso (inducedUnrooted (unrooted N hN hX) Z)
       (unrooted (inducedRooted N hN.1 Z hZ.nonempty) (inducedRooted_isBinaryRootedNetwork hN hZ)
-        hZ.coe_sort)) := by
-  sorry
+        hZ.coe_sort)) :=
+  -- the edges of `N⁻` on simple treks between taxa of `Z` are those of the LSA network (by Lemma 17,
+  -- `mem_trekEdges_iff`), and suppressing their nodes of degree two gives `(N⁺_Z)⁻`
+  nonempty_sdIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
+    (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
+    (isContraction_contractRoot _ _)
 
 /-- **Proposition 1**, for metric networks: `(N⁻)_Z` and `(N⁺_Z)⁻`, with their metrics, are
 isomorphic. -/

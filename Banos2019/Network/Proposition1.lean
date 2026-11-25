@@ -443,7 +443,7 @@ theorem not_isBranch_trekNet_lsa (u : keptNodes (semidirected hN.1 hN.2 hX)
       refine Set.eq_empty_of_forall_notMem ?_
       rintro e ⟨g, hg, rfl⟩
       have hb := valK_mem_belowArcs hN hX hZ h17 g
-      exact not_reaches_target_source' hN.1.acyclic _ (by rw [(htgt g).mp hg]; exact hb.1)
+      exact not_reaches_target_source_of_isAcyclic hN.1.acyclic _ (by rw [(htgt g).mp hg]; exact hb.1)
     have h2 : valK hN hX '' {g | (trekNet hN hX Z).graph.source g = u} =
         {e | N.graph.source e = m ∧ e ∈ N.ancestralArcs Z} := by
       ext e
@@ -476,7 +476,7 @@ chain nodes of the ancestral network on `Z`. -/
 def lVertEquiv : {u // IsBranch (trekNet hN hX Z) ∅ u} ≃
     {v : V // v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
       N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty} :=
-  equivOfInjective (fun u => valH hN hX u.1) (fun _ _ h => Subtype.ext (valH_injective hN hX h)) _
+  Equiv.ofInjectiveSubtype (fun u => valH hN hX u.1) (fun _ _ h => Subtype.ext (valH_injective hN hX h)) _
     fun v => by
       constructor
       · rintro ⟨hv, hnc, hmv, hvm⟩
@@ -796,7 +796,7 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
         (reaches_of_mem_chainNodes hN.1 hZ.nonempty hs)
       have hsm : s ≠ m := by
         rintro rfl
-        exact not_reaches_target_source' hN.1.acyclic f
+        exact not_reaches_target_source_of_isAcyclic hN.1.acyclic f
           ((reaches_of_mem_chainNodes hN.1 hZ.nonempty hs).trans hmf)
       exact ⟨hms, hs.2.1, ne_lsa_univ hN hX hZ hms (Or.inl hsm)⟩
   obtain ⟨u, hu⟩ := exists_valH hN hX hZ h17 hmf hsf ((hgood _ (Set.mem_insert _ _)).2.2)
@@ -816,7 +816,7 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
     have h1 := reaches_of_mem_chainNodes hN.1 hZ.nonempty
       (chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf)
     rw [h] at h1
-    exact not_reaches_target_source' hN.1.acyclic f (h1.trans hmf)
+    exact not_reaches_target_source_of_isAcyclic hN.1.acyclic f (h1.trans hmf)
   refine ⟨u, w, _, hK'.isUTrail (trekNet_isAcyclic hN hX), ?_, ?_, ?_, ?_, ?_, ?_⟩
   · classical
     rw [valR_source hN hZ hC ι κ hK]
@@ -875,7 +875,7 @@ theorem exists_chainTrail_of_eq (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
     have h₁ := reaches_of_mem_chainNodes hN.1 hZ.nonempty hs
     refine ⟨(Relation.ReflTransGen.single ⟨a, ha, rfl⟩).trans h₁, ?_⟩
     rintro rfl
-    exact not_reaches_target_source' hN.1.acyclic a (h₁.trans (ha ▸ .refl))
+    exact not_reaches_target_source_of_isAcyclic hN.1.acyclic a (h₁.trans (ha ▸ .refl))
   have hgood : ∀ {a : E}, N.graph.source a = m → ∀ s ∈ chainNodes hN.1 hZ.nonempty
       (N.graph.target a), N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ ρ :=
     fun ha s hs => ⟨(hbelow ha s hs).1, hs.2.1,
@@ -1171,7 +1171,7 @@ theorem psiR_eq {e : trekEdges (semidirected hN.1 hN.2 hX) Z}
 def rVertEquiv : SemidirectedVertex hC.1 hZ.coe_sort ≃
     {v : V // v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
       N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty} :=
-  equivOfInjective (valR hN hZ hC ι) (fun _ _ h => sdVert_injective hC.1 hZ.coe_sort
+  Equiv.ofInjectiveSubtype (valR hN hZ hC ι) (fun _ _ h => sdVert_injective hC.1 hZ.coe_sort
     (valC_injective hN hZ ι κ hK h)) _ fun v => (mem_range_valR hN hZ hC ι κ hK v).symm
 
 /-- The bijection of the nodes of `(N⁻)_Z` and `(N⁺_Z)⁻`: both are nodes of `N`. -/
@@ -1182,7 +1182,7 @@ theorem valH_vertEquivR_symm (x : SemidirectedVertex hC.1 hZ.coe_sort) :
     valH hN hX ((vertEquivR hN hX hZ h17 hC ι κ hK).symm x).1 = valR hN hZ hC ι x := by
   unfold vertEquivR
   rw [Equiv.symm_trans_apply, Equiv.symm_symm]
-  exact equivOfInjective_symm_apply (fun u : {u // IsBranch (trekNet hN hX Z) ∅ u} => valH hN hX u.1)
+  exact Equiv.ofInjectiveSubtype_symm_apply (fun u : {u // IsBranch (trekNet hN hX Z) ∅ u} => valH hN hX u.1)
     _ _ _ _
 
 include h17 hK in

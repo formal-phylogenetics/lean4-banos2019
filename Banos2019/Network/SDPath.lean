@@ -83,14 +83,14 @@ theorem IsDPath.eq_nil {H : DirectedMultigraph V E} (hA : H.IsAcyclic) {u : V} {
     ext s
     constructor
     · intro hs
-      exact reaches_antisymm hA (h.reaches_of_mem hs).2 (h.reaches_of_mem hs).1
+      exact reaches_antisymm_of_isAcyclic hA (h.reaches_of_mem hs).2 (h.reaches_of_mem hs).1
     · rintro rfl
       exact h.start_mem
   refine ⟨hS, Set.eq_empty_of_forall_notMem fun e he => ?_⟩
   have h₁ := (h.ends_mem he).1
   have h₂ := (h.ends_mem he).2
   rw [hS] at h₁ h₂
-  exact not_reaches_target_source' hA e
+  exact not_reaches_target_source_of_isAcyclic hA e
     (by rw [Set.mem_singleton_iff.mp h₁, Set.mem_singleton_iff.mp h₂]; exact .refl)
 
 /-- A nontrivial directed path has a last edge. -/
@@ -130,7 +130,7 @@ theorem IsDPath.uncons {H : DirectedMultigraph V E} (hA : H.IsAcyclic) {u w : V}
   cases h with
   | nil => exact absurd he (Set.notMem_empty e)
   | @cons e₀ _ S' P' h' =>
-    have hu : H.source e₀ ∉ S' := fun hm => not_reaches_target_source' hA e₀ (h'.reaches_of_mem hm).1
+    have hu : H.source e₀ ∉ S' := fun hm => not_reaches_target_source_of_isAcyclic hA e₀ (h'.reaches_of_mem hm).1
     rcases Set.mem_insert_iff.mp he with rfl | he
     · exact ⟨S', P', h', rfl, rfl, hu⟩
     · exact absurd (hs ▸ (h'.ends_mem he).1) hu
@@ -280,7 +280,7 @@ theorem exists_dtrek_of_sdtrek (hA : G.graph.IsAcyclic)
       rintro rfl
       have : G.graph.source g₁ = v := (Set.eq_singleton_iff_unique_mem.mp hS).2 _
         ⟨Or.inl hgs₁, Or.inl hgs₂⟩
-      exact not_reaches_target_source' hA g₁ (by rw [this, hgt₁]; exact .refl)
+      exact not_reaches_target_source_of_isAcyclic hA g₁ (by rw [this, hgt₁]; exact .refl)
     exact hu₁ g₁ hg₁ (hH g₁ g₂ hne' (hgt₁.trans hgt₂.symm))
   rcases hjunction with rfl | rfl
   · obtain ⟨t, Sa, Pa, Sb, Pb, ha, hb, hab, hP, hS'⟩ :=
