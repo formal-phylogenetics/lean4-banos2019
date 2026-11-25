@@ -13,6 +13,7 @@ public import Banos2019.Quartet.UnrootedIso
 public import Banos2019.Quartet.ThreeTwoCherry
 public import Banos2019.Quartet.DisjointTree
 public import Banos2019.Quartet.RootedIsoUnrooted
+public import Banos2019.Quartet.TreeUnrooted
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -2314,8 +2315,9 @@ theorem sameUnrootedMetricTree_of_sdMetricIso (hQ : IsLSAQuartet Q θ) (hQ' : Is
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
     (treeSpeciesTree Q hQ.binary.1 ht hQ.metric.1).SameUnrootedMetricTree
-      (treeSpeciesTree Q' hQ'.binary.1 ht' hQ'.metric.1) := by
-  sorry
+      (treeSpeciesTree Q' hQ'.binary.1 ht' hQ'.metric.1) :=
+  sameUnrootedMetricTree_of_iso hQ.binary hQ.isLSA hQ'.binary hQ'.isLSA hQ.nontrivial ht ht'
+    hQ.metric.1 hQ'.metric.1 φ
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- A binary level-1 network without cycles has no hybrid arc: two arcs into one node lie on a
