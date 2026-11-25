@@ -6,6 +6,7 @@ public import Phylogenetics.NMSC.Induced
 public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Quartet.HybridGlue
 public import Banos2019.Quartet.ReduceSpec
+public import Banos2019.Quartet.DisjointNet
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -1808,7 +1809,29 @@ theorem cf_disjointNet_eq_cherryMass (hQ : IsLSAQuartet Q θ) (hC : InducesCycle
     (hb : Q.graph.Reaches v (Q.leaf b)) (q : QuartetTree X) :
     cf (disjointNet Q v h₁ h₂ a b) (disjointMetric Q v h₁ h₂ θ) q =
       cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) {{a}} {{b}}) q := by
-  sorry
+  obtain ⟨-, -, h2, -, hk⟩ := hC
+  -- the taxa below `v` are `a` and `b`
+  have hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b := by
+    have hsub : ({a, b} : Set X) ⊆ {x | Q.graph.Reaches v (Q.leaf x)} := by
+      rintro x (rfl | rfl)
+      · exact ha
+      · exact hb
+    have heq := Set.eq_of_subset_of_ncard_le hsub (by rw [hk, Set.ncard_pair hab])
+      (Set.toFinite _)
+    intro x
+    rw [← Set.mem_ofPred_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
+    rfl
+  have hD := disjointNet_isPhylogenetic hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow
+  have hnorm := disjointNet_isNormalized hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow
+    hQ.metric.1.isNormalized
+  have hsum := inheritance_add_eq_one hQ.metric.1 h2 hne hh₁ hh₂
+  rw [cf, nmscCF_eq_cherryMass_weak hD hnorm le_rfl, taxa_eq_univ hQ.card_taxa q,
+    cherryMass_eq_cherryOf, cherryMass_eq_cherryOf]
+  congr 1
+  funext F
+  rw [rootDist_disjointNet hQ.binary hQ.levelOne h2 hne hh₁ hh₂ hab hbelow θ F,
+    rootDist_hybInj hQ.binary.1 (isCut_hybrid hQ.binary hQ.levelOne h2) hne hh₁ hh₂
+      (hpar_of_hybrid hQ.binary h2 hne hh₁ hh₂) (γ := θ.inheritance h₁) rfl (by linarith)]
 
 /-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the
 taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge `c`),
@@ -1938,7 +1961,7 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
     have heq := Set.eq_of_subset_of_ncard_le hsub (by rw [hk, Set.ncard_pair hab])
       (Set.toFinite _)
     intro x
-    rw [← Set.mem_setOf_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
+    rw [← Set.mem_ofPred_eq (p := fun x => Q.graph.Reaches v (Q.leaf x)), ← heq]
     simp
   have hsupp : ∀ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G ≠ 0 →
       IsGoodForest G ∧ lineages G = {a, b} := by
