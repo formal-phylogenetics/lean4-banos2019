@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.CycleProperty
+public import Banos2019.Network.CycleFacts
 
 /-!
 # The blocks of a cycle of `N⁻` (Baños 2019, Sections 3, 7 and 8)
@@ -13,7 +14,6 @@ proofs of Sections 8 and 9 use these facts throughout, without stating them.
 * `isConnected_unrooted_graph`, `unrooted_isLevelOne`: `N⁻` is connected and level-1.
 * `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has exactly
   one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
-* `ncard_cycleNodes_of_isCycle`: a cycle of size `k` has `k` nodes.
 * `blockNode G C x`: the node of `C` whose block contains `x`; `sameBlock_iff_blockNode_eq`,
   `exists_blockNode_eq`, `blockNode_eq_iff_descendsFrom`.
 * `separatesQuartet_iff`: the cycle `C` separates `s` when `blockNode` is injective on `s` and sends a
@@ -38,25 +38,6 @@ section Multigraph
 
 variable {G : DirectedMultigraph V E}
 
-/-- A cycle of size `k` has `k` nodes. -/
-theorem ncard_cycleNodes_of_isCycle {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).ncard = C.ncard := by
-  obtain ⟨k, v, e, hC, rfl⟩ := hC
-  have hnodes : cycleNodes G (Set.range e) = Set.range v := by
-    ext u
-    constructor
-    · rintro ⟨f, ⟨i, rfl⟩, hu⟩
-      rcases hC.joins i with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩ <;> rcases hu with hu | hu
-      · exact ⟨i, h₁.symm.trans hu⟩
-      · exact ⟨_, h₂.symm.trans hu⟩
-      · exact ⟨_, h₁.symm.trans hu⟩
-      · exact ⟨i, h₂.symm.trans hu⟩
-    · rintro ⟨i, rfl⟩
-      rcases hC.joins i with ⟨h₁, -⟩ | ⟨-, h₂⟩
-      · exact ⟨e i, ⟨i, rfl⟩, Or.inl h₁⟩
-      · exact ⟨e i, ⟨i, rfl⟩, Or.inr h₂⟩
-  rw [hnodes, Set.ncard_range_of_injective hC.injective_node,
-    Set.ncard_range_of_injective hC.injective_edge]
-
 /-- The nodes of a cycle form a nonempty set. -/
 theorem IsCycle.cycleNodes_nonempty {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).Nonempty := by
   obtain ⟨k, v, e, hC, rfl⟩ := hC
@@ -70,7 +51,7 @@ theorem SameBlock.mono {ℓ : X → V} {D D' : Set E} (hD : D ⊆ D') {x y : X}
 /-- A cycle has a node outside a set with fewer elements than the size of the cycle. -/
 theorem IsCycle.exists_mem_cycleNodes_notMem {C : Set E} (hC : IsCycle G C) {F : Set V}
     (hF : F.Finite) (h : F.ncard < C.ncard) : ∃ u ∈ cycleNodes G C, u ∉ F :=
-  Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes_of_isCycle hC]) hF
+  Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes hC]) hF
 
 /-- **In a connected graph, every node is joined to a node of a cycle `C` by a walk avoiding the edges
 of `C`**: along a walk to a node of `C`, stop at the first node of `C`. -/
@@ -89,13 +70,6 @@ theorem exists_walks_compl_of_isConnected (hG : G.IsConnected) {C : Set E} (hC :
       · exact ⟨f, hfC, Or.inl h⟩
       · exact ⟨f, hfC, Or.inr h⟩
     · exact ⟨u, hu, hub.tail ⟨f, hfC, hf.symm⟩⟩
-
-/-- **In a level-1 graph, two nodes of a cycle `C` joined by a walk avoiding the edges of `C` are
-equal**: otherwise the walk and an arc of `C` would close a second cycle through an edge of `C`. -/
-theorem eq_of_walks_compl_of_isLevelOne (h1 : IsLevelOne G) {C : Set E} (hC : IsCycle G C)
-    {u w : V} (hu : u ∈ cycleNodes G C) (hw : w ∈ cycleNodes G C) (huw : G.Walks Cᶜ u w) :
-    u = w := by
-  sorry
 
 end Multigraph
 
@@ -250,7 +224,7 @@ theorem eq_blockNode (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unroot
     (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) {x : X}
     (hx : x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u) :
     u = blockNode (unrooted N hN hX) C x :=
-  eq_of_walks_compl_of_isLevelOne (unrooted_isLevelOne hN h1 hX) hC hu (blockNode_mem hC x)
+  (unrooted_isLevelOne hN h1 hX).eq_of_walks_compl hC hu (blockNode_mem hC x)
     (hx.trans (DirectedMultigraph.walks_symm _ (blockNode_spec hC x).2))
 
 /-- **Two taxa are in the same block of `C` exactly when their blocks are those of the same node.** -/
@@ -344,7 +318,7 @@ theorem four_le_ncard_of_separatesQuartet (h1 : IsLevelOne N.graph) {C : Set _}
     4 ≤ C.ncard := by
   have := hN.1.finite_vertices
   have hinj := ((separatesQuartet_iff h1 hC hv s).1 hsep).1
-  rw [← ncard_cycleNodes_of_isCycle hC, ← hs, ← Set.ncard_coe_finset, ← hinj.ncard_image]
+  rw [← ncard_cycleNodes hC, ← hs, ← Set.ncard_coe_finset, ← hinj.ncard_image]
   refine Set.ncard_le_ncard ?_ (Set.toFinite _)
   rintro _ ⟨x, -, rfl⟩
   exact blockNode_mem hC x

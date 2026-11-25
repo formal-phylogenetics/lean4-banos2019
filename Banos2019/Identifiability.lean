@@ -294,7 +294,7 @@ theorem lemma15 (hX : Nontrivial X) :
   rcases hC4.eq_or_lt with h4 | h5
   · -- `k_v = 4`: the blocks are the images of the four taxa of `s`, and `Z_{s ∖ {t}}` is that of `t`
     have hnodes : cycleNodes (unrooted N hN hX).graph C = β '' ↑s :=
-      (Set.eq_of_subset_of_ncard_le hsub (by rw [ncard_cycleNodes_of_isCycle hC, ← h4, himg])
+      (Set.eq_of_subset_of_ncard_le hsub (by rw [ncard_cycleNodes hC, ← h4, himg])
         (Set.toFinite _)).symm
     have hZ4 : ∀ t ∈ s, ∀ e, e ∈ extensions S (s.erase t) ↔ β e = β t := by
       intro t ht e
@@ -472,7 +472,7 @@ theorem lemma15 (hX : Nontrivial X) :
           ext y
           simp only [Set.mem_ofPred_eq, hB]
           exact eq_comm
-      rw [hrange, Set.InjOn.ncard_image, ncard_cycleNodes_of_isCycle hC]
+      rw [hrange, Set.InjOn.ncard_image, ncard_cycleNodes hC]
       intro u hu u' hu' huu'
       obtain ⟨x, rfl⟩ := exists_blockNode_eq h1 hC hu
       exact (Set.ext_iff.1 huu' x).1 rfl
@@ -642,7 +642,7 @@ theorem lemma16 (hX : Nontrivial X) :
           refine Set.eq_of_subset_of_ncard_le ?_ ?_ (Set.toFinite _)
           · rintro _ ⟨m, -, rfl⟩
             exact blockNode_mem hC m
-          · rw [ncard_cycleNodes_of_isCycle hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
+          · rw [ncard_cycleNodes hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
               card_eq_four_of_distinct4 h]
         obtain ⟨m, hm, hmw⟩ := hnodes ▸ hw.mem_cycleNodes
         exact ⟨hinj, m, hm, hmw⟩
@@ -768,7 +768,7 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       convert (h12 hθ _ h4').2 ⟨C, v, by omega, (separatesQuartet_iff h1 hC hv _).2
         ⟨injOn_four hep her het hpr hpt hrt, p, by simp, hβp⟩⟩
   · -- three taxa of `s` in distinct blocks
-    rw [← ncard_cycleNodes_of_isCycle hC, ← h3]
+    rw [← ncard_cycleNodes hC, ← h3]
     exact Set.ncard_le_ncard hsub (Set.toFinite _)
   · -- two taxa descend from the hybrid node
     rw [← Set.ncard_pair hpq]
@@ -834,7 +834,7 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     hC.exists_mem_cycleNodes_notMem (Set.toFinite {β i, β j, β k}) (by omega)
   have hnodes : cycleNodes (unrooted N hN hX).graph C = insert u₄ {β i, β j, β k} := by
     refine (Set.eq_of_subset_of_ncard_le (Set.insert_subset hu₄ hsub) ?_ (Set.toFinite _)).symm
-    rw [ncard_cycleNodes_of_isCycle hC, hC4, Set.ncard_insert_of_notMem hu₄ijk, h3]
+    rw [ncard_cycleNodes hC, hC4, Set.ncard_insert_of_notMem hu₄ijk, h3]
   simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hu₄ijk
   obtain ⟨hu₄i, hu₄j, hu₄k⟩ := hu₄ijk
   -- `e` is not in the fourth block: otherwise `{i, j, k, e}` would satisfy the Big Cycle property
