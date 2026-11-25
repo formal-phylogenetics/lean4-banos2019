@@ -116,12 +116,17 @@ or `Py` is neither `a` nor `b⁺`, since the network is binary (`hout`: at most 
 and below `a` (case 3); above `a` (case 4); above `b⁻` and below `b⁺` (case 5). In cases 1–4 the trek is
 built directly; in case 5 two new paths have fewer common nodes below `e`, and `IH` applies.
 
-Departure from the paper, in two cases. In case 4 (ii) with `w` on `Px` only, the paper's trek, from
-the node of `A` right above `w`, does not apply: its path through `e` passes through `w`; the trek of
-case 3 and case 4 (i), with top `w`, is used. In case 5 (ii) the paper takes `w` on `Px` without loss
-of generality; the case `w` on `Py` only is not symmetric to it, the paths `Px` and `Py` playing
-different roles (one passes through `e`, the other avoids its child), and the construction of case
-5 (i) is used for it (replace `Py` by `Py` to `w`, `P*` to `c`, and `Py` from `c`). -/
+In case 4 (ii) the top of the trek is the node `a'` of `A` right above `w` (Figure 27, left): one path
+follows the path among `Px`, `Py` that avoids `w` from `a'` to `a`, then `Px` through `e` to `x`; the
+other follows the path containing `w` from `a'` to `w`, then `P*` to `c` and `Py` to `y`. In case
+5 (ii) with `w` on `Px`, the paper's second path contains "the edges in `Px` that are above `a` but
+below `b`" (TeX l. 1270); no node is above `a` and below `b`, and the path is formed with the edges of
+`Px` between `b` and `w`, which is the evident intent (a misprint of the paper).
+
+Departure from the paper: in case 5 (ii) the paper takes `w` on `Px` without loss of generality; the
+case `w` on `Py` only is not symmetric to it, the paths `Px` and `Py` playing different roles (one
+passes through `e`, the other avoids its child), and the construction of case 5 (i) is used for it
+(replace `Py` by `Py` to `w`, `P*` to `c`, and `Py` from `c`). -/
 theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic)
     (hout : ∀ f₁ f₂ f₃ : E, G.source f₁ = G.source f₂ → G.source f₁ = G.source f₃ →
       f₁ = f₂ ∨ f₁ = f₃ ∨ f₂ = f₃)
@@ -205,7 +210,9 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
       · exact Or.inl h
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
-  -- the trek with top `t`, the node of `A` right above `w` on `Py` only (cases 1 and 4 on `Py`)
+  -- the trek with top `a'`, the node of `A` right above `w`, for `w` on `Py` only (case 1, and case
+  -- 4 (ii) on `Py`): one path along `Px` through `e`, the other along `Py` to `w`, `P*` to `c` and
+  -- `Py` to `y`
   have consA : ∀ a', a' ∈ Sx → a' ∈ Sy → a' ≤ G.source e → a' ≤ w →
       (∀ v ∈ Sx, v ∈ Sy → v ≤ G.source e → v ≤ w → v ≤ a') → w ∈ Sy → w ∉ Sx → w ≤ bp →
       HasTrekThrough G m X₀ Y₀ e := by
@@ -230,6 +237,41 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
     · rintro s (⟨h, -⟩ | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
       · exact Or.inl h
       · exact Or.inr (Or.inl h)
+      · exact Or.inr (Or.inr h)
+      · exact Or.inr (Or.inl h)
+  -- the trek with top `a'`, the node of `A` right above `w`, for `w` on `Px` only (case 4 (ii) on
+  -- `Px`): one path along `Py` to `a` and `Px` through `e`, the other along `Px` to `w`, `P*` to `c`
+  -- and `Py` to `y`
+  have cons4x : ∀ a', a' ∈ Sx → a' ∈ Sy → a' ≤ w →
+      (∀ v ∈ Sx, v ∈ Sy → v ≤ G.source e → v ≤ w → v ≤ a') → w ∈ Sx → w ∉ Sy → w ≤ a →
+      HasTrekThrough G m X₀ Y₀ e := by
+    intro a' ha'x ha'y ha'w ha'_low hwx hwy hwa
+    obtain ⟨Q₁, hQ₁, -, -⟩ := IsDPath.segment_le hle hA hPy ha'y hay (ha'w.trans hwa)
+    obtain ⟨Q₂, hQ₂, -, hQ₂e⟩ := IsDPath.segment_le hle hA hPx hax hPx.end_mem (mx a hax).2
+    obtain ⟨Q₃, hQ₃, -, -⟩ := IsDPath.segment_le hle hA hPx ha'x hwx ha'w
+    refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms
+      (hQ₁.append hQ₂) (hQ₃.append (hPwc.append hPcy)) ?_
+      (Or.inl (Or.inr (hQ₂e e he has (mx _ htgtx).2))) ?_
+    · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨Or.inl ⟨ha'y, le_rfl, ha'w.trans hwa⟩,
+        Or.inl ⟨ha'x, le_rfl, ha'w⟩⟩, ?_⟩
+      rintro s ⟨⟨hsy, ha's, hsa⟩ | ⟨hsx, has', -⟩, ⟨hsx', -, hsw⟩ | hs | ⟨hsy', hcs, -⟩⟩
+      · exact le_antisymm (ha'_low s hsx' hsy (hsw.trans (hwa.trans has)) hsw) ha's
+      · rcases inner s hs (Or.inr hsy) with h | h
+        · exact absurd (h ▸ hsy) hwy
+        · exact absurd (by order) hts
+      · exact absurd (by order) hts
+      · have haw : a = w := by order
+        exact absurd (haw ▸ hay) hwy
+      · rcases inner s hs (Or.inl hsx) with h | h
+        · have haw : a = w := by order
+          exact absurd (haw ▸ hay) hwy
+        · exact absurd (h ▸ hsx) hcx
+      · have := hbm_low s hsx hsy' (hbm_le_c s hcs)
+        exact absurd (by order) hcb
+    · rintro s ((⟨h, -⟩ | ⟨h, -⟩) | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
+      · exact Or.inr (Or.inl h)
+      · exact Or.inl h
+      · exact Or.inl h
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
   -- case 2: the trek with top `a`, one path through `e` to `w`, `P*` to `c` and `Py` to `b`
@@ -267,7 +309,9 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
       · exact Or.inl h
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
-  -- case 5 (ii) with `w` on `Px`: exchange the parts of `Px` and `Py` between `b` and `b'`
+  -- case 5 (ii) with `w` on `Px`: exchange the parts of `Px` and `Py` between `b` and `b'`; the second
+  -- path takes the edges of `Px` between `b` and `w` (the paper's "above `a` but below `b`" is a
+  -- misprint)
   have cons5x : w ∈ Sx → G.target e ≤ w → w ∉ Sy → bp ≤ w → HasTrekThrough G m X₀ Y₀ e := by
     intro hwx htw hwy hbpw
     obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := Set.Finite.exists_greatest_of_total
@@ -451,16 +495,21 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
   -- the five cases
   rcases hwxy.elim (fun h => tx w h a hax) (fun h => ty w h a hay) with hwa' | haw
   · -- case 4: `w` above `a`
-    by_cases hwx : w ∈ Sx
-    · -- (i), and (ii) with `w` on `Px`: the trek with top `w`
-      exact consTop hwx (hwa'.trans has)
-    · -- (ii) with `w` on `Py`: the trek with top the node of `A` right above `w`
-      have hwy := hwxy.resolve_left hwx
+    by_cases hwxy' : w ∈ Sx ∧ w ∈ Sy
+    · -- (i): the trek with top `w`
+      exact consTop hwxy'.1 (hwa'.trans has)
+    · -- (ii): the trek with top the node `a'` of `A` right above `w`
       obtain ⟨a', ⟨⟨ha'x, ha'y, ha's⟩, ha'w⟩, ha'_low⟩ := Set.Finite.exists_greatest_of_total
         (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e) ∧ v ≤ w}) (Set.toFinite _)
         ⟨m, ⟨hmx, hmy, (mx _ hsrcx).1⟩, ms w hws⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-      exact consA a' ha'x ha'y ha's ha'w (fun v hvx hvy hvs hvw => ha'_low v ⟨⟨hvx, hvy, hvs⟩, hvw⟩)
-        hwy hwx (hwa'.trans (has.trans (hst.trans hbp)))
+      have ha'_low' : ∀ v ∈ Sx, v ∈ Sy → v ≤ G.source e → v ≤ w → v ≤ a' :=
+        fun v hvx hvy hvs hvw => ha'_low v ⟨⟨hvx, hvy, hvs⟩, hvw⟩
+      by_cases hwx : w ∈ Sx
+      · -- `w` on `Px` only
+        exact cons4x a' ha'x ha'y ha'w ha'_low' hwx (fun h => hwxy' ⟨hwx, h⟩) hwa'
+      · -- `w` on `Py` only
+        exact consA a' ha'x ha'y ha's ha'w ha'_low' (hwxy.resolve_left hwx) hwx
+          (hwa'.trans (has.trans (hst.trans hbp)))
   · rcases hwxy.elim (fun h => tx w h bp hbpx) (fun h => ty w h bp hbpy) with hwbp' | hbpw
     · -- `w` above `b⁺` and below `a`: cases 1, 2 and 3
       by_cases hwx : w ∈ Sx
