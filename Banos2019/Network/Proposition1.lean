@@ -494,4 +494,211 @@ end Kept
 
 end Restricted
 
+section RSide
+
+variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X} (hZ : Z.Nontrivial)
+  {VC EC : Type*} {C : RootedNetwork VC EC Z} (hC : IsBinaryRootedNetwork C)
+  (ι : VC → {v : N.AncestralVertex Z //
+    ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex v})
+  (κ : EC → {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
+    ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).graph.source e)})
+  (hK : IsContraction ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
+    (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)) C ι κ)
+
+/-- The node of `N` of a node of `C`. -/
+def valC (c : VC) : V := valS hN.1 hZ.nonempty (ι c)
+
+/-- The arc of `N` of an arc of `C`. -/
+def valCE (e : EC) : E := valSE hN.1 hZ.nonempty (κ e)
+
+include hK
+
+theorem valC_injective : Function.Injective (valC hN hZ ι) := fun _ _ h =>
+  hK.inj_v (valS_injective hN.1 hZ.nonempty h)
+
+theorem valCE_injective : Function.Injective (valCE hN hZ κ) := fun _ _ h =>
+  hK.inj_e (valSE_injective hN.1 hZ.nonempty h)
+
+theorem valC_source (e : EC) : valC hN hZ ι (C.graph.source e) = N.graph.source (valCE hN hZ κ e) := by
+  unfold valC valCE
+  rw [hK.source]
+  rfl
+
+theorem valC_target (e : EC) :
+    valC hN hZ ι (C.graph.target e) = chainEndZ hN.1 hZ.nonempty (N.graph.target (valCE hN hZ κ e)) := by
+  unfold valC valCE
+  rw [hK.target, valS_target]
+
+theorem valC_leaf (z : Z) : valC hN hZ ι (C.leaf z) = N.leaf z := by
+  unfold valC
+  rw [hK.leaf]
+  rfl
+
+theorem valC_reaches_iff (c c' : VC) :
+    C.graph.Reaches c c' ↔ N.graph.Reaches (valC hN hZ ι c) (valC hN hZ ι c') :=
+  hK.reaches_iff.trans (suppressAnc_reaches_iff hN.1 hZ.nonempty _ _)
+
+theorem valC_lsa :
+    valC hN hZ ι (lsa hC.1 Set.univ (@Set.univ_nonempty _ hZ.coe_sort.to_nonempty)) =
+      lsa hN.1 Z hZ.nonempty := by
+  have hS := suppress_isPhylogenetic (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)
+  unfold valC
+  rw [hK.lsa_eq hS hC.1, IsLeastStableAncestor.unique hS (lsa_spec hS _ _)
+    (suppressAnc_isLeastStableAncestor hN.1 hN.2 hZ)]
+  rfl
+
+include hC in
+theorem isHybridArc_iff_valC (e : EC) :
+    C.IsHybridArc e ↔ 2 ≤ N.graph.indegree (chainEndZ hN.1 hZ.nonempty
+      (N.graph.target (valCE hN hZ κ e))) :=
+  (hK.isHybridArc_iff hC.1 e).trans (suppressAnc_isHybridArc_iff hN.1 hZ.nonempty _)
+
+include hC in
+theorem isTreeArc_iff_valC (e : EC) :
+    C.IsTreeArc e ↔ N.graph.indegree (chainEndZ hN.1 hZ.nonempty
+      (N.graph.target (valCE hN hZ κ e))) = 1 :=
+  (hK.isTreeArc_iff hC.1 e).trans (suppressAnc_isTreeArc_iff hN.1 hZ.nonempty _)
+
+omit hK in
+/-- The node of `N` of a node of `(N⁺_Z)⁻`. -/
+def valR (r : SemidirectedVertex hC.1 hZ.coe_sort) : V :=
+  valC hN hZ ι (sdVert hC.1 hZ.coe_sort r)
+
+omit hK in
+/-- The arc of `N` of an edge of `(N⁺_Z)⁻`. -/
+def valRE (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) : E :=
+  valCE hN hZ κ (sdArc hC.1 hC.2 hZ.coe_sort g)
+
+omit hK in
+/-- The arc out of `LSA(Z)` that `(N⁺_Z)⁻` merges into the other. -/
+def rootArcR : E := valCE hN hZ κ (sdRootArc hC.1 hC.2 hZ.coe_sort)
+
+theorem mem_range_valC (v : V) :
+    (∃ c, valC hN hZ ι c = v) ↔ v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
+      ¬ (v = N.root ∧ ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
+        (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)).graph.outdegree
+          ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
+            (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)).root = 1) := by
+  constructor
+  · rintro ⟨c, rfl⟩
+    obtain ⟨hv, hnc⟩ := (mem_range_valS hN.1 hZ.nonempty _).mp ⟨ι c, rfl⟩
+    refine ⟨hv, hnc, fun ⟨hr, h1⟩ => (hK.range_v (ι c)).mp ⟨c, rfl⟩ ⟨?_, h1⟩⟩
+    exact valS_injective hN.1 hZ.nonempty (hr.trans (valS_root hN.1 hZ.nonempty).symm)
+  · rintro ⟨hv, hnc, hr⟩
+    obtain ⟨s, rfl⟩ := (mem_range_valS hN.1 hZ.nonempty v).mpr ⟨hv, hnc⟩
+    obtain ⟨c, rfl⟩ := (hK.range_v s).mpr fun ⟨h, h1⟩ => hr ⟨h ▸ valS_root hN.1 hZ.nonempty, h1⟩
+    exact ⟨c, rfl⟩
+
+/-- **The nodes of `(N⁺_Z)⁻`**: the nodes strictly below `LSA(Z)`, above a taxon of `Z`, that are not
+chain nodes of the ancestral network on `Z`. -/
+theorem mem_range_valR (v : V) :
+    (∃ r, valR hN hZ hC ι r = v) ↔ v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
+      N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty := by
+  have hl := valC_lsa hN hZ hC ι κ hK
+  constructor
+  · rintro ⟨r, rfl⟩
+    obtain ⟨h₁, h₂⟩ := (mem_range_sdVert hC.1 hZ.coe_sort _).mp ⟨r, rfl⟩
+    obtain ⟨hv, hnc, -⟩ := (mem_range_valC hN hZ ι κ hK _).mp ⟨_, rfl⟩
+    refine ⟨hv, hnc, ?_, fun h => h₂ (valC_injective hN hZ ι κ hK (h.trans hl.symm))⟩
+    rw [← hl]
+    exact (valC_reaches_iff hN hZ ι κ hK _ _).mp h₁
+  · rintro ⟨hv, hnc, hmv, hvm⟩
+    have hr : ¬ v = N.root := fun h => hvm (eq_of_reaches_of_reaches hN.1.acyclic
+      (h ▸ hN.1.root_reaches _) hmv)
+    obtain ⟨c, rfl⟩ := (mem_range_valC hN hZ ι κ hK v).mpr ⟨hv, hnc, fun h => hr h.1⟩
+    obtain ⟨r, rfl⟩ := (mem_range_sdVert hC.1 hZ.coe_sort c).mpr
+      ⟨(valC_reaches_iff hN hZ ι κ hK _ _).mpr (hl ▸ hmv), fun h => hvm (h ▸ hl)⟩
+    exact ⟨r, rfl⟩
+
+/-- **The edges of `(N⁺_Z)⁻`**: the arcs below `LSA(Z)`, above a taxon of `Z`, out of nodes that are
+not chain nodes, other than the arc out of `LSA(Z)` merged into the other. -/
+theorem mem_range_valRE (f : E) :
+    (∃ g, valRE hN hZ hC κ g = f) ↔ f ∈ N.ancestralArcs Z ∧
+      ¬ ChainZ hN.1 hZ.nonempty (N.graph.source f) ∧
+      N.graph.Reaches (lsa hN.1 Z hZ.nonempty) (N.graph.source f) ∧ f ≠ rootArcR hN hZ hC κ := by
+  have hl := valC_lsa hN hZ hC ι κ hK
+  constructor
+  · rintro ⟨g, rfl⟩
+    obtain ⟨h₁, h₂⟩ := (mem_range_sdArc hC.1 hC.2 hZ.coe_sort _).mp ⟨g, rfl⟩
+    obtain ⟨hf, hnc⟩ := (mem_range_valSE hN.1 hZ.nonempty _).mp ⟨_, rfl⟩
+    refine ⟨hf, hnc, ?_, fun h => h₂ (valCE_injective hN hZ ι κ hK h)⟩
+    rw [← hl]
+    unfold valRE
+    rw [← valC_source hN hZ ι κ hK]
+    exact (valC_reaches_iff hN hZ ι κ hK _ _).mp h₁
+  · rintro ⟨hf, hnc, hmf, hfr⟩
+    obtain ⟨a, rfl⟩ := (mem_range_valSE hN.1 hZ.nonempty f).mpr ⟨hf, hnc⟩
+    obtain ⟨e, rfl⟩ := (hK.range_e a).mpr fun ⟨hs, h1⟩ => by
+      -- the root of `N` is then `LSA(Z)`, of outdegree two in the ancestral network
+      have hsr : N.graph.source (valSE hN.1 hZ.nonempty a) = N.root :=
+        (valS_source hN.1 hZ.nonempty a).symm.trans (hs ▸ valS_root hN.1 hZ.nonempty)
+      have hmr : lsa hN.1 Z hZ.nonempty = N.root :=
+        eq_of_reaches_of_reaches hN.1.acyclic (hsr ▸ hmf) (hN.1.root_reaches _)
+      rw [suppress_outdegree, ancestral_outdegree hN.1 hZ.nonempty] at h1
+      change ({e | N.graph.source e = N.root ∧ e ∈ N.ancestralArcs Z} : Set E).ncard = 1 at h1
+      rw [← hmr, lsa_outdegree_ancestral hN.1 hN.2 hZ] at h1
+      exact absurd h1 (by norm_num)
+    have : Nonempty Z := hZ.coe_sort.to_nonempty
+    have hreach : C.graph.Reaches (lsa hC.1 Set.univ Set.univ_nonempty) (C.graph.source e) := by
+      refine (valC_reaches_iff hN hZ ι κ hK _ _).mpr ?_
+      rw [hl, valC_source hN hZ ι κ hK]
+      exact hmf
+    obtain ⟨g, hg⟩ := (mem_range_sdArc hC.1 hC.2 hZ.coe_sort e).mpr ⟨hreach, fun h =>
+      hfr (by rw [h]; rfl)⟩
+    exact ⟨g, by rw [valRE, hg]; rfl⟩
+
+open Classical in
+theorem valR_source (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.source g) =
+      if N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty then
+        chainEndZ hN.1 hZ.nonempty (N.graph.target (rootArcR hN hZ hC κ))
+      else N.graph.source (valRE hN hZ hC κ g) := by
+  have hl := valC_lsa hN hZ hC ι κ hK
+  have : Nonempty Z := hZ.coe_sort.to_nonempty
+  unfold valR
+  rw [sdVert_source]
+  have key : C.graph.source (sdArc hC.1 hC.2 hZ.coe_sort g) =
+      lsa hC.1 Set.univ Set.univ_nonempty ↔
+        N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty := by
+    unfold valRE
+    rw [← valC_source hN hZ ι κ hK, ← hl]
+    exact (valC_injective hN hZ ι κ hK).eq_iff.symm
+  split_ifs with h₁ h₂ h₂
+  · rw [valC_target hN hZ ι κ hK]
+    rfl
+  · exact absurd (key.mp h₁) h₂
+  · exact absurd (key.mpr h₂) h₁
+  · rw [valC_source hN hZ ι κ hK]
+    rfl
+
+theorem valR_target (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.target g) =
+      chainEndZ hN.1 hZ.nonempty (N.graph.target (valRE hN hZ hC κ g)) := by
+  unfold valR
+  rw [sdVert_target, valC_target hN hZ ι κ hK]
+  rfl
+
+theorem valR_leaf (z : Z) :
+    valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).leaf z) = N.leaf z := by
+  unfold valR
+  rw [sdVert_leaf, valC_leaf hN hZ ι κ hK]
+
+theorem semidirectedR_isDirected_iff (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    (semidirected hC.1 hC.2 hZ.coe_sort).IsDirected g ↔
+      2 ≤ N.graph.indegree (chainEndZ hN.1 hZ.nonempty (N.graph.target (valRE hN hZ hC κ g))) :=
+  (semidirected_isDirected_iff hC.1 hC.2 hZ.coe_sort g).trans
+    (isHybridArc_iff_valC hN hZ hC ι κ hK _)
+
+theorem rootArcR_spec :
+    N.graph.source (rootArcR hN hZ hC κ) = lsa hN.1 Z hZ.nonempty ∧
+      N.graph.indegree (chainEndZ hN.1 hZ.nonempty (N.graph.target (rootArcR hN hZ hC κ))) = 1 ∧
+      rootArcR hN hZ hC κ ∈ N.ancestralArcs Z := by
+  obtain ⟨h₁, h₂⟩ := sdRootArc_spec hC.1 hC.2 hZ.coe_sort
+  refine ⟨?_, (isTreeArc_iff_valC hN hZ hC ι κ hK _).mp h₂,
+    ((mem_range_valSE hN.1 hZ.nonempty _).mp ⟨_, rfl⟩).1⟩
+  unfold rootArcR
+  rw [← valC_source hN hZ ι κ hK, h₁, valC_lsa hN hZ hC ι κ hK]
+
+end RSide
+
 end Banos2019
