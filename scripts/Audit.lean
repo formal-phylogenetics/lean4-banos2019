@@ -249,6 +249,7 @@ import all Banos2019.Quartet.Reduction
 import all Banos2019.Quartet.Remove
 import all Banos2019.Quartet.RootedIso
 import all Banos2019.Quartet.SemidirectedCycles
+import all Banos2019.Quartet.SingleCycle
 import all Banos2019.Quartet.Transfer
 import all Banos2019.Quartet.Trees
 import all Banos2019.Solution
