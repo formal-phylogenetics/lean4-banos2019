@@ -61,15 +61,15 @@ below include and the sub-agents' figures do not: the move of the collection to 
 reorganization of the hubs, and the arrangement of eight paper repositories in the collection's layout (eleven
 sub-agents). The machine restarted at about 21:30; the agents then running resumed at 22:15 with their work intact.
 
-Figures, from the start, 2026-11-24 18:29:23, to the end of the round, 2026-11-25 05:44, from the
+Figures, from the start, 2026-11-24 18:29:23, to the end of the round, the commit 95f7ca2 of 2026-11-25 05:44, from the
 transcripts (`session_stats.py` of the skill):
 
 - elapsed time: 11.25 h;
 - sub-agents on this paper: 54 (23 launched by the main session, 31 by those), at most 8 running
-  at once, 42.1 h of working time in all;
-- their work: 5,580 tool calls; 10.87M output tokens, 41.11M input tokens, 1,864M tokens read from the cache;
+  at once, 42.2 h of working time in all;
+- their work: 5,583 tool calls; 10.87M output tokens, 41.12M input tokens, 1,866M tokens read from the cache;
 - the main session: 548 tool calls; 0.71M output tokens, 1.46M input tokens, 272M tokens read from the cache;
-- model calls: `claude-opus-5-5` only, 578 by the main session and 5417 by the sub-agents on this paper.
+- model calls: `claude-opus-5-5` only, 578 by the main session and 5420 by the sub-agents on this paper.
 
 The sub-agents of the other repositories add 11 agents, 10.9 h of working time, 3,183 tool calls, and
 2.90M output tokens, 9.48M input tokens, 1,360M tokens read from the cache. The platform does not record spending. The figures leave out the time the maintainer spent reading
