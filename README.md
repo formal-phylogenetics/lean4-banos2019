@@ -18,7 +18,7 @@ literature is assumed. Three statements are proved in corrected forms: Theorem 4
 the contraction leaves in `Ñ` suppressed; Proposition 7, off the vertices of the simplex; and Proposition 13, which is false as printed and
 whose refutation is proved too. No person has reviewed the proofs.
 
-This paper is one of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), on phylogenetic
+This paper belongs to the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), on phylogenetic
 network estimation, in the collection rooted at [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
 
 ## Status
