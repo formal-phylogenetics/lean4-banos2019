@@ -21,9 +21,11 @@ jobs:
           df -h /
       - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
-      # The audit imports the modules of the required libraries (lean4-phylogenetics, the hub) too,
-      # so that one run checks every axiom a result depends on (lean4-phylogenetics,
-      # docs/CONVENTIONS.md, Section 3); lake build has built them.
+      # The audit imports every module of the required libraries too, so that one run checks every
+      # axiom a result depends on (lean4-phylogenetics, docs/CONVENTIONS.md, Section 3); `lake build`
+      # builds only the modules of those libraries that this repository imports.
+      - name: Build the libraries that the audit reads
+        run: lake build Phylogenetics PhyloNetwork Allman2011
       # The audit sees a module's proofs only through its own `import all` line: every module of
       # Banos2019/ (Basic/, External/ and the paper's library) and the paper's Solution in palomar/,
       # but no Challenge (it holds a copy of the paper's definitions). With several papers
