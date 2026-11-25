@@ -204,9 +204,9 @@ import all Banos2019.Bridge.Unrooted
 import all Banos2019.Coalescent
 import all Banos2019.CycleProperty
 import all Banos2019.Defs
-import all Banos2019.External.SempleSteel2003.Quartets
 import all Banos2019.External.AllmanDegnanRhodes2011.Basic
 import all Banos2019.External.AllmanDegnanRhodes2011.Quartets
+import all Banos2019.External.SempleSteel2003.Quartets
 import all Banos2019.Identifiability
 import all Banos2019.Identify.Blocks
 import all Banos2019.Identify.BlocksFromS
@@ -339,7 +339,8 @@ meta def externalResults : List (String × Name) :=
   [("Allman, Degnan, Rhodes 2011, equation (1)", ``External.AllmanDegnanRhodes2011.equation1),
    ("Allman, Degnan, Rhodes 2011, Proposition 3", ``External.AllmanDegnanRhodes2011.proposition3),
    ("Allman, Degnan, Rhodes 2011, Proposition 11 (Prop 4)", ``External.AllmanDegnanRhodes2011.proposition4),
-   ("Allman, Degnan, Rhodes 2011, root placement", ``External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree)]
+   ("Allman, Degnan, Rhodes 2011, root placement", ``External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree),
+   ("Semple, Steel 2003, Theorem 6.3.5", ``External.SempleSteel2003.exists_iso_of_quartets_eq)]
 
 /-- The numbered results of the paper, in the order of the paper. -/
 meta def paperResults : List (String × Name) :=
@@ -394,7 +395,8 @@ meta def paperResults : List (String × Name) :=
    ("Allman, Degnan, Rhodes 2011, equation (1)", ``External.AllmanDegnanRhodes2011.equation1),
    ("Allman, Degnan, Rhodes 2011, Proposition 3", ``External.AllmanDegnanRhodes2011.proposition3),
    ("Allman, Degnan, Rhodes 2011, Proposition 11 (Prop 4)", ``External.AllmanDegnanRhodes2011.proposition4),
-   ("Allman, Degnan, Rhodes 2011, root placement", ``External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree)]
+   ("Allman, Degnan, Rhodes 2011, root placement", ``External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree),
+   ("Semple, Steel 2003, Theorem 6.3.5", ``External.SempleSteel2003.exists_iso_of_quartets_eq)]
 
 /-- The theorems that Palomar's comparator checks (`theorem_names` of
 `palomar/Banos2019/comparator.json`), as the Solution restates them. -/
