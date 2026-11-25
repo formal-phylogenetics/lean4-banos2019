@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
+public import Phylogenetics.NMSC.Induced
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -77,10 +78,41 @@ on four taxa, which is what the observation rests on. -/
 theorem observation1 (hX : Fintype.card X = 4) {G : Finset (Finset X)} (hG : IsBinaryHierarchy G)
     {A : Finset X} (hA : A ∈ G) (hA2 : #A = 2) :
     ∃ q : QuartetTree X, q.val = {A, Aᶜ} ∧ Displays (unroot G) q := by
-  sorry
+  have hc : #Aᶜ = 2 := by rw [card_compl, hX, hA2]
+  have hne : A ≠ Aᶜ := fun h => by
+    obtain ⟨x, hx⟩ := card_pos.1 (by omega : 0 < #A)
+    exact (mem_compl.1 (h ▸ hx)) hx
+  have hq : IsQuartetTree ({A, Aᶜ} : Finset (Finset X)) := by
+    refine ⟨card_pair hne, ?_, ?_⟩
+    · intro B hB
+      rcases mem_insert.1 hB with rfl | hB
+      · exact hA2
+      · rw [mem_singleton.1 hB]; exact hc
+    · intro B hB C hC hBC
+      rcases mem_insert.1 hB with rfl | hB <;> rcases mem_insert.1 hC with rfl | hC
+      · exact absurd rfl hBC
+      · rw [mem_singleton.1 hC]; exact disjoint_compl_right
+      · rw [mem_singleton.1 hB]; exact disjoint_compl_left
+      · rw [mem_singleton.1 hB, mem_singleton.1 hC] at hBC; exact absurd rfl hBC
+  refine ⟨⟨_, hq⟩, rfl, A, ?_, ?_⟩
+  · refine mem_unroot.2 (Or.inl ⟨hA, fun h => ?_⟩)
+    rw [h, card_univ, hX] at hA2
+    omega
+  · have ht : QuartetTree.taxa (⟨_, hq⟩ : QuartetTree X) = univ := by
+      unfold QuartetTree.taxa
+      simp [sup_insert, sup_singleton]
+    rw [ht, inter_univ]
+    exact mem_insert_self _ _
 
 /-- **Theorem 2** (`thm::MRCA`): the concordance factors of four taxa `s` under the network
-multispecies coalescent on a level-1 rooted metric network are those of the LSA network `Q⊕_s`. -/
+multispecies coalescent on a level-1 rooted metric network are those of the LSA network `Q⊕_s`.
+
+This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`, whose argument is the paper's: by the Markov
+property at the LSA of `s` (`NMSC.sum_sum_mul_injDist_atInj`), the process is a mixture over the forest
+of the four lineages arriving there; a forest with a cluster of two lineages decides the quartet tree,
+and with four lineages there the three quartet trees are equally likely by exchangeability
+(`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library proves it for every network and
+every correlation; the level-1 hypothesis is not needed. -/
 theorem theorem2 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4)
     (q : QuartetTree (s : Set X)) :
@@ -88,7 +120,7 @@ theorem theorem2 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : 
         (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
         0 q =
       nmscCF N θ 0 (QuartetTree.map Subtype.val_injective q) := by
-  sorry
+  convert NMSC.nmscCF_inducedNetwork hN.1 hθ.1 ⟨le_refl 0, zero_le_one⟩ hs _ q
 
 section Reduction
 
