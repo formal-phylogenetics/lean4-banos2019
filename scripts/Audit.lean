@@ -223,6 +223,7 @@ import all Banos2019.Identify.TildeCycle
 import all Banos2019.Identify.TildeDefs
 import all Banos2019.Identify.TildeInduction
 import all Banos2019.Identify.TreeIso
+import all Banos2019.Identify.TreeOfCycles
 import all Banos2019.Identify.UnrootedCycles
 import all Banos2019.Network.AncestralSuppress
 import all Banos2019.Network.Contraction
