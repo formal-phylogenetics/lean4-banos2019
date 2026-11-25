@@ -531,7 +531,8 @@ descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` 
 
 The proof is the paper's: `y` comes from Lemma 2; when `y` is not below `e`, the trek is
 `trek_of_not_below`; otherwise `trek_of_config` is the induction on the number of nodes below `e`
-common to the two paths, with the five cases on the position of `w` in `trek_mainStep`. -/
+common to the two paths, with the five cases on the position of `w` in `trek_mainStep`, which uses
+that the network is binary. -/
 theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X}
     (hZ : Z.Nonempty) {e : E} (he : N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e))
     (hdesc : ∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) :
@@ -541,6 +542,41 @@ theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Se
   have : Finite V := hN.1.finite_vertices
   let _ : PartialOrder V := reachOrderOfIsAcyclic N.graph hA
   have hle : ∀ a b, N.graph.Reaches a b ↔ a ≤ b := fun _ _ => Iff.rfl
+  -- the network is binary: at most two arcs leave a node, and one leaves a node entered by two
+  have : Finite E := hN.1.finite_arcs
+  have hout : ∀ f₁ f₂ f₃ : E, N.graph.source f₁ = N.graph.source f₂ →
+      N.graph.source f₁ = N.graph.source f₃ → f₁ = f₂ ∨ f₁ = f₃ ∨ f₂ = f₃ := by
+    intro f₁ f₂ f₃ h₂ h₃
+    by_contra hne
+    push Not at hne
+    have h3 : ({f₁, f₂, f₃} : Set E).ncard = 3 :=
+      Set.ncard_eq_three.mpr ⟨f₁, f₂, f₃, hne.1, hne.2.1, hne.2.2, rfl⟩
+    have hsub : ({f₁, f₂, f₃} : Set E) ⊆ {f | N.graph.source f = N.graph.source f₁} := by
+      rintro f (rfl | rfl | rfl)
+      · rfl
+      · exact h₂.symm
+      · exact h₃.symm
+    have := (Set.ncard_le_ncard hsub).trans (hN.outdegree_le_two (N.graph.source f₁))
+    omega
+  have hhyb : ∀ g₁ g₂ f₁ f₂ : E, g₁ ≠ g₂ → N.graph.target g₁ = N.graph.target g₂ →
+      N.graph.source f₁ = N.graph.target g₁ → N.graph.source f₂ = N.graph.target g₁ → f₁ = f₂ := by
+    intro g₁ g₂ f₁ f₂ hg ht h₁ h₂
+    by_contra hf
+    have hin : ({g₁, g₂} : Set E) ⊆ {f | N.graph.target f = N.graph.target g₁} := by
+      rintro f (rfl | rfl)
+      · rfl
+      · exact ht.symm
+    have hout' : ({f₁, f₂} : Set E) ⊆ {f | N.graph.source f = N.graph.target g₁} := by
+      rintro f (rfl | rfl)
+      · exact h₁
+      · exact h₂
+    have hi := Set.ncard_le_ncard hin
+    have ho := Set.ncard_le_ncard hout'
+    rw [Set.ncard_pair hg] at hi
+    rw [Set.ncard_pair hf] at ho
+    have := hN.indegree_add_outdegree_le (N.graph.target g₁)
+    unfold DirectedMultigraph.indegree DirectedMultigraph.outdegree at this
+    omega
   obtain ⟨x, hx, hex⟩ := hdesc
   -- with one taxon, the LSA is the taxon, and no edge is below it
   by_cases hZ2 : Z.Nontrivial
@@ -585,10 +621,10 @@ theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Se
         hmpaths _ (he.tail ⟨e, rfl, rfl⟩) htm
       rcases hZ₀ with rfl | rfl
       · obtain ⟨Sx', Px', hPx', hePx'⟩ := hthrough y hyb
-        exact (trek_of_config hle hA _ _ _ _ _ _ _
+        exact (trek_of_config hle hA hout hhyb _ _ _ _ _ _ _
           (fun b h h' => (hmpaths b h h').imp fun _ h => ⟨h.1.symm, h.2⟩)
           hPx' hePx' hPy hey rfl).symm
-      · exact trek_of_config hle hA _ _ _ _ _ _ _ hmpaths hPx hePx hPy hey rfl
+      · exact trek_of_config hle hA hout hhyb _ _ _ _ _ _ _ hmpaths hPx hePx hPy hey rfl
     · -- `y` not below `e`
       obtain ⟨Sy, Py, hPy⟩ := IsDPath.of_reaches hmy
       exact trek_of_not_below hle hA hPx hePx hPy hyb

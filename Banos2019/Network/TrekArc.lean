@@ -110,22 +110,23 @@ theorem trek_of_not_below (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsA
 /-- **Lemma 17, the five cases on the position of `w`** (Figures 25–27). `Px` passes through `e`, `Py`
 avoids its child, `bm` (`b⁻`) is the lowest node of `B`, `P*` avoids `bm`, and `c` is the first node of
 `P*` strictly below `bm` on `Px` or `Py`; it is on `Py`. The last node `w` of `P*` above `bm` on `Px`
-or `Py` is in one of five places: on `Py` between `a` and `b⁺` (case 1); on `Px` below `e` and above
-`b⁺` (case 2); on `Px` above `e`, below `a` (case 3) or above `a` (case 4); between `b⁺` and `bm`
-(case 5). In cases 1–4 the trek is built directly; in case 5 two new paths have fewer common nodes
-below `e`, and `IH` applies.
+or `Py` is neither `a` nor `b⁺`, since the network is binary (`hout`: at most two arcs leave a node;
+`hhyb`: two arcs leaving a node entered by two arcs are the same). So it is in one of five places: on
+`Py` above `b⁺` and below `a` (case 1); on `Px` above `b⁺` and below `e` (case 2); on `Px` above `e`
+and below `a` (case 3); above `a` (case 4); above `b⁻` and below `b⁺` (case 5). In cases 1–4 the trek is
+built directly; in case 5 two new paths have fewer common nodes below `e`, and `IH` applies.
 
-The trek of case 1 has top `a`, and that of case 4 with `w` on `Py` only has top the node of `A`
-right above `w`; this node is `a` in case 1, and both cases are built with it. Case 4 with `w` on
-`Px` (case 4 (i), and case 4 (ii) with `w` on `Px`) is built as case 3, with top `w`.
-
-Departure from the paper: the paper excludes `w = a` and `w = b⁺` because the network is binary, and
-in case 5 (ii) it takes `w` on `Px` without loss of generality; here `w = a` falls in case 3, `w = b⁺`
-in case 5 (i), and `w` on `Py` only in case 5 (ii) is built as case 5 (i) (replace `Py` by `Py` to
-`w`, `P*` to `c`, and `Py` from `c`); the constructions apply unchanged to these nodes, and case 5 (ii)
-with `w` on `Py` only is not symmetric to the case on `Px`, the paths `Px` and `Py` playing different
-roles (one passes through `e`, the other avoids its child). -/
+Departure from the paper, in two cases. In case 4 (ii) with `w` on `Px` only, the paper's trek, from
+the node of `A` right above `w`, does not apply: its path through `e` passes through `w`; the trek of
+case 3 and case 4 (i), with top `w`, is used. In case 5 (ii) the paper takes `w` on `Px` without loss
+of generality; the case `w` on `Py` only is not symmetric to it, the paths `Px` and `Py` playing
+different roles (one passes through `e`, the other avoids its child), and the construction of case
+5 (i) is used for it (replace `Py` by `Py` to `w`, `P*` to `c`, and `Py` from `c`). -/
 theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic)
+    (hout : ∀ f₁ f₂ f₃ : E, G.source f₁ = G.source f₂ → G.source f₁ = G.source f₃ →
+      f₁ = f₂ ∨ f₁ = f₃ ∨ f₂ = f₃)
+    (hhyb : ∀ g₁ g₂ f₁ f₂ : E, g₁ ≠ g₂ → G.target g₁ = G.target g₂ →
+      G.source f₁ = G.target g₁ → G.source f₂ = G.target g₁ → f₁ = f₂)
     {m X₀ Y₀ Z₀ : V} {e : E} {Sx Sy Ss : Set V} {Px Py Ps : Set E}
     (hPx : IsDPath G m X₀ Sx Px) (he : e ∈ Px) (hPy : IsDPath G m Y₀ Sy Py)
     (hey : G.target e ∉ Sy) {bm : V} (hbmx : bm ∈ Sx) (hbmy : bm ∈ Sy) (hbm : G.target e ≤ bm)
@@ -186,9 +187,9 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
     · exact Or.inr (le_antisymm hsc (hc_high s hss hsxy h hsb))
   obtain ⟨Pcy, hPcy, -, -⟩ := IsDPath.segment_le hle hA hPy hcy hPy.end_mem (my c hcy).2
   have hbm_le_c : ∀ v, c ≤ v → G.target e ≤ v := fun v h => hbm.trans (hbc.trans h)
-  by_cases hI : w ∈ Sx ∧ w ≤ G.source e
-  · -- cases 3 and 4 with `w` on `Px`: the trek with top `w`
-    obtain ⟨hwx, hwsrc⟩ := hI
+  -- the trek with top `w` on `Px` above `e` (cases 3 and 4 on `Px`)
+  have consTop : w ∈ Sx → w ≤ G.source e → HasTrekThrough G m X₀ Y₀ e := by
+    intro hwx hwsrc
     obtain ⟨P₁, hP₁, -, hP₁e⟩ := IsDPath.segment_le hle hA hPx hwx hPx.end_mem (mx w hwx).2
     refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms hP₁
       (hPwc.append hPcy) ?_ (Or.inl (hP₁e e he hwsrc (mx _ htgtx).2)) ?_
@@ -204,9 +205,135 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
       · exact Or.inl h
       · exact Or.inr (Or.inr h)
       · exact Or.inr (Or.inl h)
-  by_cases hV : w ∈ Sy ∧ bp ≤ w
-  · -- case 5 with `w` on `Py`: replace `Py` by `Py` to `w`, `P*` to `c`, `Py` from `c`
-    obtain ⟨hwy, hbpw⟩ := hV
+  -- the trek with top `t`, the node of `A` right above `w` on `Py` only (cases 1 and 4 on `Py`)
+  have consA : ∀ a', a' ∈ Sx → a' ∈ Sy → a' ≤ G.source e → a' ≤ w →
+      (∀ v ∈ Sx, v ∈ Sy → v ≤ G.source e → v ≤ w → v ≤ a') → w ∈ Sy → w ∉ Sx → w ≤ bp →
+      HasTrekThrough G m X₀ Y₀ e := by
+    intro a' ha'x ha'y ha's ha'w ha'_low hwy hwx hwbp
+    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := IsDPath.segment_le hle hA hPx ha'x hPx.end_mem (mx a' ha'x).2
+    obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPy ha'y hwy ha'w
+    refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms hQ₁
+      (hQ₂.append (hPwc.append hPcy)) ?_ (Or.inl (hQ₁e e he ha's (mx _ htgtx).2)) ?_
+    · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨⟨ha'x, le_rfl, (mx a' ha'x).2⟩,
+        Or.inl ⟨ha'y, le_rfl, ha'w⟩⟩, ?_⟩
+      rintro s ⟨⟨hsx, ha's', -⟩, ⟨hsy, -, hsw⟩ | hs | ⟨hsy, hcs, -⟩⟩
+      · rcases dx s hsx with h | h
+        · exact le_antisymm (ha'_low s hsx hsy h hsw) ha's'
+        · have := hbp_high s ⟨hsx, hsy, h⟩
+          have hsw' : s = w := by order
+          exact absurd (hsw' ▸ hsx) hwx
+      · rcases inner s hs (Or.inl hsx) with h | h
+        · exact absurd (h ▸ hsx) hwx
+        · exact absurd (h ▸ hsx) hcx
+      · have := hbm_low s hsx hsy (hbm_le_c s hcs)
+        exact absurd (by order) hcb
+    · rintro s (⟨h, -⟩ | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
+      · exact Or.inl h
+      · exact Or.inr (Or.inl h)
+      · exact Or.inr (Or.inr h)
+      · exact Or.inr (Or.inl h)
+  -- case 2: the trek with top `a`, one path through `e` to `w`, `P*` to `c` and `Py` to `b`
+  have cons2 : w ∈ Sx → G.target e ≤ w → w ∉ Sy → w ≤ bp → HasTrekThrough G m X₀ Y₀ e := by
+    intro hwx htw hwy hwbp
+    have haw : a ≤ w := has.trans (hst.trans htw)
+    have habm : a ≤ bm := has.trans (hst.trans hbm)
+    obtain ⟨Q₁, hQ₁, -, -⟩ := IsDPath.segment_le hle hA hPy hay hbmy habm
+    obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
+    obtain ⟨Q₃, hQ₃, -, hQ₃e⟩ := IsDPath.segment_le hle hA hPx hax hwx haw
+    refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms
+      (hQ₁.append hQ₂) (hQ₃.append (hPwc.append hPcy)) ?_
+      (Or.inr (Or.inl (hQ₃e e he has htw))) ?_
+    · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨Or.inl ⟨hay, le_rfl, habm⟩,
+        Or.inl ⟨hax, le_rfl, haw⟩⟩, ?_⟩
+      rintro s ⟨⟨hsy, has', hsbm⟩ | ⟨hsx, hbms, -⟩, ⟨hsx', -, hsw⟩ | hs | ⟨hsy', hcs, -⟩⟩
+      · rcases dx s hsx' with h | h
+        · exact le_antisymm (ha_low s ⟨hsx', hsy, h⟩) has'
+        · have := hbp_high s ⟨hsx', hsy, h⟩
+          have hsw' : s = w := by order
+          exact absurd (hsw' ▸ hsy) hwy
+      · rcases inner s hs (Or.inr hsy) with h | h
+        · exact absurd (h ▸ hsy) hwy
+        · exact absurd (by order) hcb
+      · exact absurd (by order) hcb
+      · exact absurd (by order) hwb'
+      · rcases inner s hs (Or.inl hsx) with h | h
+        · exact absurd (by order) hwb'
+        · exact absurd (h ▸ hsx) hcx
+      · have := hbm_low s hsx hsy' (hbm.trans hbms)
+        exact absurd (by order) hcb
+    · rintro s ((⟨h, -⟩ | ⟨h, -⟩) | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
+      · exact Or.inr (Or.inl h)
+      · exact Or.inl h
+      · exact Or.inl h
+      · exact Or.inr (Or.inr h)
+      · exact Or.inr (Or.inl h)
+  -- case 5 (ii) with `w` on `Px`: exchange the parts of `Px` and `Py` between `b` and `b'`
+  have cons5x : w ∈ Sx → G.target e ≤ w → w ∉ Sy → bp ≤ w → HasTrekThrough G m X₀ Y₀ e := by
+    intro hwx htw hwy hbpw
+    obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := Set.Finite.exists_greatest_of_total
+      (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ v ≤ w}) (Set.toFinite _)
+      ⟨bp, ⟨hbpx, hbpy, hbp⟩, hbpw⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
+    obtain ⟨b', ⟨⟨hb'x, hb'y, hb't⟩, hwb''⟩, -⟩ := Set.Finite.exists_least_of_total
+      (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ w ≤ v}) (Set.toFinite _)
+      ⟨bm, ⟨hbmx, hbmy, hbm⟩, hwb⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
+    have hb'bm : b' ≤ bm := hbm_low b' hb'x hb'y hb't
+    obtain ⟨R₁, hR₁, -, hR₁e⟩ := IsDPath.segment_le hle hA hPx hmx hbx (mx b hbx).1
+    obtain ⟨R₂, hR₂, -, -⟩ := IsDPath.segment_le hle hA hPy hby hb'y (hbw.trans hwb'')
+    obtain ⟨R₃, hR₃, -, -⟩ := IsDPath.segment_le hle hA hPx hb'x hPx.end_mem (mx b' hb'x).2
+    obtain ⟨R₄, hR₄, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hby (my b hby).1
+    obtain ⟨R₅, hR₅, -, -⟩ := IsDPath.segment_le hle hA hPx hbx hwx hbw
+    refine IH _ _ _ _ (hR₁.append (hR₂.append hR₃)) (Or.inl (hR₁e e he (mx _ hsrcx).1 hbt))
+      (hR₄.append (hR₅.append (hPwc.append hPcy))) ?_ ?_
+    · rintro (⟨h, -⟩ | ⟨-, hbt', -⟩ | h | ⟨h, -⟩)
+      · exact hey h
+      · have : G.target e = b := le_antisymm hbt hbt'
+        exact hey (this ▸ hby)
+      · rcases inner _ h (Or.inl htgtx) with h' | h'
+        · have : b = w := by order
+          exact hwy (this ▸ hby)
+        · exact hcx (h' ▸ htgtx)
+      · exact hey h
+    · have hsub : ∀ v, v ∈ {s | s ∈ Sx ∧ m ≤ s ∧ s ≤ b} ∪ ({s | s ∈ Sy ∧ b ≤ s ∧ s ≤ b'} ∪
+          {s | s ∈ Sx ∧ b' ≤ s ∧ s ≤ X₀}) → v ∈ {s | s ∈ Sy ∧ m ≤ s ∧ s ≤ b} ∪
+          ({s | s ∈ Sx ∧ b ≤ s ∧ s ≤ w} ∪ ({s | s ∈ Ss ∧ w ≤ s ∧ s ≤ c} ∪
+            {s | s ∈ Sy ∧ c ≤ s ∧ s ≤ Y₀})) → G.target e ≤ v → v ∈ Sx ∧ v ∈ Sy ∧ v ≤ b := by
+        rintro v (⟨hvx, -, hvb⟩ | ⟨hvy, hbv, hvb'⟩ | ⟨hvx, hb'v, -⟩)
+          (⟨hvy', -, hvb2⟩ | ⟨hvx', hbv2, hvw⟩ | hvs | ⟨hvy', hcv, -⟩) htv
+        · exact ⟨hvx, hvy', hvb⟩
+        · have : v = b := le_antisymm hvb hbv2
+          exact ⟨hvx, this ▸ hby, hvb⟩
+        · rcases inner v hvs (Or.inl hvx) with h | h
+          · have : w = b := by order
+            exact absurd (this ▸ hby) hwy
+          · exact absurd (h ▸ hvx) hcx
+        · exact absurd (by order) hcb
+        · have : v = b := le_antisymm hvb2 hbv
+          exact ⟨this ▸ hbx, hvy, hvb2⟩
+        · exact ⟨hvx', hvy, hb_low v ⟨⟨hvx', hvy, htv⟩, hvw⟩⟩
+        · rcases inner v hvs (Or.inr hvy) with h | h
+          · exact absurd (h ▸ hvy) hwy
+          · exact absurd (by order) hcb
+        · exact absurd (by order) hcb
+        · have : w = b' := by order
+          exact absurd (this ▸ hb'y) hwy
+        · have : w = b' := by order
+          exact absurd (this ▸ hb'y) hwy
+        · rcases inner v hvs (Or.inl hvx) with h | h
+          · have : w = b' := by order
+            exact absurd (this ▸ hb'y) hwy
+          · exact absurd (h ▸ hvx) hcx
+        · have := hbm_low v hvx hvy' htv
+          exact absurd (by order) hcb
+      refine Set.ncard_lt_ncard ?_ (Set.toFinite _)
+      refine (Set.ssubset_iff_of_subset fun v hv => ?_).mpr ⟨bm, ⟨⟨hbmx, hbmy⟩, hbm⟩,
+        fun h => ?_⟩
+      · obtain ⟨hvx, hvy, -⟩ := hsub v hv.1.1 hv.1.2 hv.2
+        exact ⟨⟨hvx, hvy⟩, hv.2⟩
+      · have := (hsub bm h.1.1 h.1.2 h.2).2.2
+        exact hwb' (by order)
+  -- case 5 (i), and 5 (ii) with `w` on `Py`: replace `Py` by `Py` to `w`, `P*` to `c`, `Py` from `c`
+  have cons5y : w ∈ Sy → bp ≤ w → HasTrekThrough G m X₀ Y₀ e := by
+    intro hwy hbpw
     obtain ⟨Q, hQ, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hwy (my w hwy).1
     refine IH _ _ _ _ hPx he (hQ.append (hPwc.append hPcy)) ?_ ?_
     · rintro (⟨h, -⟩ | h | ⟨h, -⟩)
@@ -231,137 +358,127 @@ theorem trek_mainStep (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcycl
         exact ⟨⟨hvx, hvy⟩, htv⟩
       · have := (hsub h).2
         exact hwb' (by order)
-  rcases hwxy with hwx | hwy
-  · have htw : G.target e ≤ w := (dx w hwx).resolve_left fun h => hI ⟨hwx, h⟩
-    have hwy : w ∉ Sy := fun hwy => hV ⟨hwy, hbp_high w ⟨hwx, hwy, htw⟩⟩
-    rcases tx w hwx bp hbpx with hwbp | hbpw
-    · -- case 2: the trek with top `a`, one path through `e` to `w`, `P*` to `c` and `Py` to `b`
-      have haw : a ≤ w := has.trans (hst.trans htw)
-      have habm : a ≤ bm := has.trans (hst.trans hbm)
-      obtain ⟨Q₁, hQ₁, -, -⟩ := IsDPath.segment_le hle hA hPy hay hbmy habm
-      obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPx hbmx hPx.end_mem (mx bm hbmx).2
-      obtain ⟨Q₃, hQ₃, -, hQ₃e⟩ := IsDPath.segment_le hle hA hPx hax hwx haw
-      refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms
-        (hQ₁.append hQ₂) (hQ₃.append (hPwc.append hPcy)) ?_
-        (Or.inr (Or.inl (hQ₃e e he has htw))) ?_
-      · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨Or.inl ⟨hay, le_rfl, habm⟩,
-          Or.inl ⟨hax, le_rfl, haw⟩⟩, ?_⟩
-        rintro s ⟨⟨hsy, has', hsbm⟩ | ⟨hsx, hbms, -⟩, ⟨hsx', -, hsw⟩ | hs | ⟨hsy', hcs, -⟩⟩
-        · rcases dx s hsx' with h | h
-          · exact le_antisymm (ha_low s ⟨hsx', hsy, h⟩) has'
-          · have := hbp_high s ⟨hsx', hsy, h⟩
-            have hsw' : s = w := by order
-            exact absurd (hsw' ▸ hsy) hwy
-        · rcases inner s hs (Or.inr hsy) with h | h
-          · exact absurd (h ▸ hsy) hwy
-          · exact absurd (by order) hcb
-        · exact absurd (by order) hcb
-        · exact absurd (by order) hwb'
-        · rcases inner s hs (Or.inl hsx) with h | h
-          · exact absurd (by order) hwb'
-          · exact absurd (h ▸ hsx) hcx
-        · have := hbm_low s hsx hsy' (hbm.trans hbms)
-          exact absurd (by order) hcb
-      · rintro s ((⟨h, -⟩ | ⟨h, -⟩) | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
-        · exact Or.inr (Or.inl h)
-        · exact Or.inl h
-        · exact Or.inl h
-        · exact Or.inr (Or.inr h)
-        · exact Or.inr (Or.inl h)
-    · -- case 5 with `w` on `Px` only: exchange the parts of `Px` and `Py` between `b` and `b'`
-      obtain ⟨b, ⟨⟨hbx, hby, hbt⟩, hbw⟩, hb_low⟩ := Set.Finite.exists_greatest_of_total
-        (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ v ≤ w}) (Set.toFinite _)
-        ⟨bp, ⟨hbpx, hbpy, hbp⟩, hbpw⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-      obtain ⟨b', ⟨⟨hb'x, hb'y, hb't⟩, hwb''⟩, -⟩ := Set.Finite.exists_least_of_total
-        (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ G.target e ≤ v) ∧ w ≤ v}) (Set.toFinite _)
-        ⟨bm, ⟨hbmx, hbmy, hbm⟩, hwb⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-      have hb'bm : b' ≤ bm := hbm_low b' hb'x hb'y hb't
-      obtain ⟨R₁, hR₁, -, hR₁e⟩ := IsDPath.segment_le hle hA hPx hmx hbx (mx b hbx).1
-      obtain ⟨R₂, hR₂, -, -⟩ := IsDPath.segment_le hle hA hPy hby hb'y (hbw.trans hwb'')
-      obtain ⟨R₃, hR₃, -, -⟩ := IsDPath.segment_le hle hA hPx hb'x hPx.end_mem (mx b' hb'x).2
-      obtain ⟨R₄, hR₄, -, -⟩ := IsDPath.segment_le hle hA hPy hmy hby (my b hby).1
-      obtain ⟨R₅, hR₅, -, -⟩ := IsDPath.segment_le hle hA hPx hbx hwx hbw
-      refine IH _ _ _ _ (hR₁.append (hR₂.append hR₃)) (Or.inl (hR₁e e he (mx _ hsrcx).1 hbt))
-        (hR₄.append (hR₅.append (hPwc.append hPcy))) ?_ ?_
-      · rintro (⟨h, -⟩ | ⟨-, hbt', -⟩ | h | ⟨h, -⟩)
-        · exact hey h
-        · have : G.target e = b := le_antisymm hbt hbt'
-          exact hey (this ▸ hby)
-        · rcases inner _ h (Or.inl htgtx) with h' | h'
-          · have : b = w := by order
-            exact hwy (this ▸ hby)
-          · exact hcx (h' ▸ htgtx)
-        · exact hey h
-      · have hsub : ∀ v, v ∈ {s | s ∈ Sx ∧ m ≤ s ∧ s ≤ b} ∪ ({s | s ∈ Sy ∧ b ≤ s ∧ s ≤ b'} ∪
-            {s | s ∈ Sx ∧ b' ≤ s ∧ s ≤ X₀}) → v ∈ {s | s ∈ Sy ∧ m ≤ s ∧ s ≤ b} ∪
-            ({s | s ∈ Sx ∧ b ≤ s ∧ s ≤ w} ∪ ({s | s ∈ Ss ∧ w ≤ s ∧ s ≤ c} ∪
-              {s | s ∈ Sy ∧ c ≤ s ∧ s ≤ Y₀})) → G.target e ≤ v → v ∈ Sx ∧ v ∈ Sy ∧ v ≤ b := by
-          rintro v (⟨hvx, -, hvb⟩ | ⟨hvy, hbv, hvb'⟩ | ⟨hvx, hb'v, -⟩)
-            (⟨hvy', -, hvb2⟩ | ⟨hvx', hbv2, hvw⟩ | hvs | ⟨hvy', hcv, -⟩) htv
-          · exact ⟨hvx, hvy', hvb⟩
-          · have : v = b := le_antisymm hvb hbv2
-            exact ⟨hvx, this ▸ hby, hvb⟩
-          · rcases inner v hvs (Or.inl hvx) with h | h
-            · have : w = b := by order
-              exact absurd (this ▸ hby) hwy
-            · exact absurd (h ▸ hvx) hcx
-          · exact absurd (by order) hcb
-          · have : v = b := le_antisymm hvb2 hbv
-            exact ⟨this ▸ hbx, hvy, hvb2⟩
-          · exact ⟨hvx', hvy, hb_low v ⟨⟨hvx', hvy, htv⟩, hvw⟩⟩
-          · rcases inner v hvs (Or.inr hvy) with h | h
-            · exact absurd (h ▸ hvy) hwy
-            · exact absurd (by order) hcb
-          · exact absurd (by order) hcb
-          · have : w = b' := by order
-            exact absurd (this ▸ hb'y) hwy
-          · have : w = b' := by order
-            exact absurd (this ▸ hb'y) hwy
-          · rcases inner v hvs (Or.inl hvx) with h | h
-            · have : w = b' := by order
-              exact absurd (this ▸ hb'y) hwy
-            · exact absurd (h ▸ hvx) hcx
-          · have := hbm_low v hvx hvy' htv
-            exact absurd (by order) hcb
-        refine Set.ncard_lt_ncard ?_ (Set.toFinite _)
-        refine (Set.ssubset_iff_of_subset fun v hv => ?_).mpr ⟨bm, ⟨⟨hbmx, hbmy⟩, hbm⟩,
-          fun h => ?_⟩
-        · obtain ⟨hvx, hvy, -⟩ := hsub v hv.1.1 hv.1.2 hv.2
-          exact ⟨⟨hvx, hvy⟩, hv.2⟩
-        · have := (hsub bm h.1.1 h.1.2 h.2).2.2
-          exact hwb' (by order)
-  · have hwx : w ∉ Sx := fun hwx => by
-      rcases dx w hwx with h | h
-      · exact hI ⟨hwx, h⟩
-      · exact hV ⟨hwy, hbp_high w ⟨hwx, hwy, h⟩⟩
-    have hwbp : w ≤ bp := (ty w hwy bp hbpy).resolve_right fun h => hV ⟨hwy, h⟩
-    -- cases 1 and 4 with `w` on `Py`: the trek with top `a'`, the node of `A` right above `w`
-    -- (in case 1, `a' = a`)
-    obtain ⟨a', ⟨⟨ha'x, ha'y, ha's⟩, ha'w⟩, ha'_low⟩ := Set.Finite.exists_greatest_of_total
-      (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e) ∧ v ≤ w}) (Set.toFinite _)
-      ⟨m, ⟨hmx, hmy, (mx _ hsrcx).1⟩, ms w hws⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
-    obtain ⟨Q₁, hQ₁, -, hQ₁e⟩ := IsDPath.segment_le hle hA hPx ha'x hPx.end_mem (mx a' ha'x).2
-    obtain ⟨Q₂, hQ₂, -, -⟩ := IsDPath.segment_le hle hA hPy ha'y hwy ha'w
-    refine hasTrekThrough_of_subset hle (fun s hs => (mx s hs).1) (fun s hs => (my s hs).1) ms hQ₁
-      (hQ₂.append (hPwc.append hPcy)) ?_ (Or.inl (hQ₁e e he ha's (mx _ htgtx).2)) ?_
-    · refine Set.eq_singleton_iff_unique_mem.mpr ⟨⟨⟨ha'x, le_rfl, (mx a' ha'x).2⟩,
-        Or.inl ⟨ha'y, le_rfl, ha'w⟩⟩, ?_⟩
-      rintro s ⟨⟨hsx, ha's', -⟩, ⟨hsy, -, hsw⟩ | hs | ⟨hsy, hcs, -⟩⟩
-      · rcases dx s hsx with h | h
-        · exact le_antisymm (ha'_low s ⟨⟨hsx, hsy, h⟩, hsw⟩) ha's'
-        · have := hbp_high s ⟨hsx, hsy, h⟩
-          have hsw' : s = w := by order
-          exact absurd (hsw' ▸ hsx) hwx
-      · rcases inner s hs (Or.inl hsx) with h | h
-        · exact absurd (h ▸ hsx) hwx
-        · exact absurd (h ▸ hsx) hcx
-      · have := hbm_low s hsx hsy (hbm_le_c s hcs)
-        exact absurd (by order) hcb
-    · rintro s (⟨h, -⟩ | (⟨h, -⟩ | (⟨h, -⟩ | ⟨h, -⟩)))
-      · exact Or.inl h
-      · exact Or.inr (Or.inl h)
-      · exact Or.inr (Or.inr h)
-      · exact Or.inr (Or.inl h)
+  -- since the network is binary, `w` is neither `a` nor `b⁺`
+  have hnext : ∀ {S : Set V} {P : Set E} {u' w' : V}, IsDPath G u' w' S P → ∀ s ∈ S, s ≠ w' →
+      ∃ f ∈ P, G.source f = s ∧ G.target f ∈ S ∧ ∀ t ∈ S, s ≤ t → t ≠ s → G.target f ≤ t := by
+    intro S P u' w' h s hs hsw
+    obtain ⟨f, hf, h₁, h₂, h₃⟩ := h.exists_next hA hs hsw
+    exact ⟨f, hf, h₁, h₂, fun t ht hst htne => (hle _ _).mp (h₃ t ht ((hle _ _).mpr hst) htne)⟩
+  have hprev : ∀ {S : Set V} {P : Set E} {u' w' : V}, IsDPath G u' w' S P → ∀ s ∈ S, s ≠ u' →
+      ∃ f ∈ P, G.target f = s ∧ G.source f ∈ S ∧ ∀ t ∈ S, t ≤ s → t ≠ s → t ≤ G.source f := by
+    intro S P u' w' h s hs hsu
+    obtain ⟨f, hf, h₁, h₂, h₃⟩ := h.exists_prev hA hs hsu
+    exact ⟨f, hf, h₁, h₂, fun t ht hts htne => (hle _ _).mp (h₃ t ht ((hle _ _).mpr hts) htne)⟩
+  have harc : ∀ f : E, G.source f ≤ G.target f ∧ G.source f ≠ G.target f := fun f =>
+    ⟨(hle _ _).mp (.single ⟨f, rfl, rfl⟩), fun h =>
+      not_reaches_target_source_of_isAcyclic hA f (by rw [h]; exact .refl)⟩
+  have hcw : c ≠ w := fun h => hwb' (le_antisymm hwb (h ▸ hbc))
+  have hwZ : w ≠ Z₀ := fun h => hcw (le_antisymm ((hle _ _).mp (hPs.reaches_of_mem hcs).2 |>.trans
+    h.symm.le) hwc)
+  have hbpbm : bp ≤ bm := hbp_high bm ⟨hbmx, hbmy, hbm⟩
+  -- the next node of `P*` after `w` is `c` when it is on `Px` or `Py`
+  obtain ⟨fs, -, hfss, hfst, hfsn⟩ := hnext hPs w hws hwZ
+  have hnextc : (G.target fs ∈ Sx ∨ G.target fs ∈ Sy) → G.target fs = c := by
+    intro hfxy
+    have hw₁ : w ≤ G.target fs := hfss ▸ (harc fs).1
+    have hne : G.target fs ≠ w := fun h => (harc fs).2 (hfss.trans h.symm)
+    rcases inner _ ⟨hfst, hw₁, hfsn c hcs hwc hcw⟩ hfxy with h | h
+    · exact absurd h hne
+    · exact h
+  have hwa : w ≠ a := by
+    intro hwa
+    have hbma : bm ≠ a := fun h => hts (by rw [h] at hbm; exact hbm.trans has)
+    have haX : a ≠ X₀ := fun h => hts (by
+      have h₁ := (mx _ htgtx).2
+      rw [← h] at h₁
+      exact h₁.trans has)
+    have haY : a ≠ Y₀ := fun h => hbma (le_antisymm (by rw [h]; exact (my _ hbmy).2)
+      (has.trans (hst.trans hbm)))
+    obtain ⟨fx, -, hfxs, hfxt, hfxn⟩ := hnext hPx a hax haX
+    obtain ⟨fy, -, hfys, hfyt, hfyn⟩ := hnext hPy a hay haY
+    -- the arcs out of `a` on `Px` and `Py` go to different nodes
+    have hxy : G.target fx ≠ G.target fy := by
+      intro h
+      have hax₁ : a ≤ G.target fx := hfxs ▸ (harc fx).1
+      have hne₁ : G.target fx ≠ a := fun h' => (harc fx).2 (hfxs.trans h'.symm)
+      rcases dx _ hfxt with h₁ | h₁
+      · exact hne₁ (le_antisymm (ha_low _ ⟨hfxt, h ▸ hfyt, h₁⟩) hax₁)
+      · by_cases has' : a = G.source e
+        · have htne : G.target e ≠ a := fun h' => hts (h' ▸ has' ▸ le_rfl)
+          have h₂ : G.target fx ≤ G.target e := hfxn _ htgtx (has'.symm ▸ hst) htne
+          exact hey (le_antisymm h₂ h₁ ▸ h ▸ hfyt)
+        · exact hts (h₁.trans (hfxn _ hsrcx has (Ne.symm has')))
+    have hfxy : fx ≠ fy := fun h => hxy (h ▸ rfl)
+    -- `P*` leaves `w = a` by one of them, since at most two arcs leave `a`
+    have hfs : G.target fs = G.target fx ∨ G.target fs = G.target fy := by
+      rcases hout fx fy fs (hfxs.trans hfys.symm) (hfxs.trans (hfss.trans hwa).symm) with
+        h | h | h
+      · exact absurd h hfxy
+      · exact Or.inl (h ▸ rfl)
+      · exact Or.inr (h ▸ rfl)
+    rcases hfs with h | h
+    · have hc := hnextc (Or.inl (h ▸ hfxt))
+      exact hcx (hc ▸ h ▸ hfxt)
+    · have hc := hnextc (Or.inr (h ▸ hfyt))
+      have hyb : G.target fy ≤ bm := hfyn bm hbmy (has.trans (hst.trans hbm)) hbma
+      exact hcb (le_antisymm (hc ▸ h ▸ hyb) hbc)
+  have hwbp : w ≠ bp := by
+    intro hwb
+    have hbpbm' : bp ≠ bm := fun h => hwb' (hwb.trans h)
+    have hbpm : bp ≠ m := fun h => hts (by
+      have h₁ := hbp
+      rw [h] at h₁
+      exact h₁.trans (mx _ hsrcx).1)
+    have hbpX : bp ≠ X₀ := fun h => hbpbm' (le_antisymm hbpbm (by rw [h]; exact (mx _ hbmx).2))
+    obtain ⟨gx, -, hgxt, hgxs, hgxp⟩ := hprev hPx bp hbpx hbpm
+    obtain ⟨gy, -, hgyt, hgys, -⟩ := hprev hPy bp hbpy hbpm
+    -- the arcs into `b⁺` on `Px` and `Py` are different
+    have hgxy : gx ≠ gy := by
+      intro h
+      have hp : G.source gx ∈ Sy := h ▸ hgys
+      have hpb : G.source gx ≤ bp := hgxt ▸ (harc gx).1
+      have hpne : G.source gx ≠ bp := fun h' => (harc gx).2 (h'.trans hgxt.symm)
+      rcases dx _ hgxs with h₁ | h₁
+      · have htb : G.target e ≠ bp := fun h' => hey (h' ▸ hbpy)
+        exact hts ((hgxp _ htgtx hbp htb).trans h₁)
+      · exact hpne (le_antisymm hpb (hbp_high _ ⟨hgxs, hp, h₁⟩))
+    -- so one arc leaves `b⁺`, and `P*` follows `Px` from `w = b⁺`
+    obtain ⟨hx, -, hhxs, hhxt, -⟩ := hnext hPx bp hbpx hbpX
+    have h₁ : hx = fs := hhyb gx gy hx fs hgxy (hgxt.trans hgyt.symm) (hhxs.trans hgxt.symm)
+      (hfss.trans (hwb.trans hgxt.symm))
+    have hc := hnextc (Or.inl (h₁ ▸ hhxt))
+    exact hcx (hc ▸ h₁ ▸ hhxt)
+  -- the five cases
+  rcases hwxy.elim (fun h => tx w h a hax) (fun h => ty w h a hay) with hwa' | haw
+  · -- case 4: `w` above `a`
+    by_cases hwx : w ∈ Sx
+    · -- (i), and (ii) with `w` on `Px`: the trek with top `w`
+      exact consTop hwx (hwa'.trans has)
+    · -- (ii) with `w` on `Py`: the trek with top the node of `A` right above `w`
+      have hwy := hwxy.resolve_left hwx
+      obtain ⟨a', ⟨⟨ha'x, ha'y, ha's⟩, ha'w⟩, ha'_low⟩ := Set.Finite.exists_greatest_of_total
+        (T := {v | (v ∈ Sx ∧ v ∈ Sy ∧ v ≤ G.source e) ∧ v ≤ w}) (Set.toFinite _)
+        ⟨m, ⟨hmx, hmy, (mx _ hsrcx).1⟩, ms w hws⟩ fun s hs t ht => tx s hs.1.1 t ht.1.1
+      exact consA a' ha'x ha'y ha's ha'w (fun v hvx hvy hvs hvw => ha'_low v ⟨⟨hvx, hvy, hvs⟩, hvw⟩)
+        hwy hwx (hwa'.trans (has.trans (hst.trans hbp)))
+  · rcases hwxy.elim (fun h => tx w h bp hbpx) (fun h => ty w h bp hbpy) with hwbp' | hbpw
+    · -- `w` above `b⁺` and below `a`: cases 1, 2 and 3
+      by_cases hwx : w ∈ Sx
+      · rcases dx w hwx with hws' | htw
+        · -- case 3: on `Px`, above `e`
+          exact consTop hwx hws'
+        · -- case 2: on `Px`, below `e`
+          have hwy : w ∉ Sy := fun hwy => hwbp (le_antisymm hwbp' (hbp_high w ⟨hwx, hwy, htw⟩))
+          exact cons2 hwx htw hwy hwbp'
+      · -- case 1: on `Py`, with top `a`
+        exact consA a hax hay has haw (fun v hvx hvy hvs _ => ha_low v ⟨hvx, hvy, hvs⟩)
+          (hwxy.resolve_left hwx) hwx hwbp'
+    · -- case 5: `w` above `b⁻` and below `b⁺`
+      by_cases hwy : w ∈ Sy
+      · -- (i), and (ii) with `w` on `Py`
+        exact cons5y hwy hbpw
+      · -- (ii) with `w` on `Px`
+        exact cons5x (hwxy.resolve_right hwy) (hbp.trans hbpw) hwy hbpw
 
 /-- **Lemma 17, case B**, by induction on the number of nodes common to `Px` and `Py` below `e`
 (the paper chooses `Px` and `Py` with this number minimal). When there are none, the parts of the
@@ -370,7 +487,11 @@ so a path `P*` from `m` avoids it, and `c` is its first node strictly below `b�
 `c` is on `Px`, the parts of `Px` and `Py` below `b⁻` are exchanged, which exchanges `a` and `b`, so
 that `c` is on the path avoiding the child of `e` (the paper's "without loss of generality"). Then
 `trek_mainStep` applies. -/
-theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic) {m : V} {e : E}
+theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyclic)
+    (hout : ∀ f₁ f₂ f₃ : E, G.source f₁ = G.source f₂ → G.source f₁ = G.source f₃ →
+      f₁ = f₂ ∨ f₁ = f₃ ∨ f₂ = f₃)
+    (hhyb : ∀ g₁ g₂ f₁ f₂ : E, g₁ ≠ g₂ → G.target g₁ = G.target g₂ →
+      G.source f₁ = G.target g₁ → G.source f₂ = G.target g₁ → f₁ = f₂) {m : V} {e : E}
     (n : ℕ) : ∀ (X₀ Y₀ : V) (Sx Sy : Set V) (Px Py : Set E),
       (∀ b, m ≤ b → b ≠ m → ∃ Z₀, (Z₀ = X₀ ∨ Z₀ = Y₀) ∧ ∃ S P, IsDPath G m Z₀ S P ∧ b ∉ S) →
       IsDPath G m X₀ Sx Px → e ∈ Px → IsDPath G m Y₀ Sy Py → G.target e ∉ Sy →
@@ -458,7 +579,7 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
       · rintro ⟨⟨hvx, hvy⟩, htv⟩
         have := hbm_low v ⟨⟨hvx, hvy⟩, htv⟩
         exact ⟨⟨Or.inl ⟨hvx, (mx v hvx).1, this⟩, Or.inl ⟨hvy, (my v hvy).1, this⟩⟩, htv⟩
-    refine HasTrekThrough.symm (trek_mainStep hle hA (hQ₁.append hQ₂)
+    refine HasTrekThrough.symm (trek_mainStep hle hA hout hhyb (hQ₁.append hQ₂)
       (Or.inl (hQ₁e e he (mx _ hsrcx).1 hbm)) (hQ₃.append hQ₄) ?_ (Or.inl ⟨hbmx, (mx bm hbmx).1, le_rfl⟩)
       (Or.inl ⟨hbmy, (my bm hbmy).1, le_rfl⟩) hbm ?_ hPs hbs hcs
       (Or.inr ⟨hcx, hbc, (mx c hcx).2⟩) ?_ hbc hcb ?_ ?_)
@@ -484,7 +605,7 @@ theorem trek_of_config (hle : ∀ a b, G.Reaches a b ↔ a ≤ b) (hA : G.IsAcyc
       exact IH _ (hn ▸ hlt) Y₀ X₀ Sx'' Sy'' Px'' Py''
         (fun b h h' => (hm b h h').imp fun _ h => ⟨h.1.symm, h.2⟩) h₁ h₂ h₃ h₄ rfl
   · have hcx : c ∉ Sx := fun h => hcxy' ⟨h, hcy⟩
-    exact trek_mainStep hle hA hPx he hPy hey hbmx hbmy hbm
+    exact trek_mainStep hle hA hout hhyb hPx he hPy hey hbmx hbmy hbm
       (fun v hvx hvy htv => hbm_low v ⟨⟨hvx, hvy⟩, htv⟩) hPs hbs hcs hcy hcx hbc hcb
       (fun v hvs hvxy hbv hvb => hc_high v ⟨hvs, hvxy, hbv, hvb⟩)
       fun Sx' Px' Sy' Py' h₁ h₂ h₃ h₄ hlt =>

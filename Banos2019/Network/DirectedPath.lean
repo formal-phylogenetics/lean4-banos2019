@@ -184,6 +184,50 @@ theorem segment (hA : G.IsAcyclic) (h : IsDPath G u w S P) {a b : V} (ha : a ∈
   · exact absurd (heb.trans (h₄.reaches_of_mem (h₄.ends_mem he).1).1)
       (not_reaches_target_source_of_isAcyclic hA e)
 
+/-- **The node after a node of a path**, other than its end, in an acyclic graph: an arc of the path
+leaves the node, and its target is below the node and above the later nodes of the path. -/
+theorem exists_next (hA : G.IsAcyclic) (h : IsDPath G u w S P) {s : V} (hs : s ∈ S) (hsw : s ≠ w) :
+    ∃ f ∈ P, G.source f = s ∧ G.target f ∈ S ∧
+      ∀ t ∈ S, G.Reaches s t → t ≠ s → G.Reaches (G.target f) t := by
+  induction h with
+  | nil u => exact absurd (Set.mem_singleton_iff.mp hs) hsw
+  | @cons e w S P h ih =>
+    rcases Set.mem_insert_iff.mp hs with rfl | hs'
+    · refine ⟨e, Set.mem_insert _ _, rfl, Set.mem_insert_of_mem _ h.start_mem,
+        fun t ht _ hts => ?_⟩
+      rcases Set.mem_insert_iff.mp ht with rfl | ht
+      · exact absurd rfl hts
+      · exact (h.reaches_of_mem ht).1
+    · obtain ⟨f, hf, hfs, hft, hnext⟩ := ih hs' hsw
+      refine ⟨f, Set.mem_insert_of_mem _ hf, hfs, Set.mem_insert_of_mem _ hft,
+        fun t ht hst hts => ?_⟩
+      rcases Set.mem_insert_iff.mp ht with rfl | ht
+      · exact absurd ((h.reaches_of_mem hs').1.trans hst) (not_reaches_target_source_of_isAcyclic hA e)
+      · exact hnext t ht hst hts
+
+/-- **The node before a node of a path**, other than its start, in an acyclic graph: an arc of the path
+enters the node, and its source is above the node and below the earlier nodes of the path. -/
+theorem exists_prev (hA : G.IsAcyclic) (h : IsDPath G u w S P) {s : V} (hs : s ∈ S) (hsu : s ≠ u) :
+    ∃ f ∈ P, G.target f = s ∧ G.source f ∈ S ∧
+      ∀ t ∈ S, G.Reaches t s → t ≠ s → G.Reaches t (G.source f) := by
+  induction h with
+  | nil u => exact absurd (Set.mem_singleton_iff.mp hs) hsu
+  | @cons e w S P h ih =>
+    rcases Set.mem_insert_iff.mp hs with rfl | hs'
+    · exact absurd rfl hsu
+    · by_cases hst : s = G.target e
+      · subst hst
+        refine ⟨e, Set.mem_insert _ _, rfl, Set.mem_insert _ _, fun t ht hts htne => ?_⟩
+        rcases Set.mem_insert_iff.mp ht with rfl | ht
+        · exact .refl
+        · exact absurd (reaches_antisymm_of_isAcyclic hA hts (h.reaches_of_mem ht).1) htne
+      · obtain ⟨f, hf, hft, hfs, hprev⟩ := ih hs' hst
+        refine ⟨f, Set.mem_insert_of_mem _ hf, hft, Set.mem_insert_of_mem _ hfs,
+          fun t ht hts htne => ?_⟩
+        rcases Set.mem_insert_iff.mp ht with rfl | ht
+        · exact (Relation.ReflTransGen.single ⟨e, rfl, rfl⟩).trans (h.reaches_of_mem hfs).1
+        · exact hprev t ht hts htne
+
 /-- A walk avoiding a node, from a path avoiding it. -/
 theorem of_reflTransGen_avoiding {b : V}
     (h : Relation.ReflTransGen (fun a c => G.Adj a c ∧ a ≠ b ∧ c ≠ b) u w) (hu : u ≠ b) :
