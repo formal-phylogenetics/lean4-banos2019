@@ -183,7 +183,8 @@ theorem q17_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q17 a b c).graph C) : C = 
     decide
   have hpend : ∀ f : Fin 9, f ∉ q17Cycle → ∃ p : Fin 9, (q17Src f = p ∨ q17Tgt f = p) ∧
       ∀ g, (q17Src g = p ∨ q17Tgt g = p) → g = f := by decide
-  have hsub : C ⊆ ↑q17Cycle := hC.subset_of_pendant hloop fun f hf => hpend f (by simpa using hf)
+  have hsub : C ⊆ ↑q17Cycle := hC.subset_of_pendant hloop (Set.subset_univ _)
+    fun f _ hf => (hpend f (by simpa using hf)).imp fun _ h => ⟨h.1, fun g _ => h.2 g⟩
   obtain ⟨f₀, hf₀⟩ : C.Nonempty := by
     obtain ⟨k, v, e, hcyc, rfl⟩ := hC
     exact ⟨e ⟨0, hcyc.pos⟩, ⟨_, rfl⟩⟩
@@ -313,26 +314,6 @@ def q17ArcFive : {e : Fin 9 // e ≠ 7} := ⟨5, by decide⟩
 
 /-- The edge `7 → 4` of `q17` without the hybrid edge `6`. -/
 def q17ArcFour : {e : Fin 9 // e ≠ 6} := ⟨4, by decide⟩
-
-theorem leafSet_quartetLeaf9 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) (S : Finset (Fin 9))
-    (x : X) :
-    x ∈ leafSet (quartetLeaf9 a b c) S ↔ (x = a ∧ 0 ∈ S) ∨ (x = b ∧ 1 ∈ S) ∨ (x = c ∧ 2 ∈ S) ∨
-      (x = d ∧ 3 ∈ S) := by
-  obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
-  simp only [leafSet, mem_filter, mem_univ, true_and]
-  rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl
-  · simp [quartetLeaf9_a, hab, hac, had]
-  · simp [quartetLeaf9_b h, Ne.symm hab, hbc, hbd]
-  · simp [quartetLeaf9_c h, Ne.symm hac, Ne.symm hbc, hcd]
-  · simp [quartetLeaf9_d h, Ne.symm had, Ne.symm hbd, Ne.symm hcd]
-
-omit [Fintype X] in
-theorem quartetLeaf9_surj (h : Distinct4 a b c d) :
-    ∀ i ∈ ({0, 1, 2, 3} : Finset (Fin 9)), ∃ x, quartetLeaf9 a b c x = i := by
-  intro i hi
-  simp only [mem_insert, mem_singleton] at hi
-  rcases hi with rfl | rfl | rfl | rfl
-  exacts [⟨a, quartetLeaf9_a⟩, ⟨b, quartetLeaf9_b h⟩, ⟨c, quartetLeaf9_c h⟩, ⟨d, quartetLeaf9_d h⟩]
 
 /-- **`q17` without the hybrid edge `7` is a tree with the split `bc|ad`**, of length `t₂`: the
 concordance factor of `ad|bc` is `1 - ⅔x₂`, those of `ab|cd` and `ac|bd` are `⅓x₂` (equation (1)). -/

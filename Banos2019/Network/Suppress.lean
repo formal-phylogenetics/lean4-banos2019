@@ -82,20 +82,20 @@ theorem IsLevelOne.of_injective {V'' E'' : Type*} {G' : DirectedMultigraph V'' E
     (h1 _ _ (hcyc C hC) (hcyc C' hC') ⟨ψ f, ⟨f, hf, rfl⟩, ⟨f, hf', rfl⟩⟩)
 
 /-- **An edge with an end on no other edge is on no cycle**: a node of a cycle is on two of its
-edges. -/
-theorem IsCycle.subset_of_pendant {D K : Set E'} (hD : IsCycle G D)
-    (hloop : ∀ f, G.source f ≠ G.target f)
-    (hK : ∀ f ∉ K, ∃ p, (G.source f = p ∨ G.target f = p) ∧
-      ∀ g, (G.source g = p ∨ G.target g = p) → g = f) : D ⊆ K := by
+edges. Here the edges are those of a set `K₁` containing the cycle. -/
+theorem IsCycle.subset_of_pendant {D K K₁ : Set E'} (hD : IsCycle G D)
+    (hloop : ∀ f, G.source f ≠ G.target f) (hDK₁ : D ⊆ K₁)
+    (hK : ∀ f ∈ K₁, f ∉ K → ∃ p, (G.source f = p ∨ G.target f = p) ∧
+      ∀ g ∈ K₁, (G.source g = p ∨ G.target g = p) → g = f) : D ⊆ K := by
   intro f hf
   by_contra hfK
-  obtain ⟨p, hfp, hp⟩ := hK f hfK
+  obtain ⟨p, hfp, hp⟩ := hK f (hDK₁ hf) hfK
   have hpD : p ∈ cycleNodes G D := by
     rcases hfp with h | h
     · exact h ▸ source_mem_cycleNodes hf
     · exact h ▸ target_mem_cycleNodes hf
-  obtain ⟨f₁, -, f₂, -, hne, h₁, h₂⟩ := hD.exists_ne_of_mem (fun g _ => hloop g) hpD
-  exact hne ((hp f₁ h₁).trans (hp f₂ h₂).symm)
+  obtain ⟨f₁, hf₁, f₂, hf₂, hne, h₁, h₂⟩ := hD.exists_ne_of_mem (fun g _ => hloop g) hpD
+  exact hne ((hp f₁ (hDK₁ hf₁) h₁).trans (hp f₂ (hDK₁ hf₂) h₂).symm)
 
 /-- **A cycle inside a connected set of edges with at most two edges at each node is all of it**: at
 a node of the cycle, its two edges are all the edges of the set there, so the walks on the set stay

@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Reduction
+public import Banos2019.Quartet.Fig16
 public import Banos2019.Quartet.Fig17
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
@@ -13,6 +14,12 @@ length of the edge so labelled; the other edges (pendant edges, and hybrid edges
 label) have arbitrary lengths `ℓ`. The concordance factors of an unrooted quartet network are those of
 any LSA quartet network inducing it (Proposition 5), so each example is stated for every LSA quartet
 network whose metric unrooted network is isomorphic to the figure.
+
+* `InducesNetwork.len_pos`, `InducesNetwork.inheritance_mem_Ioo`: the parameters of such a figure are
+  those of a metric network.
+* `inducesNetwork_of_rooting`, `inducesNetwork_q16`, `inducesNetwork_q17`: the rootings `q16`, `q17`
+  of Figures 16 and 17 induce them. Examples 3 and 4 apply Lemma 10 to these rootings, after
+  Proposition 5, and equation (1) to the two trees it gives.
 -/
 
 @[expose] public noncomputable section
@@ -85,6 +92,7 @@ theorem InducesNetwork.len_pos {Q : RootedNetwork V E X} {θ : MetricData E} {hQ
   · exact add_pos (hQ.metric.2 _) (hQ.metric.2 _)
   · exact hQ.metric.2 _
 
+omit [Fintype V] in
 /-- The inheritance probability `γ` of the hybrid edge `6` of a figure that an LSA quartet network
 induces is in `(0, 1)`: it is that of a hybrid edge of the network. -/
 theorem InducesNetwork.inheritance_mem_Ioo {Q : RootedNetwork V E X} {θ : MetricData E}
@@ -112,29 +120,52 @@ theorem figLeaf_castSucc (a b c x : X) : (figLeaf a b c x).castSucc = quartetLea
   simp only [figLeaf, quartetLeaf9]
   split_ifs <;> rfl
 
-/-- **The metric unrooted network of `q17` is Figure 17.** -/
-theorem inducesNetwork_q17 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 → ℝ} {γ : ℝ}
-    (hQ : IsLSAQuartet (q17 a b c) (q17Metric len γ)) :
-    InducesNetwork hQ (fig17 a b c) (figMetric len γ) := by
+/-- **The metric unrooted network of a rooting of a figure**: a network on `Fin 9` nodes and edges,
+with the leaves `a, b, c, d` at `0, 1, 2, 3`, the root `8`, the hybrid edges `6`, `7` and the tree edge
+`8` at the root, induces the figure `figNet fs ft a b c` when its edges `0, …, 7`, the edge `7` from the
+root merged with the edge `8`, join the nodes of the figure's edges (in the same direction for the
+hybrid edges), with the same lengths and inheritance probabilities. -/
+theorem inducesNetwork_of_rooting {qs qt : Fin 9 → Fin 9} {fs ft : Fin 8 → Fin 8} {a b c : X}
+    {θ : MetricData (Fin 9)} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X) θ)
+    (hhyb : ∀ e, (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X).IsHybridArc e ↔
+      e = 6 ∨ e = 7)
+    (hroot : ∀ r : Fin 9, qs r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8)
+    (hmerge : ∀ j : Fin 8, qs j.castSucc = 8 ↔ j = 7)
+    (hjoin : ∀ j : Fin 8,
+      ((fs j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc) ∧
+          (ft j).castSucc = qt j.castSucc) ∨
+        ((fs j).castSucc = qt j.castSucc ∧
+          (ft j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc)))
+    (hdir : ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      (fs j).castSucc = (if qs j.castSucc = 8 then qt 8 else qs j.castSucc) ∧
+        (ft j).castSucc = qt j.castSucc)
+    (hlen : θ.length 7 + θ.length 8 = len 7)
+    (hlen' : ∀ j : Fin 8, j ≠ 7 → θ.length j.castSucc = len j)
+    (hinh : ∀ j : Fin 8, (figMetric len γ).inheritance j = θ.inheritance j.castSucc) :
+    InducesNetwork hQ (figNet fs ft a b c) (figMetric len γ) := by
+  set N : RootedNetwork (Fin 9) (Fin 9) X := ⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩
   have hP := hQ.binary.1
   have hB := hQ.binary.2
   have hXn := hQ.nontrivial
   have : Nonempty X := hXn.to_nonempty
   have hl : lsa hP Set.univ Set.univ_nonempty = 8 :=
-    IsLeastStableAncestor.unique hP (lsa_spec hP _ _) (q17_isLSANetwork h)
+    IsLeastStableAncestor.unique hP (lsa_spec hP _ _) hQ.isLSA
   have hr : (rootTreeArc hP hB hXn).1 = 8 := by
     obtain ⟨hs, ht⟩ := rootTreeArc_spec hP hB hXn
-    have hs' : q17Src (rootTreeArc hP hB hXn).1 = 8 := by
+    have hs' : qs (rootTreeArc hP hB hXn).1 = 8 := by
       rw [← hl]
       exact congrArg Subtype.val hs
-    have ht' : (q17 a b c).IsTreeArc (rootTreeArc hP hB hXn).1 :=
+    have ht' : N.IsTreeArc (rootTreeArc hP hB hXn).1 :=
       (belowNetwork_isTreeArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
         (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
         hP (lsa_spec hP _ _).1 _).1 ht
-    rw [q17_isTreeArc_iff] at ht'
-    have key : ∀ r : Fin 9, q17Src r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8 := by decide
-    exact key _ hs' ht'
-  -- the nodes and the edges of `Q⁻`: those of `q17` but the root and the edge `8`
+    refine hroot _ hs' fun h' => ?_
+    have : N.IsHybridArc (rootTreeArc hP hB hXn).1 := (hhyb _).2 h'
+    unfold IsTreeArc at ht'
+    unfold IsHybridArc at this
+    omega
+  -- the nodes and the edges of `Q⁻`: those of the rooting but the root and the edge `8`
   have hv : ∀ v : SemidirectedVertex hP hXn, v.1.1 ≠ Fin.last 8 := fun v hv => v.2 (Subtype.ext
     (show v.1.1 = lsa hP Set.univ Set.univ_nonempty by rw [hv]; exact hl.symm))
   have he : ∀ e : SemidirectedArc hP hB hXn, e.1.1 ≠ Fin.last 8 := fun e he =>
@@ -161,98 +192,85 @@ theorem inducesNetwork_q17 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 �
       right_inv := fun i => by simp }
   have hvert : ∀ v, (vert v).castSucc = v.1.1 := fun v => Fin.castSucc_castPred _ (hv v)
   have hedge : ∀ e, (edge e).castSucc = e.1.1 := fun e => Fin.castSucc_castPred _ (he e)
-  -- the ends of the edges of `Q⁻`: the edge `7` from the root is merged into one from `7`
-  have hroot : ∀ e : SemidirectedArc hP hB hXn,
-      (lsaPlus hP hXn).graph.source e.1 = (lsaPlus hP hXn).root ↔ q17Src e.1.1 = 8 := by
+  -- the ends of the edges of `Q⁻`: the edge `7` from the root starts at the end of the edge `8`
+  have hroot' : ∀ e : SemidirectedArc hP hB hXn,
+      (lsaPlus hP hXn).graph.source e.1 = (lsaPlus hP hXn).root ↔ qs e.1.1 = 8 := by
     intro e
     rw [← hl]
     exact ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
-  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 =
-      if q17Src e.1.1 = 8 then 7 else q17Src e.1.1 := by
+  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 = if qs e.1.1 = 8 then qt 8 else qs e.1.1 := by
     intro e
     show ((unrootAt (lsaPlus hP hXn) (lsaPlus_isPhylogenetic hP hXn)
       (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
     simp only [unrootAt]
-    by_cases h8 : q17Src e.1.1 = 8
-    · rw [dite_eq_left ((hroot e).2 h8), ite_eq_left h8]
-      show q17Tgt (rootTreeArc hP hB hXn).1 = 7
+    by_cases h8 : qs e.1.1 = 8
+    · rw [dite_eq_left ((hroot' e).2 h8), ite_eq_left h8]
+      show qt (rootTreeArc hP hB hXn).1 = qt 8
       rw [hr]
+    · rw [dite_eq_right (fun h' => h8 ((hroot' e).1 h')), ite_eq_right h8]
       rfl
-    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), ite_eq_right h8]
-      rfl
-  have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = q17Tgt e.1.1 := fun e => rfl
-  have hdir : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>
+  have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = qt e.1.1 := fun e => rfl
+  have hdir' : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>
     ((belowNetwork_isHybridArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
       (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
-      hP (lsa_spec hP _ _).1 e.1).trans (q17_isHybridArc_iff e.1.1))
-  -- the edge `4` of Figure 17 is the edge `7 → 4` of `q17` read the other way
-  have fjoin : ∀ j : Fin 8,
-      (((fig17 a b c).graph.source j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
-        ((fig17 a b c).graph.target j).castSucc = q17Tgt j.castSucc) ∨
-      (((fig17 a b c).graph.source j).castSucc = q17Tgt j.castSucc ∧
-        ((fig17 a b c).graph.target j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc)) := by
-    show ∀ j : Fin 8,
-      (((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
-        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc) ∨
-      (((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc ∧
-        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc))
-    decide
-  have fdir : ∀ j : Fin 8, j = 6 ∨ j = 7 →
-      ((fig17 a b c).graph.source j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
-        ((fig17 a b c).graph.target j).castSucc = q17Tgt j.castSucc := by
-    show ∀ j : Fin 8, j = 6 ∨ j = 7 →
-      ((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc =
-          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
-        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc
-    decide
+      hP (lsa_spec hP _ _).1 e.1).trans (hhyb e.1.1))
   have hS : ∀ e, (vert (hQ.unrooted.graph.source e)).castSucc =
-      if q17Src (edge e).castSucc = 8 then 7 else q17Src (edge e).castSucc := fun e => by
+      if qs (edge e).castSucc = 8 then qt 8 else qs (edge e).castSucc := fun e => by
     rw [hvert, hsrc, hedge]
-  have hT : ∀ e, (vert (hQ.unrooted.graph.target e)).castSucc = q17Tgt (edge e).castSucc :=
+  have hT : ∀ e, (vert (hQ.unrooted.graph.target e)).castSucc = qt (edge e).castSucc :=
     fun e => by rw [hvert, htgt, hedge]
-  refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => ?_, fun e hd => ?_, fun x => ?_⟩, fun e => ?_,
-    fun e _ => ?_⟩⟩
-  · rw [hdir, ← hedge e]
-    show edge e = 6 ∨ edge e = 7 ↔ _
-    generalize edge e = j
-    revert j
-    decide
-  · rcases fjoin (edge e) with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
-    · exact Or.inl ⟨Fin.castSucc_injective _ (by rw [h₁, hS]),
-        Fin.castSucc_injective _ (by rw [h₂, hT])⟩
-    · exact Or.inr ⟨Fin.castSucc_injective _ (by rw [h₁, hT]),
-        Fin.castSucc_injective _ (by rw [h₂, hS])⟩
-  · have hj : edge e = 6 ∨ edge e = 7 := by
-      rw [hdir, ← hedge e] at hd
-      rcases hd with h' | h'
+  have hj67 : ∀ e : SemidirectedArc hP hB hXn, e.1.1 = 6 ∨ e.1.1 = 7 ↔ edge e = 6 ∨ edge e = 7 := by
+    intro e
+    rw [← hedge e]
+    constructor
+    · rintro (h' | h')
       · exact Or.inl (Fin.castSucc_injective _ h')
       · exact Or.inr (Fin.castSucc_injective _ h')
-    obtain ⟨h₁, h₂⟩ := fdir _ hj
-    exact ⟨Fin.castSucc_injective _ (by rw [h₁, hS]), Fin.castSucc_injective _ (by rw [h₂, hT])⟩
+    · rintro (h' | h')
+      · exact Or.inl (by rw [h']; rfl)
+      · exact Or.inr (by rw [h']; rfl)
+  refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => ?_, fun e hd => ?_, fun x => ?_⟩, fun e => ?_,
+    fun e _ => ?_⟩⟩
+  · rw [hdir', hj67]
+    rfl
+  · rcases hjoin (edge e) with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨Fin.castSucc_injective _ (by rw [← hS] at h₁; exact h₁),
+        Fin.castSucc_injective _ (by rw [← hT] at h₂; exact h₂)⟩
+    · exact Or.inr ⟨Fin.castSucc_injective _ (by rw [← hT] at h₁; exact h₁),
+        Fin.castSucc_injective _ (by rw [← hS] at h₂; exact h₂)⟩
+  · obtain ⟨h₁, h₂⟩ := hdir _ ((hj67 e).1 ((hdir' e).1 hd))
+    rw [← hS] at h₁
+    rw [← hT] at h₂
+    exact ⟨Fin.castSucc_injective _ h₁, Fin.castSucc_injective _ h₂⟩
   · apply Fin.castSucc_injective
     rw [hvert]
     exact figLeaf_castSucc a b c x
   · simp only [figMetric, unrootedMetric, semidirectedMetric]
     rw [hr, ← hedge e]
     split_ifs with h8
-    · have h8' : q17Src (edge e).castSucc = 8 := by rw [hedge e]; exact (hroot e).1 h8
-      have h7 : edge e = 7 := by
-        have key : ∀ j : Fin 8, q17Src j.castSucc = 8 → j = 7 := by decide
-        exact key _ h8'
+    · have h7 : edge e = 7 := (hmerge _).1 (by rw [hedge e]; exact (hroot' e).1 h8)
       rw [h7]
-      simp [q17Metric]
-    · have h8' : q17Src (edge e).castSucc ≠ 8 := fun h' => h8 ((hroot e).2 (by rwa [← hedge e]))
-      generalize edge e = j at h8'
-      fin_cases j <;> first | exact absurd (by decide) h8' | simp [q17Metric]
-  · show (figMetric len γ).inheritance (edge e) = (q17Metric len γ).inheritance e.1.1
-    rw [← hedge e]
-    generalize edge e = j
-    fin_cases j <;> simp [figMetric, q17Metric]
+      exact hlen.symm
+    · have h7 : edge e ≠ 7 := fun h7 => h8 ((hroot' e).2 (by rw [← hedge e]; exact (hmerge _).2 h7))
+      exact (hlen' _ h7).symm
+  · show (figMetric len γ).inheritance (edge e) = θ.inheritance e.1.1
+    rw [hinh, hedge e]
+
+/-- **The metric unrooted network of `q17` is Figure 17.** -/
+theorem inducesNetwork_q17 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q17 a b c) (q17Metric len γ)) :
+    InducesNetwork hQ (fig17 a b c) (figMetric len γ) :=
+  inducesNetwork_of_rooting hQ q17_isHybridArc_iff (by decide) (by decide) (by decide) (by decide)
+    (by simp [q17Metric]) (by intro j hj; fin_cases j <;> first | exact absurd rfl hj | rfl)
+    (by intro j; fin_cases j <;> simp [figMetric, q17Metric])
+
+/-- **The metric unrooted network of `q16` is Figure 16.** -/
+theorem inducesNetwork_q16 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q16 a b c) (q16Metric len γ)) :
+    InducesNetwork hQ (fig16 a b c) (figMetric len γ) :=
+  inducesNetwork_of_rooting hQ q16_isHybridArc_iff (by decide) (by decide) (by decide) (by decide)
+    (by simp [q16Metric]) (by intro j hj; fin_cases j <;> first | exact absurd rfl hj | rfl)
+    (by intro j; fin_cases j <;> simp [figMetric, q16Metric])
 
 /-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with `xᵢ = e^{-tᵢ}`:
 `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
@@ -281,7 +299,43 @@ theorem example3 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
       ((1 - γ) * (1 - 2 / 3 * x₁) + γ * (1 - 2 / 3 * (x₁ * x₂)),
         (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂)),
         (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂))) := by
-  sorry
+  intro x₁ x₂
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  -- the rooting `q16` of Figure 16, with the same concordance factors (Proposition 5)
+  have hX := hQ.card_taxa
+  have hlen := hiso.len_pos
+  obtain ⟨hγ₀, hγ₁⟩ := hiso.inheritance_mem_Ioo
+  have hQ' := isLSAQuartet_q16 hX h hlen hγ₀ hγ₁
+  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q16 hQ').some.symm⟩
+  -- Lemma 10 at the `3₁`-cycle of `q16`, with the hybrid edges `6` (`γ`) and `7`
+  have hL := fun q => lemma10 hQ' (Or.inr (inducesCycleType_q16 hX h)) (h₁ := 6) (h₂ := 7)
+    (by decide) rfl rfl q
+  -- the two trees `Q₁⊕`, `Q₂⊕` (equation (1))
+  obtain ⟨s₁, s₂, s₃⟩ := cf_deleteArc_q16_seven hX h hlen hγ₀ hγ₁
+  obtain ⟨u₁, u₂, u₃⟩ := cf_deleteArc_q16_six hX h hlen hγ₀ hγ₁
+  have hinh : (q16Metric len γ).inheritance 6 = γ := rfl
+  show (cf Q θ _, cf Q θ _, cf Q θ _) = _
+  rw [hcf, hL, hL, hL, hinh]
+  refine Prod.ext ?_ (Prod.ext ?_ ?_)
+  · have key : γ * cf (deleteArc (q16 a b c) 7) (deleteArcMetric (q16 a b c) 7 (q16Metric len γ))
+          (quartetTree a b c d h) + (1 - γ) * cf (deleteArc (q16 a b c) 6)
+          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ)) (quartetTree a b c d h) =
+        (1 - γ) * (1 - 2 / 3 * x₁) + γ * (1 - 2 / 3 * (x₁ * x₂)) := by
+      rw [s₁, u₁]; ring
+    convert key using 5
+  · have key : γ * cf (deleteArc (q16 a b c) 7) (deleteArcMetric (q16 a b c) 7 (q16Metric len γ))
+          (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) * cf (deleteArc (q16 a b c) 6)
+          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) =
+        (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂)) := by
+      rw [s₂, u₂]; ring
+    convert key using 5
+  · have key : γ * cf (deleteArc (q16 a b c) 7) (deleteArcMetric (q16 a b c) 7 (q16Metric len γ))
+          (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) * cf (deleteArc (q16 a b c) 6)
+          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) =
+        (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂)) := by
+      rw [s₃, u₃]; ring
+    convert key using 5
 
 /-- **Example 4** (`ex:4_1`): the concordance factors of the 4-cycle of Figure 17:
 `CF_{AB|CD} = (1-γ)(1 - ⅔x₁) + γ(⅓x₂)`, `CF_{AC|BD} = (1-γ)(⅓x₁) + γ(⅓x₂)`,
@@ -301,7 +355,7 @@ theorem example4 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
   have hlen := hiso.len_pos
   obtain ⟨hγ₀, hγ₁⟩ := hiso.inheritance_mem_Ioo
   have hQ' := isLSAQuartet_q17 hX h hlen hγ₀ hγ₁
-  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q17 h hQ').some.symm⟩
+  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q17 hQ').some.symm⟩
   -- Lemma 10 at the 4-cycle of `q17`, with the hybrid edges `6` (`γ`) and `7`
   obtain ⟨k, hct⟩ := inducesCycleType_q17 (a := a) (b := b) (c := c)
   have hL := fun q => lemma10 hQ' (Or.inl ⟨k, hct⟩) (h₁ := 6) (h₂ := 7) (by decide) rfl rfl q
