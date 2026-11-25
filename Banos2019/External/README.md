@@ -13,7 +13,7 @@ and 6).
 
 | Source | Directory | What the paper takes from it | Proved from |
 | --- | --- | --- | --- |
-| E. S. Allman, J. H. Degnan, J. A. Rhodes, J. Math. Biol. 62 (2011) | [`Banos2019/External/AllmanDegnanRhodes2011/`](AllmanDegnanRhodes2011) | Equation (1), the paper's Propositions 3 and 4, and the invariance of the concordance factors of a four-taxon species tree under the root placement, which the proofs of Lemmas 7 and 9 and Proposition 5 use | The theorems of [lean4-allman2011](https://github.com/vltanh/lean4-allman2011), which formalizes that paper by its own arguments ([its README](AllmanDegnanRhodes2011/README.md)) |
+| E. S. Allman, J. H. Degnan, J. A. Rhodes, J. Math. Biol. 62 (2011) | [`Banos2019/External/AllmanDegnanRhodes2011/`](AllmanDegnanRhodes2011) | Equation (1), the paper's Propositions 3 and 4, and the invariance of the concordance factors of a four-taxon species tree under the root placement, which the proofs of Lemmas 7 and 9 and Proposition 5 use | The theorems of [lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011), which formalizes that paper by its own arguments ([its README](AllmanDegnanRhodes2011/README.md)) |
 | C. Semple, M. Steel, *Phylogenetics* (2003) | [`Banos2019/External/SempleSteel2003/`](SempleSteel2003) | Two phylogenetic `X`-trees displaying the same quartet trees are isomorphic (the proof of Theorem 4) | The Splits Equivalence Theorem of lean4-phylogenetics ([its README](SempleSteel2003/README.md)) |
 
 The paper also takes Lemma 3, on the cycles of level-1 networks, from Rosselló and Valiente 2009.

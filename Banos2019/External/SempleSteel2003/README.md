@@ -7,7 +7,7 @@ Module [`Banos2019.External.SempleSteel2003.Quartets`](Quartets.lean), namespace
 2019 cites the book in the proof of Theorem 4: without cycles of size at least four, the quartet
 trees that `Ñ` displays "determine the topology `Ñ` by a standard result". The statement,
 [`exists_iso_of_quartets_eq`](Quartets.lean#L184) (`ext:semple-steel`), is in the source's terms: two phylogenetic
-`X`-trees ([`IsPhylogeneticXTree`](Quartets.lean#L37), an `X`-tree [`Phylogenetics.SplitsEquivalence.IsXTree`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L38) labelled
+`X`-trees ([`IsPhylogeneticXTree`](Quartets.lean#L37), an `X`-tree [`Phylogenetics.SplitsEquivalence.IsXTree`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L38) labelled
 bijectively onto its leaves) displaying the same quartet trees ([`quartets`](Quartets.lean#L53), read on the splits of
 the edges) are isomorphic, by an isomorphism fixing the taxa. It is the case of phylogenetic
 `X`-trees of the book's Theorem 6.3.5, by which an `X`-tree is determined by its restrictions to the
@@ -15,7 +15,7 @@ sets of at most four taxa; the book was not available to compare with, and the n
 under which Allman, Holder and Rhodes (arXiv:0905.4542) cite it, with the statement of S. Roch's
 lecture notes on the book's Chapter 6 (Wisconsin, 2010, lecture 6). It is proved from
 lean4-phylogenetics: the splits of a phylogenetic `X`-tree form an unrooted tree, so its quartet
-trees give its splits ([`Phylogenetics.subset_of_forall_displays`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/Splits.lean#L737)), and the splits give the tree by
+trees give its splits ([`Phylogenetics.subset_of_forall_displays`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/Splits.lean#L737)), and the splits give the tree by
 the Splits Equivalence Theorem (the book's Theorem 3.1.4,
-[`Phylogenetics.SplitsEquivalence.xTree_unique`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L604)). The base case of Theorem 4,
+[`Phylogenetics.SplitsEquivalence.xTree_unique`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L604)). The base case of Theorem 4,
 [`Banos2019.tildeDetermined_zero`](../../Identify/TildeBase.lean#L813), applies it to `Ñ₁` and `Ñ₂`.

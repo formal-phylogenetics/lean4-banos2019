@@ -1,6 +1,6 @@
 # Baños 2019: identifying species network features from gene tree quartets, in Lean
 
-[![CI](https://github.com/vltanh/lean4-banos2019/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/vltanh/lean4-banos2019/actions/workflows/lean_action_ci.yml)
+[![CI](https://github.com/formal-phylogenetics/lean4-banos2019/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/formal-phylogenetics/lean4-banos2019/actions/workflows/lean_action_ci.yml)
 
 A Lean 4 formalization of Hector Baños (2019), "Identifying species network features from gene tree quartets under the
 coalescent model", [Bull. Math. Biol. 81 (2019), 494-534](https://doi.org/10.1007/s11538-018-0485-4). Under the network
@@ -18,8 +18,8 @@ literature is assumed. Three statements are proved in corrected forms: Theorem 4
 the contraction leaves in `Ñ` suppressed; Proposition 7, off the vertices of the simplex; and Proposition 13, which is false as printed and
 whose refutation is proved too. No person has reviewed the proofs.
 
-This paper belongs to the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), on phylogenetic
-network estimation, in the collection rooted at [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
+This paper belongs to the hub [lean4-phylo-network](https://github.com/formal-phylogenetics/lean4-phylo-network), on phylogenetic
+network estimation, in the collection rooted at [lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics).
 
 ## Status
 
@@ -118,9 +118,9 @@ Pinned by commit in [`lakefile.toml`](lakefile.toml) and [`lake-manifest.json`](
 | Library | Commit | What it provides |
 | --- | --- | --- |
 | [Mathlib](https://github.com/leanprover-community/mathlib4) | `v4.37.0-rc1` | everything general |
-| [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics) (`Phylogenetics`) | `3fcabfd` | rooted and semidirected networks, species trees, the network multispecies coalescent and its exchangeability, Theorem 2 in general form, the Splits Equivalence Theorem, analytic null sets |
-| [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network) (`PhyloNetwork`) | `4ed2bb0` | the library of the hub of network estimation |
-| [lean4-allman2011](https://github.com/vltanh/lean4-allman2011) (`Allman2011`) | `d4ada2c` | Allman, Degnan, Rhodes 2011, from which [`Banos2019/External/AllmanDegnanRhodes2011/`](Banos2019/External/AllmanDegnanRhodes2011) proves the results the paper cites |
+| [lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics) (`Phylogenetics`) | `3fcabfd` | rooted and semidirected networks, species trees, the network multispecies coalescent and its exchangeability, Theorem 2 in general form, the Splits Equivalence Theorem, analytic null sets |
+| [lean4-phylo-network](https://github.com/formal-phylogenetics/lean4-phylo-network) (`PhyloNetwork`) | `4ed2bb0` | the library of the hub of network estimation |
+| [lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011) (`Allman2011`) | `d4ada2c` | Allman, Degnan, Rhodes 2011, from which [`Banos2019/External/AllmanDegnanRhodes2011/`](Banos2019/External/AllmanDegnanRhodes2011) proves the results the paper cites |
 
 ## Palomar
 

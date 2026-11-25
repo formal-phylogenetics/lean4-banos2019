@@ -90,7 +90,7 @@ sources:
       an argument of the formalization's own.
 
 related_formalizations:
-  - id: "https://github.com/vltanh/lean4-phylogenetics"
+  - id: "https://github.com/formal-phylogenetics/lean4-phylogenetics"
     relationship: "builds-on"
     note: >-
       Required at commit 3fcabfd7d191990dda268b0b3968d945b65eb59a: rooted and semidirected networks,
@@ -98,12 +98,12 @@ related_formalizations:
       general form (Phylogenetics.NMSC.nmscCF_inducedNetwork), the Splits Equivalence Theorem and
       analytic null sets. The Challenge restates the definitions it needs in Mathlib's vocabulary,
       and Banos2019/Bridge proves that they are the library's.
-  - id: "https://github.com/vltanh/lean4-phylo-network"
+  - id: "https://github.com/formal-phylogenetics/lean4-phylo-network"
     relationship: "builds-on"
     note: >-
       The library of the hub of this paper, required at commit
       4ed2bb0f7085acbf1326f43e2a5c582ba4566125.
-  - id: "https://github.com/vltanh/lean4-allman2011"
+  - id: "https://github.com/formal-phylogenetics/lean4-allman2011"
     relationship: "builds-on"
     note: >-
       Allman, Degnan, Rhodes 2011, required at commit d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78; the

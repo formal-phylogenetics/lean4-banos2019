@@ -18,8 +18,8 @@ edges) and Lemma 1 (iii), and corrects a slip of v1 in the proof of Proposition 
 the proofs of Lemma 9, Proposition 7 and Proposition 10 (E20). Lemma 4 has a proof in v1's source, commented out, and
 none in either printed version (E4).
 
-The paper is one of those of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), in the
-collection rooted at [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics), whose libraries hold the
+The paper is one of those of the hub [lean4-phylo-network](https://github.com/formal-phylogenetics/lean4-phylo-network), in the
+collection rooted at [lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics), whose libraries hold the
 networks, the network multispecies coalescent and the general results that this formalization uses.
 
 Status of the formalization:
@@ -33,7 +33,7 @@ Status of the formalization:
 - **Proved cited results.** Equation (1) and the paper's Propositions 3 and 4, which it takes from Allman, Degnan and
   Rhodes 2011, and the invariance of the concordance factors of a species tree under the root placement, which its
   proofs use in their place (E6). They are stated in [`Banos2019/External/AllmanDegnanRhodes2011/`](../../Banos2019/External/AllmanDegnanRhodes2011) and proved from the
-  theorems of [lean4-allman2011](https://github.com/vltanh/lean4-allman2011), which formalizes that paper by its own
+  theorems of [lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011), which formalizes that paper by its own
   arguments. That the quartet trees of a phylogenetic `X`-tree determine it (Semple, Steel 2003, cited in the proof
   of Theorem 4) is stated in [`Banos2019/External/SempleSteel2003/`](../../Banos2019/External/SempleSteel2003) and proved from the Splits Equivalence Theorem of
   lean4-phylogenetics. Lemma 3, whose proof the paper takes from Rosselló and Valiente 2009, is proved by an argument
@@ -93,13 +93,13 @@ Status of the formalization:
 | Result | Where the paper uses it | Source | Theorem | Argument |
 | --- | --- | --- | --- | --- |
 | Equation (1): on four taxa, a species tree whose unrooted tree has the split `ab\|cd` with internal edge `t` has the concordance factors `(1 - ⅔e^{-t}, ⅓e^{-t}, ⅓e^{-t})`, for any rooting | Section 4; the computation after Corollary 3; Examples 2–5; Propositions 6 and 10 | Allman, Degnan, Rhodes 2011, Sections 4.1 and 5 | [`External.AllmanDegnanRhodes2011.equation1`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L60) | The source's, in lean4-allman2011: the formulas for the binary rootings, and the nonbinary ones as limits |
-| Proposition 3: for four taxa, the distribution of unrooted gene trees identifies `T⁻` and not `T⁺` | Cited in Lemma 9 and Proposition 5 (E6) | Allman, Degnan, Rhodes 2011, Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition3`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L87) | The source's ([`Allman2011.proposition3`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/FourTaxa/Proposition3.lean#L171)) |
-| Proposition 4: Proposition 3 for species trees that need not be binary | Cited in Lemmas 7 and 9 (E6) | Allman, Degnan, Rhodes 2011, Proposition 11 for Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition4`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L98) | The source's ([`Allman2011.proposition11_proposition3`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/Proposition11.lean#L66)) |
-| The root placement does not matter: on four taxa, species trees with the same unrooted metric tree have the same distribution of unrooted gene trees | Section 4 ("it is known … [1]"); the steps of Lemmas 7, 9 and Proposition 5 that cite Propositions 3 and 4 (E6) | Allman, Degnan, Rhodes 2011, Theorem 9 for four taxa, and Section 5 | [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110) | The source's ([`Allman2011.unrootedDist_eq_iff_four`](https://github.com/vltanh/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/FourTaxa.lean#L277)) |
-| Two phylogenetic `X`-trees that display the same quartet trees are isomorphic | Theorem 4, base case ("a standard result [22]") | Semple, Steel 2003 | [`External.SempleSteel2003.exists_iso_of_quartets_eq`](../../Banos2019/External/SempleSteel2003/Quartets.lean#L184) | The quartet trees give the splits ([`Phylogenetics.subset_of_forall_displays`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/Splits.lean#L737)), and the splits the tree (the Splits Equivalence Theorem, [`Phylogenetics.SplitsEquivalence.xTree_unique`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L604)) |
+| Proposition 3: for four taxa, the distribution of unrooted gene trees identifies `T⁻` and not `T⁺` | Cited in Lemma 9 and Proposition 5 (E6) | Allman, Degnan, Rhodes 2011, Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition3`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L87) | The source's ([`Allman2011.proposition3`](https://github.com/formal-phylogenetics/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/FourTaxa/Proposition3.lean#L171)) |
+| Proposition 4: Proposition 3 for species trees that need not be binary | Cited in Lemmas 7 and 9 (E6) | Allman, Degnan, Rhodes 2011, Proposition 11 for Proposition 3 | [`External.AllmanDegnanRhodes2011.proposition4`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L98) | The source's ([`Allman2011.proposition11_proposition3`](https://github.com/formal-phylogenetics/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/Proposition11.lean#L66)) |
+| The root placement does not matter: on four taxa, species trees with the same unrooted metric tree have the same distribution of unrooted gene trees | Section 4 ("it is known … [1]"); the steps of Lemmas 7, 9 and Proposition 5 that cite Propositions 3 and 4 (E6) | Allman, Degnan, Rhodes 2011, Theorem 9 for four taxa, and Section 5 | [`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110) | The source's ([`Allman2011.unrootedDist_eq_iff_four`](https://github.com/formal-phylogenetics/lean4-allman2011/blob/d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78/Allman2011/Nonbinary/FourTaxa.lean#L277)) |
+| Two phylogenetic `X`-trees that display the same quartet trees are isomorphic | Theorem 4, base case ("a standard result [22]") | Semple, Steel 2003 | [`External.SempleSteel2003.exists_iso_of_quartets_eq`](../../Banos2019/External/SempleSteel2003/Quartets.lean#L184) | The quartet trees give the splits ([`Phylogenetics.subset_of_forall_displays`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/Splits.lean#L737)), and the splits the tree (the Splits Equivalence Theorem, [`Phylogenetics.SplitsEquivalence.xTree_unique`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Tree/SplitsEquivalence.lean#L604)) |
 | Lemma 3: a cycle of a level-1 network has exactly one hybrid node, with both its hybrid edges; a node is on at most one cycle | Throughout, wherever the paper speaks of the hybrid node of a cycle, the cycle `C_v` or the `v`-blocks | Rosselló, Valiente 2009 | [`Banos2019.lemma3`](../../Banos2019/Network/Cycle.lean#L440), [`Banos2019.lemma3_unrooted`](../../Banos2019/Network/Induced.lean#L289) | The formalization's own: the top node of the cycle, and a count of its edges by the node they enter |
 
-The statements of [`Banos2019/External/`](../../Banos2019/External) are in their sources' terms, on species trees ([`Phylogenetics.SpeciesTree`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Hierarchy/SpeciesTree.lean#L57)).
+The statements of [`Banos2019/External/`](../../Banos2019/External) are in their sources' terms, on species trees ([`Phylogenetics.SpeciesTree`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/Hierarchy/SpeciesTree.lean#L57)).
 The paper applies them to rooted networks without hybrid edges, which may have nodes of indegree and outdegree one;
 [`Banos2019.nmscCF_eq_quartetProb`](../../Banos2019/Quartet/Trees.lean#L824) identifies the concordance factors of such a network with those of its species
 tree. Propositions 3 and 4 are proved as printed, and no proof uses them (E6).
@@ -108,7 +108,7 @@ tree. Propositions 3 and 4 are proved as printed, and no proof uses them (E6).
 
 | Source | Cited for | Read? |
 | --- | --- | --- |
-| Allman, Degnan, Rhodes 2011 | Equation (1), Propositions 3 and 4, the root placement | Formalized in [lean4-allman2011](https://github.com/vltanh/lean4-allman2011), from arXiv:0912.4472v2; the statements here are proved from its theorems |
+| Allman, Degnan, Rhodes 2011 | Equation (1), Propositions 3 and 4, the root placement | Formalized in [lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011), from arXiv:0912.4472v2; the statements here are proved from its theorems |
 | Semple, Steel 2003 | Theorem 4 | The book was not available. The statement is that of its Theorem 6.3.5 as Allman, Holder and Rhodes (arXiv:0905.4542) cite it and as S. Roch's lecture notes on the book's Chapter 6 state it; the proof goes through the splits, not the book's argument |
 | Rosselló, Valiente 2009 | Lemma 3 | Not followed: Lemma 3 is proved by the formalization's own argument |
 
@@ -120,8 +120,8 @@ Nothing: the formalization is unconditional.
 
 | Fact | Where | In the formalization |
 | --- | --- | --- |
-| The network multispecies coalescent: Kingman's coalescent on each edge, independent inheritance at hybrid nodes, exchangeability of the lineages | Section 4; Theorem 2; Lemmas 7–11 | The library `Phylogenetics` ([`Phylogenetics.NMSC.exchangeability`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Exchangeability.lean#L412); the concordance factors `nmscCF N θ 0`) |
-| The zero set of a real analytic function that is not identically zero is null | Proposition 10 ("contained in a proper sub-variety … has measure zero") | [`AnalyticOnNhd.volume_setOf_eq_zero`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/ForMathlib/Analysis/AnalyticZeroSet.lean#L178), in lean4-phylogenetics |
+| The network multispecies coalescent: Kingman's coalescent on each edge, independent inheritance at hybrid nodes, exchangeability of the lineages | Section 4; Theorem 2; Lemmas 7–11 | The library `Phylogenetics` ([`Phylogenetics.NMSC.exchangeability`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Exchangeability.lean#L412); the concordance factors `nmscCF N θ 0`) |
+| The zero set of a real analytic function that is not identically zero is null | Proposition 10 ("contained in a proper sub-variety … has measure zero") | [`AnalyticOnNhd.volume_setOf_eq_zero`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/ForMathlib/Analysis/AnalyticZeroSet.lean#L178), in lean4-phylogenetics |
 | The preimage of a null set under a surjective affine map is null | Proposition 10 ("ν is linear surjective") | [`MeasureTheory.prod_pi_volume_preimage_sum_coords_null`](../../Banos2019/Basic/MeasureTheory/SumCoordsNull.lean#L26) |
 | A continuous image of a connected set is connected | Proposition 7 | Mathlib |
 
@@ -420,7 +420,7 @@ construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos20
 
 | Result | Hypothesis that is not needed | Lean |
 | --- | --- | --- |
-| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) keeps the paper's hypotheses |
+| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) keeps the paper's hypotheses |
 | Proposition 11 | The Big Cycle property: with a 4-cycle, the quartet tree that pairs the taxa of non-adjacent blocks always has the strictly smallest concordance factor (equation (8)) | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L959) keeps the hypothesis |
 
 ## 6. How the formalization reads the paper
@@ -476,7 +476,7 @@ Section 3, not here.
 | Result | The paper's argument | The formalization's | Why | E-item |
 | --- | --- | --- | --- | --- |
 | Lemmas 7 and 9, the root on the cycle; Proposition 5, the base case | Cites Propositions 3 and 4 for the equality of the concordance factors of species trees with the same unrooted metric tree | The same argument, with the root-placement invariance of Allman, Degnan, Rhodes 2011 ([`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`](../../Banos2019/External/AllmanDegnanRhodes2011/Basic.lean#L110)) in place of the cited statements | Gap: the cited statements do not give the step | E6 |
-| Lemma 8, `K = 3` | Conditions on `𝔇`, whether the lineage of `d` is in the first coalescent event, and uses exchangeability for `𝔇 = 0` and `𝔇 = 1` | Exchangeability of the three lineages at `v`, once ([`Phylogenetics.NMSC.cherryMass_eq_third`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L262)) | Representation: the model gives the distribution of gene tree topologies, not the order of coalescent events, and `𝔇` is not defined in it | – |
+| Lemma 8, `K = 3` | Conditions on `𝔇`, whether the lineage of `d` is in the first coalescent event, and uses exchangeability for `𝔇 = 0` and `𝔇 = 1` | Exchangeability of the three lineages at `v`, once ([`Phylogenetics.NMSC.cherryMass_eq_third`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L262)) | Representation: the model gives the distribution of gene tree topologies, not the order of coalescent events, and `𝔇` is not defined in it | – |
 | Lemma 13 | Cites Lemma 12, a generic statement, at given parameters | The direction of Lemma 12's proof that holds for all parameters: Proposition 9 and the correspondence of cycles | Gap | E12 |
 | Lemma 14 | Cases `\|X\| < 3`, `\|X\| = 4` by Proposition 9, and `\|X\| ≥ 5` | The argument for `\|X\| ≥ 5`, for every `X` | Gap: `\|X\| = 3` is not covered, and Proposition 9 gives one inclusion | E13 |
 | Proposition 12 | Proposition 8 gives a `3₂`-cycle; Proposition 7 gives the size and the taxa below `v` | Corollary 4 gives the `3₂`-cycle; Lemma 12 excludes a size of four or more; the type `3₂` gives the rest | Gap: Proposition 8 also allows a 4-cycle, and Proposition 7 does not give the step | E17 |
@@ -485,10 +485,10 @@ Section 3, not here.
 
 Not counted as departures:
 
-- Theorem 2 is the library's [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76). Like the paper's proof, it conditions on the
+- Theorem 2 is the library's [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76). Like the paper's proof, it conditions on the
   lineages at the LSA of `s` and uses their exchangeability, applied to the four lineages at once rather than after
   conditioning on the rooted shape of the gene tree. Observation 1 enters it on forests of lineages
-  ([`Phylogenetics.NMSC.cherryMass_of_mem`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L200)).
+  ([`Phylogenetics.NMSC.cherryMass_of_mem`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Symmetry.lean#L200)).
 - In Proposition 10, the zero-set lemma for analytic functions, applied to `f ∘ η`, stands for the paper's two steps
   (`f⁻¹(V)` lies in a proper subvariety; `η` is biholomorphic). The maps `ν`, `η` and `f` are the paper's
   ([`Banos2019.cf_eq_fig17`](../../Banos2019/CycleProperty.lean#L695), [`Banos2019.volume_fig17_eq_null`](../../Banos2019/CycleProperty.lean#L772)).
@@ -659,11 +659,11 @@ model. It is the same kind of question for other data; neither paper cites the o
 ### Formalizations
 
 No formalization of the paper, or of its main results, was found outside this collection. In the collection,
-[lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics) holds the network multispecies coalescent, Theorem 2
-in the general form of Section 5 ([`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76)), and the concordance factors of four taxa
+[lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics) holds the network multispecies coalescent, Theorem 2
+in the general form of Section 5 ([`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/formal-phylogenetics/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76)), and the concordance factors of four taxa
 in distinct components of one cycle of a level-1 network; this formalization builds on them.
-[lean4-allman2011](https://github.com/vltanh/lean4-allman2011) formalizes the source of Section 2. NANUQ, which builds on
-this paper, is formalized in [lean4-nanuq](https://github.com/vltanh/lean4-nanuq), whose proofs do not use this
+[lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011) formalizes the source of Section 2. NANUQ, which builds on
+this paper, is formalized in [lean4-nanuq](https://github.com/formal-phylogenetics/lean4-nanuq), whose proofs do not use this
 repository.
 
 ## 11. What's next
