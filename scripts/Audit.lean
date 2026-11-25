@@ -284,6 +284,7 @@ import all Banos2019.Quartet.ReduceUnrootedKeep
 import all Banos2019.Quartet.Reduction
 import all Banos2019.Quartet.Remove
 import all Banos2019.Quartet.RootContract
+import all Banos2019.Quartet.RootPlacement
 import all Banos2019.Quartet.RootedIso
 import all Banos2019.Quartet.RootedIsoUnrooted
 import all Banos2019.Quartet.SemidirectedCycles
