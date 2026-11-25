@@ -9,7 +9,7 @@ public import Banos2019.Network.CycleFacts
 * `unrooted_isLevelOne`: `N⁻` is level-1 (connected: `unrooted_isConnected`, Quartet/Correspondence).
 * `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has exactly
   one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
-* `exists_walks_compl_of_isConnected`: in a connected graph, every node is joined to a node of a cycle
+* `exists_walks_compl_cycleNodes`: in a connected graph, every node is joined to a node of a cycle
   by a walk avoiding the cycle.
 * `card_four_of_ne`, `injOn_four`: sets of four elements.
 -/
@@ -29,11 +29,6 @@ section Multigraph
 
 variable {G : DirectedMultigraph V E}
 
-/-- The nodes of a cycle form a nonempty set. -/
-theorem IsCycle.cycleNodes_nonempty {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).Nonempty := by
-  obtain ⟨k, v, e, hC, rfl⟩ := hC
-  exact ⟨G.source (e ⟨0, hC.pos⟩), e ⟨0, hC.pos⟩, ⟨_, rfl⟩, Or.inl rfl⟩
-
 /-- Taxa in the same block of a set of edges are in the same block of a smaller set. -/
 theorem SameBlock.mono {ℓ : X → V} {D D' : Set E} (hD : D ⊆ D') {x y : X}
     (h : SameBlock G ℓ D' x y) : SameBlock G ℓ D x y :=
@@ -43,24 +38,6 @@ theorem SameBlock.mono {ℓ : X → V} {D D' : Set E} (hD : D ⊆ D') {x y : X}
 theorem IsCycle.exists_mem_cycleNodes_notMem {C : Set E} (hC : IsCycle G C) {F : Set V}
     (hF : F.Finite) (h : F.ncard < C.ncard) : ∃ u ∈ cycleNodes G C, u ∉ F :=
   Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes hC]) hF
-
-/-- **In a connected graph, every node is joined to a node of a cycle `C` by a walk avoiding the edges
-of `C`**: along a walk to a node of `C`, stop at the first node of `C`. -/
-theorem exists_walks_compl_of_isConnected (hG : G.IsConnected) {C : Set E} (hC : IsCycle G C)
-    (a : V) : ∃ u ∈ cycleNodes G C, G.Walks Cᶜ u a := by
-  obtain ⟨u₀, hu₀⟩ := hC.cycleNodes_nonempty
-  have hw := hG a u₀
-  induction hw using Relation.ReflTransGen.head_induction_on with
-  | refl => exact ⟨u₀, hu₀, .refl⟩
-  | @head a b hab _ ih =>
-    obtain ⟨u, hu, hub⟩ := ih
-    obtain ⟨f, -, hf⟩ := hab
-    by_cases hfC : f ∈ C
-    · refine ⟨a, ?_, .refl⟩
-      rcases hf with ⟨h, -⟩ | ⟨-, h⟩
-      · exact ⟨f, hfC, Or.inl h⟩
-      · exact ⟨f, hfC, Or.inr h⟩
-    · exact ⟨u, hu, hub.tail ⟨f, hfC, hf.symm⟩⟩
 
 end Multigraph
 

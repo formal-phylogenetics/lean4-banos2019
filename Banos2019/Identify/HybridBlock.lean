@@ -15,7 +15,7 @@ The proofs pass between `N⁻` and `N`: the nodes of `N⁻` are the vertices of 
 `LSA(X)`, and its edges the arcs of `N` below `LSA(X)` other than `rootTreeArc`, the edge leaving
 `LSA(X)` having the child of `rootTreeArc` as source.
 
-* `reaches_source_of_reaches_hybrid`: in `N`, the vertices below a hybrid node `v` other than `v`
+* `reaches_source_of_below_hybrid`: in `N`, the vertices below a hybrid node `v` other than `v`
   are entered only from below `v`.
 * `descendsFrom_of_reaches`: a directed path of `N` from a node of `N⁻` to a taxon is a semidirected
   path of `N⁻`.
@@ -109,68 +109,6 @@ theorem walks_compl_of_isSDPathOf {V' E' X' : Type*} {G : SemidirectedNetwork V'
 section Rooted
 
 variable {N : RootedNetwork V E X}
-
-/-- **Below a hybrid node, the vertices are entered only from below it**: in a binary level-1
-network, an arc entering a vertex `a ≠ v` below the hybrid node `v` leaves a vertex below `v`.
-Otherwise the path down from `v` to `a`, the arc back up, a path up to the root and one down to the
-parent of the hybrid edge `h₁` of `v` close a cycle through `h₁` whose other arcs either have both
-ends below `v` or none, or are the arc entering `a`; that cycle misses the other hybrid edge of `v`,
-against Lemma 3. -/
-theorem reaches_source_of_reaches_hybrid (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
-    {v : V} (h2 : N.graph.indegree v = 2) {e : E} (he : N.graph.Reaches v (N.graph.target e))
-    (hne : N.graph.target e ≠ v) : N.graph.Reaches v (N.graph.source e) := by
-  have := hN.1.finite_arcs
-  by_contra hb
-  obtain ⟨h₁, h₂, h12, hs⟩ := Set.ncard_eq_two.mp h2
-  have hh₁ : N.graph.target h₁ = v := by
-    have : h₁ ∈ {f | N.graph.target f = v} := by rw [hs]; exact Or.inl rfl
-    exact this
-  have hh₂ : N.graph.target h₂ = v := by
-    have : h₂ ∈ {f | N.graph.target f = v} := by rw [hs]; exact Or.inr rfl
-    exact this
-  -- the parents of `v` are not below `v`
-  have hpar : ∀ g, N.graph.target g = v → ¬ N.graph.Reaches v (N.graph.source g) := fun g hg h =>
-    hN.1.acyclic _ (Relation.TransGen.tail' h ⟨g, rfl, hg⟩)
-  let F : Set E :=
-    {f | N.graph.Reaches v (N.graph.source f) ∧ N.graph.Reaches v (N.graph.target f)} ∪
-      insert e {f | ¬ N.graph.Reaches v (N.graph.source f) ∧ ¬ N.graph.Reaches v (N.graph.target f)}
-  -- the arcs of a path to a vertex not below `v` are not below `v`
-  have hup : ∀ z, ¬ N.graph.Reaches v z → ∀ w, N.graph.Reaches w z → N.graph.Walks F w z := by
-    intro z hz w hw
-    induction hw using Relation.ReflTransGen.head_induction_on with
-    | refl => exact .refl
-    | @head a b hab hbz ih =>
-      obtain ⟨f, hfs, hft⟩ := hab
-      have hbD : ¬ N.graph.Reaches v b := fun h => hz (h.trans hbz)
-      have haD : ¬ N.graph.Reaches v a := fun h => hbD (h.tail ⟨f, hfs, hft⟩)
-      exact ih.head ⟨f, Or.inr (Or.inr ⟨by rw [hfs]; exact haD, by rw [hft]; exact hbD⟩),
-        Or.inl ⟨hfs, hft⟩⟩
-  -- the arcs of a path from `v` are below `v`
-  have hdown : ∀ w, N.graph.Reaches v w → N.graph.Walks F v w := by
-    intro w hw
-    induction hw with
-    | refl => exact .refl
-    | @tail a b hva hab ih =>
-      obtain ⟨f, hfs, hft⟩ := hab
-      exact ih.tail ⟨f, Or.inl ⟨by rw [hfs]; exact hva, by rw [hft]; exact hva.tail ⟨f, hfs, hft⟩⟩,
-        Or.inl ⟨hfs, hft⟩⟩
-  have hW : N.graph.Walks F (N.graph.target h₁) (N.graph.source h₁) := by
-    rw [hh₁]
-    refine ((hdown _ he).tail ⟨e, Or.inr (Or.inl rfl), Or.inr ⟨rfl, rfl⟩⟩).trans ?_
-    exact (N.graph.walks_symm (hup _ hb _ (hN.1.root_reaches _))).trans
-      (hup _ (hpar h₁ hh₁) _ (hN.1.root_reaches _))
-  have hh₁F : h₁ ∉ F := by
-    rintro (⟨hs, -⟩ | rfl | ⟨-, ht⟩)
-    · exact hpar h₁ hh₁ hs
-    · exact hne hh₁
-    · exact ht (by rw [hh₁]; exact .refl)
-  obtain ⟨C, hC, hh₁C, hsub⟩ := exists_isCycle_of_walks hh₁F hW
-  have hh₂C := (lemma3 hN h1 hC).2.1 v ⟨h₁, hh₁C, Or.inr hh₁⟩ h2 h₂ hh₂
-  rcases hsub hh₂C with h | ⟨hs, -⟩ | rfl | ⟨-, ht⟩
-  · exact h12 h.symm
-  · exact hpar h₂ hh₂ hs
-  · exact hne hh₂
-  · exact ht (by rw [hh₂]; exact .refl)
 
 end Rooted
 
@@ -385,7 +323,7 @@ theorem mem_nodeBlock_of_descendsFrom (h1 : IsLevelOne N.graph)
 
 /-- **A taxon in the block of the hybrid node `v` of a cycle `C` is below `v` in `N`**: the vertices
 of `N⁻` below `v` in `N` are entered from outside only at `v`
-(`reaches_source_of_reaches_hybrid`), by the hybrid edges of `v`, which are in `C`; so no edge
+(`reaches_source_of_below_hybrid`), by the hybrid edges of `v`, which are in `C`; so no edge
 outside `C` crosses the cut they make. -/
 theorem reaches_of_mem_nodeBlock_hybrid (h1 : IsLevelOne N.graph)
     {C : Set (SemidirectedArc hN.1 hN.2 hX)} {v : SemidirectedVertex hN.1 hX}
@@ -399,7 +337,7 @@ theorem reaches_of_mem_nodeBlock_hybrid (h1 : IsLevelOne N.graph)
   have hin : ∀ f : E, N.graph.Reaches v.1.1 (N.graph.target f) →
       ¬ N.graph.Reaches v.1.1 (N.graph.source f) → N.graph.target f = v.1.1 := fun f ht hs => by
     by_contra hne
-    exact hs (reaches_source_of_reaches_hybrid hN h1 h2 ht hne)
+    exact hs (reaches_source_of_below_hybrid hN h1 h2 ht hne)
   let S : Set (SemidirectedVertex hN.1 hX) := {w | N.graph.Reaches v.1.1 w.1.1}
   have hcut : ∀ c ∈ Cᶜ, ¬ (unrooted N hN hX).graph.Crosses c S := by
     intro c hc hcross

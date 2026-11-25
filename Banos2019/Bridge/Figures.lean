@@ -256,7 +256,7 @@ theorem fig17_fig18_tilde :
     (isUnrootedLevelOne_unrooted hb₁₇ h1₁₇ hX) hC h4.ge
   -- its image is a cycle of `Ñ` of Figure 18, which comes from a cycle of `N⁻` of size at least four
   have hC₂ := J.isCycle_image hC₁
-  obtain ⟨w, hw⟩ := hC₂.cycleNodes_nonempty
+  obtain ⟨w, hw⟩ := hC₂.nonempty_cycleNodes
   obtain ⟨D, -, hD, hD4, -⟩ := exists_isCycle_big_of_mem_cycleNodes_tilde hC₂ hw
   rw [unrooted_q18_ncard hb₁₈ hX fig18Network_toRooted hD] at hD4
   exact absurd hD4 (by norm_num)

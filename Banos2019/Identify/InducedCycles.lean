@@ -321,13 +321,13 @@ def inducedNode (hN : IsBinaryRootedNetwork N) {Y : Set X} (hY : Y.Nontrivial)
 `N`. -/
 theorem isLevelOne_inducedLSA_graph (hN : N.IsPhylogenetic) (h1 : IsLevelOne N.graph)
     {Y : Set X} (hY : Y.Nontrivial) : IsLevelOne (inducedLSA N hN Y hY).graph :=
-  isLevelOne_suppress (lsaNetwork_isPhylogenetic hN hY) (isLevelOne_belowNetwork h1)
+  suppress_isLevelOne (lsaNetwork_isPhylogenetic hN hY) (isLevelOne_belowNetwork h1)
 
 /-- **The chains of a cycle of `N⊕_Y` form a cycle of `N`.** -/
 theorem isCycle_inducedChainArcs (hN : N.IsPhylogenetic) {Y : Set X} (hY : Y.Nontrivial)
     {D : Set _} (hD : IsCycle (inducedLSA N hN Y hY).graph D) :
-    IsCycle N.graph (Subtype.val '' suppressChainArcs (inducedBelow N hN Y hY) D) :=
-  isCycle_image_val_belowNetwork (isCycle_suppressChainArcs (lsaNetwork_isPhylogenetic hN hY) hD)
+    IsCycle N.graph (Subtype.val '' cycleChainArcs (inducedBelow N hN Y hY) D) :=
+  isCycle_image_val_belowNetwork (isCycle_cycleChainArcs (lsaNetwork_isPhylogenetic hN hY) hD)
 
 /-- The LSA of the taxa of `N⊕_Y` is its root. -/
 theorem lsa_univ_inducedLSA (hN : IsBinaryRootedNetwork N) {Y : Set X} (hY : Y.Nontrivial)
@@ -385,7 +385,7 @@ theorem unrootedCycleArcs_eq_image_induced {C' : Set _}
     (hw : IsHybridNodeOf (inducedLSAUnrooted N hN Y hY) C' w) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {v : SemidirectedVertex hN.1 hX}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (hwv : inducedNode hN hY w = v.1.1) :
-    unrootedCycleArcs hN C = Subtype.val '' suppressChainArcs (inducedBelow N hN.1 Y hY)
+    unrootedCycleArcs hN C = Subtype.val '' cycleChainArcs (inducedBelow N hN.1 Y hY)
       (unrootedCycleArcs (inducedLSA_isBinaryRootedNetwork hN hY) C') := by
   have := hN.1.finite_arcs
   have hQb := inducedLSA_isBinaryRootedNetwork hN hY
@@ -393,7 +393,7 @@ theorem unrootedCycleArcs_eq_image_induced {C' : Set _}
     (isCycle_inducedChainArcs hN.1 hY (isCycle_unrootedCycleArcs hQb hC'))
     ⟨v.1.1, mem_cycleNodes_unrootedCycleArcs hN hv.mem_cycleNodes, ?_⟩
   rw [← hwv]
-  exact mem_cycleNodes_image_val_iff.2 ⟨_, mem_cycleNodes_suppressChainArcs
+  exact mem_cycleNodes_image_val_iff.2 ⟨_, val_mem_cycleNodes_cycleChainArcs
     (lsaNetwork_isPhylogenetic hN.1 hY) (mem_cycleNodes_unrootedCycleArcs hQb hw.mem_cycleNodes),
     rfl⟩
 
@@ -422,20 +422,20 @@ theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N 
   have hD : IsCycle Q.graph D := isCycle_unrootedCycleArcs hQb hC'
   set Ĉ := unrootedCycleArcs hN C with hĈ_def
   have hĈ : IsCycle N.graph Ĉ := isCycle_unrootedCycleArcs hN hC
-  have hcorr : Ĉ = Subtype.val '' suppressChainArcs L D :=
+  have hcorr : Ĉ = Subtype.val '' cycleChainArcs L D :=
     unrootedCycleArcs_eq_image_induced hN h1 hX hY hC' hw hC hv hwv
-  have hLD : IsCycle L.graph (suppressChainArcs L D) := isCycle_suppressChainArcs hL hD
+  have hLD : IsCycle L.graph (cycleChainArcs L D) := isCycle_cycleChainArcs hL hD
   -- the nodes of `D` are nodes of `Ĉ`
   have hnodes : ∀ z ∈ cycleNodes Q.graph D, z.1.1 ∈ cycleNodes N.graph Ĉ := fun z hz => by
     rw [hcorr]
-    exact mem_cycleNodes_image_val_iff.2 ⟨_, mem_cycleNodes_suppressChainArcs hL hz, rfl⟩
+    exact mem_cycleNodes_image_val_iff.2 ⟨_, val_mem_cycleNodes_cycleChainArcs hL hz, rfl⟩
   -- the arcs of `N⊕_Y` off `D` are off `Ĉ`
   have hoff : ∀ c, c ∉ D → c.1.1 ∉ Ĉ := by
     intro c hc h
     rw [hcorr] at h
     obtain ⟨g, hg, hgc⟩ := h
     obtain rfl : g = c.1 := Subtype.ext hgc
-    exact hc ((mem_suppressChainArcs_iff D c).1 hg)
+    exact hc ((val_mem_cycleChainArcs_iff (C := D) (g := c)).1 hg)
   -- the tops of `D` and `Ĉ`
   obtain ⟨aQ, haQ, -, hGQ, hEQ, hrQ⟩ := h1Q.exists_top hQb.1 hD
   obtain ⟨aN, haN, hFN, -, hEN, hrN⟩ := h1.exists_top hN.1 hĈ
@@ -469,7 +469,7 @@ theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N 
         Y := ⟨by rw [hcs, ← hyLn]; exact yL.2.1, ⟨x, hx, hcx⟩⟩
     set cL : N.belowArcs _ Y := ⟨c, hcB⟩ with hcL_def
     have hcLs : L.graph.source cL = yL := Subtype.ext (hcs.trans hyLn.symm)
-    have hcL : cL ∉ suppressChainArcs L D := fun h =>
+    have hcL : cL ∉ cycleChainArcs L D := fun h =>
       hc (show c ∈ Ĉ by rw [hcorr]; exact ⟨cL, h, rfl⟩)
     -- the vertex `yL` is not a chain vertex: it has an arc of the cycle leaving it, and `c`
     have hyc : ¬ L.IsChainVertex yL := by
@@ -479,16 +479,16 @@ theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N 
       obtain ⟨i, hi⟩ := (L.graph.indegree_eq_one_iff yL).mp hyc.1
       obtain ⟨o, ho⟩ := (L.graph.outdegree_eq_one_iff yL).mp hyc.2
       have hco := (ho cL).mp hcLs
-      have key : ∀ e ∈ suppressChainArcs L D, (L.graph.source e = yL ∨ L.graph.target e = yL) →
+      have key : ∀ e ∈ cycleChainArcs L D, (L.graph.source e = yL ∨ L.graph.target e = yL) →
           L.graph.target e = yL := by
         rintro e he (h | h)
         · exact absurd (((ho e).mp h).trans hco.symm ▸ he) hcL
         · exact h
       exact h12 (((hi f₁).mp (key f₁ hf₁ hu₁)).trans ((hi f₂).mp (key f₂ hf₂ hu₂)).symm)
     have hyD : (⟨yL, hyc⟩ : {v // ¬ L.IsChainVertex v}) ∈ cycleNodes Q.graph D :=
-      mem_cycleNodes_suppress_of_mem hL hyL
+      mem_cycleNodes_suppress_of_val hL hyL
     have hcQ : (⟨cL, by rw [hcLs]; exact hyc⟩ : {e // ¬ L.IsChainVertex (L.graph.source e)}) ∉ D :=
-      fun h => hcL ((mem_suppressChainArcs_iff D _).2 h)
+      fun h => hcL ((val_mem_cycleChainArcs_iff (C := D) (g := _)).2 h)
     have hcQx : Q.graph.Reaches (Q.graph.target ⟨cL, by rw [hcLs]; exact hyc⟩)
         (Q.leaf ⟨x, hx⟩) := by
       have h₁ : L.graph.Reaches (L.graph.target cL) (L.leaf ⟨x, hx⟩) :=
@@ -504,7 +504,7 @@ theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N 
         hyLn.symm.trans (congrArg (fun z => z.1.1) h)
       have haNĈ := haN
       rw [hcorr] at haNĈ
-      obtain ⟨aL, -, haL⟩ : ∃ z ∈ cycleNodes L.graph (suppressChainArcs L D), z.1 = aN :=
+      obtain ⟨aL, -, haL⟩ : ∃ z ∈ cycleNodes L.graph (cycleChainArcs L D), z.1 = aN :=
         mem_cycleNodes_image_val_iff.1 haNĈ
       have h₂ : N.graph.Reaches aN n.1.1 := hFN _ (mem_cycleNodes_unrootedCycleArcs hN hn)
       rw [hy] at h₂ ⊢
@@ -522,7 +522,7 @@ theorem inducedNode_blockNode {C' : Set _} (hC' : IsCycle (inducedLSAUnrooted N 
     have hcNs : N.graph.source c.1.1 = q.1.1.1.1 := congrArg (fun z => z.1.1) hcs
     have hcNx : N.graph.Reaches (N.graph.target c.1.1) (N.leaf x) :=
       (belowNetwork_reaches_iff.1 (chainReach_chainEnd hL (L.graph.target c.1)).reaches).trans
-        (belowNetwork_reaches_iff.1 (reaches_val_of_suppress_reaches hL hcx))
+        (belowNetwork_reaches_iff.1 (reaches_of_suppress_reaches hL hcx))
     obtain ⟨-, u, huq⟩ := exists_unrooted_node_of_induced hN hX hY hqr
     obtain ⟨u', hu', hu'q⟩ := exists_mem_cycleNodes_of_unrootedCycleArcs hN
       (hnodes _ (mem_cycleNodes_unrootedCycleArcs hQb hq))

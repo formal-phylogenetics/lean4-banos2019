@@ -182,32 +182,6 @@ section LevelOne
 
 variable {V E : Type*} {G : DirectedMultigraph V E}
 
-/-- **An edge of a cycle has a walk between its ends avoiding it**, along the other edges of the
-cycle. -/
-theorem IsCycle.walks_compl_singleton {C : Set E} (hC : IsCycle G C) {f : E} (hf : f ∈ C) :
-    G.Walks {f}ᶜ (G.source f) (G.target f) := by
-  obtain ⟨k, v, e, hc, rfl⟩ := hC
-  obtain ⟨i, rfl⟩ := hf
-  obtain ⟨n, rfl⟩ : ∃ n, k = n + 1 := ⟨k - 1, by have := hc.pos; omega⟩
-  have hP := (hc.rotate (i + 1)).isPathOf
-  have hlast : Fin.last n + (i + 1) = i := by
-    rw [add_comm i 1, ← add_assoc, Fin.last_add_one, zero_add]
-  have hP' : IsPathOf G {e i}ᶜ n (fun j => v (j + (i + 1))) fun l => e (l.castSucc + (i + 1)) := by
-    refine ⟨fun l h => ?_, hP.link, hP.injective⟩
-    have h' : l.castSucc + (i + 1) = Fin.last n + (i + 1) := by
-      rw [hlast]
-      exact hc.injective_edge h
-    exact (Fin.castSucc_lt_last l).ne (add_right_cancel h')
-  have hW := hP'.walks
-  simp only [zero_add, hlast] at hW
-  have hj := hc.joins i
-  rw [finRotate_apply] at hj
-  rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
-  · rw [h₁, h₂]
-    exact G.walks_symm hW
-  · rw [h₁, h₂]
-    exact hW
-
 /-- An edge that is the only edge crossing a cut is on no cycle. -/
 theorem IsCycle.notMem_of_crosses {C : Set E} (hC : IsCycle G C) {f : E} {S : Set V}
     (hS : ∀ g, g ≠ f → ¬ G.Crosses g S) (hf : G.Crosses f S) : f ∉ C := fun h => by
@@ -1065,8 +1039,7 @@ theorem cex_cf {θ : MetricData (Fin 14)} (hθ : IsMetricNetwork cexNet θ) :
   have hQ : IsLSAQuartet (quartetLSA cexNet cexNet_isBinaryRootedNetwork.1 _ cexS_card)
       (quartetLSAMetric cexNet cexNet_isBinaryRootedNetwork _ cexS_card θ) :=
     { binary := quartetLSA_isBinaryRootedNetwork cexNet_isBinaryRootedNetwork cexS_card
-      levelOne := isLevelOne_quartetLSA_graph cexNet_isBinaryRootedNetwork.1 cexNet_isLevelOne
-        cexS_card
+      levelOne := quartetLSA_isLevelOne cexNet_isBinaryRootedNetwork cexNet_isLevelOne cexS_card
       isLSA := quartetLSA_isLSANetwork cexNet_isBinaryRootedNetwork cexS_card
       card_taxa := by simp [cexS_card]
       metric := quartetLSA_isMetricNetwork cexNet_isBinaryRootedNetwork hθ cexS_card }

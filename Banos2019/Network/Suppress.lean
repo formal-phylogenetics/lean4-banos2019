@@ -66,6 +66,12 @@ theorem IsCycle.walks_sdiff_singleton {C : Set E'} (hC : IsCycle G C) {g : E'} (
       (hP'.walks_of_le (Fin.zero_le _))
   exact (G.walks_symm (hnode a ha)).trans (hnode b hb)
 
+/-- **An edge of a cycle has its ends joined without it**, along the other edges of the cycle. -/
+theorem IsCycle.walks_compl_singleton {C : Set E'} (hC : IsCycle G C) {g : E'} (hg : g ∈ C) :
+    G.Walks {g}ᶜ (G.source g) (G.target g) :=
+  walks_mono (fun f (hf : f ∈ C \ {g}) => hf.2)
+    (hC.walks_sdiff_singleton hg (source_mem_cycleNodes hg) (target_mem_cycleNodes hg))
+
 /-- **A subgraph of a level-1 graph is level-1**: its cycles are cycles of the graph. -/
 theorem IsLevelOne.of_injective {V'' E'' : Type*} {G' : DirectedMultigraph V'' E''}
     (h1 : IsLevelOne G) (φ : V'' → V') (ψ : E'' → E') (hφ : Function.Injective φ)

@@ -25,9 +25,8 @@ The proofs pass through the cycles of `N`. `Q⊕_s` is the part of `N` below `LS
 (`quartetBelow`) with its vertices of indegree one and outdegree one suppressed, and `Q⁻_s` is
 `(Q⊕_s)⁻`.
 
-* `isCycle_suppressChainArcs`, `isLevelOne_suppress`: the chains of the arcs of a cycle of a
-  suppressed network form a cycle of the network, and a suppressed level-1 network is level-1; so
-  `Q⊕_s` is level-1 (`isLevelOne_quartetLSA_graph`).
+* `isCycle_quartetChainArcs`: the chains of the arcs of a cycle of `Q⊕_s` form a cycle of `N`, as
+  in every suppressed network (`isCycle_cycleChainArcs`).
 * `unrootedCycleArcs`, `isCycle_unrootedCycleArcs`: the cycle of `M` of a cycle of `M⁻`, through
   `LSA(X)` when it has the edge merged there.
 * `mem_nodeBlock_of_reaches_offCycle`, `exists_reaches_offCycle_of_mem_nodeBlock`: the block of a
@@ -280,19 +279,6 @@ section Suppress
 
 variable {V' E' X' : Type*} {M : RootedNetwork V' E' X'}
 
-/-- The arcs of `M` on the chains of a set `D` of arcs of the suppressed network `M.suppress`. -/
-def suppressChainArcs (M : RootedNetwork V' E' X')
-    (D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}) : Set E' :=
-  {g | ∃ f ∈ D, M.IsOnChain f.1 g}
-
-/-- An arc of the suppressed network is on the chains of `D` exactly when it is in `D`. -/
-theorem mem_suppressChainArcs_iff (D : Set {e // ¬ M.IsChainVertex (M.graph.source e)})
-    (f : {e // ¬ M.IsChainVertex (M.graph.source e)}) : f.1 ∈ suppressChainArcs M D ↔ f ∈ D := by
-  constructor
-  · rintro ⟨f', hf', h⟩
-    rwa [Subtype.ext (IsOnChain.unique (Or.inl rfl) h f.2 f'.2)]
-  · exact fun hf => ⟨f, hf, Or.inl rfl⟩
-
 /-- **The chain of an arc of the suppressed network**: from the target of its first arc to any of
 its vertices, along arcs of the chain, every step leaving a chain vertex. -/
 theorem reflTransGen_chain_of_chainReach (f : {e // ¬ M.IsChainVertex (M.graph.source e)})
@@ -318,16 +304,6 @@ theorem reflTransGen_chain_targets (f : {e // ¬ M.IsChainVertex (M.graph.source
     obtain ⟨ha, g, hgs, hgt⟩ := hab
     exact (ih (hP a ha)).tail ⟨g, Or.inr ⟨by rw [hgs]; exact ha, by rw [hgs]; exact hfa⟩, hgs,
       hgt, hPz⟩
-
-/-- A path of the suppressed network gives a path of the network. -/
-theorem reaches_val_of_suppress_reaches (hM : M.IsPhylogenetic) {a b : {v // ¬ M.IsChainVertex v}}
-    (h : (M.suppress hM).graph.Reaches a b) : M.graph.Reaches a.1 b.1 := by
-  induction h with
-  | refl => exact .refl
-  | @tail b c _ hbc ih =>
-    obtain ⟨f, hfs, hft⟩ := hbc
-    subst hfs hft
-    exact ih.trans (Relation.ReflTransGen.head ⟨f.1, rfl, rfl⟩ (chainReach_chainEnd hM _).reaches)
 
 /-- The end of a chain is the target of its last arc. -/
 theorem chainEnd_eq_of_isOnChain (hM : M.IsPhylogenetic) {f g : E'} (h : M.IsOnChain f g)
@@ -378,35 +354,13 @@ theorem suppress_walks_chainEnd (hM : M.IsPhylogenetic) {F : Set E'} {a b : V'}
     · subst h₁ h₂
       exact ih.trans ((M.suppress hM).graph.walks_symm key)
 
-/-- **A walk of the suppressed network gives a walk of the network**, along the chains of its
-arcs. -/
-theorem walks_of_suppress_walks (hM : M.IsPhylogenetic)
-    {F : Set {e // ¬ M.IsChainVertex (M.graph.source e)}} {a b : {v // ¬ M.IsChainVertex v}}
-    (h : (M.suppress hM).graph.Walks F a b) : M.graph.Walks (suppressChainArcs M F) a.1 b.1 := by
-  induction h with
-  | refl => exact .refl
-  | @tail b c _ hbc ih =>
-    obtain ⟨f, hf, hj⟩ := hbc
-    have key : M.graph.Walks (suppressChainArcs M F) (M.graph.source f.1)
-        (chainEnd hM (M.graph.target f.1)) := by
-      refine Relation.ReflTransGen.head ⟨f.1, ⟨f, hf, Or.inl rfl⟩, Or.inl ⟨rfl, rfl⟩⟩ ?_
-      refine Relation.ReflTransGen.mono ?_ _ _
-        (reflTransGen_chain_of_chainReach f (chainReach_chainEnd hM _))
-      rintro x y ⟨g, hg, -, hgs, hgt⟩
-      exact ⟨g, ⟨f, hf, hg⟩, Or.inl ⟨hgs, hgt⟩⟩
-    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
-    · subst h₁ h₂
-      exact ih.trans key
-    · subst h₁ h₂
-      exact ih.trans (M.graph.walks_symm key)
-
 /-- **A cycle of the suppressed network contains, on its chains, a cycle of the network** through
 any of its arcs. -/
-theorem exists_isCycle_subset_suppressChainArcs (hM : M.IsPhylogenetic)
+theorem exists_isCycle_subset_cycleChainArcs (hM : M.IsPhylogenetic)
     {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}} (hD : IsCycle (M.suppress hM).graph D)
     {f₀ : {e // ¬ M.IsChainVertex (M.graph.source e)}} (hf₀ : f₀ ∈ D) :
-    ∃ C, IsCycle M.graph C ∧ f₀.1 ∈ C ∧ C ⊆ suppressChainArcs M D := by
-  have h₁ : M.graph.Walks (suppressChainArcs M D \ {f₀.1}) (M.graph.target f₀.1)
+    ∃ C, IsCycle M.graph C ∧ f₀.1 ∈ C ∧ C ⊆ cycleChainArcs M D := by
+  have h₁ : M.graph.Walks (cycleChainArcs M D \ {f₀.1}) (M.graph.target f₀.1)
       (chainEnd hM (M.graph.target f₀.1)) := by
     refine Relation.ReflTransGen.mono ?_ _ _
       (reflTransGen_chain_of_chainReach f₀ (chainReach_chainEnd hM _))
@@ -415,8 +369,8 @@ theorem exists_isCycle_subset_suppressChainArcs (hM : M.IsPhylogenetic)
     rw [Set.mem_singleton_iff] at h
     subst h
     exact f₀.2 (hgs ▸ hx)
-  have h₂ := walks_of_suppress_walks hM (hD.walks_diff_singleton hf₀)
-  have hW : M.graph.Walks (suppressChainArcs M D \ {f₀.1}) (M.graph.target f₀.1)
+  have h₂ := walks_cycleChainArcs_of_walks hM (hD.walks_diff_singleton hf₀)
+  have hW : M.graph.Walks (cycleChainArcs M D \ {f₀.1}) (M.graph.target f₀.1)
       (M.graph.source f₀.1) := by
     refine h₁.trans (walks_mono ?_ h₂)
     rintro g ⟨f, ⟨hf, hff₀⟩, hg⟩
@@ -425,7 +379,7 @@ theorem exists_isCycle_subset_suppressChainArcs (hM : M.IsPhylogenetic)
     subst h
     exact Subtype.ext (IsOnChain.unique hg (Or.inl rfl) f.2 f₀.2)
   obtain ⟨C, hC, hf₀C, hsub⟩ := exists_isCycle_of_walks (e := f₀.1)
-    (F := suppressChainArcs M D \ {f₀.1}) (fun h => h.2 rfl) hW
+    (F := cycleChainArcs M D \ {f₀.1}) (fun h => h.2 rfl) hW
   refine ⟨C, hC, hf₀C, fun g hg => ?_⟩
   rcases hsub hg with rfl | h
   · exact ⟨f₀, hf₀, Or.inl rfl⟩
@@ -481,55 +435,6 @@ theorem isOnChain_mem_of_mem_isCycle (hM : M.IsPhylogenetic) {C : Set E'}
         exact ⟨e, step ha hg' hg't hes, het⟩
     obtain ⟨g', hg', hg't⟩ := hin _ hr
     exact step hgc hg' hg't rfl
-
-/-- **The chains of a cycle of the suppressed network form a cycle of the network.** -/
-theorem isCycle_suppressChainArcs (hM : M.IsPhylogenetic)
-    {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}} (hD : IsCycle (M.suppress hM).graph D) :
-    IsCycle M.graph (suppressChainArcs M D) := by
-  obtain ⟨k, v, e, hcyc, hrange⟩ := id hD
-  have hf₀ : e ⟨0, hcyc.pos⟩ ∈ D := hrange ▸ ⟨_, rfl⟩
-  obtain ⟨C, hC, hf₀C, hCsub⟩ := exists_isCycle_subset_suppressChainArcs hM hD hf₀
-  obtain ⟨D₂, hD₂, -, hD₂C⟩ := exists_isCycle_suppress_of_isCycle hM hC hf₀C (e ⟨0, hcyc.pos⟩).2
-  have hD₂D : D₂ ⊆ D := fun f hf => (mem_suppressChainArcs_iff D f).1 (hCsub (hD₂C f hf))
-  have hDD₂ := hD.eq_of_subset hD₂ hD₂D
-  have hsub : suppressChainArcs M D ⊆ C := by
-    rintro g ⟨f, hf, hg⟩
-    exact isOnChain_mem_of_mem_isCycle hM hC (hD₂C f (by rw [hDD₂]; exact hf)) hg
-  rwa [Set.Subset.antisymm hsub hCsub]
-
-/-- **The suppressed network of a level-1 network is level-1**: two cycles sharing an arc have
-chains forming cycles of the network that share that arc. -/
-theorem isLevelOne_suppress (hM : M.IsPhylogenetic) (h1 : IsLevelOne M.graph) :
-    IsLevelOne (M.suppress hM).graph := by
-  rintro D₁ D₂ hD₁ hD₂ ⟨f, hf₁, hf₂⟩
-  have heq := h1 _ _ (isCycle_suppressChainArcs hM hD₁) (isCycle_suppressChainArcs hM hD₂)
-    ⟨f.1, (mem_suppressChainArcs_iff D₁ f).2 hf₁, (mem_suppressChainArcs_iff D₂ f).2 hf₂⟩
-  ext g
-  rw [← mem_suppressChainArcs_iff D₁ g, ← mem_suppressChainArcs_iff D₂ g, heq]
-
-/-- The nodes of a cycle of the suppressed network are nodes of the cycle of its chains. -/
-theorem mem_cycleNodes_suppressChainArcs (hM : M.IsPhylogenetic)
-    {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}} {z : {v // ¬ M.IsChainVertex v}}
-    (hz : z ∈ cycleNodes (M.suppress hM).graph D) :
-    z.1 ∈ cycleNodes M.graph (suppressChainArcs M D) := by
-  obtain ⟨f, hf, h | h⟩ := hz
-  · exact ⟨f.1, ⟨f, hf, Or.inl rfl⟩, Or.inl (congrArg Subtype.val h)⟩
-  · obtain ⟨g, hg, hgt⟩ := exists_isOnChain_target_eq_chainEnd hM f.1
-    exact ⟨g, ⟨f, hf, hg⟩, Or.inr (hgt.trans (congrArg Subtype.val h))⟩
-
-/-- The nodes of the cycle of the chains of `D` that are not chain vertices are nodes of `D`. -/
-theorem mem_cycleNodes_suppress_of_mem (hM : M.IsPhylogenetic)
-    {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}} {z : {v // ¬ M.IsChainVertex v}}
-    (hz : z.1 ∈ cycleNodes M.graph (suppressChainArcs M D)) :
-    z ∈ cycleNodes (M.suppress hM).graph D := by
-  obtain ⟨g, ⟨f, hf, hg⟩, h | h⟩ := hz
-  · rcases hg with rfl | ⟨hc, -⟩
-    · exact ⟨f, hf, Or.inl (Subtype.ext h)⟩
-    · exact absurd (h ▸ hc) z.2
-  · refine ⟨f, hf, Or.inr (Subtype.ext ?_)⟩
-    change chainEnd hM (M.graph.target f.1) = z.1
-    rw [← h]
-    exact chainEnd_eq_of_isOnChain hM hg (h ▸ z.2)
 
 end Suppress
 
@@ -1195,17 +1100,11 @@ theorem quartetBelow_isPhylogenetic (hN : N.IsPhylogenetic) {s : Finset X} (hs :
     (quartetBelow N hN s hs).IsPhylogenetic :=
   lsaNetwork_isPhylogenetic hN (Finset.one_lt_card_iff_nontrivial.mp (by omega))
 
-/-- **`Q⊕_s` of a level-1 network is level-1**: its cycles are made of chains forming cycles of
-`N`. -/
-theorem isLevelOne_quartetLSA_graph (hN : N.IsPhylogenetic) (h1 : IsLevelOne N.graph)
-    {s : Finset X} (hs : #s = 4) : IsLevelOne (quartetLSA N hN s hs).graph :=
-  isLevelOne_suppress (quartetBelow_isPhylogenetic hN hs) (isLevelOne_belowNetwork h1)
-
 /-- **The chains of a cycle of `Q⊕_s` form a cycle of `N`.** -/
 theorem isCycle_quartetChainArcs (hN : N.IsPhylogenetic) {s : Finset X} (hs : #s = 4)
     {D : Set _} (hD : IsCycle (quartetLSA N hN s hs).graph D) :
-    IsCycle N.graph (Subtype.val '' suppressChainArcs (quartetBelow N hN s hs) D) :=
-  isCycle_image_val_belowNetwork (isCycle_suppressChainArcs (quartetBelow_isPhylogenetic hN hs) hD)
+    IsCycle N.graph (Subtype.val '' cycleChainArcs (quartetBelow N hN s hs) D) :=
+  isCycle_image_val_belowNetwork (isCycle_cycleChainArcs (quartetBelow_isPhylogenetic hN hs) hD)
 
 /-- The LSA of the taxa of `Q⊕_s` is its root. -/
 theorem lsa_univ_quartetLSA (hN : IsBinaryRootedNetwork N) {s : Finset X} (hs : #s = 4)
@@ -1269,7 +1168,7 @@ theorem unrootedCycleArcs_eq_image_quartet {C' : Set _}
     (hw : IsHybridNodeOf (quartetUnrooted N hN s hs) C' w) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {v : SemidirectedVertex hN.1 hX}
     (hv : IsHybridNodeOf (unrooted N hN hX) C v) (hwv : quartetNode hN hs w = v.1.1) :
-    unrootedCycleArcs hN C = Subtype.val '' suppressChainArcs (quartetBelow N hN.1 s hs)
+    unrootedCycleArcs hN C = Subtype.val '' cycleChainArcs (quartetBelow N hN.1 s hs)
       (unrootedCycleArcs (quartetLSA_isBinaryRootedNetwork hN hs) C') := by
   have := hN.1.finite_arcs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
@@ -1277,7 +1176,7 @@ theorem unrootedCycleArcs_eq_image_quartet {C' : Set _}
     (isCycle_quartetChainArcs hN.1 hs (isCycle_unrootedCycleArcs hQb hC'))
     ⟨v.1.1, mem_cycleNodes_unrootedCycleArcs hN hv.mem_cycleNodes, ?_⟩
   rw [← hwv]
-  exact mem_cycleNodes_image_val_iff.2 ⟨_, mem_cycleNodes_suppressChainArcs
+  exact mem_cycleNodes_image_val_iff.2 ⟨_, val_mem_cycleNodes_cycleChainArcs
     (quartetBelow_isPhylogenetic hN.1 hs) (mem_cycleNodes_unrootedCycleArcs hQb hw.mem_cycleNodes),
     rfl⟩
 
@@ -1298,7 +1197,7 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
   have := hN.1.finite_arcs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   have := hQb.1.finite_arcs
-  have h1Q := isLevelOne_quartetLSA_graph hN.1 h1 hs
+  have h1Q := quartetLSA_isLevelOne hN h1 hs
   have hL := quartetBelow_isPhylogenetic hN.1 hs
   set Q := quartetLSA N hN.1 s hs with hQ_def
   set L := quartetBelow N hN.1 s hs with hL_def
@@ -1306,20 +1205,20 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
   have hD : IsCycle Q.graph D := isCycle_unrootedCycleArcs hQb hC'
   set Ĉ := unrootedCycleArcs hN C with hĈ_def
   have hĈ : IsCycle N.graph Ĉ := isCycle_unrootedCycleArcs hN hC
-  have hcorr : Ĉ = Subtype.val '' suppressChainArcs L D :=
+  have hcorr : Ĉ = Subtype.val '' cycleChainArcs L D :=
     unrootedCycleArcs_eq_image_quartet hN h1 hX hs hC' hw hC hv hwv
-  have hLD : IsCycle L.graph (suppressChainArcs L D) := isCycle_suppressChainArcs hL hD
+  have hLD : IsCycle L.graph (cycleChainArcs L D) := isCycle_cycleChainArcs hL hD
   -- the nodes of `D` are nodes of `Ĉ`
   have hnodes : ∀ z ∈ cycleNodes Q.graph D, z.1.1 ∈ cycleNodes N.graph Ĉ := fun z hz => by
     rw [hcorr]
-    exact mem_cycleNodes_image_val_iff.2 ⟨_, mem_cycleNodes_suppressChainArcs hL hz, rfl⟩
+    exact mem_cycleNodes_image_val_iff.2 ⟨_, val_mem_cycleNodes_cycleChainArcs hL hz, rfl⟩
   -- the arcs of `Q⊕_s` off `D` are off `Ĉ`
   have hoff : ∀ c, c ∉ D → c.1.1 ∉ Ĉ := by
     intro c hc h
     rw [hcorr] at h
     obtain ⟨g, hg, hgc⟩ := h
     obtain rfl : g = c.1 := Subtype.ext hgc
-    exact hc ((mem_suppressChainArcs_iff D c).1 hg)
+    exact hc ((val_mem_cycleChainArcs_iff (C := D) (g := c)).1 hg)
   -- the tops of `D` and `Ĉ`
   obtain ⟨aQ, haQ, -, hGQ, hEQ, hrQ⟩ := h1Q.exists_top hQb.1 hD
   obtain ⟨aN, haN, hFN, -, hEN, hrN⟩ := h1.exists_top hN.1 hĈ
@@ -1353,7 +1252,7 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
         (s : Set X) := ⟨by rw [hcs, ← hyLn]; exact yL.2.1, ⟨x, hx, hcx⟩⟩
     set cL : N.belowArcs _ (s : Set X) := ⟨c, hcB⟩ with hcL_def
     have hcLs : L.graph.source cL = yL := Subtype.ext (hcs.trans hyLn.symm)
-    have hcL : cL ∉ suppressChainArcs L D := fun h =>
+    have hcL : cL ∉ cycleChainArcs L D := fun h =>
       hc (show c ∈ Ĉ by rw [hcorr]; exact ⟨cL, h, rfl⟩)
     -- the vertex `yL` is not a chain vertex: it has an arc of the cycle leaving it, and `c`
     have hyc : ¬ L.IsChainVertex yL := by
@@ -1363,16 +1262,16 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
       obtain ⟨i, hi⟩ := (L.graph.indegree_eq_one_iff yL).mp hyc.1
       obtain ⟨o, ho⟩ := (L.graph.outdegree_eq_one_iff yL).mp hyc.2
       have hco := (ho cL).mp hcLs
-      have key : ∀ e ∈ suppressChainArcs L D, (L.graph.source e = yL ∨ L.graph.target e = yL) →
+      have key : ∀ e ∈ cycleChainArcs L D, (L.graph.source e = yL ∨ L.graph.target e = yL) →
           L.graph.target e = yL := by
         rintro e he (h | h)
         · exact absurd (((ho e).mp h).trans hco.symm ▸ he) hcL
         · exact h
       exact h12 (((hi f₁).mp (key f₁ hf₁ hu₁)).trans ((hi f₂).mp (key f₂ hf₂ hu₂)).symm)
     have hyD : (⟨yL, hyc⟩ : {v // ¬ L.IsChainVertex v}) ∈ cycleNodes Q.graph D :=
-      mem_cycleNodes_suppress_of_mem hL hyL
+      mem_cycleNodes_suppress_of_val hL hyL
     have hcQ : (⟨cL, by rw [hcLs]; exact hyc⟩ : {e // ¬ L.IsChainVertex (L.graph.source e)}) ∉ D :=
-      fun h => hcL ((mem_suppressChainArcs_iff D _).2 h)
+      fun h => hcL ((val_mem_cycleChainArcs_iff (C := D) (g := _)).2 h)
     have hcQx : Q.graph.Reaches (Q.graph.target ⟨cL, by rw [hcLs]; exact hyc⟩)
         (Q.leaf ⟨x, hx⟩) := by
       have h₁ : L.graph.Reaches (L.graph.target cL) (L.leaf ⟨x, hx⟩) :=
@@ -1388,7 +1287,7 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
         hyLn.symm.trans (congrArg (fun z => z.1.1) h)
       have haNĈ := haN
       rw [hcorr] at haNĈ
-      obtain ⟨aL, -, haL⟩ : ∃ z ∈ cycleNodes L.graph (suppressChainArcs L D), z.1 = aN :=
+      obtain ⟨aL, -, haL⟩ : ∃ z ∈ cycleNodes L.graph (cycleChainArcs L D), z.1 = aN :=
         mem_cycleNodes_image_val_iff.1 haNĈ
       have h₂ : N.graph.Reaches aN n.1.1 := hFN _ (mem_cycleNodes_unrootedCycleArcs hN hn)
       rw [hy] at h₂ ⊢
@@ -1406,7 +1305,7 @@ theorem quartetNode_blockNode {C' : Set _} (hC' : IsCycle (quartetUnrooted N hN 
     have hcNs : N.graph.source c.1.1 = q.1.1.1.1 := congrArg (fun z => z.1.1) hcs
     have hcNx : N.graph.Reaches (N.graph.target c.1.1) (N.leaf x) :=
       (belowNetwork_reaches_iff.1 (chainReach_chainEnd hL (L.graph.target c.1)).reaches).trans
-        (belowNetwork_reaches_iff.1 (reaches_val_of_suppress_reaches hL hcx))
+        (belowNetwork_reaches_iff.1 (reaches_of_suppress_reaches hL hcx))
     obtain ⟨-, u, huq⟩ := exists_unrooted_node_of_quartet hN hX hs hqr
     obtain ⟨u', hu', hu'q⟩ := exists_mem_cycleNodes_of_unrootedCycleArcs hN
       (hnodes _ (mem_cycleNodes_unrootedCycleArcs hQb hq))
@@ -1477,7 +1376,7 @@ theorem reflTransGen_unrooted_of_joins_quartet {C' : Set _}
   set L := quartetBelow N hN.1 s hs with hL_def
   set D := unrootedCycleArcs hQb C' with hD_def
   set Ĉ := unrootedCycleArcs hN C with hĈ_def
-  have hcorr : Ĉ = Subtype.val '' suppressChainArcs L D :=
+  have hcorr : Ĉ = Subtype.val '' cycleChainArcs L D :=
     unrootedCycleArcs_eq_image_quartet hN h1 hX hs hC' hw hC hv hwv
   -- the vertices of `N` that are not nodes of `F`
   let P : V → Prop := fun z => ∀ n ∈ F, n.1.1 ≠ z
@@ -1645,7 +1544,7 @@ theorem determines_iff_separatesQuartet (hN : IsBinaryRootedNetwork N) (h1 : IsL
   have := hN.1.finite_arcs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   have := hQb.1.finite_arcs
-  have h1Q := isLevelOne_quartetLSA_graph hN.1 h1 hs
+  have h1Q := quartetLSA_isLevelOne hN h1 hs
   have hXs : Nontrivial (s : Set X) := (Finset.one_lt_card_iff_nontrivial.mp (by omega)).coe_sort
   have hcardQ : Nat.card (s : Set X) = 4 := by rw [Nat.card_coe_set_eq, Set.ncard_coe_finset, hs]
   constructor
@@ -1746,7 +1645,7 @@ theorem adjacentBlocks_quartetUnrooted_iff [DecidableEq X] (hN : IsBinaryRootedN
   have := hN.1.finite_arcs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   have := hQb.1.finite_arcs
-  have h1Q := isLevelOne_quartetLSA_graph hN.1 h1 hs
+  have h1Q := quartetLSA_isLevelOne hN h1 hs
   have hXs : Nontrivial (s : Set X) := (Finset.one_lt_card_iff_nontrivial.mp (by omega)).coe_sort
   -- the blocks of distinct taxa of `s` are distinct, in `N⁻` and in `Q⁻_s`
   have hβN : ∀ {x y : X}, x ∈ s → y ∈ s → x ≠ y →
@@ -1871,7 +1770,7 @@ theorem exists_cycle_of_hasThreeTwoCycle (hN : IsBinaryRootedNetwork N) (h1 : Is
   have := hN.1.finite_arcs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   have := hQb.1.finite_arcs
-  have h1Q := isLevelOne_quartetLSA_graph hN.1 h1 hs
+  have h1Q := quartetLSA_isLevelOne hN h1 hs
   have hXs : Nontrivial (s : Set X) := (Finset.one_lt_card_iff_nontrivial.mp (by omega)).coe_sort
   have hcardQ : Nat.card (s : Set X) = 4 := by rw [Nat.card_coe_set_eq, Set.ncard_coe_finset, hs]
   obtain ⟨D, y, hD, hyD, hy2, hcard, hk⟩ := h32

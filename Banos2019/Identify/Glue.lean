@@ -3225,7 +3225,7 @@ theorem isUnrootedLevelOne_inducedUnrooted {Z : Set X} (hZ : Z.Nontrivial) :
     IsUnrootedLevelOne (inducedUnrooted (unrooted N hN hX) Z) := by
   obtain ⟨ι⟩ := nonempty_sdIso_inducedUnrooted_unrooted_inducedLSA hN hX hZ
   have h1M : IsLevelOne (inducedLSA N hN.1 Z hZ).graph :=
-    isLevelOne_suppress (lsaNetwork_isPhylogenetic hN.1 hZ) (isLevelOne_belowNetwork h1)
+    suppress_isLevelOne (lsaNetwork_isPhylogenetic hN.1 hZ) (isLevelOne_belowNetwork h1)
   exact (isUnrootedLevelOne_unrooted (inducedLSA_isBinaryRootedNetwork hN hZ) h1M
     hZ.coe_sort).of_sdIso ι.symm
 
