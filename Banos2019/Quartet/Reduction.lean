@@ -3,6 +3,7 @@ module
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
+public import Banos2019.Quartet.Conditioning
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -160,15 +161,46 @@ theorem lemma9 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2) {h₁ 
           cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) q := by
   sorry
 
+/-- A cycle inducing a 4-cycle of `Q⁻` has a single taxon below its hybrid node (Section 5, before
+Lemma 7: "if `C'_v` has size four then `l_v = 1`"): the four cycle nodes of `Q⁻` other than the hybrid
+node each have taxa below them that are not below the others. -/
+theorem le_one_below_of_four (hQ : IsLSAQuartet Q θ) {k : ℕ} (hC : InducesCycleType Q C v 4 k)
+    (x y : X) (hx : Q.graph.Reaches v (Q.leaf x)) (hy : Q.graph.Reaches v (Q.leaf y)) : x = y := by
+  sorry
+
 /-- **Lemma 10** (`lem::formula43:1`): for a cycle inducing a 4-cycle or a `3₁`-cycle,
-`CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`. -/
+`CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`.
+
+The paper's proof: one taxon is below `v`, so exactly one lineage reaches `v` (`P(K = 1) = 1`); it
+takes `h₁` with probability `γ` and `h₂` otherwise, and the process is then that of `Q₁⊕` or `Q₂⊕`.
+This is `cf_eq_mixture`: the weight of a history is affine in `(γ, 1 - γ)` when a single lineage
+passes `v` (`NMSC.nmscCF_withPair`), and the endpoints `(1, 0)` and `(0, 1)` are the networks without
+`h₂` and without `h₁` (`cf_deleteArc`). -/
 theorem lemma10 (hQ : IsLSAQuartet Q θ)
     (hC : (∃ k, InducesCycleType Q C v 4 k) ∨ InducesCycleType Q C v 3 1) {h₁ h₂ : E}
     (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) (q : QuartetTree X) :
     cf Q θ q =
       θ.inheritance h₁ * cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q +
         (1 - θ.inheritance h₁) * cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q := by
-  sorry
+  have h2 : Q.graph.indegree v = 2 := by
+    rcases hC with ⟨k, hC⟩ | hC
+    · exact hC.2.2.1
+    · exact hC.2.2.1
+  -- one taxon below `v`: `P(K = 1) = 1`
+  have hone : ∀ x y, Q.graph.Reaches (Q.graph.target h₁) (Q.leaf x) →
+      Q.graph.Reaches (Q.graph.target h₁) (Q.leaf y) → x = y := by
+    rw [hh₁]
+    rcases hC with ⟨k, hC⟩ | hC
+    · exact le_one_below_of_four hQ hC
+    · intro x y hx hy
+      have h1 : {x | Q.graph.Reaches v (Q.leaf x)}.ncard = 1 := hC.2.2.2.2
+      obtain ⟨z, hz⟩ := Set.ncard_eq_one.1 h1
+      have hxz : x ∈ ({z} : Set X) := hz ▸ hx
+      have hyz : y ∈ ({z} : Set X) := hz ▸ hy
+      exact (Set.mem_singleton_iff.1 hxz).trans (Set.mem_singleton_iff.1 hyz).symm
+  exact cf_eq_mixture hQ.binary.1 hQ.metric.1 hne (hh₁.trans hh₂.symm)
+    (fun f hf => eq_or_eq_of_indegree_eq_two h2 hne hh₁ hh₂ f (hf.trans hh₂))
+    (inheritance_add_eq_one hQ.metric.1 h2 hne hh₁ hh₂) hone q
 
 /-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the
 taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge `c`),

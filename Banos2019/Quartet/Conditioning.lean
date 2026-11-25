@@ -3,6 +3,8 @@ module
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.NMSC.Glue
 public import Phylogenetics.NMSC.InducedAbove
+public import Phylogenetics.NMSC.Symmetry
+public import Phylogenetics.NMSC.Witness
 
 /-!
 # Conditioning on the lineages at a vertex (Baños 2019, Section 5)
@@ -763,4 +765,423 @@ theorem probLineages_eq_sum_arc (hN : N.IsPhylogenetic) {θ : MetricData E} (hθ
 
 end Cut
 
+/-! ### Four taxa -/
+
+section FourTaxa
+
+variable {N : RootedNetwork V E X} {θ : MetricData E} {ρ : ℝ}
+
+omit [Fintype V] [Fintype E] in
+theorem taxa_eq_univ (hX : Fintype.card X = 4) (q : QuartetTree X) : q.taxa = univ :=
+  eq_univ_of_card _ (by rw [q.card_taxa, hX])
+
+omit [Fintype V] [Fintype E] in
+/-- On four taxa, a rooted tree displays the quartet tree `q` when a cherry of `q` is a cluster. -/
+theorem displays_unroot_iff_of_four (hX : Fintype.card X = 4) (q : QuartetTree X)
+    (G : Finset (Finset X)) : Displays (unroot G) q ↔ ∃ B ∈ q.val, B ∈ G := by
+  rw [displays_unroot_iff, taxa_eq_univ hX]
+  refine exists_congr fun B => and_congr_right fun hB => ?_
+  simp only [traceForest, inter_univ, mem_image, mem_filter]
+  constructor
+  · rintro ⟨A, ⟨hA, -⟩, rfl⟩
+    exact hA
+  · intro h
+    exact ⟨B, ⟨h, card_pos.1 (by rw [q.card_of_mem hB]; omega)⟩, rfl⟩
+
+/-- On four taxa, the probability that the gene tree displays `q` is the mass of `q`. -/
+theorem sum_displays_injDist (hX : Fintype.card X = 4) (inj : V → Finset (Finset X))
+    (q : QuartetTree X) :
+    ∑ G, (if Displays (unroot G) q then injDist N θ ρ inj G else 0) = cherryMass N θ ρ inj q := by
+  unfold cherryMass
+  simp only [displays_unroot_iff_of_four hX]
+
+/-- On four taxa, the concordance factor of `q` is the mass of `q` for the lineages of all taxa. -/
+theorem cf_eq_cherryMass (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ) (hX : Fintype.card X = 4)
+    (q : QuartetTree X) : cf N θ q = cherryMass N θ 0 (taxaInj N univ) q := by
+  rw [cf, nmscCF_eq_cherryMass hN hθ ⟨le_rfl, zero_le_one⟩, taxa_eq_univ hX]
+
+/-- **Three lineages in a forest at a vertex, the fourth taxon elsewhere**: a cluster of two lineages
+of the forest decides the quartet tree; without one, the three quartet trees are equally likely, by
+exchangeability of the three lineages. -/
+theorem cherryMass_eq_quartetValue (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ)
+    (hρ : 0 ≤ ρ ∧ ρ ≤ 1) (hX : Fintype.card X = 4) {inj : V → Finset (Finset X)}
+    (hinj : ValidInj inj) {w : V} {d : X} (hlin : lineages (inj w) = univ.erase d)
+    (hother : ∀ u, u ≠ w → ∀ A ∈ inj u, A = {d}) (hd : ∃ u, d ∈ lineages (inj u))
+    (q : QuartetTree X) : cherryMass N θ ρ inj q = quartetValue q (inj w) := by
+  have hqt := taxa_eq_univ hX q
+  unfold quartetValue
+  by_cases h : ∃ C ∈ inj w, #C = 2
+  · rw [ite_eq_left h]
+    have hval : ∀ C ∈ inj w, #C = 2 → cherryMass N θ ρ inj q = if C ∈ q.val then 1 else 0 :=
+      fun C hC hC2 => cherryMass_of_mem hN hθ hρ hinj hC hC2 (by rw [hqt]; exact subset_univ _)
+    by_cases h2 : ∃ C ∈ inj w, C ∈ q.val
+    · obtain ⟨C, hC, hCs⟩ := h2
+      rw [hval C hC (q.card_of_mem hCs), ite_eq_left hCs, ite_eq_left ⟨C, hC, hCs⟩]
+    · obtain ⟨C, hC, hC2⟩ := h
+      rw [hval C hC hC2, ite_eq_right fun h' => h2 ⟨C, hC, h'⟩, ite_eq_right h2]
+  · rw [ite_eq_right h]
+    have hsing := (hinj.good w).eq_singletons h
+    rw [hlin] at hsing
+    refine cherryMass_eq_third hN hθ hρ hinj (Y := univ) (by rw [card_univ, hX]) (fun x => ?_)
+      (mem_univ d) (fun x _ y _ hx hy => ?_) (mem_treesOn.2 hqt)
+    · simp only [mem_univ, iff_true]
+      by_cases hxd : x = d
+      · subst hxd
+        exact hd
+      · exact ⟨w, by rw [hlin]; exact mem_erase.2 ⟨hxd, mem_univ _⟩⟩
+    · funext u
+      unfold relabelInj
+      by_cases huw : u = w
+      · subst huw
+        rw [hsing]
+        exact relabelFamily_swap_singletons (mem_erase.2 ⟨hx, mem_univ _⟩)
+          (mem_erase.2 ⟨hy, mem_univ _⟩)
+      · refine relabelFamily_eq_self fun A hA => ?_
+        rw [hother u huw A hA, map_singleton]
+        simp [Equiv.swap_apply_of_ne_of_ne (Ne.symm hx) (Ne.symm hy)]
+
+omit [Fintype V] [Fintype X] in
+/-- No taxon is at the source of an arc. -/
+theorem leaf_ne_source (hN : N.IsPhylogenetic) (x : X) (e : E) : N.leaf x ≠ N.graph.source e := by
+  intro h
+  have h0 := (hN.leaves (N.leaf x)).2 ⟨x, rfl⟩
+  exact (N.graph.outdegree_eq_zero_iff _).1 h0 e h.symm
+
+/-- **The forest at the top of an arc into a cut vertex below which lie three of the four taxa**
+decides the mass of a quartet tree by `quartetValue`. -/
+theorem cherryMass_liftInj (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ) (hρ : 0 ≤ ρ ∧ ρ ≤ 1)
+    (hX : Fintype.card X = 4) {r : V} (hc : IsCut N r) {c : E} (hcr : N.graph.target c = r)
+    {d : X} (hd : ¬ N.graph.Reaches r (N.leaf d))
+    (hbelow : ∀ x, x ≠ d → N.graph.Reaches r (N.leaf x)) {t : Finset (Finset X)}
+    (ht : arcLaw N r hc θ ρ c (taxaInj N univ) t ≠ 0) (q : QuartetTree X) :
+    cherryMass N θ ρ (liftInj N c (taxaInj N univ) t) q = quartetValue q t := by
+  have hv := validInj_of_arcLaw_ne_zero hN hc hcr (validInj_taxaInj univ) ht
+  obtain ⟨-, hl⟩ := good_of_arcLaw_ne_zero hN hc (validInj_taxaInj univ) ht
+  have hsrc : N.graph.source c ∉ belowSet N c := source_notMem_belowSet hN c
+  have hw : liftInj N c (taxaInj N univ) t (N.graph.source c) = t := by
+    have h0 : taxaInj N univ (N.graph.source c) = ∅ := by
+      refine eq_empty_of_forall_notMem fun A hA => ?_
+      obtain ⟨x, hx, -⟩ := mem_image.1 hA
+      exact leaf_ne_source hN x c (mem_filter.1 hx).2.2
+    simp [liftInj, hsrc, h0]
+  have hbz : ∀ u, u ∈ belowSet N c ↔ N.graph.Reaches r u := fun u => by
+    rw [mem_belowSet, hcr]
+  rw [cherryMass_eq_quartetValue hN hθ hρ hX hv (w := N.graph.source c) (d := d), hw]
+  · rw [hw]
+    ext x
+    rw [mem_erase, hl x]
+    simp only [mem_univ, and_true]
+    constructor
+    · rintro ⟨u, hu, hxu⟩
+      obtain ⟨-, rfl⟩ := mem_lineages_taxaInj.1 hxu
+      exact fun h => hd (h ▸ hu)
+    · intro hxd
+      exact ⟨N.leaf x, hbelow x hxd, mem_lineages_taxaInj.2 ⟨mem_univ _, rfl⟩⟩
+  · intro u hu A hA
+    simp only [liftInj, hu, ite_false, union_empty] at hA
+    split_ifs at hA with hub
+    · exact absurd hA (notMem_empty _)
+    · obtain ⟨x, hx, rfl⟩ := mem_image.1 hA
+      have hxu := (mem_filter.1 hx).2.2
+      by_contra hxd
+      exact hub ((hbz u).2 (hxu ▸ hbelow x fun h => hxd (h ▸ rfl)))
+  · refine ⟨N.leaf d, ?_⟩
+    have hnb : N.leaf d ∉ belowSet N c := fun h => hd ((hbz _).1 h)
+    have hns : N.leaf d ≠ N.graph.source c := leaf_ne_source hN d c
+    simp only [liftInj, hnb, hns, ite_false, union_empty]
+    exact mem_lineages_taxaInj.2 ⟨mem_univ _, rfl⟩
+
+/-- **`P(K = k) · CF(N | K = k)` when three of the four taxa are below the cut vertex**: by the law
+of the forest at the top of `c` and `quartetValue`. -/
+theorem jointCF_eq_sum_quartetValue (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ)
+    (hX : Fintype.card X = 4) {r : V} (hc : IsCut N r) {c : E} (hcr : N.graph.target c = r)
+    (huniq : ∀ g, N.graph.target g = r → g = c) {d : X} (hd : ¬ N.graph.Reaches r (N.leaf d))
+    (hbelow : ∀ x, x ≠ d → N.graph.Reaches r (N.leaf x)) (k : ℕ) (q : QuartetTree X) :
+    jointCF N θ c k q = ∑ t, if #(roots t) = k then
+      arcLaw N r hc θ 0 c (taxaInj N univ) t * quartetValue q t else 0 := by
+  have h1 : θ.inheritance c = 1 := hθ.2.2.1 c (isTreeArc_of_unique hcr huniq)
+  rw [jointCF_eq_sum_arc hN hc hcr huniq h1 k q]
+  refine sum_congr rfl fun t _ => ?_
+  split_ifs
+  · by_cases ht : arcLaw N r hc θ 0 c (taxaInj N univ) t = 0
+    · simp [ht]
+    · rw [sum_displays_injDist hX,
+        cherryMass_liftInj hN hθ ⟨le_rfl, zero_le_one⟩ hX hc hcr hd hbelow ht]
+  · rfl
+
+end FourTaxa
+
+/-! ### Deleting an arc of inheritance zero -/
+
+section Deletion
+
+variable {N : RootedNetwork V E X} {h : E}
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- `Finset.mem_univ`, for an instance given by unification. -/
+theorem mem_univ_of' {α : Type*} (i : Fintype α) (x : α) : x ∈ @Finset.univ α i :=
+  @Finset.mem_univ α i x
+
+/-- The forests of the network without `h`, extended by the empty forest at `h`. -/
+def deleteExt (h : E) (b : {e // e ≠ h} → Finset (Finset X)) : E → Finset (Finset X) :=
+  fun e => if he : e = h then ∅ else b ⟨e, he⟩
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem deleteExt_self (b : {e // e ≠ h} → Finset (Finset X)) : deleteExt h b h = ∅ :=
+  dite_eq_left rfl
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem deleteExt_val (b : {e // e ≠ h} → Finset (Finset X)) (e : {e // e ≠ h}) :
+    deleteExt h b e.1 = b e :=
+  dite_eq_right e.2
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem deleteExt_injective : Function.Injective (deleteExt (X := X) h) := fun b b' hb =>
+  funext fun e => by rw [← deleteExt_val b e, hb, deleteExt_val]
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem eq_deleteExt {b : E → Finset (Finset X)} (hb : b h = ∅) :
+    b = deleteExt h fun e => b e.1 := by
+  funext e
+  by_cases he : e = h
+  · rw [he, hb, deleteExt_self]
+  · exact (deleteExt_val (fun e => b e.1) ⟨e, he⟩).symm
+
+omit [Fintype V] in
+/-- The forest arriving at a vertex is the same without `h`. -/
+theorem arrivingForest_deleteExt (t : {e // e ≠ h} → Finset (Finset X)) (v : V) :
+    arrivingForest N (deleteExt h t) v = arrivingForest (deleteArc N h) t v := by
+  unfold arrivingForest
+  congr 1
+  ext A
+  simp only [mem_biUnion, mem_filter, mem_univ, true_and]
+  constructor
+  · rintro ⟨e, he, hA⟩
+    by_cases heh : e = h
+    · rw [heh, deleteExt_self] at hA
+      exact absurd hA (notMem_empty _)
+    · exact ⟨⟨e, heh⟩, he, by rwa [← deleteExt_val t ⟨e, heh⟩]⟩
+  · rintro ⟨e, he, hA⟩
+    exact ⟨e.1, he, by rwa [deleteExt_val]⟩
+
+omit [Fintype V] in
+/-- At inheritance correlation `0`, the allocation at a vertex is the same without an arc of
+inheritance `0`: no lineage takes it. -/
+theorem allocationFactor_deleteExt {θ : MetricData E} (h0 : θ.inheritance h = 0)
+    {θ' : MetricData {e // e ≠ h}} (hinh : ∀ e, θ'.inheritance e = θ.inheritance e.1)
+    (F : Finset (Finset X)) (v : V) (b : {e // e ≠ h} → Finset (Finset X)) :
+    allocationFactor N θ 0 F v (deleteExt h b) = allocationFactor (deleteArc N h) θ' 0 F v b := by
+  unfold allocationFactor
+  symm
+  let φ : ({A // A ∈ roots F} → {e : {e // e ≠ h} // (deleteArc N h).graph.target e = v}) →
+      ({A // A ∈ roots F} → {e // N.graph.target e = v}) := fun a r => ⟨(a r).1.1, (a r).2⟩
+  have hφ : Function.Injective φ := fun a a' haa => funext fun r => by
+    have h' : (φ a r).1 = (φ a' r).1 := by rw [haa]
+    exact Subtype.ext (Subtype.ext h')
+  refine Finset.sum_of_injOn φ hφ.injOn (fun _ _ => mem_coe.2 (mem_univ _)) (fun a _ ha => ?_)
+    fun a _ => ?_
+  · -- an assignment through `h` has weight zero
+    have hex : ∃ r, (a r).1 = h := by
+      by_contra hne
+      push Not at hne
+      exact ha ⟨fun r => ⟨⟨(a r).1, hne r⟩, (a r).2⟩, mem_coe.2 (mem_univ _), rfl⟩
+    obtain ⟨r, hr⟩ := hex
+    rw [allocationWeight_rho_zero]
+    split_ifs
+    · exact prod_eq_zero (mem_univ r) (by rw [hr, h0])
+    · rfl
+  · simp only [allocationWeight_rho_zero]
+    have hw : ∏ r, θ'.inheritance (a r).1 = ∏ r, θ.inheritance (φ a r).1 :=
+      prod_congr rfl fun r _ => hinh _
+    refine if_congr ?_ hw rfl
+    constructor
+    · intro hb e
+      by_cases heh : e.1 = h
+      · rw [heh, deleteExt_self]
+        refine (eq_empty_of_forall_notMem fun B hB => ?_).symm
+        obtain ⟨-, C, hC, -⟩ := mem_forestBelow.1 hB
+        obtain ⟨r, hr, -⟩ := mem_image.1 hC
+        have := congrArg Subtype.val (mem_filter.1 hr).2
+        exact (a r).1.2 (this.trans heh)
+      · have := hb ⟨⟨e.1, heh⟩, e.2⟩
+        rw [deleteExt_val b ⟨e.1, heh⟩, this]
+        congr 2
+        ext r
+        simp only [mem_filter, mem_univ, true_and]
+        constructor
+        · intro hr
+          exact Subtype.ext (by simp [φ, hr])
+        · intro hr
+          have h' : (φ a r).1 = e.1 := by rw [hr]
+          exact Subtype.ext (Subtype.ext h')
+    · intro hb e
+      have := hb ⟨e.1.1, e.2⟩
+      rw [deleteExt_val] at this
+      rw [this]
+      congr 2
+      ext r
+      simp only [mem_filter, mem_univ, true_and]
+      constructor
+      · intro hr
+        have h' : (φ a r).1 = e.1.1 := by rw [hr]
+        exact Subtype.ext (Subtype.ext h')
+      · intro hr
+        exact Subtype.ext (by simp [φ, hr])
+
+/-- A history of nonzero weight carries nothing on an arc of inheritance `0`, at correlation `0`. -/
+theorem eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero (hN : N.IsPhylogenetic)
+    {θ : MetricData E} (h0 : θ.inheritance h = 0) {bot top : E → Finset (Finset X)}
+    (hw : historyWeight N θ 0 bot top ≠ 0) : bot h = ∅ ∧ top h = ∅ := by
+  unfold historyWeight at hw
+  have hv : N.graph.target h ∈ univ.erase N.root := mem_erase.2 ⟨target_ne_root hN h, mem_univ _⟩
+  have ha := prod_ne_zero_iff.1 (left_ne_zero_of_mul hw) _ hv
+  have hk := prod_ne_zero_iff.1 (right_ne_zero_of_mul hw) h (mem_univ _)
+  have hb : bot h = ∅ := by
+    unfold allocationFactor at ha
+    obtain ⟨a, -, ha'⟩ := exists_ne_zero_of_sum_ne_zero ha
+    have hP := ne_zero_of_ite_ne_zero' ha'
+    have hW := ha'
+    rw [ite_eq_left hP] at hW
+    simp only [allocationWeight_rho_zero] at hW
+    rw [hP ⟨h, rfl⟩]
+    refine eq_empty_of_forall_notMem fun B hB => ?_
+    obtain ⟨-, C, hC, -⟩ := mem_forestBelow.1 hB
+    obtain ⟨r, hr, -⟩ := mem_image.1 hC
+    have har : (a r).1 = h := congrArg Subtype.val (mem_filter.1 hr).2
+    exact prod_ne_zero_iff.1 hW r (mem_univ _) (by rw [har, h0])
+  refine ⟨hb, ?_⟩
+  rw [hb, kingmanTransition_of_card_roots_le_one isForest_empty (by simp)] at hk
+  exact (ne_zero_of_ite_ne_zero' hk)
+
+/-- **Deleting an arc of inheritance `0`** does not change the gene tree distribution, at correlation
+`0`: no lineage takes the arc. -/
+theorem geneTreeDist_deleteArc (hN : N.IsPhylogenetic) {θ : MetricData E} (h0 : θ.inheritance h = 0)
+    {θ' : MetricData {e // e ≠ h}} (hlen : ∀ e, θ'.length e = θ.length e.1)
+    (hinh : ∀ e, θ'.inheritance e = θ.inheritance e.1) (G : Finset (Finset X)) :
+    geneTreeDist (deleteArc N h) θ' 0 G = geneTreeDist N θ 0 G := by
+  have hhw : ∀ b t : {e // e ≠ h} → Finset (Finset X),
+      historyWeight N θ 0 (deleteExt h b) (deleteExt h t) =
+        historyWeight (deleteArc N h) θ' 0 b t := by
+    intro b t
+    unfold historyWeight
+    congr 1
+    · refine prod_congr rfl fun v _ => ?_
+      rw [arrivingForest_deleteExt t v]
+      exact allocationFactor_deleteExt h0 hinh _ v b
+    · symm
+      refine Fintype.prod_of_injective Subtype.val Subtype.val_injective _ _ (fun e he => ?_)
+        fun e => ?_
+      · have heh : e = h := by
+          by_contra hne
+          exact he ⟨⟨e, hne⟩, rfl⟩
+        rw [heh, deleteExt_self, deleteExt_self,
+          kingmanTransition_of_card_roots_le_one isForest_empty (by simp), ite_eq_left rfl]
+      · rw [deleteExt_val, deleteExt_val, hlen]
+  unfold geneTreeDist
+  refine Finset.sum_of_injOn (deleteExt h) deleteExt_injective.injOn
+    (fun _ _ => mem_coe.2 (mem_univ _)) (fun bot _ hbot => ?_) fun b _ => ?_
+  · refine sum_eq_zero fun top _ => ?_
+    by_contra hne
+    have hw := left_ne_zero_of_mul hne
+    exact hbot ⟨_, mem_coe.2 (mem_univ_of' _ _),
+      (eq_deleteExt (eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero hN h0 hw).1).symm⟩
+  · refine Finset.sum_of_injOn (deleteExt h) deleteExt_injective.injOn
+      (fun _ _ => mem_coe.2 (mem_univ _)) (fun top _ htop => ?_) fun t _ => ?_
+    · by_contra hne
+      have hw := left_ne_zero_of_mul hne
+      exact htop ⟨_, mem_coe.2 (mem_univ_of' _ _),
+        (eq_deleteExt (eq_empty_of_historyWeight_ne_zero_of_inheritance_eq_zero hN h0 hw).2).symm⟩
+    · rw [← hhw b t, arrivingForest_deleteExt]
+      rfl
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- The arcs into a vertex of indegree two are its two hybrid arcs. -/
+theorem eq_or_eq_of_indegree_eq_two {v : V} (h2 : N.graph.indegree v = 2) {h₁ h₂ : E}
+    (hne : h₁ ≠ h₂) (hh₁ : N.graph.target h₁ = v) (hh₂ : N.graph.target h₂ = v) (f : E)
+    (hf : N.graph.target f = v) : f = h₁ ∨ f = h₂ := by
+  obtain ⟨x, y, hxy, hs⟩ := Set.ncard_eq_two.1 h2
+  have m : ∀ g, N.graph.target g = v → g = x ∨ g = y := fun g hg => by
+    have : g ∈ {e | N.graph.target e = v} := hg
+    rw [hs] at this
+    simpa using this
+  rcases m h₁ hh₁ with r1 | r1 <;> rcases m h₂ hh₂ with r2 | r2 <;> rcases m f hf with r3 | r3 <;>
+    subst_vars <;> simp_all
+
+omit [Fintype V] [Fintype X] in
+/-- The inheritance probabilities of the two hybrid arcs of a vertex sum to one. -/
+theorem inheritance_add_eq_one {θ : MetricData E} (hθ : N.IsMetric θ) {v : V}
+    (h2 : N.graph.indegree v = 2) {h₁ h₂ : E} (hne : h₁ ≠ h₂) (hh₁ : N.graph.target h₁ = v)
+    (hh₂ : N.graph.target h₂ = v) : θ.inheritance h₁ + θ.inheritance h₂ = 1 := by
+  have h := hθ.2.2.2.2 v (by omega)
+  rw [← sum_filter] at h
+  have hs : univ.filter (fun e => N.graph.target e = v) = {h₁, h₂} := by
+    ext f
+    simp only [mem_filter, mem_univ, true_and, mem_insert, mem_singleton]
+    exact ⟨eq_or_eq_of_indegree_eq_two h2 hne hh₁ hh₂ f, by rintro (rfl | rfl) <;> assumption⟩
+  rw [hs, sum_pair hne] at h
+  exact h
+
+/-- **`Q₁⊕`**: the network without `h₂` has the concordance factors of the network in which `h₁`
+has inheritance `1` and `h₂` inheritance `0`, when `h₁` and `h₂` are the arcs into their target. -/
+theorem cf_deleteArc (hN : N.IsPhylogenetic) (θ : MetricData E) {h₁ h₂ : E}
+    (ht : N.graph.target h₁ = N.graph.target h₂)
+    (hpar : ∀ f, N.graph.target f = N.graph.target h₂ → f = h₁ ∨ f = h₂) (hne : h₁ ≠ h₂)
+    (q : QuartetTree X) :
+    cf (deleteArc N h₂) (deleteArcMetric N h₂ θ) q = nmscCF N (θ.withPair h₁ h₂ 1) 0 q := by
+  unfold cf nmscCF
+  refine sum_congr rfl fun G _ => ?_
+  congr 1
+  refine geneTreeDist_deleteArc hN (withPair_inheritance_right hne 1 |>.trans (sub_self 1))
+    (fun _ => rfl) (fun e => ?_) G
+  simp only [deleteArcMetric, RootedNetwork.MetricData.withPair]
+  by_cases he : N.graph.target e.1 = N.graph.target h₂
+  · rcases hpar e.1 he with h | h
+    · simp [h, ht]
+    · exact absurd h e.2
+  · have h1 : e.1 ≠ h₁ := fun h => he (h ▸ ht)
+    simp [he, h1, e.2]
+
+/-- **The mixture over the hybrid edge of a single lineage** (Lemma 10's argument): if at most one
+taxon is below the hybrid node `v` with hybrid edges `h₁, h₂`, then
+`CF(N) = γ CF(N₁) + (1 - γ) CF(N₂)`, `N₁` and `N₂` the networks without `h₂` and without `h₁`. -/
+theorem cf_eq_mixture (hN : N.IsPhylogenetic) {θ : MetricData E} (hθ : N.IsMetric θ) {h₁ h₂ : E}
+    (hne : h₁ ≠ h₂) (ht : N.graph.target h₁ = N.graph.target h₂)
+    (hpar : ∀ f, N.graph.target f = N.graph.target h₂ → f = h₁ ∨ f = h₂)
+    (hsum : θ.inheritance h₁ + θ.inheritance h₂ = 1)
+    (hone : ∀ x y, N.graph.Reaches (N.graph.target h₁) (N.leaf x) →
+      N.graph.Reaches (N.graph.target h₁) (N.leaf y) → x = y) (q : QuartetTree X) :
+    cf N θ q = θ.inheritance h₁ * cf (deleteArc N h₂) (deleteArcMetric N h₂ θ) q +
+      (1 - θ.inheritance h₁) * cf (deleteArc N h₁) (deleteArcMetric N h₁ θ) q := by
+  have hpar₁ : ∀ f, N.graph.target f = N.graph.target h₁ → f = h₂ ∨ f = h₁ := fun f hf =>
+    (hpar f (hf.trans ht)).symm
+  rw [cf_deleteArc hN θ ht hpar hne, cf_deleteArc hN θ ht.symm hpar₁ hne.symm]
+  have hθ' : θ.withPair h₁ h₂ (θ.inheritance h₁) = θ :=
+    withPair_eq_self rfl fun _ => by linarith
+  have hswap : θ.withPair h₂ h₁ 1 = θ.withPair h₁ h₂ 0 := by
+    simp only [RootedNetwork.MetricData.withPair, RootedNetwork.MetricData.mk.injEq, true_and]
+    funext f
+    by_cases h2 : f = h₂
+    · simp [h2, hne.symm]
+    · by_cases h1 : f = h₁
+      · simp [h1, hne]
+      · simp [h1, h2]
+  rw [hswap]
+  by_cases hx : ∃ a, N.graph.Reaches (N.graph.target h₁) (N.leaf a)
+  · obtain ⟨a, ha⟩ := hx
+    have h := nmscCF_withPair (D := ∅) hN hθ.isNormalized le_rfl (fun _ hf => absurd hf (by simp))
+      hne ht.symm (fun f hf _ => (hpar f (hf.trans ht)).imp id id) q a
+      (fun x _ hxa hr => hxa (hone x a (reachesOff_empty_iff.1 hr) ha)) (θ.inheritance h₁)
+    rw [hθ'] at h
+    exact h
+  · push Not at hx
+    have : Nonempty X := ⟨(card_pos.1 (by rw [q.card_taxa]; omega) : q.taxa.Nonempty).choose⟩
+    have h := nmscCF_withPair (D := ∅) hN hθ.isNormalized le_rfl (fun _ hf => absurd hf (by simp))
+      hne ht.symm (fun f hf _ => (hpar f (hf.trans ht)).imp id id) q (Classical.arbitrary X)
+      (fun x _ _ hr => hx x (reachesOff_empty_iff.1 hr)) (θ.inheritance h₁)
+    rw [hθ'] at h
+    exact h
+
+end Deletion
+
 end Banos2019
+
