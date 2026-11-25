@@ -15,11 +15,14 @@ its leaves; the results below prove both, for `T` the tree of cycles of
   has no cycle.
 * `ArisesFrom w C`: the node `w` of `T` is the class of the nodes of `Ñ` coming from the cycle `C`
   of `N⁻`. `exists_arisesFrom_of_isLeafNode_unrooted`: every leaf of `T` (`IsLeafNode`, a node with
-  at most one edge) arises from a cycle of `N⁻` of size at least four.
+  at most one edge) arises from a cycle of `N⁻` of size at least four; a node of `T` arises from each
+  such cycle (`exists_arisesFrom_unrooted`).
 * `IsFourNetworkBlock`: a `v`-block whose taxa are in one 4-network block.
   `isLeafNode_iff_fourNetworkBlocks_unrooted`: a node of `T` arising from a cycle `C_v` of size at
-  least four is a leaf exactly when all the `v`-blocks but one are 4-network blocks; the proof of
-  Theorem 4 uses the direction `fourNetworkBlocks_of_isLeafNode_unrooted`.
+  least four is a leaf exactly when all the `v`-blocks but one are 4-network blocks. The proof of
+  Theorem 4 uses both directions: a leaf of the tree of cycles of `Ñ₁` gives such a cycle of `N₁⁻`
+  (`fourNetworkBlocks_of_isLeafNode_unrooted`), and the cycle of `N₂⁻` with the same blocks gives a
+  leaf of the tree of cycles of `Ñ₂`.
 * `exists_isLeafNode_treeOfCycles_unrooted`: when `N⁻` has a cycle of size at least four, `T` has
   a leaf.
 
@@ -1502,6 +1505,17 @@ theorem exists_arisesFrom_of_isLeafNode_unrooted
   obtain ⟨C, hC, h4, hwC⟩ :=
     exists_arisesFrom_of_isLeafNode (isUnrootedLevelOne_unrooted hN h1 hX) hw
   exact ⟨C, ⟨hC, h4⟩, hwC⟩
+
+/-- **A node of `T` arises from each cycle of `N⁻` of size at least four**: the class of a node of
+the suppressed core of `Ñ` coming from a node of the cycle (`exists_isCycle_tilde_of_big`). -/
+theorem exists_arisesFrom_unrooted {C : Set _}
+    (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) :
+    ∃ w, ArisesFrom (unrooted N hN hX) w C := by
+  obtain ⟨_, _, _, _, hall, -⟩ :=
+    exists_isCycle_tilde_of_big (isUnrootedLevelOne_unrooted hN h1 hX) hC.1 hC.2
+  obtain ⟨u, hu⟩ := hC.1.cycleNodes_nonempty
+  obtain ⟨-, s, -, hs⟩ := hall u hu
+  exact ⟨_, u, hu, s, hs, rfl⟩
 
 /-- **A leaf of `T` arising from a cycle `C_v` of size at least four has all its `v`-blocks but one
 4-network blocks** (proof of Theorem 4). -/

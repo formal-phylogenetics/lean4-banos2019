@@ -7,10 +7,13 @@ public import Banos2019.Identify.TreeOfCycles
 /-!
 # A cycle of size at least four in the proof of Theorem 4 (Baños 2019, Section 8)
 
+* `exists_not_isFourNetworkBlock_of_ne`: for two cycles of size at least four, the block of the node
+  of the first toward the second is not a 4-network block, and the second has all the taxa outside
+  it in one of its blocks.
 * `exists_leaf_bigCycle`: when `N⁻` has at least two cycles of size at least four, one of them, `C_v`,
-  has a node `u` such that every other such cycle has all the taxa outside the block of `u` in one of
-  its blocks: `C_v` is a leaf of the tree of cycles, all its `v`-blocks but that of `u` being 4-network
-  blocks.
+  is a leaf of the tree of cycles: all its `v`-blocks but that of a node `u` are 4-network blocks, the
+  block of `u` is not, and every other such cycle has all the taxa outside the block of `u` in one of
+  its blocks.
 * `tilde_sdIso_of_singletonBlocks`: two networks each with a cycle of size at least four whose blocks
   are single taxa, with the same adjacent blocks and, for size at least five, the same hybrid block,
   have isomorphic networks `Ñ`.
@@ -1153,41 +1156,26 @@ section Main
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
 
 set_option linter.unusedSectionVars false in
-/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size at
-least four, one of them, `C`, has a node `u` such that every other cycle of size at least four has all
-the taxa outside the block of `u` in one of its blocks.
+/-- **The block of a cycle toward another cycle of size at least four is not a 4-network block**:
+for distinct cycles `C`, `C'` of size at least four of `N⁻`, there is a node `w` of `C` whose block
+is not a 4-network block, such that `C'` has all the taxa outside the block of `w` in one of its
+blocks.
 
-The tree of cycles `T` of `Ñ` has a leaf (`exists_isLeafNode_treeOfCycles_unrooted`), which
-arises from a cycle `C` of size at least four (`exists_arisesFrom_of_isLeafNode_unrooted`) all of
-whose blocks but that of a node `u` are 4-network blocks
-(`fourNetworkBlocks_of_isLeafNode_unrooted`). Another such cycle `C'` has no common node with `C`
-(Lemma 3), so it lies in the component of a node `w` of `C` once the edges of `C` are removed, and
-every taxon outside the block of `w` is in the block of the node of `C'` toward `C`
-(`walks_compl_of_not_walks_compl`). For `w ≠ u`, the block of `w` would contain taxa of the blocks
-of two other nodes of `C'`, and so not be a 4-network block; so `w = u`.
-
-The step follows Definition 13. The paper's claims that `T` is a tree and that a leaf of `T` arises
-from a cycle all of whose blocks but one are 4-network blocks, which it does not prove, are the
-lemmas of `Identify/TreeOfCycles.lean`. -/
-theorem exists_leaf_bigCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) (h2 : 2 ≤ bigCycleCount (unrooted N hN hX)) :
-    ∃ C u, C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4 ∧
-      u ∈ cycleNodes (unrooted N hN hX).graph C ∧
-      ∀ C' ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4, C' ≠ C → ∀ x y,
-        x ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
-        y ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
+`C` and `C'` have no common node (Lemma 3), so `C'` lies in the component of a node `w` of `C` once
+the edges of `C` are removed, and every taxon outside the block of `w` is in the block of the node
+`u'` of `C'` toward `C` (`walks_compl_of_not_walks_compl`). The block of `w` contains the taxa of the
+blocks of the other nodes of `C'`, at least two of them, which `C'` separates. -/
+theorem exists_not_isFourNetworkBlock_of_ne {N : RootedNetwork V E X}
+    (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C C' : Set _}
+    (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)
+    (hC' : C' ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) (hne : C' ≠ C) :
+    ∃ w ∈ cycleNodes (unrooted N hN hX).graph C, ¬ IsFourNetworkBlock (unrooted N hN hX) C w ∧
+      ∀ x y, x ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C w →
+        y ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C w →
         SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y := by
   set G := unrooted N hN hX with hG
   have hconn : G.graph.IsConnected := unrooted_isConnected hN hX
   have h1' : IsLevelOne G.graph := unrooted_isLevelOne hN h1 hX
-  -- a leaf of the tree of cycles, from a cycle `C` all of whose blocks but that of `u` are
-  -- 4-network blocks
-  obtain ⟨C₀, hC₀⟩ : (cyclesOfSizeAtLeast G.graph 4).Nonempty :=
-    Set.nonempty_of_ncard_ne_zero (by unfold bigCycleCount at h2; omega)
-  obtain ⟨t, ht⟩ := exists_isLeafNode_treeOfCycles_unrooted hN h1 hX ⟨C₀, hC₀⟩
-  obtain ⟨C, hC, htC⟩ := exists_arisesFrom_of_isLeafNode_unrooted hN h1 hX ht
-  obtain ⟨u, hu, hblock⟩ := fourNetworkBlocks_of_isLeafNode_unrooted hN h1 hX hC htC ht
-  refine ⟨C, u, hC, hu, fun C' hC' hne x y hx hy => ?_⟩
   -- `C` and `C'` have no common node (Lemma 3), so no common edge
   have hdisj : ∀ z, z ∈ cycleNodes G.graph C → z ∉ cycleNodes G.graph C' := fun z hz hz' =>
     hne ((lemma3_unrooted hN h1 hX hC.1).2.2 C' hC'.1 ⟨z, hz, hz'⟩).symm
@@ -1201,29 +1189,75 @@ theorem exists_leaf_bigCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwo
   have key : ∀ t, t ∉ nodeBlock G.graph G.leaf C w → t ∈ nodeBlock G.graph G.leaf C' u' :=
     fun t ht => walks_compl_of_not_walks_compl G.graph hconn hC.1 hC'.1 hCC' hz₀ hwz hw
       hu'w ht
-  -- `w = u`: otherwise the block of `w`, a 4-network block, would hold taxa of the blocks of two
-  -- nodes `a`, `b` of `C'` other than `u'`
-  have hwu : w = u := by
-    by_contra hwu
-    obtain ⟨a, ha, hau⟩ := hC'.1.exists_mem_cycleNodes_notMem (Set.toFinite {u'})
-      (by rw [Set.ncard_singleton]; have := hC'.2; omega)
-    obtain ⟨b, hb, hbu⟩ := hC'.1.exists_mem_cycleNodes_notMem (Set.toFinite {u', a})
-      (lt_of_le_of_lt ((Set.ncard_insert_le u' {a}).trans (by rw [Set.ncard_singleton]))
-        (by have := hC'.2; omega))
-    simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hau hbu
-    obtain ⟨ta, hta⟩ := nodeBlock_nonempty_unrooted h1 hC'.1 ha
-    obtain ⟨tb, htb⟩ := nodeBlock_nonempty_unrooted h1 hC'.1 hb
-    have hin : ∀ c t, c ∈ cycleNodes G.graph C' → c ≠ u' → t ∈ nodeBlock G.graph G.leaf C' c →
-        t ∈ nodeBlock G.graph G.leaf C w := fun c t hc hcu ht => by
-      by_contra hn
-      exact hcu (h1'.eq_of_walks_compl hC'.1 hc hu' (ht.trans (G.graph.walks_symm (key t hn))))
-    have hab : G.graph.Walks C'ᶜ (G.leaf ta) (G.leaf tb) :=
-      walks_mono (Set.compl_subset_compl.2 (Set.subset_sUnion_of_mem hC'))
-        (hblock w hw hwu ta (hin a ta ha hau hta) tb (hin b tb hb hbu.1 htb))
-    exact hbu.2 (h1'.eq_of_walks_compl hC'.1 hb ha
-      (htb.trans ((G.graph.walks_symm hab).trans (G.graph.walks_symm hta))))
-  subst hwu
-  exact (G.graph.walks_symm (key x hx)).trans (key y hy)
+  refine ⟨w, hw, fun hblock => ?_, fun x y hx hy =>
+    (G.graph.walks_symm (key x hx)).trans (key y hy)⟩
+  -- the block of `w` holds taxa of the blocks of two nodes `a`, `b` of `C'` other than `u'`
+  obtain ⟨a, ha, hau⟩ := hC'.1.exists_mem_cycleNodes_notMem (Set.toFinite {u'})
+    (by rw [Set.ncard_singleton]; have := hC'.2; omega)
+  obtain ⟨b, hb, hbu⟩ := hC'.1.exists_mem_cycleNodes_notMem (Set.toFinite {u', a})
+    (lt_of_le_of_lt ((Set.ncard_insert_le u' {a}).trans (by rw [Set.ncard_singleton]))
+      (by have := hC'.2; omega))
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hau hbu
+  obtain ⟨ta, hta⟩ := nodeBlock_nonempty_unrooted h1 hC'.1 ha
+  obtain ⟨tb, htb⟩ := nodeBlock_nonempty_unrooted h1 hC'.1 hb
+  have hin : ∀ c t, c ∈ cycleNodes G.graph C' → c ≠ u' → t ∈ nodeBlock G.graph G.leaf C' c →
+      t ∈ nodeBlock G.graph G.leaf C w := fun c t hc hcu ht => by
+    by_contra hn
+    exact hcu (h1'.eq_of_walks_compl hC'.1 hc hu' (ht.trans (G.graph.walks_symm (key t hn))))
+  have hab : G.graph.Walks C'ᶜ (G.leaf ta) (G.leaf tb) :=
+    walks_mono (Set.compl_subset_compl.2 (Set.subset_sUnion_of_mem hC'))
+      (hblock ta (hin a ta ha hau hta) tb (hin b tb hb hbu.1 htb))
+  exact hbu.2 (h1'.eq_of_walks_compl hC'.1 hb ha
+    (htb.trans ((G.graph.walks_symm hab).trans (G.graph.walks_symm hta))))
+
+set_option linter.unusedSectionVars false in
+/-- **A leaf of the tree of cycles** (proof of Theorem 4): if `N⁻` has at least two cycles of size at
+least four, one of them, `C`, has a node `u` such that the blocks of the other nodes of `C` are
+4-network blocks and that of `u` is not, and every other cycle of size at least four has all the
+taxa outside the block of `u` in one of its blocks.
+
+The tree of cycles `T` of `Ñ` has a leaf (`exists_isLeafNode_treeOfCycles_unrooted`), which
+arises from a cycle `C` of size at least four (`exists_arisesFrom_of_isLeafNode_unrooted`) all of
+whose blocks but that of a node `u` are 4-network blocks
+(`fourNetworkBlocks_of_isLeafNode_unrooted`). For another such cycle `C'`, the node `w` of `C`
+toward `C'` has a block that is not a 4-network block (`exists_not_isFourNetworkBlock_of_ne`), so
+`w = u`, and `C'` has the taxa outside the block of `u` in one of its blocks.
+
+The step follows Definition 13. The paper's claims that `T` is a tree and that a leaf of `T` arises
+from a cycle all of whose blocks but one are 4-network blocks, which it does not prove, are the
+lemmas of `Identify/TreeOfCycles.lean`. -/
+theorem exists_leaf_bigCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) (h2 : 2 ≤ bigCycleCount (unrooted N hN hX)) :
+    ∃ C u, C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4 ∧
+      u ∈ cycleNodes (unrooted N hN hX).graph C ∧
+      (∀ u' ∈ cycleNodes (unrooted N hN hX).graph C, u' ≠ u →
+        IsFourNetworkBlock (unrooted N hN hX) C u') ∧
+      ¬ IsFourNetworkBlock (unrooted N hN hX) C u ∧
+      ∀ C' ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4, C' ≠ C → ∀ x y,
+        x ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
+        y ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
+        SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y := by
+  -- a leaf of the tree of cycles, from a cycle `C` all of whose blocks but that of `u` are
+  -- 4-network blocks
+  obtain ⟨C₀, hC₀⟩ : (cyclesOfSizeAtLeast (unrooted N hN hX).graph 4).Nonempty :=
+    Set.nonempty_of_ncard_ne_zero (by unfold bigCycleCount at h2; omega)
+  obtain ⟨t, ht⟩ := exists_isLeafNode_treeOfCycles_unrooted hN h1 hX ⟨C₀, hC₀⟩
+  obtain ⟨C, hC, htC⟩ := exists_arisesFrom_of_isLeafNode_unrooted hN h1 hX ht
+  obtain ⟨u, hu, hblock⟩ := fourNetworkBlocks_of_isLeafNode_unrooted hN h1 hX hC htC ht
+  -- the node of `C` toward another cycle of size at least four is `u`
+  have htoward : ∀ C' ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4, C' ≠ C →
+      ¬ IsFourNetworkBlock (unrooted N hN hX) C u ∧ ∀ x y,
+        x ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
+        y ∉ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u →
+        SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y := by
+    intro C' hC' hne
+    obtain ⟨w, hw, hnw, hside⟩ := exists_not_isFourNetworkBlock_of_ne hN h1 hX hC hC' hne
+    obtain rfl : w = u := by_contra fun hwu => hnw (hblock w hw hwu)
+    exact ⟨hnw, hside⟩
+  obtain ⟨C', hC', hne⟩ := Set.exists_ne_of_one_lt_ncard
+    (s := cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)
+    (by unfold bigCycleCount at h2; omega) C
+  exact ⟨C, u, hC, hu, hblock, (htoward C' hC' hne).1, fun C' hC' hne => (htoward C' hC' hne).2⟩
 
 set_option linter.unusedSectionVars false in
 /-- **A cycle with one taxon in each block** (Theorem 4, one cycle): two networks each with a cycle
