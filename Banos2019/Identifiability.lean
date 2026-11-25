@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Identify.Generic
 public import Banos2019.Identify.QuartetCycles
+public import Banos2019.Identify.Counterexample
 
 /-!
 # Identifying cycles in networks (Baños 2019, Sections 8 and 9)
@@ -914,7 +915,7 @@ def Proposition13AsPrinted : Prop :=
 block `{b, c}` (Figure 18 relabelled), so on an open set of parameters around those of Example 6,
 `{a, b, c, e}` satisfies the Cycle property but not the Big Cycle property, while `e` is not in the
 `v`-hybrid block. -/
-theorem proposition13_asPrinted_false : ¬ Proposition13AsPrinted := by
-  sorry
+theorem proposition13_asPrinted_false : ¬ Proposition13AsPrinted :=
+  proposition13AsPrinted_counterexample
 
 end Banos2019
