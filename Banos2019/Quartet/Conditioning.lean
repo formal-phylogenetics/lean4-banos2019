@@ -1231,7 +1231,7 @@ theorem geneTreeDist_deleteArc (hN : N.IsPhylogenetic) {θ : MetricData E} (h0 :
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- The arcs into a vertex of indegree two are its two hybrid arcs. -/
-theorem eq_or_eq_of_indegree_eq_two {v : V} (h2 : N.graph.indegree v = 2) {h₁ h₂ : E}
+theorem mem_pair_of_target_of_indegree_eq_two {v : V} (h2 : N.graph.indegree v = 2) {h₁ h₂ : E}
     (hne : h₁ ≠ h₂) (hh₁ : N.graph.target h₁ = v) (hh₂ : N.graph.target h₂ = v) (f : E)
     (hf : N.graph.target f = v) : f = h₁ ∨ f = h₂ := by
   obtain ⟨x, y, hxy, hs⟩ := Set.ncard_eq_two.1 h2
@@ -1252,7 +1252,7 @@ theorem inheritance_add_eq_one {θ : MetricData E} (hθ : N.IsMetric θ) {v : V}
   have hs : univ.filter (fun e => N.graph.target e = v) = {h₁, h₂} := by
     ext f
     simp only [mem_filter, mem_univ, true_and, mem_insert, mem_singleton]
-    exact ⟨eq_or_eq_of_indegree_eq_two h2 hne hh₁ hh₂ f, by rintro (rfl | rfl) <;> assumption⟩
+    exact ⟨mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂ f, by rintro (rfl | rfl) <;> assumption⟩
   rw [hs, sum_pair hne] at h
   exact h
 

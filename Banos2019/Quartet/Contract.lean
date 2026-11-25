@@ -88,14 +88,6 @@ theorem notMem_of_contract {e : E} (he : ∀ C', IsCycle Q.graph C' → C' = C �
     e ∉ C :=
   he C hC rfl
 
-omit [Fintype V] [Fintype E] [Fintype X] in
-theorem source_mem_cycleNodes {e : E} (he : e ∈ C) : Q.graph.source e ∈ cycleNodes Q.graph C :=
-  ⟨e, he, Or.inl rfl⟩
-
-omit [Fintype V] [Fintype E] [Fintype X] in
-theorem target_mem_cycleNodes {e : E} (he : e ∈ C) : Q.graph.target e ∈ cycleNodes Q.graph C :=
-  ⟨e, he, Or.inr rfl⟩
-
 /-! ### Below a vertex whose descendants avoid the cycle -/
 
 variable {z : V}
@@ -860,7 +852,7 @@ theorem isMetric_deleteArc (hQ : Q.IsPhylogenetic) {θ : MetricData E} (hθ : Q.
     (deleteArc Q h).IsMetric (deleteArcMetric Q h θ) := by
   have : Finite E := hQ.finite_arcs
   have hpar : ∀ f, Q.graph.target f = Q.graph.target h → f = h ∨ f = h' := fun f hf =>
-    eq_or_eq_of_indegree_eq_two h2 (Ne.symm hne) rfl ht f hf
+    mem_pair_of_target_of_indegree_eq_two h2 (Ne.symm hne) rfl ht f hf
   have hind : ∀ w, (deleteArc Q h).graph.indegree w =
       if w = Q.graph.target h then 1 else Q.graph.indegree w := by
     intro w

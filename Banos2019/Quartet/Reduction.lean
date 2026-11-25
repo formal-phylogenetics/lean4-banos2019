@@ -130,7 +130,7 @@ variable {Q : RootedNetwork V E X} {θ : MetricData E} {C : Set E} {v : V}
 
 omit [Fintype V] [Fintype E] [Fintype X] in
 /-- The arcs out of a vertex of outdegree two are two given distinct ones. -/
-theorem eq_or_eq_of_outdegree_eq_two {G : DirectedMultigraph V E} {u : V}
+theorem mem_pair_of_source_of_outdegree_eq_two {G : DirectedMultigraph V E} {u : V}
     (h2 : G.outdegree u = 2) {a b : E} (hne : a ≠ b) (ha : G.source a = u) (hb : G.source b = u)
     (f : E) (hf : G.source f = u) : f = a ∨ f = b := by
   obtain ⟨x, y, hxy, hs⟩ := Set.ncard_eq_two.1 h2
@@ -165,7 +165,7 @@ theorem cf_deleteArc_eq_contract_of_root_notMem (hQ : IsLSAQuartet Q θ) (hcyc :
     rw [ncard_cycleNodes hcyc, hcard, Set.ncard_pair htv]
   have hsrc : ∀ e ∈ C, Q.graph.target e = v → Q.graph.source e = t := by
     intro e he het
-    have hs := source_mem_cycleNodes (Q := Q) he
+    have hs := source_mem_cycleNodes (G := Q.graph) he
     rw [hS] at hs
     rcases hs with hs | hs
     · exact hs
@@ -191,7 +191,7 @@ theorem cf_deleteArc_eq_contract_of_root_notMem (hQ : IsLSAQuartet Q θ) (hcyc :
     intro w hw
     rcases Relation.ReflTransGen.cases_head hw with h | ⟨x, ⟨g, hg, rfl⟩, hx⟩
     · exact Or.inl h.symm
-    · rcases eq_or_eq_of_outdegree_eq_two hout hab hat hbt g hg with rfl | rfl
+    · rcases mem_pair_of_source_of_outdegree_eq_two hout hab hat hbt g hg with rfl | rfl
       · exact Or.inr (ha ▸ hx)
       · exact Or.inr (hb ▸ hx)
   have htvr : Q.graph.Reaches t v := .single ⟨a, hat, ha⟩
@@ -203,7 +203,7 @@ theorem cf_deleteArc_eq_contract_of_root_notMem (hQ : IsLSAQuartet Q θ) (hcyc :
     · rcases hchild _ he with h | h
       · exact absurd h hne
       · by_cases hev : Q.graph.target e = v
-        · rcases eq_or_eq_of_indegree_eq_two h2 hab ha hb e hev with rfl | rfl
+        · rcases mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e hev with rfl | rfl
           · rw [hat]
             exact .refl
           · rw [hbt]
@@ -292,7 +292,7 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
   have haC := mem_of_target_eq_hybrid hQ h1 hcyc hv h2 ha
   have hbC := mem_of_target_eq_hybrid hQ h1 hcyc hv h2 hb
   have hpar : ∀ e, Q.graph.target e = v → e = a ∨ e = b := fun e he =>
-    eq_or_eq_of_indegree_eq_two h2 hab ha hb e he
+    mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e he
   have hvout : ∀ e, Q.graph.source e = v → e ∉ C := fun e he =>
     notMem_of_source_eq_hybrid hQ h1 hcyc hv h2 he
   -- the out-arcs of the root are edges of `C`
@@ -324,7 +324,7 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
     simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hfab
     have hfv : Q.graph.target f ≠ v := fun h => (hpar f h).elim hfab.1 hfab.2
     have hfr : Q.graph.source f ≠ Q.root := fun h => by
-      rcases eq_or_eq_of_outdegree_eq_two hrout hab hsa hsb f h with h' | h'
+      rcases mem_pair_of_source_of_outdegree_eq_two hrout hab hsa hsb f h with h' | h'
       · exact hfab.1 h'
       · exact hfab.2 h'
     have hfsv : Q.graph.source f ≠ v := fun h => hvout f h hfC
@@ -340,7 +340,7 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
       rw [Set.ncard_insert_of_notMem (by simp [hrv, Ne.symm hfr]) (Set.toFinite _),
         Set.ncard_pair (Ne.symm hfsv)]
     have heqS := Set.eq_of_subset_of_ncard_le hsub (by rw [hS3, hne3]) (Set.toFinite _)
-    have ht := target_mem_cycleNodes (Q := Q) hfC
+    have ht := target_mem_cycleNodes (G := Q.graph) hfC
     rw [← heqS] at ht
     rcases ht with ht | ht | ht
     · exact hnoin f ht
@@ -371,7 +371,7 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
     by_contra hfC
     exact he₀r ((hf.symm.trans (hK.entry f hfC (hf ▸ hwS))).trans htr)
   have hfs : Q.graph.source f = Q.root := by
-    have hs := source_mem_cycleNodes (Q := Q) hfC
+    have hs := source_mem_cycleNodes (G := Q.graph) hfC
     rw [hS] at hs
     rcases hs with hs | hs | hs
     · exact hs
@@ -418,12 +418,12 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
     intro e he hne
     have hev : Q.graph.target e = v := he.elim (fun h => h ▸ ha) fun h => h ▸ hb
     have heC : e ∈ C := mem_of_target_eq_hybrid hQ h1 hcyc hv h2 hev
-    have hs := source_mem_cycleNodes (Q := Q) heC
+    have hs := source_mem_cycleNodes (G := Q.graph) heC
     rw [hS] at hs
     rcases hs with hs | hs | hs
     · exact hs
     · exact absurd (hs.trans hev.symm) (hloop e)
-    · rcases eq_or_eq_of_outdegree_eq_two hwout (Ne.symm hge₀) rfl hgs e
+    · rcases mem_pair_of_source_of_outdegree_eq_two hwout (Ne.symm hge₀) rfl hgs e
         (Set.mem_singleton_iff.1 hs) with h | h
       · exact absurd h hne
       · exact absurd (h ▸ heC) hgC
@@ -432,13 +432,13 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
   · rcases he₀ab with rfl | rfl
     · exact Or.inr ⟨rfl, hother b (Or.inr rfl) (Ne.symm hab)⟩
     · exact Or.inl ⟨hother a (Or.inl rfl) hab, rfl⟩
-  · have ht := target_mem_cycleNodes (Q := Q) (hrC e he)
+  · have ht := target_mem_cycleNodes (G := Q.graph) (hrC e he)
     rw [hS] at ht
     rcases ht with ht | ht | ht
     · exact absurd ht (hnoin e)
     · exact Or.inl ht
     · exact Or.inr (Set.mem_singleton_iff.1 ht)
-  · rcases eq_or_eq_of_outdegree_eq_two hwout (Ne.symm hge₀) rfl hgs e he with h | h
+  · rcases mem_pair_of_source_of_outdegree_eq_two hwout (Ne.symm hge₀) rfl hgs e he with h | h
     · exact Or.inl (h ▸ he₀v)
     · exact Or.inr h
 
@@ -465,7 +465,7 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
   have hwy : Q.graph.Reaches w y := .single ⟨g, hgs, rfl⟩
   have hsrc_v : ∀ e, Q.graph.target e = v → Q.graph.source e = Q.root ∨ Q.graph.source e = w := by
     intro e he
-    rcases eq_or_eq_of_indegree_eq_two h2 hab ha hb e he with rfl | rfl <;> rcases hab' with h | h
+    rcases mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e he with rfl | rfl <;> rcases hab' with h | h
     · exact Or.inl h.1
     · exact Or.inr h.1
     · exact Or.inr h.2
@@ -662,7 +662,7 @@ theorem lemma7 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 1) :
   funext q
   -- `CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`
   rw [cf_eq_mixture hN hQ.metric.1 hne (hh₁.trans hh₂.symm)
-      (fun f hf => eq_or_eq_of_indegree_eq_two h2 hne hh₁ hh₂ f (hf.trans hh₂))
+      (fun f hf => mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂ f (hf.trans hh₂))
       (inheritance_add_eq_one hQ.metric.1 h2 hne hh₁ hh₂) hone q,
     key h₁ h₂ hne hh₁ hh₂ q, key h₂ h₁ hne.symm hh₂ hh₁ q]
   ring
@@ -817,7 +817,7 @@ theorem lemma10 (hQ : IsLSAQuartet Q θ)
       have hyz : y ∈ ({z} : Set X) := hz ▸ hy
       exact (Set.mem_singleton_iff.1 hxz).trans (Set.mem_singleton_iff.1 hyz).symm
   exact cf_eq_mixture hQ.binary.1 hQ.metric.1 hne (hh₁.trans hh₂.symm)
-    (fun f hf => eq_or_eq_of_indegree_eq_two h2 hne hh₁ hh₂ f (hf.trans hh₂))
+    (fun f hf => mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂ f (hf.trans hh₂))
     (inheritance_add_eq_one hQ.metric.1 h2 hne hh₁ hh₂) hone q
 
 /-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the

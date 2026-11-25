@@ -194,13 +194,6 @@ theorem reaches_hybrid (w : V) (hw : w ∈ cycleNodes N.graph C) : N.graph.Reach
       exact Relation.ReflTransGen.head ⟨e, hs, rfl⟩
         (ih _ (.single ⟨e, hs, rfl⟩) ⟨e, he, Or.inr rfl⟩)
 
-omit hN h1 hC hv h2 in
-theorem target_mem_cycleNodes' {e : E} (he : e ∈ C) : N.graph.target e ∈ cycleNodes N.graph C :=
-  ⟨e, he, Or.inr rfl⟩
-
-omit hN h1 hC hv h2 in
-theorem source_mem_cycleNodes' {e : E} (he : e ∈ C) : N.graph.source e ∈ cycleNodes N.graph C :=
-  ⟨e, he, Or.inl rfl⟩
 
 /-- The hybrid edges of `v` are its two edges in `C`. -/
 theorem mem_of_target_eq_hybrid {e : E} (he : N.graph.target e = v) : e ∈ C :=
@@ -250,7 +243,7 @@ theorem existsUnique_top [Fintype V] [Fintype E] :
   have hcount : ∑ w ∈ S, inCycle (N := N) C w = #S := by
     have h := card_eq_sum_card_fiberwise (f := N.graph.target)
       (s := univ.filter fun e => e ∈ C) (t := S) fun e he =>
-        mem_filter.2 ⟨mem_univ _, target_mem_cycleNodes' (mem_filter.1 he).2⟩
+        mem_filter.2 ⟨mem_univ _, target_mem_cycleNodes (mem_filter.1 he).2⟩
     have hC' : #(univ.filter fun e => e ∈ C) = #S := by
       rw [← Set.ncard_coe_finset, ← Set.ncard_coe_finset]
       simp only [coe_filter, mem_univ, true_and, S]
