@@ -12,11 +12,14 @@ a cycle of the network, so suppression keeps a network level-1; so does taking a
 
 * `IsCycle.walks_sdiff_singleton`: two nodes of a cycle are joined along it, avoiding any one of its
   edges.
+* `IsCycle.subset_of_pendant`, `IsCycle.superset_of_ncard_incident_le`: an edge with an end on no
+  other edge is on no cycle; a cycle inside a connected set of edges with at most two edges at each
+  node is all of it.
 * `IsLevelOne.of_injective`: a subgraph of a level-1 graph is level-1.
 * `cycleChainArcs`: the arcs of a network on the chains of a set of arcs of its suppressed network;
   `isCycle_cycleChainArcs`: for a cycle, they form a cycle. A cycle `D` of the network through the first
-  arc of one chain, on these arcs, exists because a walk around the cycle closes it; every arc on these
-  chains is on `D`, because at each node there are at most two of them, and `D` has two.
+  arc of one chain, on these arcs, exists because a walk around the cycle closes it; it is all of them,
+  because at each node there are at most two of them.
 * `suppress_isLevelOne`: suppression keeps a network level-1.
 -/
 
@@ -77,6 +80,51 @@ theorem IsLevelOne.of_injective {V'' E'' : Type*} {G' : DirectedMultigraph V'' E
   intro C C' hC hC' ⟨f, hf, hf'⟩
   exact Set.image_injective.2 hψ
     (h1 _ _ (hcyc C hC) (hcyc C' hC') ⟨ψ f, ⟨f, hf, rfl⟩, ⟨f, hf', rfl⟩⟩)
+
+/-- **An edge with an end on no other edge is on no cycle**: a node of a cycle is on two of its
+edges. -/
+theorem IsCycle.subset_of_pendant {D K : Set E'} (hD : IsCycle G D)
+    (hloop : ∀ f, G.source f ≠ G.target f)
+    (hK : ∀ f ∉ K, ∃ p, (G.source f = p ∨ G.target f = p) ∧
+      ∀ g, (G.source g = p ∨ G.target g = p) → g = f) : D ⊆ K := by
+  intro f hf
+  by_contra hfK
+  obtain ⟨p, hfp, hp⟩ := hK f hfK
+  have hpD : p ∈ cycleNodes G D := by
+    rcases hfp with h | h
+    · exact h ▸ source_mem_cycleNodes hf
+    · exact h ▸ target_mem_cycleNodes hf
+  obtain ⟨f₁, -, f₂, -, hne, h₁, h₂⟩ := hD.exists_ne_of_mem (fun g _ => hloop g) hpD
+  exact hne ((hp f₁ h₁).trans (hp f₂ h₂).symm)
+
+/-- **A cycle inside a connected set of edges with at most two edges at each node is all of it**: at
+a node of the cycle, its two edges are all the edges of the set there, so the walks on the set stay
+on the cycle. -/
+theorem IsCycle.superset_of_ncard_incident_le [Finite E'] {D K : Set E'} (hD : IsCycle G D)
+    (hloop : ∀ f, G.source f ≠ G.target f) (hDK : D ⊆ K)
+    (hdeg : ∀ x, {f | f ∈ K ∧ (G.source f = x ∨ G.target f = x)}.ncard ≤ 2) {x₀ : V'}
+    (hx₀ : x₀ ∈ cycleNodes G D) (hconn : ∀ f ∈ K, G.Walks K x₀ (G.source f)) : K ⊆ D := by
+  -- at a node of `D`, every edge of `K` is an edge of `D`
+  have hstep : ∀ x ∈ cycleNodes G D, ∀ f ∈ K, (G.source f = x ∨ G.target f = x) → f ∈ D := by
+    intro x hx f hf hfx
+    have h₂ := hD.ncard_incident hloop hx
+    have hsub : {f | f ∈ D ∧ (G.source f = x ∨ G.target f = x)} ⊆
+        {f | f ∈ K ∧ (G.source f = x ∨ G.target f = x)} := fun f hf => ⟨hDK hf.1, hf.2⟩
+    have heq := Set.eq_of_subset_of_ncard_le hsub (by have := hdeg x; omega) (Set.toFinite _)
+    have hmem : f ∈ {f | f ∈ K ∧ (G.source f = x ∨ G.target f = x)} := ⟨hf, hfx⟩
+    rw [← heq] at hmem
+    exact hmem.1
+  -- the walks on `K` from `x₀` stay at nodes of `D`
+  have hreach : ∀ y, G.Walks K x₀ y → y ∈ cycleNodes G D := by
+    intro y hy
+    induction hy with
+    | refl => exact hx₀
+    | @tail b c _ hbc ih =>
+      obtain ⟨f, hf, hl⟩ := hbc
+      rcases hl with ⟨hs, ht⟩ | ⟨hs, ht⟩
+      · exact ht ▸ target_mem_cycleNodes (hstep _ ih f hf (Or.inl hs))
+      · exact hs ▸ source_mem_cycleNodes (hstep _ ih f hf (Or.inr ht))
+  exact fun f hf => hstep _ (hreach _ (hconn f hf)) f hf (Or.inl rfl)
 
 end Graph
 
@@ -246,46 +294,22 @@ theorem isCycle_cycleChainArcs {C : Set {e // ¬ M.IsChainVertex (M.graph.source
     rcases hDsub hf with rfl | hf
     · exact ⟨g, hg, Or.inl rfl⟩
     · exact hf.1
-  -- at a node of `D`, every arc on the chains of `C` is an arc of `D`
-  have hloopM : ∀ e, M.graph.source e ≠ M.graph.target e := source_ne_target_of_isPhylogenetic hM
-  have hstep : ∀ x ∈ cycleNodes M.graph D, ∀ f ∈ cycleChainArcs M C,
-      (M.graph.source f = x ∨ M.graph.target f = x) → f ∈ D := by
-    intro x hx f hf hfx
-    have h₂ := hD.ncard_incident hloopM hx
-    have hsub : {f | f ∈ D ∧ (M.graph.source f = x ∨ M.graph.target f = x)} ⊆
-        {f | f ∈ cycleChainArcs M C ∧ (M.graph.source f = x ∨ M.graph.target f = x)} :=
-      fun f hf => ⟨hDsub' hf.1, hf.2⟩
-    have hle := ncard_incident_cycleChainArcs_le hM hC x
-    have heq := Set.eq_of_subset_of_ncard_le hsub (by omega) (Set.toFinite _)
-    have hmem : f ∈ {f | f ∈ cycleChainArcs M C ∧ (M.graph.source f = x ∨ M.graph.target f = x)} :=
-      ⟨hf, hfx⟩
-    rw [← heq] at hmem
-    exact hmem.1
-  -- the nodes reached from the start of `g` along the chains of `C` are nodes of `D`
-  have hreach : ∀ y, M.graph.Walks (cycleChainArcs M C) (M.graph.source g.1) y →
-      y ∈ cycleNodes M.graph D := by
-    intro y hy
-    induction hy with
-    | refl => exact source_mem_cycleNodes hgD
-    | @tail b c _ hbc ih =>
-      obtain ⟨f, hf, hl⟩ := hbc
-      rcases hl with ⟨hs, ht⟩ | ⟨hs, ht⟩
-      · exact ht ▸ target_mem_cycleNodes (hstep _ ih f hf (Or.inl hs))
-      · exact hs ▸ source_mem_cycleNodes (hstep _ ih f hf (Or.inr ht))
-  have hsup : cycleChainArcs M C ⊆ D := by
+  -- every arc on the chains of `C` is reached from the start of `g` along them
+  have hconn : ∀ f ∈ cycleChainArcs M C,
+      M.graph.Walks (cycleChainArcs M C) (M.graph.source g.1) (M.graph.source f) := by
     rintro f ⟨h, hhC, hon⟩
     have hW₃ : M.graph.Walks (cycleChainArcs M C) (M.graph.source g.1) (M.graph.source h.1) :=
       walks_cycleChainArcs_of_walks hM (u := (M.suppress hM).graph.source g)
         (w := (M.suppress hM).graph.source h) (walks_mono Set.sdiff_subset
           (hC.walks_sdiff_singleton hg (source_mem_cycleNodes hg) (source_mem_cycleNodes hhC)))
-    have hW₄ : M.graph.Walks (cycleChainArcs M C) (M.graph.source h.1) (M.graph.source f) := by
-      rcases hon with rfl | ⟨-, hr⟩
-      · exact .refl
-      · exact Relation.ReflTransGen.head ⟨h.1, ⟨h, hhC, Or.inl rfl⟩, Or.inl ⟨rfl, rfl⟩⟩
-          (walks_mono (F := {f | M.IsOnChain h.1 f ∧ f ≠ h.1}) (F' := cycleChainArcs M C)
-            (fun f' hf' => ⟨h, hhC, hf'.1⟩)
-            (walks_isOnChain_of_chainReach h.2 hr))
-    exact hstep _ (hreach _ (hW₃.trans hW₄)) f ⟨h, hhC, hon⟩ (Or.inl rfl)
+    refine hW₃.trans ?_
+    rcases hon with rfl | ⟨-, hr⟩
+    · exact .refl
+    · exact Relation.ReflTransGen.head ⟨h.1, ⟨h, hhC, Or.inl rfl⟩, Or.inl ⟨rfl, rfl⟩⟩
+        (walks_mono (F := {f | M.IsOnChain h.1 f ∧ f ≠ h.1}) (F' := cycleChainArcs M C)
+          (fun f' hf' => ⟨h, hhC, hf'.1⟩) (walks_isOnChain_of_chainReach h.2 hr))
+  have hsup := hD.superset_of_ncard_incident_le (source_ne_target_of_isPhylogenetic hM) hDsub'
+    (ncard_incident_cycleChainArcs_le hM hC) (source_mem_cycleNodes hgD) hconn
   rw [hsup.antisymm hDsub']
   exact hD
 

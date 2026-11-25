@@ -35,15 +35,6 @@ variable {V E X : Type*}
 def halfInheritanceMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricData E :=
   ⟨ℓ, fun e => if N.IsHybridArc e then 1 / 2 else 1⟩
 
-/-- The number of edges entering `v`, as the size of a finite set. -/
-theorem indegree_eq_card_filter_target [Fintype E] (G : DirectedMultigraph V E) (v : V) :
-    G.indegree v = (univ.filter fun e => G.target e = v).card := by
-  unfold DirectedMultigraph.indegree
-  rw [← Set.ncard_coe_finset]
-  congr 1
-  ext e
-  simp
-
 /-- In a binary network, a node with two entering edges has exactly two. -/
 theorem indegree_eq_two_of_two_le {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {v : V}
     (hv : 2 ≤ N.graph.indegree v) : N.graph.indegree v = 2 := by

@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Reduction
+public import Banos2019.Quartet.Concrete
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!

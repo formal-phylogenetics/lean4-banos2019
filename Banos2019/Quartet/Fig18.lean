@@ -72,13 +72,6 @@ theorem figLeaf_d (h : Distinct4 a b c d) : figLeaf a b c d = 3 := by
 
 variable [Fintype X]
 
-/-- Every taxon is `a`, `b`, `c` or `d`. -/
-theorem eq_or_of_distinct4_of_card_eq (hX : Fintype.card X = 4) (h : Distinct4 a b c d) (x : X) :
-    x = a ∨ x = b ∨ x = c ∨ x = d := by
-  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_insert_eq, hX])
-  have : x ∈ ({a, b, c, d} : Finset X) := huniv ▸ mem_univ x
-  simpa using this
-
 theorem figLeaf_injective (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
     Function.Injective (figLeaf a b c) := by
   intro x y hxy

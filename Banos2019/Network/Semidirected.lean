@@ -23,7 +23,8 @@ the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric
   paper suppresses, this is the result of suppressing the inner nodes one at a time by the rules of
   Figure 3, in any order. On other chains, one-at-a-time suppression may depend on the order or differ
   from this rule.
-* `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and metric.
+* `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and metric;
+  `symm`, `trans`: their inverses and compositions.
 -/
 
 @[expose] public noncomputable section
@@ -196,6 +197,71 @@ structure SDMetricIso (G : SemidirectedNetwork V E X) (θ : MetricData E)
     (G' : SemidirectedNetwork V' E' X) (θ' : MetricData E') extends SDIso G G' where
   length : ∀ e, θ'.length (edge e) = θ.length e
   inheritance : ∀ e, G.IsDirected e → θ'.inheritance (edge e) = θ.inheritance e
+
+/-- The inverse of an isomorphism of semidirected networks. -/
+def SDIso.symm {G : SemidirectedNetwork V E X} {G' : SemidirectedNetwork V' E' X} (φ : SDIso G G') :
+    SDIso G' G where
+  vert := φ.vert.symm
+  edge := φ.edge.symm
+  isDirected_iff e := by
+    rw [← φ.isDirected_iff, Equiv.apply_symm_apply]
+  joins e := by
+    have h := φ.joins (φ.edge.symm e)
+    rw [Equiv.apply_symm_apply] at h
+    rcases h with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨by rw [h₁, Equiv.symm_apply_apply], by rw [h₂, Equiv.symm_apply_apply]⟩
+    · exact Or.inr ⟨by rw [h₂, Equiv.symm_apply_apply], by rw [h₁, Equiv.symm_apply_apply]⟩
+  directed e he := by
+    have hd : G.IsDirected (φ.edge.symm e) := by rwa [← φ.isDirected_iff, Equiv.apply_symm_apply]
+    have h := φ.directed _ hd
+    rw [Equiv.apply_symm_apply] at h
+    exact ⟨by rw [h.1, Equiv.symm_apply_apply], by rw [h.2, Equiv.symm_apply_apply]⟩
+  leaf x := by rw [φ.leaf, Equiv.symm_apply_apply]
+
+/-- The composition of two isomorphisms of semidirected networks. -/
+def SDIso.trans {V'' E'' : Type*} {G : SemidirectedNetwork V E X} {G' : SemidirectedNetwork V' E' X}
+    {G'' : SemidirectedNetwork V'' E'' X} (φ : SDIso G G') (ψ : SDIso G' G'') : SDIso G G'' where
+  vert := φ.vert.trans ψ.vert
+  edge := φ.edge.trans ψ.edge
+  isDirected_iff e := (ψ.isDirected_iff _).trans (φ.isDirected_iff e)
+  joins e := by
+    have h := ψ.joins (φ.edge e)
+    simp only [Equiv.trans_apply]
+    rcases φ.joins e with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · rwa [← h₁, ← h₂]
+    · rw [h₁, h₂] at h
+      rcases h with ⟨k₁, k₂⟩ | ⟨k₁, k₂⟩
+      · exact Or.inr ⟨k₁, k₂⟩
+      · exact Or.inl ⟨k₁, k₂⟩
+  directed e he := by
+    have h := φ.directed e he
+    have h' := ψ.directed (φ.edge e) ((φ.isDirected_iff e).2 he)
+    simp only [Equiv.trans_apply]
+    rw [h'.1, h'.2, h.1, h.2]
+    exact ⟨rfl, rfl⟩
+  leaf x := by simp only [Equiv.trans_apply]; rw [ψ.leaf, φ.leaf]
+
+/-- The inverse of an isomorphism of metric semidirected networks. -/
+def SDMetricIso.symm {G : SemidirectedNetwork V E X} {θ : MetricData E}
+    {G' : SemidirectedNetwork V' E' X} {θ' : MetricData E'} (φ : SDMetricIso G θ G' θ') :
+    SDMetricIso G' θ' G θ where
+  toSDIso := φ.toSDIso.symm
+  length e := by
+    show θ.length (φ.edge.symm e) = θ'.length e
+    rw [← φ.length, Equiv.apply_symm_apply]
+  inheritance e he := by
+    show θ.inheritance (φ.edge.symm e) = θ'.inheritance e
+    have hd : G.IsDirected (φ.edge.symm e) := by rwa [← φ.isDirected_iff, Equiv.apply_symm_apply]
+    rw [← φ.inheritance _ hd, Equiv.apply_symm_apply]
+
+/-- The composition of two isomorphisms of metric semidirected networks. -/
+def SDMetricIso.trans {V'' E'' : Type*} {G : SemidirectedNetwork V E X} {θ : MetricData E}
+    {G' : SemidirectedNetwork V' E' X} {θ' : MetricData E'} {G'' : SemidirectedNetwork V'' E'' X}
+    {θ'' : MetricData E''} (φ : SDMetricIso G θ G' θ') (ψ : SDMetricIso G' θ' G'' θ'') :
+    SDMetricIso G θ G'' θ'' where
+  toSDIso := φ.toSDIso.trans ψ.toSDIso
+  length e := (ψ.length _).trans (φ.length e)
+  inheritance e he := (ψ.inheritance _ ((φ.isDirected_iff e).2 he)).trans (φ.inheritance e he)
 
 end Iso
 
