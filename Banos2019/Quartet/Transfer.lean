@@ -452,6 +452,7 @@ theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetw
   suppress_isLevelOne _ (IsLevelOne.of_injective h1 Subtype.val Subtype.val Subtype.val_injective
     Subtype.val_injective (fun _ => rfl) (fun _ => rfl))
 
+omit [Fintype V] [Fintype X] in
 /-- **`Q⊕_s` is an LSA quartet network.** -/
 theorem isLSAQuartet_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}

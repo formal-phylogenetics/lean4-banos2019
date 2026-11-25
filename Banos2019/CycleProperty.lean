@@ -211,48 +211,85 @@ def segmentsI : Set (ℝ × ℝ × ℝ) :=
   simplex2 ∩ {p | (1 / 6 < p.1 ∧ p.2.1 = p.2.2) ∨ (1 / 6 < p.2.1 ∧ p.1 = p.2.2) ∨
     (1 / 6 < p.2.2 ∧ p.1 = p.2.1)}
 
-/-- The concordance factors of the `3₂`-cycle of Figure 18 (equation (9)) with `γ = 1/2` and
-`x₄ = x₂` reach every point `(1 - 2y, y, y)` with `0 < y < 5/12` (proof of Proposition 7). Near the
-limit `t₂, t₄ → 0`, `t₃ → ∞` of the paper (`x₂` close to `1`, `x₃` close to `0`) the factor of `x₁` in
-`CF_{AC|BD}` exceeds `y`; as `t₁` runs over `(0, ∞)`, `x₁` runs over `(0, 1)`, and the intermediate value
-`CF_{AC|BD} = y`, which the paper obtains by continuity, is reached at `x₁ = y / K`. -/
+/-- `CF_{AC|BD}` of equation (9), as a function of the parameters `(γ, t₁, t₂, t₃, t₄)` of
+Figure 18, with `xᵢ = e^{-tᵢ}`. -/
+def fig18CF (p : ℝ × ℝ × ℝ × ℝ × ℝ) : ℝ :=
+  (1 - p.1) ^ 2 * (1 / 3 * (Real.exp (-p.2.1) * Real.exp (-p.2.2.1))) +
+    p.1 * (1 - p.1) * Real.exp (-p.2.1) * (1 - 1 / 3 * Real.exp (-p.2.2.2.1)) +
+    p.1 ^ 2 * (1 / 3 * (Real.exp (-p.2.1) * Real.exp (-p.2.2.2.2)))
+
+/-- The parameters `(γ, t₁, t₂, t₃, t₄)` of Figure 18: `0 < γ < 1` and positive lengths. -/
+def fig18Params : Set (ℝ × ℝ × ℝ × ℝ × ℝ) :=
+  Set.Ioo 0 1 ×ˢ Set.Ioi 0 ×ˢ Set.Ioi 0 ×ˢ Set.Ioi 0 ×ˢ Set.Ioi 0
+
+/-- `CF_{AC|BD}` is continuous in the parameters, so its image is connected. -/
+theorem isPreconnected_image_fig18CF : IsPreconnected (fig18CF '' fig18Params) := by
+  refine (isPreconnected_Ioo.prod (isPreconnected_Ioi.prod (isPreconnected_Ioi.prod
+    (isPreconnected_Ioi.prod isPreconnected_Ioi)))).image fig18CF (Continuous.continuousOn ?_)
+  unfold fig18CF
+  fun_prop
+
+/-- `CF_{AC|BD}` comes arbitrarily close to `0`, the end `(1, 0, 0)` of the segment: let `t₁ → ∞`. -/
+theorem exists_fig18CF_lt {ε : ℝ} (hε : 0 < ε) : ∃ p ∈ fig18Params, fig18CF p < ε := by
+  set s := min ε (1 / 2) with hs
+  have hs₀ : 0 < s := lt_min hε (by norm_num)
+  have hs₁ : s < 1 := (min_le_right _ _).trans_lt (by norm_num)
+  refine ⟨(1 / 2, -Real.log s, 1, 1, 1),
+    ⟨⟨by norm_num, by norm_num⟩, neg_pos.2 (Real.log_neg hs₀ hs₁), by norm_num [Set.mem_Ioi],
+      by norm_num [Set.mem_Ioi], by norm_num [Set.mem_Ioi]⟩, ?_⟩
+  unfold fig18CF
+  simp only [neg_neg, Real.exp_log hs₀]
+  have e₀ : 0 < Real.exp (-1) := Real.exp_pos _
+  have e₁ : Real.exp (-1) < 1 := Real.exp_lt_one_iff.2 (by norm_num)
+  have : s ≤ ε := min_le_left _ _
+  nlinarith [mul_pos hs₀ e₀]
+
+/-- `CF_{AC|BD}` comes arbitrarily close to `5/12`, the end `(2/12, 5/12, 5/12)` of the segment: let
+`γ = 1/2`, `t₁, t₂, t₄ → 0` and `t₃ → ∞`. -/
+theorem exists_lt_fig18CF {ε : ℝ} (hε : 0 < ε) : ∃ p ∈ fig18Params, 5 / 12 - ε < fig18CF p := by
+  set δ := min ε (1 / 2) with hδ
+  have hδ₀ : 0 < δ := lt_min hε (by norm_num)
+  have hδ₁ : δ ≤ 1 / 2 := min_le_right _ _
+  have hu₀ : 0 < 1 - δ := by linarith
+  have hu₁ : 1 - δ < 1 := by linarith
+  have hw₁ : δ < 1 := by linarith
+  refine ⟨(1 / 2, -Real.log (1 - δ), -Real.log (1 - δ), -Real.log δ, -Real.log (1 - δ)),
+    ⟨⟨by norm_num, by norm_num⟩, neg_pos.2 (Real.log_neg hu₀ hu₁), neg_pos.2 (Real.log_neg hu₀ hu₁),
+      neg_pos.2 (Real.log_neg hδ₀ hw₁), neg_pos.2 (Real.log_neg hu₀ hu₁)⟩, ?_⟩
+  unfold fig18CF
+  simp only [neg_neg, Real.exp_log hu₀, Real.exp_log hδ₀]
+  have : δ ≤ ε := min_le_left _ _
+  nlinarith [mul_pos hδ₀ hδ₀]
+
+/-- The concordance factors of the `3₂`-cycle of Figure 18 (equation (9)) reach every point
+`(1 - 2y, y, y)` with `0 < y < 5/12` (proof of Proposition 7). They lie on the line `(x, y, y)`, with
+`x = 1 - 2y`; `CF_{AC|BD}` is continuous in `γ` and the lengths, so its image is a connected set, which
+contains points arbitrarily close to `0` and to `5/12`; so it contains every `y` between. -/
 theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
-    ∃ len : Fin 8 → ℝ, (∀ i, 0 < len i) ∧
+    ∃ (len : Fin 8 → ℝ) (γ : ℝ), (∀ i, 0 < len i) ∧ 0 < γ ∧ γ < 1 ∧
       let x₁ := Real.exp (-len 4); let x₂ := Real.exp (-len 7); let x₃ := Real.exp (-len 5)
-      let x₄ := Real.exp (-len 6); let γ : ℝ := 1 / 2
+      let x₄ := Real.exp (-len 6)
       ((1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) + 2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
           γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄)),
         (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
           γ ^ 2 * (1 / 3 * (x₁ * x₄)),
         (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
           γ ^ 2 * (1 / 3 * (x₁ * x₄))) = (1 - 2 * y, y, y) := by
-  set δ := 5 / 12 - y with hδ
-  have hδ₀ : 0 < δ := by linarith
-  set u : ℝ := 1 - δ / 2 with hu
-  set w : ℝ := δ / 2 with hw
-  set K : ℝ := u / 6 + 1 / 4 - w / 12 with hK
-  have hu₀ : 0 < u := by linarith
-  have hu₁ : u < 1 := by linarith
-  have hw₀ : 0 < w := by linarith
-  have hw₁ : w < 1 := by linarith
-  have hKy : y < K := by rw [hK, hu, hw]; linarith
-  have hK₀ : 0 < K := by linarith
-  set t : ℝ := y / K with ht
-  have ht₀ : 0 < t := div_pos hy₀ hK₀
-  have ht₁ : t < 1 := (div_lt_one hK₀).2 hKy
-  have hpos : ∀ z : ℝ, 0 < z → z < 1 → 0 < -Real.log z := fun z h₀ h₁ =>
-    neg_pos.2 (Real.log_neg h₀ h₁)
-  have hexp : ∀ z : ℝ, 0 < z → Real.exp (-(-Real.log z)) = z := fun z h₀ => by
-    rw [neg_neg, Real.exp_log h₀]
-  refine ⟨![1, 1, 1, 1, -Real.log t, -Real.log w, -Real.log u, -Real.log u], fun i => ?_, ?_⟩
-  · have h₁ := hpos _ ht₀ ht₁
-    have h₂ := hpos _ hw₀ hw₁
-    have h₃ := hpos _ hu₀ hu₁
-    fin_cases i <;> simp [h₁, h₂, h₃]
-  · simp only [Matrix.cons_val, Fin.isValue]
-    rw [hexp t ht₀, hexp w hw₀, hexp u hu₀]
-    have hty : t * K = y := by rw [ht]; field_simp
-    refine Prod.ext ?_ (Prod.ext ?_ ?_) <;> simp only <;> rw [← hty, hK] <;> ring
+  -- the image of `CF_{AC|BD}` is connected, with points below `y` and above `y`
+  obtain ⟨p₁, hp₁, h₁⟩ := exists_fig18CF_lt hy₀
+  obtain ⟨p₂, hp₂, h₂⟩ := exists_lt_fig18CF (sub_pos.2 hy₁)
+  obtain ⟨⟨γ, t₁, t₂, t₃, t₄⟩, ⟨hγ, ht₁, ht₂, ht₃, ht₄⟩, hp⟩ :=
+    isPreconnected_image_fig18CF.Icc_subset ⟨p₁, hp₁, rfl⟩ ⟨p₂, hp₂, rfl⟩
+      ⟨h₁.le, by linarith⟩
+  refine ⟨![1, 1, 1, 1, t₁, t₃, t₄, t₂], γ, fun i => ?_, hγ.1, hγ.2, ?_⟩
+  · fin_cases i <;> simp [Set.mem_Ioi.1 ht₁, Set.mem_Ioi.1 ht₂, Set.mem_Ioi.1 ht₃,
+      Set.mem_Ioi.1 ht₄]
+  · unfold fig18CF at hp
+    simp only [Matrix.cons_val, Fin.isValue] at hp ⊢
+    refine Prod.ext ?_ (Prod.ext hp hp)
+    simp only
+    rw [← hp]
+    ring
 
 /-- The concordance factors of equation (9) lie on the open segment: `CF_{AB|CD} + 2 CF_{AC|BD} = 1`
 and `0 < CF_{AC|BD} < 5/12`, the maximum `5/12` being approached at `γ = 1/2`. -/
@@ -530,26 +567,26 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
     simp only at hsum hI hp₁ hp₂ hp₃
     -- Figure 18 on the labels `a', b', c', d'` gives `(1 - 2y, y, y)` for every `0 < y < 5/12`
     have hreal : ∀ {a' b' c' d' : X} (h' : Distinct4 a' b' c' d') {y : ℝ}, 0 < y → y < 5 / 12 →
-        ∃ len : Fin 8 → ℝ, ∃ hQ : IsLSAQuartet (q18 a' b' c') (q18Metric len (1 / 2)),
-          CF (q18 a' b' c') (q18Metric len (1 / 2)) a' b' c' d' h' = (1 - 2 * y, y, y) := by
+        ∃ (len : Fin 8 → ℝ) (γ : ℝ) (hQ : IsLSAQuartet (q18 a' b' c') (q18Metric len γ)),
+          CF (q18 a' b' c') (q18Metric len γ) a' b' c' d' h' = (1 - 2 * y, y, y) := by
       intro a' b' c' d' h' y hy₀ hy₁
-      obtain ⟨len, hlen, hcf⟩ := exists_fig18_params hy₀ hy₁
-      have hQ := isLSAQuartet_q18 hX h' hlen (by norm_num : (0 : ℝ) < 1 / 2) (by norm_num)
-      refine ⟨len, hQ, ?_⟩
-      rw [example5 h' hQ len (1 / 2) (inducesNetwork_q18 h' hQ)]
+      obtain ⟨len, γ, hlen, hγ₀, hγ₁, hcf⟩ := exists_fig18_params hy₀ hy₁
+      have hQ := isLSAQuartet_q18 hX h' hlen hγ₀ hγ₁
+      refine ⟨len, γ, hQ, ?_⟩
+      rw [example5 h' hQ len γ (inducesNetwork_q18 h' hQ)]
       exact hcf
     have h32 : ∀ {a' b' c' d' : X}, Distinct4 a' b' c' d' → ∃ C v, InducesCycleType (q18 a' b' c') C v 3 2 :=
       fun h' => exists_inducesCycleType_q18 hX h'
     rcases hI with ⟨hx, hyz⟩ | ⟨hy, hxz⟩ | ⟨hz, hxy⟩
     · -- `a, b` below the hybrid node
-      obtain ⟨len, hQ, hcf⟩ := hreal habcd hp₂ (by linarith)
-      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a b c, q18Metric len (1 / 2), hQ,
+      obtain ⟨len, γ, hQ, hcf⟩ := hreal habcd hp₂ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a b c, q18Metric len γ, hQ,
         h32 habcd, ?_⟩
       rw [hcf, Prod.mk.injEq, Prod.mk.injEq]
       exact ⟨by linarith, rfl, hyz⟩
     · -- `a, c` below the hybrid node
-      obtain ⟨len, hQ, hcf⟩ := hreal (distinct4_acbd habcd) hp₁ (by linarith)
-      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a c b, q18Metric len (1 / 2), hQ,
+      obtain ⟨len, γ, hQ, hcf⟩ := hreal (distinct4_acbd habcd) hp₁ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a c b, q18Metric len γ, hQ,
         h32 (distinct4_acbd habcd), ?_⟩
       simp only [CF, Prod.mk.injEq] at hcf ⊢
       obtain ⟨h₁, h₂, h₃⟩ := hcf
@@ -560,8 +597,8 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
       dsimp only at hxz hy
       exact ⟨h₂, by rw [h₁]; linarith, h₃.trans hxz⟩
     · -- `a, d` below the hybrid node
-      obtain ⟨len, hQ, hcf⟩ := hreal (distinct4_adbc habcd) hp₁ (by linarith)
-      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a d b, q18Metric len (1 / 2), hQ,
+      obtain ⟨len, γ, hQ, hcf⟩ := hreal (distinct4_adbc habcd) hp₁ (by linarith)
+      refine ⟨Fin 9, Fin 9, inferInstance, inferInstance, q18 a d b, q18Metric len γ, hQ,
         h32 (distinct4_adbc habcd), ?_⟩
       simp only [CF, Prod.mk.injEq] at hcf ⊢
       obtain ⟨h₁, h₂, h₃⟩ := hcf
