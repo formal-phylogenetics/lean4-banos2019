@@ -3,15 +3,17 @@ module
 public import Banos2019.Identify.QuartetCycles
 
 /-!
-# The blocks and the order of a cycle from `S` (Baños 2019, proofs of Lemmas 15 and 16)
+# The blocks and the order of the cycles from `S` (Baños 2019, proofs of Lemmas 14, 15 and 16)
 
-For metric parameters at which the statement of Lemma 12 holds, the blocks, the size and the hybrid
+For parameters at which the statement of Lemma 12 holds, the 4-network blocks of `N⁻` are a function
+of `S` (`lemma14_core`). For metric parameters at which it holds, the blocks, the size and the hybrid
 block of the cycle `C_v` of `N⁻` whose hybrid node a set `s ∈ S` determines are functions of `S` and
 `s` (`lemma15_core`), and, given such functions, which of its blocks are adjacent is a function of
 the comparisons of the concordance factors of quartet trees on the same four taxa (`lemma16_core`).
-Lemmas 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for generic parameters.
+Lemmas 14, 15 and 16 (`Banos2019/Identifiability.lean`) are these statements for generic parameters.
 
 * `bcSets`: the set `S`.
+* `complementBlock` (`Y_a`): the construction of the proof of Lemma 14 from `S`.
 * `extensions` (`Z_T`), `blockRelation`, `blockCount`, `hybridBlock`: the constructions of the proof
   of Lemma 15 from `S`.
 * `bcSetsOf`, `IsBCQuartetOf`: `S` and `q^BC_s`, read from the comparisons of concordance factors.
@@ -202,6 +204,48 @@ theorem mem_bcSets_iff_of_lemma12 {hN : IsBinaryRootedNetwork N} {hX : Nontrivia
   ⟨fun h => (h12 s h4).1 (by convert h.2), fun h => ⟨h4, by convert (h12 s h4).2 h⟩⟩
 
 end Determined
+
+/-! ### The 4-network blocks from `S` (proof of Lemma 14) -/
+
+/-- `Y_a` (proof of Lemma 14): the taxa other than `a` of the sets of `S` that contain `a`. -/
+def complementBlock (S : Set (Finset X)) (a : X) : Set X :=
+  ⋃ s ∈ {s | s ∈ S ∧ a ∈ s}, ↑(s.erase a)
+
+/-- **The 4-network blocks from `S`** (Lemma 14 at given parameters): at parameters at which the
+statement of Lemma 12 holds, the 4-network block of `x` is the complement of `Y_x`. A set of four
+taxa with the Big Cycle property is separated by a cycle of size at least four (Lemma 12), so its
+taxa are in distinct 4-network blocks. Conversely, a taxon `y` outside the 4-network block of `x` is
+in another block than `x` of some cycle `C_v` of size at least four (Lemma 4); with taxa `c`, `d` of
+two other blocks, one of the four in the hybrid block, `{x, y, c, d}` has the Big Cycle property
+(Lemma 12), and `y ∈ Y_x`. -/
+theorem lemma14_core {V E : Type*} [Fintype V] [Fintype E] {N : RootedNetwork V E X}
+    (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X)
+    {θ : MetricData E}
+    (h12 : ∀ s : Finset X, #s = 4 → (BigCycleOn (cf N θ) s ↔
+      ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s)) (x y : X) :
+    y ∉ complementBlock (bcSets N θ) x ↔
+      SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
+        (familyEdges (cyclesOfSizeAtLeast (unrooted N hN hX).graph 4)) x y := by
+  have hS := mem_bcSets_iff_of_lemma12 h12
+  constructor
+  · -- a taxon outside the 4-network block of `x` is in `Y_x`
+    intro hy
+    by_contra hnb
+    obtain ⟨C, ⟨hC, hC4⟩, hCxy⟩ := lemma4 (unrooted N hN hX).leaf (unrooted_isConnected hN hX)
+      (unrooted_isLevelOne hN h1 hX)
+      (fun C (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) => hC.1) hnb
+    obtain ⟨v, hv⟩ := exists_isHybridNodeOf h1 hC
+    obtain ⟨c, d, h4, hsep⟩ := exists_separatesQuartet_of_not_sameBlock h1 hC hC4 hv hCxy
+    have hxy : y ≠ x := fun h => hCxy (h ▸ .refl)
+    refine hy (Set.mem_biUnion (x := {x, y, c, d}) ⟨(hS _ h4).2 ⟨C, v, hC4, hsep⟩, by simp⟩ ?_)
+    simp [hxy]
+  · -- the taxa of a set of `S` are in distinct 4-network blocks
+    intro hsb hy
+    obtain ⟨s, ⟨hsS, hxs⟩, hys⟩ := Set.mem_iUnion₂.1 hy
+    obtain ⟨hyx, hys⟩ := mem_erase.1 hys
+    obtain ⟨C, v, hC4, hsep⟩ := (hS s hsS.1).1 hsS
+    exact hsep.2.2.1 x hxs y hys (Ne.symm hyx)
+      (hsb.mono (Set.subset_sUnion_of_mem (show C ∈ cyclesOfSizeAtLeast _ 4 from ⟨hsep.1, hC4⟩)))
 
 /-- **The blocks, the size and the hybrid block of a cycle from `S`** (Lemma 15 at given parameters):
 for metric parameters at which the statement of Lemma 12 holds and `s ∈ S` determining the hybrid
