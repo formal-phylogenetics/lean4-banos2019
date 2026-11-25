@@ -2316,8 +2316,9 @@ theorem exists_isCycleType_of_isCycle {Q : RootedNetwork V E X} {θ : MetricData
 
 /-- **Base case of Proposition 5, the trees**: two LSA quartet networks without hybrid edges whose
 unrooted metric networks are isomorphic have species trees with the same unrooted metric tree. -/
-theorem sameUnrootedMetricTree_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem sameUnrootedMetricTree_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (ht : ∀ e, ¬ Q.IsHybridArc e) (ht' : ∀ e, ¬ Q'.IsHybridArc e)
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
@@ -2351,8 +2352,9 @@ theorem not_isHybridArc_of_forall_not_isCycle {N : RootedNetwork V E X}
 tree (`sameUnrootedMetricTree_of_sdMetricIso`), and by Proposition 3 of Allman, Degnan, Rhodes (2011)
 (`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`) the same distribution of
 unrooted gene trees. -/
-theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (h0 : ∀ D, ¬ IsCycle Q.graph D) (h0' : ∀ D, ¬ IsCycle Q'.graph D)
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
@@ -2396,8 +2398,9 @@ theorem isLSAQuartet_reduceNet_deleteArc {Q : RootedNetwork V E X} {θ : MetricD
 /-- **The unrooted networks of `Q₁⊕` and `Q̃₁⊕`** (proof of Proposition 5): deleting corresponding
 hybrid edges `h` and `φ h` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic
 metric unrooted networks. -/
-theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {h : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hh : hQ.unrooted.IsDirected h)
@@ -2415,8 +2418,9 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [F
 /-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
 2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
 unrooted networks. -/
-theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
@@ -2451,8 +2455,9 @@ theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
 nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
 edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. -/
-theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial}
@@ -2488,8 +2493,9 @@ Lemma 11): when the only cycle of `Q⊕` induces a `3₂`-cycle `D` of `Q⁻`, t
 node `v` has the two leaves `a`, `b` as children; the two lineages coalesce on the edge `c` from `v`
 to `u` with probability `1 - e^{-ℓ(c)}`, and given one lineage at `v` the cherry `{a, b}` decides the
 quartet tree. The length of `c` is that of the edge of `Q⁻` from `v` that is not hybrid. -/
-theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
