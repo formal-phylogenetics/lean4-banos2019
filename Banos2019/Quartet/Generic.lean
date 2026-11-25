@@ -66,8 +66,6 @@ theorem isGenericNull_union {A B : Set (MetricData E)} (hA : N.IsGenericNull A)
   rw [Set.union_eq_iUnion]
   exact isGenericNull_iUnion fun b => by cases b <;> assumption
 
-variable [Fintype V] [Fintype X]
-
 /-- A property implied by a generic property is generic. -/
 theorem ForGenericParams.mono {P P' : MetricData E → Prop} (h : ForGenericParams N P)
     (hP : ∀ θ, P θ → P' θ) : ForGenericParams N P' :=
@@ -82,7 +80,7 @@ theorem forGenericParams_of_forall {P : MetricData E → Prop} (h : ∀ θ, P θ
 theorem forGenericParams_iInter {ι : Type*} [Countable ι] {P : ι → MetricData E → Prop}
     (h : ∀ i, ForGenericParams N (P i)) : ForGenericParams N fun θ => ∀ i, P i θ := by
   refine isGenericNull_mono (isGenericNull_iUnion h) fun θ hθ => ?_
-  simp only [Set.mem_setOf_eq, not_forall] at hθ
+  simp only [Set.mem_ofPred_eq, not_forall] at hθ
   obtain ⟨i, hi⟩ := hθ
   exact Set.mem_iUnion.2 ⟨i, hi⟩
 
@@ -107,6 +105,8 @@ theorem isGenericNull_of_analyticOnNhd {F : MetricData E → ℝ}
   show F (coordMetric N d x.1 x.2) = 0
   rw [← eq_coordMetric hθ hℓ hg]
   exact hzero
+
+variable [Fintype V] [Fintype X]
 
 /-- Two concordance factors that differ at some valid parameters differ at generic parameters. -/
 theorem isGenericNull_nmscCF_eq {r r' : QuartetTree X} {θ₀ : MetricData E} (hθ₀ : N.IsMetric θ₀)

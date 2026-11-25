@@ -35,6 +35,12 @@ theorem Distinct4.card_eq (h : Distinct4 a b c d) : #({a, b, c, d} : Finset X) =
 theorem distinct4_of_card_eq (h : #({a, b, c, d} : Finset X) = 4) : Distinct4 a b c d :=
   ne_of_card_four h
 
+/-- Four distinct taxa, listed. -/
+theorem Distinct4.injective_vec (h : Distinct4 a b c d) : Function.Injective ![a, b, c, d] := by
+  obtain ⟨e₁, e₂, e₃, e₄, e₅, e₆⟩ := h
+  intro i j hij
+  fin_cases i <;> fin_cases j <;> simp at hij ⊢ <;> simp_all [eq_comm]
+
 @[simp] theorem quartetTree_val_eq (h : Distinct4 a b c d) :
     (quartetTree a b c d h).val = {{a, b}, {c, d}} := rfl
 
@@ -230,6 +236,13 @@ theorem isBCQuartet_acbd_iff (p : QuartetTree X → ℝ) (h : Distinct4 a b c d)
 
 end Triple
 
+/-- `q^BC` is unique. -/
+theorem IsBCQuartet.unique {X : Type*} [Fintype X] [DecidableEq X] {p : QuartetTree X → ℝ}
+    {s : Finset X} {q r : QuartetTree X} (hq : IsBCQuartet p s q) (hr : IsBCQuartet p s r) :
+    q = r := by
+  by_contra hne
+  exact lt_asymm (hq.2 r hr.1 (Ne.symm hne)) (hr.2 q hq.1 hne)
+
 /-- Treelikeness depends only on the ordering of the concordance factors. -/
 theorem isTreelikeOn_of_sameOrdering {X : Type*} [Fintype X] [DecidableEq X]
     {p p' : QuartetTree X → ℝ} (h : SameOrdering p p') {s : Finset X} (ht : IsTreelikeOn p' s) :
@@ -286,6 +299,18 @@ theorem isTreelikeOn_comp_map_iff (p : QuartetTree X → ℝ) :
   refine exists_congr fun q => and_congr_right fun _ => exists_congr fun r => and_congr_right fun _ => ?_
   exact and_congr ⟨fun H e => H (QuartetTree.map_injective Subtype.val_injective e),
     fun H e => H (congrArg _ e)⟩ (and_congr_right fun _ => ⟨fun H u hu => H u hu, fun H u hu => H hu⟩)
+
+theorem isBCQuartet_comp_map_iff (p : QuartetTree X → ℝ) (q : QuartetTree (s : Set X)) :
+    IsBCQuartet (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) q ↔
+      IsBCQuartet p s (q.map Subtype.val_injective) := by
+  unfold IsBCQuartet
+  rw [treesOn_eq_image s]
+  simp only [forall_mem_image]
+  refine and_congr ⟨fun h => mem_image_of_mem _ h, fun h => ?_⟩ (forall₂_congr fun r _ => ?_)
+  · obtain ⟨q', hq', e⟩ := mem_image.1 h
+    rwa [← QuartetTree.map_injective Subtype.val_injective e]
+  · exact ⟨fun H hrq => H fun e => hrq (congrArg _ e),
+      fun H hrq => H fun e => hrq (QuartetTree.map_injective Subtype.val_injective e)⟩
 
 theorem cyclePropertyOn_comp_map_iff (p : QuartetTree X → ℝ) :
     CyclePropertyOn (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) ↔

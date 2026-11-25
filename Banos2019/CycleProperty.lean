@@ -232,11 +232,11 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
         simp [halfMetric, hh]
       have hLA : ∑ e ∈ A, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B + 1 := by
         simp only [halfMetric, hℓdef]
-        rw [Finset.sum_congr rfl fun e he => if_pos he, Finset.sum_const, nsmul_eq_mul]
+        rw [Finset.sum_congr rfl fun e he => ite_eq_left he, Finset.sum_const, nsmul_eq_mul]
         field_simp
       have hLB : ∑ e ∈ B, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B := by
         simp only [halfMetric, hℓdef]
-        rw [Finset.sum_congr rfl fun e he => if_neg (Finset.disjoint_right.1 hAB he),
+        rw [Finset.sum_congr rfl fun e he => ite_eq_right (Finset.disjoint_right.1 hAB he),
           Finset.sum_const, nsmul_eq_mul, mul_one]
       have := ((horder _ hθw).2.2.1 heq)
       rw [hγ, hLA, hLB] at this
@@ -244,7 +244,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       linarith
     -- the parameters of `N` are null where those of `Q⊕_s` are (the map `ν`)
     refine isGenericNull_mono (isGenericNull_inducedMetric hN.1 _ hnull) fun θ hθ => ?_
-    simp only [Set.mem_setOf_eq, not_imp] at hθ
+    simp only [Set.mem_ofPred_eq, not_imp] at hθ
     obtain ⟨hθm, hnbc⟩ := hθ
     have hθs := quartetLSA_isMetricNetwork hN hθm hs
     refine ⟨hθm.1, hθs.1, ?_⟩
@@ -293,6 +293,45 @@ def AdjacentBlocks {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Se
   ∃ e ∈ C, ∃ u w, Joins G.graph e u w ∧ x ∈ nodeBlock G.graph G.leaf C u ∧
     y ∈ nodeBlock G.graph G.leaf C w
 
+/-- Around a 4-cycle `C` of `N⁻`, with nodes `u 0, …, u 3` in order, the blocks of `u i` and `u j` are
+adjacent exactly when `u i` and `u j` are consecutive: two nodes of a cycle are not joined by a walk
+avoiding it. -/
+theorem adjacentBlocks_iff_of_isCycleOf {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C)
+    {u : Fin 4 → _} {f : Fin 4 → _} (hcyc : IsCycleOf (unrooted N hN hX).graph 4 u f)
+    (hf : Set.range f = C) {i j : Fin 4} {x y : X}
+    (hx : x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C (u i))
+    (hy : y ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C (u j)) :
+    AdjacentBlocks (unrooted N hN hX) C x y ↔ j = finRotate 4 i ∨ i = finRotate 4 j := by
+  have hmem : ∀ k, u k ∈ cycleNodes (unrooted N hN hX).graph C := fun k => by
+    refine ⟨f k, hf ▸ ⟨k, rfl⟩, ?_⟩
+    rcases hcyc.joins k with ⟨h, -⟩ | ⟨-, h⟩
+    · exact Or.inl h
+    · exact Or.inr h
+  constructor
+  · rintro ⟨e, he, p, q, hj, hxp, hyq⟩
+    have hpn : p ∈ cycleNodes (unrooted N hN hX).graph C :=
+      ⟨e, he, by rcases hj with ⟨h, -⟩ | ⟨-, h⟩ <;> [exact Or.inl h; exact Or.inr h]⟩
+    have hqn : q ∈ cycleNodes (unrooted N hN hX).graph C :=
+      ⟨e, he, by rcases hj with ⟨-, h⟩ | ⟨h, -⟩ <;> [exact Or.inr h; exact Or.inl h]⟩
+    have hp : p = u i := eq_of_walks_compl_of_mem_cycleNodes hN h1 hX hC hpn (hmem i)
+      (DirectedMultigraph.walks_trans _ hxp (DirectedMultigraph.walks_symm _ hx))
+    have hq : q = u j := eq_of_walks_compl_of_mem_cycleNodes hN h1 hX hC hqn (hmem j)
+      (DirectedMultigraph.walks_trans _ hyq (DirectedMultigraph.walks_symm _ hy))
+    subst hp hq
+    obtain ⟨k, rfl⟩ := hf ▸ he
+    have hk := hcyc.joins k
+    have hinj := hcyc.injective_node
+    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩ <;> rcases hk with ⟨h₃, h₄⟩ | ⟨h₃, h₄⟩
+    · left; rw [hinj (h₁.symm.trans h₃)]; exact hinj (h₂.symm.trans h₄)
+    · right; rw [hinj (h₂.symm.trans h₄)]; exact hinj (h₁.symm.trans h₃)
+    · right; rw [hinj (h₁.symm.trans h₃)]; exact hinj (h₂.symm.trans h₄)
+    · left; rw [hinj (h₂.symm.trans h₄)]; exact hinj (h₁.symm.trans h₃)
+  · rintro (rfl | rfl)
+    · exact ⟨f i, hf ▸ ⟨i, rfl⟩, u i, u (finRotate 4 i), hcyc.joins i, hx, hy⟩
+    · exact ⟨f j, hf ▸ ⟨j, rfl⟩, u (finRotate 4 j), u j,
+        (hcyc.joins j).symm, hx, hy⟩
+
 /-- **Proposition 11** (`prop:isbc`): if `s = {a, b, c, d}` satisfies the Big Cycle property, so that
 `Q⁻_s` contains a 4-cycle `C_v`, then `q^BC_s = ac|bd` if and only if the `v`-blocks of `Q⁻_s` containing
 `a` and `c` are not adjacent. -/
@@ -303,7 +342,94 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
     (hC : IsCycle (quartetUnrooted N hN {a, b, c, d} hs).graph C) (hC4 : C.ncard = 4) :
     IsBCQuartet (cf N θ) {a, b, c, d} (quartetTree a c b d (distinct4_acbd habcd)) ↔
       ¬ AdjacentBlocks (quartetUnrooted N hN {a, b, c, d} hs) C ⟨a, by simp⟩ ⟨c, by simp⟩ := by
-  sorry
+  -- the decidable equalities are the classical ones, those of the results on quartet networks
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  let _ : DecidableEq (({a, b, c, d} : Finset X) : Set X) := fun a b => Classical.propDecidable (a = b)
+  have hQ := isLSAQuartet_quartetLSA hN h1 hθ hs
+  have hQb := quartetLSA_isBinaryRootedNetwork hN hs
+  -- by Corollary 2, `CF(Q) = CF(Q')`, and `Q'` is the network of Figure 17: equation (8)
+  obtain ⟨u, f, hcyc, hf, a', b', c', d', h', ha, hb, hc, hd, A, B, h, hA, hB, -, hh, hCF⟩ :=
+    cf_eq_fig17 hQ hC hC4
+  have hθs := quartetLSA_isMetricNetwork hN hθ hs
+  obtain ⟨hy₁, hy₂, -⟩ := fig17_order (inheritance_mem_Ioo hQb hθs hh).1
+    (inheritance_mem_Ioo hQb hθs hh).2 (Finset.sum_pos (fun e _ => hθs.2 e) hA)
+    (Finset.sum_pos (fun e _ => hθs.2 e) hB) (hCF _ hθs)
+  simp only [CF] at hy₁ hy₂
+  have huniv : ({a', b', c', d'} : Finset _) = univ :=
+    eq_univ_of_card _ (by rw [h'.card_eq]; simp [hs])
+  -- `q^BC_s = a'c'|b'd'`, the quartet of the blocks that are not adjacent
+  have hbcQ : IsBCQuartet (cf (quartetLSA N hN.1 {a, b, c, d} hs)
+      (quartetLSAMetric N hN {a, b, c, d} hs θ)) univ (quartetTree a' c' b' d' (distinct4_acbd h')) := by
+    rw [← huniv, isBCQuartet_acbd_iff _ h']
+    exact ⟨hy₁, hy₂⟩
+  rw [cf_quartetLSA hN h1 hθ hs] at hbcQ
+  -- the quartet tree `ac|bd` on the taxa of `Q⊕_s`
+  set x : (({a, b, c, d} : Finset X) : Set X) := ⟨a, by simp⟩
+  set y : (({a, b, c, d} : Finset X) : Set X) := ⟨c, by simp⟩
+  have hd4 : Distinct4 x ⟨b, by simp⟩ y ⟨d, by simp⟩ := by
+    obtain ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩ := habcd
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [x, y, Subtype.ext_iff, *]
+  have hmap : (quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4)).map
+      Subtype.val_injective = quartetTree a c b d (distinct4_acbd habcd) := by
+    apply Subtype.ext
+    simp [x, y, QuartetTree.map_val, quartetTree_val_eq]
+  rw [← hmap, ← isBCQuartet_comp_map_iff]
+  -- `q^BC_s = ac|bd` exactly when `{a, c}` is `{a', c'}` or `{b', d'}`
+  have h₁ : IsBCQuartet (fun q => cf N θ (q.map Subtype.val_injective)) univ
+      (quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4)) ↔
+      (({x, y} : Finset _) = {a', c'} ∨ ({x, y} : Finset _) = {b', d'}) := by
+    have hmemT : ({x, y} : Finset _) ∈ (quartetTree a' c' b' d' (distinct4_acbd h')).val ↔
+        ({x, y} : Finset _) = {a', c'} ∨ ({x, y} : Finset _) = {b', d'} := by
+      simp [quartetTree_val_eq]
+    rw [← hmemT]
+    constructor
+    · intro hq
+      rw [← hq.unique hbcQ]
+      simp [quartetTree_val_eq]
+    · intro hm
+      have hq : quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4) =
+          quartetTree a' c' b' d' (distinct4_acbd h') := by
+        have t₁ : (quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4)).taxa = univ := by
+          rw [quartetTree_taxa_eq]
+          exact eq_univ_of_card _ (by rw [(distinct4_acbd hd4).card_eq]; simp [hs])
+        have t₂ : (quartetTree a' c' b' d' (distinct4_acbd h')).taxa = univ := by
+          rw [quartetTree_taxa_eq]
+          exact eq_univ_of_card _ (by rw [(distinct4_acbd h').card_eq]; simp [hs])
+        exact quartetTree_eq_of_mem (t₁.trans t₂.symm) (by simp [quartetTree_val_eq]) hm
+      rw [hq]
+      exact hbcQ
+  -- the blocks of `a, c` are adjacent exactly when their nodes are consecutive on `C`
+  set L : Fin 4 → (({a, b, c, d} : Finset X) : Set X) := ![a', b', c', d'] with hLdef
+  have hL : Function.Injective L := h'.injective_vec
+  have hrange : ∀ z, ∃ i, L i = z := fun z => by
+    have : z ∈ ({a', b', c', d'} : Finset _) := huniv ▸ mem_univ z
+    simp only [mem_insert, mem_singleton] at this
+    rcases this with rfl | rfl | rfl | rfl
+    exacts [⟨0, rfl⟩, ⟨1, rfl⟩, ⟨2, rfl⟩, ⟨3, rfl⟩]
+  have hLB : ∀ i, L i ∈ nodeBlock hQ.unrooted.graph hQ.unrooted.leaf C (u i) := by
+    intro i
+    fin_cases i
+    exacts [ha, hb, hc, hd]
+  obtain ⟨i, hi⟩ := hrange x
+  obtain ⟨j, hj⟩ := hrange y
+  have hxy : x ≠ y := fun e => habcd.2.1 (congrArg Subtype.val e)
+  have hij : i ≠ j := fun e => hxy (hi ▸ hj ▸ congrArg L e)
+  have h₂ := adjacentBlocks_iff_of_isCycleOf hQb (quartetLSA_isLevelOne hN h1 hs) hQ.nontrivial hC
+    hcyc hf (hi ▸ hLB i) (hj ▸ hLB j)
+  rw [h₁, h₂, ← hi, ← hj]
+  have hpair : ∀ i j k l : Fin 4,
+      ({L i, L j} : Finset (({a, b, c, d} : Finset X) : Set X)) = {L k, L l} ↔
+        (i = k ∧ j = l ∨ i = l ∧ j = k) := by
+    intro i j k l
+    rw [← Finset.coe_inj]
+    push_cast
+    rw [Set.pair_eq_pair_iff, hL.eq_iff, hL.eq_iff, hL.eq_iff, hL.eq_iff]
+  rw [show a' = L 0 from rfl, show b' = L 1 from rfl, show c' = L 2 from rfl,
+    show d' = L 3 from rfl, hpair, hpair]
+  have key : ∀ i j : Fin 4, i ≠ j →
+      (((i = 0 ∧ j = 2 ∨ i = 2 ∧ j = 0) ∨ i = 1 ∧ j = 3 ∨ i = 3 ∧ j = 1) ↔
+        ¬(j = finRotate 4 i ∨ i = finRotate 4 j)) := by decide
+  exact key i j hij
 
 /-- The cycle `C` of `N⁻`, with hybrid node `v`, separates the taxa of `s`: they are in four distinct
 `v`-blocks, and one of them is in the hybrid block (descends from `v`). -/
