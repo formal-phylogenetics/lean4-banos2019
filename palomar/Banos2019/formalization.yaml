@@ -106,7 +106,7 @@ automation:
       framework: "Claude Code 2.1.331 (VS Code extension)"
       tool_setup: "formalize-math-paper skill (https://github.com/vltanh/formalize-math-paper), version 4.6.3, under the conventions of lean4-phylogenetics; one session with 53 sub-agents on this paper, at most 8 at once."
       cost:
-        wall_time: "10.11 h elapsed, from 2026-11-24 18:29 (UTC-6) to 2026-11-25 04:35, including the session's coordination of work on other repositories of the collection; 39.6 h of sub-agent work on this paper."
+        wall_time: "10.12 h elapsed, from 2026-11-24 18:29 (UTC-6) to the commit that completes the report, 2026-11-25 04:36 (e9d35aa), including the session's coordination of work on other repositories of the collection; 39.7 h of sub-agent work on this paper."
         spend_usd: "not tracked"
         hardware: "local machine"
       prompting_notes: "The maintainer asked for the paper to be formalized with the skill under the collection's conventions, and decided the layout, the libraries, and the correction of Proposition 13 with a refutation of the printed statement."
