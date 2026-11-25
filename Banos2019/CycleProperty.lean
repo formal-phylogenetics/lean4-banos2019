@@ -2,6 +2,7 @@ module
 
 public import Banos2019.Quartet.Correspondence
 public import Banos2019.Quartet.Fig18
+public import Banos2019.Quartet.Remove
 public import Banos2019.Quartet.Generic
 
 /-!
@@ -31,13 +32,168 @@ variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 def IsTwoOrThreeOne (Q : RootedNetwork V E X) (C : Set E) : Prop :=
   ∃ v, (∃ k, InducesCycleType Q C v 2 k) ∨ InducesCycleType Q C v 3 1
 
+/-- The two hybrid edges of the hybrid node of a cycle. -/
+theorem exists_hybrid_edges {Q : RootedNetwork V E X} {C : Set E} {v : V} {n k : ℕ}
+    (hC : InducesCycleType Q C v n k) :
+    ∃ h₁ h₂, h₁ ≠ h₂ ∧ Q.graph.target h₁ = v ∧ Q.graph.target h₂ = v ∧ Q.IsHybridArc h₁ := by
+  have h2 := hC.2.2.1
+  rw [indegree_eq_card_filter] at h2
+  obtain ⟨h₁, h₂, hne, he⟩ := Finset.card_eq_two.1 h2
+  have m₁ : h₁ ∈ univ.filter fun e => Q.graph.target e = v := he ▸ mem_insert_self _ _
+  have m₂ : h₂ ∈ univ.filter fun e => Q.graph.target e = v :=
+    he ▸ mem_insert_of_mem (mem_singleton_self _)
+  have t₁ := (mem_filter.1 m₁).2
+  refine ⟨h₁, h₂, hne, t₁, (mem_filter.1 m₂).2, ?_⟩
+  unfold IsHybridArc
+  rw [t₁, hC.2.2.1]
+
+/-- The cycles of `Q⊕` in the induction of the proof of Proposition 6: no `3₂`-cycle, no 4-cycle,
+and, after Corollary 2, no `2₁`- or `2₃`-cycle. -/
+def OnlyTwoTwoThreeOne (Q : RootedNetwork V E X) : Prop :=
+  (¬ ∃ C v, InducesCycleType Q C v 3 2) ∧ (¬ ∃ C v k, InducesCycleType Q C v 4 k) ∧
+    (¬ ∃ C v, InducesCycleType Q C v 2 1) ∧ ¬ ∃ C v, InducesCycleType Q C v 2 3
+
+theorem SameCyclesBut.onlyTwoTwoThreeOne {V' E' : Type*} {Q' : RootedNetwork V' E' X}
+    {Q : RootedNetwork V E X} {P : Set E → Prop} (h : SameCyclesBut Q' Q P)
+    (hK : OnlyTwoTwoThreeOne Q) : OnlyTwoTwoThreeOne Q' :=
+  ⟨h.not_exists hK.1, fun ⟨C, v, k, hC⟩ => h.not_exists (fun ⟨C', v', h'⟩ => hK.2.1 ⟨C', v', k, h'⟩)
+    ⟨C, v, hC⟩, h.not_exists hK.2.2.1, h.not_exists hK.2.2.2⟩
+
+/-- **The induction of the proof of Proposition 6**: if `Q⁻` has only `2₂`- and `3₁`-cycles, its
+concordance factors are ordered as the quartet tree of any of its cut edges between two pairs of taxa.
+With no cycle, `Q` is a tree (equation (1)); otherwise Lemmas 9 and 10 write the concordance factors
+of `Q` as a convex combination of those of networks with one cycle fewer and the same cut edges. -/
+theorem treeOrdered_of_onlyTwoTwoThreeOne (n : ℕ) :
+    ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
+      IsLSAQuartet Q θ → numCycles Q = n → OnlyTwoTwoThreeOne Q →
+      ∀ A : Finset X, #A = 2 → Q.HasCutSplit ↑A → TreeOrdered (cf Q θ) A := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro V' E' _ _ Q θ hQ hn hK A hA hcut
+  by_cases h0 : numCycles Q = 0
+  · -- no cycle: by Corollary 2, which contracts nothing, `Q` is the tree `Q'`; equation (1)
+    have hnone : ∀ C, ¬ IsCycle Q.graph C := fun C hC => by
+      have := Set.ncard_eq_zero (s := {C | IsCycle Q.graph C}) (finite_setOf_isCycle _)
+      exact (this.1 h0 ▸ hC : C ∈ (∅ : Set (Set E')))
+    have hP : IsTwoOneOrThree Q =
+        fun C => ∃ v, (∃ k, InducesCycleType Q C v 2 k) ∨ InducesCycleType Q C v 3 1 := by
+      funext C
+      apply propext
+      constructor
+      · rintro ⟨v, h | h⟩ <;> exact absurd h.1 (hnone C)
+      · rintro ⟨v, ⟨k, h⟩ | h⟩ <;> exact absurd h.1 (hnone C)
+    obtain ⟨σ, -, hσcut, hcf⟩ := exists_speciesTree_contractRooted hQ hK.1 hK.2.1 _ hP
+    rw [corollary2 hQ, hcf]
+    exact treeOrdered_quartetProb hQ.card_taxa σ hA ((hσcut A hA).1 hcut)
+  · -- a cycle, which is a `2₂`- or a `3₁`-cycle
+    obtain ⟨C, hC⟩ := Set.nonempty_of_ncard_ne_zero h0
+    obtain ⟨v, m, k, hCt⟩ := exists_inducesCycleType_of_isCycle hQ hC
+    obtain ⟨h₁, h₂, hne, hh₁, hh₂, hyb⟩ := exists_hybrid_edges hCt
+    obtain ⟨hγ₀, hγ₁⟩ := inheritance_mem_Ioo hQ.binary hQ.metric hyb
+    rcases inducesCycleType_cases hQ hCt with ⟨rfl, hk₁, hk₃⟩ | ⟨rfl, hk⟩ | ⟨rfl, rfl⟩
+    · have hk : k = 2 := by
+        rcases (by omega : k = 1 ∨ k = 2 ∨ k = 3) with rfl | rfl | rfl
+        · exact absurd ⟨C, v, hCt⟩ hK.2.2.1
+        · rfl
+        · exact absurd ⟨C, v, hCt⟩ hK.2.2.2
+      subst hk
+      -- Lemma 9, and the three networks with one cycle fewer
+      obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, hlt₁, hs₁, hc₁⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inl hCt) hh₂
+      obtain ⟨V₂, E₂, _, _, Q₂, θ₂, hQ₂, hcf₂, hlt₂, hs₂, hc₂⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inl hCt) hh₁
+      obtain ⟨V₀, E₀, _, _, Q₀, θ₀, hQ₀, hcf₀, hlt₀, hs₀, hc₀⟩ :=
+        exists_lsaQuartet_contractRooted hQ hCt
+      have t₁ := ih _ (hn ▸ hlt₁) hQ₁ rfl (hs₁.onlyTwoTwoThreeOne hK) A hA ((hc₁ A hA).2 hcut)
+      have t₂ := ih _ (hn ▸ hlt₂) hQ₂ rfl (hs₂.onlyTwoTwoThreeOne hK) A hA ((hc₂ A hA).2 hcut)
+      have t₀ := ih _ (hn ▸ hlt₀) hQ₀ rfl (hs₀.onlyTwoTwoThreeOne hK) A hA ((hc₀ A hA).2 hcut)
+      have hcfQ : cf Q θ = fun q => θ.inheritance h₁ ^ 2 * cf Q₁ θ₁ q +
+          (1 - θ.inheritance h₁) ^ 2 * cf Q₂ θ₂ q +
+          2 * θ.inheritance h₁ * (1 - θ.inheritance h₁) * cf Q₀ θ₀ q := by
+        funext q
+        rw [lemma9 hQ hCt hne hh₁ hh₂ q, hcf₁, hcf₂, hcf₀]
+      rw [hcfQ]
+      exact TreeOrdered.add₃ t₁ t₂ t₀ (by positivity) (pow_pos (by linarith) 2)
+        (by have : 0 < 1 - θ.inheritance h₁ := by linarith
+            positivity)
+    · have hk1 : k = 1 := by
+        rcases hk with rfl | rfl
+        · rfl
+        · exact absurd ⟨C, v, hCt⟩ hK.1
+      subst hk1
+      -- Lemma 10, and the two networks with one cycle fewer
+      obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, hlt₁, hs₁, hc₁⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inr hCt) hh₂
+      obtain ⟨V₂, E₂, _, _, Q₂, θ₂, hQ₂, hcf₂, hlt₂, hs₂, hc₂⟩ :=
+        exists_lsaQuartet_deleteArc hQ (Or.inr hCt) hh₁
+      have t₁ := ih _ (hn ▸ hlt₁) hQ₁ rfl (hs₁.onlyTwoTwoThreeOne hK) A hA ((hc₁ A hA).2 hcut)
+      have t₂ := ih _ (hn ▸ hlt₂) hQ₂ rfl (hs₂.onlyTwoTwoThreeOne hK) A hA ((hc₂ A hA).2 hcut)
+      have hcfQ : cf Q θ = fun q => θ.inheritance h₁ * cf Q₁ θ₁ q +
+          (1 - θ.inheritance h₁) * cf Q₂ θ₂ q := by
+        funext q
+        rw [lemma10 hQ (Or.inr hCt) hne hh₁ hh₂ q, hcf₁, hcf₂]
+      rw [hcfQ]
+      exact TreeOrdered.add t₁ t₂ hγ₀ (by linarith)
+    · exact absurd ⟨C, v, 1, hCt⟩ hK.2.1
+
 /-- **Proposition 6** (`prop:Cfspreserv`): if `Q⁻` has no `3₂`-cycle, the ordering of `CF(Q)` is that of
 `CF(Q')`, where `Q'` is obtained by contracting all 2-cycles and all `3₁`-cycles. -/
 theorem proposition6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2) :
     SameOrdering (cf Q θ)
       (cf (contractRooted Q (IsTwoOrThreeOne Q)) (contractMetric Q (IsTwoOrThreeOne Q) θ)) := by
-  sorry
+  -- Corollary 2: `CF(Q) = CF(Q*)`, `Q*` without the `2₁`- and `2₃`-cycles
+  have hc2 := corollary2 hQ
+  by_cases h4 : ∃ C v k, InducesCycleType Q C v 4 k
+  · -- with a 4-cycle there is no `3₁`-cycle (Lemma 5) and no `2₂`-cycle (Lemma 6): `Q' = Q*`
+    obtain ⟨C₄, v₄, k₄, hC₄⟩ := h4
+    have hk₄ : k₄ = 1 := by rcases inducesCycleType_cases hQ hC₄ with h | h | h <;> omega
+    subst hk₄
+    obtain ⟨D₄, hD₄⟩ := (inducesCycleType_iff hQ 4 1).1 ⟨C₄, v₄, hC₄⟩
+    have hP : IsTwoOrThreeOne Q = IsTwoOneOrThree Q := by
+      funext C
+      apply propext
+      constructor
+      · rintro ⟨v, ⟨k, hk⟩ | h31⟩
+        · rcases inducesCycleType_cases hQ hk with ⟨-, hk1, hk3⟩ | ⟨h, -⟩ | ⟨h, -⟩
+          · rcases (by omega : k = 1 ∨ k = 2 ∨ k = 3) with rfl | rfl | rfl
+            · exact ⟨v, Or.inl hk⟩
+            · obtain ⟨D₂, hD₂⟩ := (inducesCycleType_iff hQ 2 2).1 ⟨C, v, hk⟩
+              exact absurd ⟨⟨D₂, hD₂⟩, ⟨D₄, hD₄⟩⟩ (lemma6 hQ).2
+            · exact ⟨v, Or.inr hk⟩
+          · omega
+          · omega
+        · obtain ⟨D₃, hD₃⟩ := (inducesCycleType_iff hQ 3 1).1 ⟨C, v, h31⟩
+          exact absurd hD₃.2.1 ((lemma5 hQ).2.2.1 ⟨D₄, hD₄.1, hD₄.2.1⟩ D₃ hD₃.1)
+      · rintro ⟨v, h | h⟩
+        · exact ⟨v, Or.inl ⟨1, h⟩⟩
+        · exact ⟨v, Or.inl ⟨3, h⟩⟩
+    rw [hP, ← hc2]
+    exact fun q r _ => Iff.rfl
+  · -- `Q'` is a tree with an internal edge, whose split is that of a cut edge of `Q⊕`
+    obtain ⟨σ, ⟨a, b, c, d, habcd, hsplit⟩, hσcut, hcf⟩ :=
+      exists_speciesTree_contractRooted hQ h32 h4 (IsTwoOrThreeOne Q) rfl
+    -- after Corollary 2, the cycles are `2₂`- and `3₁`-cycles: by induction on their number, the
+    -- concordance factors are ordered as the quartet tree of that cut edge
+    obtain ⟨V', E', _, _, Q', θ', hQ', hcf', hsame, hcut'⟩ := exists_lsaQuartet_of_corollary2 hQ
+    have hK : OnlyTwoTwoThreeOne Q' := by
+      refine ⟨hsame.not_exists h32, fun ⟨C, v, k, hC⟩ =>
+        hsame.not_exists (fun ⟨C', v', h'⟩ => h4 ⟨C', v', k, h'⟩) ⟨C, v, hC⟩, ?_, ?_⟩
+      · rintro ⟨C, v, hC⟩
+        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC)
+        rw [hC.2.2.2.2] at hC'
+        exact hnot ⟨v', Or.inl hC'⟩
+      · rintro ⟨C, v, hC⟩
+        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC)
+        rw [hC.2.2.2.2] at hC'
+        exact hnot ⟨v', Or.inr hC'⟩
+    have hA : #({a, b} : Finset X) = 2 := card_pair habcd.1
+    have hcutQ : Q.HasCutSplit ↑({a, b} : Finset X) := (hσcut _ hA).2 hsplit
+    have t := treeOrdered_of_onlyTwoTwoThreeOne _ hQ' rfl hK _ hA ((hcut' _ hA).2 hcutQ)
+    rw [hcf', ← hc2] at t
+    rw [hcf]
+    -- equation (1): `Q'` and `Q` have the ordering of the quartet tree `ab|cd`
+    exact t.sameOrdering hQ.card_taxa (treeOrdered_quartetProb hQ.card_taxa σ hA hsplit)
 
 /-- The probability simplex `Δ₂`. -/
 def simplex2 : Set (ℝ × ℝ × ℝ) := {p | 0 ≤ p.1 ∧ 0 ≤ p.2.1 ∧ 0 ≤ p.2.2 ∧ p.1 + p.2.1 + p.2.2 = 1}
@@ -163,7 +319,7 @@ theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   by_contra hno
   obtain ⟨h32, h4⟩ := not_or.1 hno
   -- without a `3₂`-cycle or a 4-cycle, `Q'` is a tree, whose concordance factors are treelike
-  obtain ⟨σ, a, b, c, d, habcd, hsplit, hcf⟩ :=
+  obtain ⟨σ, ⟨a, b, c, d, habcd, hsplit⟩, -, hcf⟩ :=
     exists_speciesTree_contractRooted hQ h32 h4 (IsTwoOrThreeOne Q) rfl
   have huniv : ({a, b, c, d} : Finset X) = univ :=
     eq_univ_of_card _ (by rw [habcd.card_eq, hQ.card_taxa])

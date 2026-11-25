@@ -124,12 +124,14 @@ theorem IsLSAQuartet.ofMetric {Q : RootedNetwork V E X} {θ θ' : MetricData E}
 a 4-cycle, its cycles are `2`-cycles and `3₁`-cycles, so contracting them leaves no cycle. The
 concordance factors of the tree `Q'` are those of a species tree, the tree obtained by suppressing its
 nodes of degree two, which has an internal edge: the contracted cycles of `Q⁻` do not separate the
-four taxa into four blocks. -/
+four taxa into four blocks. The splits of two pairs of taxa of this species tree are those of the cut
+edges of `Q⊕`: its edges are those of `Q⊕` on no cycle. -/
 theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2)
     (h4 : ¬ ∃ C v k, InducesCycleType Q C v 4 k) (P : Set E → Prop)
     (hP : P = fun C => ∃ v, (∃ k, InducesCycleType Q C v 2 k) ∨ InducesCycleType Q C v 3 1) :
-    ∃ (σ : SpeciesTree X) (a b c d : X) (_ : Distinct4 a b c d), {a, b} ∈ unroot σ.clusters ∧
+    ∃ σ : SpeciesTree X, (∃ (a b c d : X) (_ : Distinct4 a b c d), {a, b} ∈ unroot σ.clusters) ∧
+      (∀ A : Finset X, #A = 2 → (Q.HasCutSplit ↑A ↔ A ∈ unroot σ.clusters)) ∧
       cf (contractRooted Q P) (contractMetric Q P θ) = External.AllmanDegnanRhodes2011.quartetProb σ := by
   sorry
 
