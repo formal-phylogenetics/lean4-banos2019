@@ -136,8 +136,59 @@ import all Phylogenetics.Tree.Splice
 import all Phylogenetics.Tree.Splits
 import all Phylogenetics.Tree.SplitsEquivalence
 import all Phylogenetics.Tree.XTree
+import all Allman2011.AppendixA
+import all Allman2011.AppendixC.Ac1Classes
+import all Allman2011.AppendixC.FiveTaxa
+import all Allman2011.AppendixC.Shapes
+import all Allman2011.AppendixC.StarOneSplit
+import all Allman2011.AppendixC.Tables
+import all Allman2011.AppendixC.TwoSplits
+import all Allman2011.Basic.Algebra.BigOperators.Group.List
+import all Allman2011.Basic.Analysis.SpecialFunctions.Exp
+import all Allman2011.Basic.Data.Fin.Basic
+import all Allman2011.Basic.Data.Finset.Basic
+import all Allman2011.Basic.Data.Fintype.Sigma
+import all Allman2011.Basic.Data.Nat.Bitwise
+import all Allman2011.Basic.Order.Interval.Finset.Nat
+import all Allman2011.Bridge
+import all Allman2011.Defs
+import all Allman2011.Discussion
+import all Allman2011.External.Cayley1857.Shapes
+import all Allman2011.External.Steel1992.Quartets
+import all Allman2011.External.Tavare1984.Formula
+import all Allman2011.FiveTaxa.Balanced
+import all Allman2011.FiveTaxa.Basic
+import all Allman2011.FiveTaxa.Caterpillar
+import all Allman2011.FiveTaxa.Explanations
+import all Allman2011.FiveTaxa.Lemma4
+import all Allman2011.FiveTaxa.Pseudocaterpillar
+import all Allman2011.FourTaxa.Analysis
+import all Allman2011.FourTaxa.Formulas
+import all Allman2011.FourTaxa.Proposition3
+import all Allman2011.Identifiability.Corollary10
+import all Allman2011.Identifiability.Corollary6
+import all Allman2011.Identifiability.FiveTaxa.Binary
+import all Allman2011.Identifiability.FiveTaxa.Classes
+import all Allman2011.Identifiability.FiveTaxa.Common
+import all Allman2011.Identifiability.Lemma5
+import all Allman2011.Identifiability.Proposition8
+import all Allman2011.Identifiability.Quartets
+import all Allman2011.Identifiability.Theorem9
+import all Allman2011.Introduction.Equation1
+import all Allman2011.Introduction.Proposition1
+import all Allman2011.Model
+import all Allman2011.Nonbinary.FourTaxa
+import all Allman2011.Nonbinary.Limits
+import all Allman2011.Nonbinary.Proposition11
+import all Allman2011.Nonbinary.Theorem9
+import all Allman2011.Nonbinary.Triples
+import all Allman2011.Nonbinary.Unrooted
+import all Allman2011.Rootings.Proofs
+import all Allman2011.Rootings.Statements
+import all Allman2011.Rootings.Support
 import all PhyloNetwork
 import all Banos2019.Basic.Analysis.AnalyticZeroSet
+import all Banos2019.Basic.Data.Set.Card
 import all Banos2019.Basic.Logic.EquivOfInjective
 import all Banos2019.Basic.Logic.RelationSymm
 import all Banos2019.Basic.Order.FiniteTotal
@@ -159,19 +210,27 @@ import all Banos2019.Network.Rooted
 import all Banos2019.Network.SDPath
 import all Banos2019.Network.Semidirected
 import all Banos2019.Network.SemidirectedDesc
+import all Banos2019.Network.Suppress
 import all Banos2019.Network.SuppressIso
 import all Banos2019.Network.TrekArc
 import all Banos2019.Network.TrekEdges
+import all Banos2019.Quartet.Concrete
 import all Banos2019.Quartet.Conditioning
 import all Banos2019.Quartet.Contract
 import all Banos2019.Quartet.Correspondence
+import all Banos2019.Quartet.CycleBlocks
 import all Banos2019.Quartet.Defs
 import all Banos2019.Quartet.Examples
+import all Banos2019.Quartet.Fig15
+import all Banos2019.Quartet.Fig16
+import all Banos2019.Quartet.Fig17
 import all Banos2019.Quartet.Fig18
 import all Banos2019.Quartet.Generic
+import all Banos2019.Quartet.HybridGlue
 import all Banos2019.Quartet.Normal
 import all Banos2019.Quartet.Reduction
 import all Banos2019.Quartet.Remove
+import all Banos2019.Quartet.SemidirectedCycles
 import all Banos2019.Quartet.Transfer
 import all Banos2019.Quartet.Trees
 import all Banos2019.Solution
@@ -287,7 +346,7 @@ the paper's library and the Solution), but not the Challenge. With several paper
 `` (`ProjectName).isPrefixOf m || [`PaperA.Solution, `PaperB.Solution].contains m ``. -/
 meta def isLibraryModule (m : Name) : Bool :=
   ((`Banos2019).isPrefixOf m && m != `Banos2019.Challenge) || (`Phylogenetics).isPrefixOf m ||
-    (`PhyloNetwork).isPrefixOf m
+    (`PhyloNetwork).isPrefixOf m || (`Allman2011).isPrefixOf m
 
 /-- The constants declared in the library. -/
 meta def libraryConstants (env : Environment) : NameSet := Id.run do
