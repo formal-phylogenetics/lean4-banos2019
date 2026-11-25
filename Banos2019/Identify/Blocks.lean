@@ -10,10 +10,10 @@ and each component holds at least one taxon: the blocks of `C` are the taxa of t
 block for each node of `C`, and the block of the hybrid node is the set of taxa descending from it. The
 proofs of Sections 8 and 9 use these facts throughout, without stating them.
 
-* `unrooted_isConnected`, `unrooted_isLevelOne`: `N⁻` is connected and level-1.
+* `isConnected_unrooted_graph`, `unrooted_isLevelOne`: `N⁻` is connected and level-1.
 * `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has exactly
   one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
-* `ncard_cycleNodes`: a cycle of size `k` has `k` nodes.
+* `ncard_cycleNodes_of_isCycle`: a cycle of size `k` has `k` nodes.
 * `blockNode G C x`: the node of `C` whose block contains `x`; `sameBlock_iff_blockNode_eq`,
   `exists_blockNode_eq`, `blockNode_eq_iff_descendsFrom`.
 * `separatesQuartet_iff`: the cycle `C` separates `s` when `blockNode` is injective on `s` and sends a
@@ -39,7 +39,7 @@ section Multigraph
 variable {G : DirectedMultigraph V E}
 
 /-- A cycle of size `k` has `k` nodes. -/
-theorem ncard_cycleNodes {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).ncard = C.ncard := by
+theorem ncard_cycleNodes_of_isCycle {C : Set E} (hC : IsCycle G C) : (cycleNodes G C).ncard = C.ncard := by
   obtain ⟨k, v, e, hC, rfl⟩ := hC
   have hnodes : cycleNodes G (Set.range e) = Set.range v := by
     ext u
@@ -70,7 +70,7 @@ theorem SameBlock.mono {ℓ : X → V} {D D' : Set E} (hD : D ⊆ D') {x y : X}
 /-- A cycle has a node outside a set with fewer elements than the size of the cycle. -/
 theorem IsCycle.exists_mem_cycleNodes_notMem {C : Set E} (hC : IsCycle G C) {F : Set V}
     (hF : F.Finite) (h : F.ncard < C.ncard) : ∃ u ∈ cycleNodes G C, u ∉ F :=
-  Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes hC]) hF
+  Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes_of_isCycle hC]) hF
 
 /-- **In a connected graph, every node is joined to a node of a cycle `C` by a walk avoiding the edges
 of `C`**: along a walk to a node of `C`, stop at the first node of `C`. -/
@@ -157,7 +157,7 @@ section Unrooted
 variable {N : RootedNetwork V E X}
 
 /-- **`N⁻` is connected.** -/
-theorem unrooted_isConnected (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) :
+theorem isConnected_unrooted_graph (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) :
     (unrooted N hN hX).graph.IsConnected := by
   sorry
 
@@ -235,7 +235,7 @@ theorem blockNode_spec {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (x 
     blockNode (unrooted N hN hX) C x ∈ cycleNodes (unrooted N hN hX).graph C ∧
       x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C
         (blockNode (unrooted N hN hX) C x) := by
-  obtain ⟨u, hu, hux⟩ := exists_walks_compl_of_isConnected (unrooted_isConnected hN hX) hC
+  obtain ⟨u, hu, hux⟩ := exists_walks_compl_of_isConnected (isConnected_unrooted_graph hN hX) hC
     ((unrooted N hN hX).leaf x)
   exact Classical.epsilon_spec (p := fun u => u ∈ cycleNodes (unrooted N hN hX).graph C ∧
     x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u) ⟨u, hu, hux⟩
@@ -344,7 +344,7 @@ theorem four_le_ncard_of_separatesQuartet (h1 : IsLevelOne N.graph) {C : Set _}
     4 ≤ C.ncard := by
   have := hN.1.finite_vertices
   have hinj := ((separatesQuartet_iff h1 hC hv s).1 hsep).1
-  rw [← ncard_cycleNodes hC, ← hs, ← Set.ncard_coe_finset, ← hinj.ncard_image]
+  rw [← ncard_cycleNodes_of_isCycle hC, ← hs, ← Set.ncard_coe_finset, ← hinj.ncard_image]
   refine Set.ncard_le_ncard ?_ (Set.toFinite _)
   rintro _ ⟨x, -, rfl⟩
   exact blockNode_mem hC x
