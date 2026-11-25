@@ -1,6 +1,7 @@
 module
 
-public import Banos2019.Quartet.Reduction
+public import Banos2019.Quartet.Transfer
+public import Banos2019.Quartet.Generic
 
 /-!
 # The Cycle property and the Big Cycle property (Baños 2019, Sections 6 and 7)
@@ -73,7 +74,19 @@ theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
 contains a 4-cycle. -/
 theorem proposition9 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (hbc : BigCycleOn (cf Q θ) univ) : ∃ C v k, InducesCycleType Q C v 4 k := by
-  sorry
+  -- the Big Cycle property implies the Cycle property
+  have hcp : CyclePropertyOn (cf Q θ) univ := fun ⟨q, hq, r, hr, hqr, he, _⟩ => hbc q hq r hr hqr he
+  -- Proposition 8: a `3₂`-cycle or a 4-cycle
+  refine (proposition8 hQ hcp).resolve_left fun h32 => ?_
+  -- Proposition 7: with a `3₂`-cycle, two concordance factors are equal
+  obtain ⟨a, b, c, d, habcd, huniv⟩ := exists_distinct4_univ hQ.card_taxa
+  have hI := (proposition7 (V := V) (E := E) hQ.card_taxa habcd).1 hQ h32
+  rw [← huniv, bigCycleOn_iff_triple _ habcd] at hbc
+  obtain ⟨h₁, h₂, h₃⟩ := hbc
+  rcases hI.2 with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩
+  · exact h₃ h
+  · exact h₂ h
+  · exact h₁ h
 
 /-- `Q⁻_s` has a 4-cycle. -/
 def HasFourCycle (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
@@ -98,7 +111,15 @@ if and only if `Q⁻_s` has a 4-cycle. -/
 theorem theorem3 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {s : Finset X} (hs : #s = 4) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → (BigCycleOn (cf N θ) s ↔ HasFourCycle N hN s hs) := by
-  sorry
+  by_cases h4 : HasFourCycle N hN s hs
+  · -- Proposition 10: with a 4-cycle, the Big Cycle property holds generically
+    exact (proposition10 hN h1 hs h4).2.mono fun θ h hθ => ⟨fun _ => h4, fun _ => h hθ⟩
+  · -- Proposition 9: the Big Cycle property gives a 4-cycle, for all parameters
+    refine forGenericParams_of_forall fun θ hθ => ⟨fun hbc => ?_, fun h => absurd h h4⟩
+    have hbc' : BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+      rw [cf_quartetLSA hN h1 hθ hs, bigCycleOn_comp_map_iff]
+      exact hbc
+    exact proposition9 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hbc')
 
 /-- **Corollary 4** (`cor::Cpgen`): for generic numerical parameters, if `s` satisfies the Cycle property
 but not the Big Cycle property, `Q⁻_s` contains a `3₂`-cycle. -/
@@ -106,7 +127,14 @@ theorem corollary4 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 
     {s : Finset X} (hs : #s = 4) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s →
       ¬ BigCycleOn (cf N θ) s → HasThreeTwoCycle N hN s hs := by
-  sorry
+  -- Theorem 3: generically, no Big Cycle property means no 4-cycle
+  refine (theorem3 hN h1 hs).mono fun θ h hθ hcp hnbc => ?_
+  have hn4 : ¬ HasFourCycle N hN s hs := fun h4 => hnbc ((h hθ).2 h4)
+  -- Proposition 8: the Cycle property gives a `3₂`-cycle or a 4-cycle
+  have hcp' : CyclePropertyOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+    rw [cf_quartetLSA hN h1 hθ hs, cyclePropertyOn_comp_map_iff]
+    exact hcp
+  exact (proposition8 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hcp')).resolve_right hn4
 
 /-- The blocks of the cycle `C` of a semidirected network containing the taxa `x` and `y` are adjacent:
 the nodes of `C` they are associated with are joined by an edge of `C`. -/
