@@ -196,8 +196,10 @@ the induced LSA network on `Y`, as `Q⁻_s` is for quartets (Section 5): the two
 The proof fills the following steps, which the paper does not give, along its lines.
 
 * The networks induced on sets of taxa satisfy the generic conditions: their concordance factors are
-  those of `N` on their taxa (Theorem 2), so the statement of Lemma 12 and the non-degeneracy pass
-  to them (`goodParams_inducedLSA`), and so do the same orderings (`sameOrdering_inducedLSA`).
+  those of `N` on their taxa (Theorem 2), and a cycle of `(N⊕_Y)⁻` that separates four taxa comes
+  from one of `N⁻` that separates them (`exists_separatesQuartet_induced_iff`), so the statement of
+  Lemma 12 and the non-degeneracy pass to them (`goodParams_inducedLSA`), and so do the same
+  orderings (`sameOrdering_inducedLSA`).
 * The numbers of cycles of size at least four of the pieces: a cycle of size at least four of
   `(N⊕_Y)⁻` comes from one of `N⁻` that separates four taxa of `Y` (`bigCycleCount_inducedLSA_le`,
   `bigCycleCount_inducedLSA_insert_compl_le_one`, `bigCycleCount_inducedLSA_insert_lt`).
@@ -207,12 +209,14 @@ The proof fills the following steps, which the paper does not give, along its li
 * In the base case, `N₂⁻` has no cycle of size at least four either: such a cycle would separate
   four taxa with the Big Cycle property for `N₂`, so for `N₁` (Lemma 12,
   `ncard_le_three_of_sameOrdering`).
-* The base case (TeX l. 1180) reads the quartet tree of `Ñ` on four taxa from "the ordering of the
-  concordance factors". The reading that holds is the quartet tree whose concordance factor differs
-  from the other two, which are equal (Propositions 6 and 7); it need not have the largest one (with
-  a `3₂`-cycle, Example 6). The reading needs the three concordance factors not to be all equal,
-  which with a `3₂`-cycle they can be (Proposition 7); this holds for generic parameters
-  (`forGenericParams_nonDegenerateCF`) and is part of `G`, with the statement of Lemma 12
+* The base case (TeX l. 1180) reads from "the ordering of the concordance factors" the quartet tree
+  obtained from `Q⁻_s` by suppressing its 2- and 3-cycles; that this is the quartet tree `Ñ`
+  displays on `s` is not stated, and holds through the cut arcs of `Ñ`
+  (`alternatives_eq_of_displays`). The reading that holds is the quartet tree whose concordance
+  factor differs from the other two, which are equal (Propositions 6 and 7); it need not have the
+  largest one (with a `3₂`-cycle, Example 6). The reading needs the three concordance factors not to
+  be all equal, which with a `3₂`-cycle they can be (Proposition 7); this holds for generic
+  parameters (`forGenericParams_nonDegenerateCF`) and is part of `G`, with the statement of Lemma 12
   (`GoodParams`).
 * The tree of cycles (Definition 13): that `T` is a tree, and that a leaf of `T` arises from a cycle
   `C_v` exactly when all `v`-blocks but one are 4-network blocks (`Identify/TreeOfCycles.lean`). -/
@@ -347,9 +351,10 @@ from `C_v`. Its two taxa below the hybrid node are in the hybrid block of `C_v`,
 Departure from the paper (reason 1, the paper's step is wrong): the step that the 4-cycle of
 `Q⁻_abcd` and the `3₂`-cycle of `Q⁻_abce` have the same hybrid edges is false, and is made the last
 hypothesis, as above. The paper prepares that step by fixing the order of the cycle (Theorem 4, the
-labels of Figure 24) and the hybrid node of `{e, j, k, l}` (Lemma 13), so as to compare the hybrid
-edges of the two quartet networks; with the step a hypothesis, the two taxa in the hybrid block are
-read from the `3₂`-cycle, and these preparations are not used.
+labels of Figure 24) and the hybrid node of `{e, l}` together with the two of `i, j, k` other than
+`g` (`{e, b, c, d}` in the paper's labels; Lemma 13), so as to compare the hybrid edges of the
+two quartet networks; with the step a hypothesis, the two taxa in the hybrid block are read from the
+`3₂`-cycle, and these preparations are not used.
 -/
 theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} {v : SemidirectedVertex hN.1 hX}

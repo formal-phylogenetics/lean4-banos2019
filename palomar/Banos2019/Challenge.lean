@@ -39,8 +39,9 @@ treks between taxa of `s` and suppresses the nodes of degree two. `Ñ` (Theorem 
 2- and 3-cycles contracted, the hybrid edges of its 4-cycles undirected, and the nodes of degree two
 left by the contraction suppressed. The published statement of Theorem 4 omits the suppression, which
 Theorem 4 needs: contracting a 2-cycle leaves a node of degree two, and its place on an edge does not
-show in the concordance factors (`2₁`- and `2₃`-cycles do not change them, Corollary 2). The statement
-of the arXiv version says "suppressing all 2- and 3-cycles".
+show in the concordance factors (`2₁`- and `2₃`-cycles do not change them, Corollary 2). The arXiv
+version's "suppressing all 2- and 3-cycles" means contracting them, as its definitions say, and omits
+the suppression of the nodes of degree two too.
 
 * `theorem3` (Theorem 3): for generic parameters, four taxa satisfy the Big Cycle property exactly when
   their induced unrooted network has a 4-cycle.
@@ -536,6 +537,8 @@ end
 
 -- END SHARED DEFINITIONS
 
+public section
+
 namespace Banos2019Challenge
 
 open Finset Banos2019.Model
@@ -659,3 +662,5 @@ theorem fig17_fig18_tilde :
   sorry
 
 end Banos2019Challenge
+
+end

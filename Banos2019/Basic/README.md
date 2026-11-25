@@ -1,21 +1,21 @@
 # General mathematics
 
-Lemmas that say nothing about phylogenetics, filed by field as Mathlib files them
-(`Combinatorics/`, `Probability/`, … in `Banos2019/Basic/`) and named as Mathlib would name
-them, so that they can be contributed to Mathlib. They import only Mathlib.
+Lemmas that say nothing about phylogenetics, filed by field as Mathlib files them and named as
+Mathlib would name them, in Mathlib's namespaces, so that they can be contributed to Mathlib. They
+import only Mathlib.
 
-| File | Contents |
-| --- | --- |
-| `Algebra/BigOperators/Finprod.lean` | Finite sums over the elements of a subtype |
-| `Data/Finset/Card.lean` | Sets of four elements |
-| `Data/Finset/Image.lean` | Images of `univ` |
-| `Data/Set/Card.lean` | Cardinalities of sets: disjoint families, subtypes, subsets of a type with four elements, classes of an equivalence relation |
-| `Logic/EquivOfInjective.lean` | A type with an injective map is equivalent to the subtype of its image |
-| `Logic/RelationAvoid.lean` | Paths of a relation that cannot avoid an element |
-| `Logic/RelationSymm.lean` | The reflexive transitive closure of a symmetric relation is symmetric |
-| `MeasureTheory/SumCoordsNull.lean` | Null sets pulled back along sums of coordinates |
-| `Order/FiniteTotal.lean` | Greatest and least elements of a finite set on which the order is total |
+| Module | Content | Where it could go |
+| --- | --- | --- |
+| [`Banos2019.Basic.Algebra.BigOperators.Finprod`](Algebra/BigOperators/Finprod.lean) | [`finsum_mem_setOf_subtype_of_imp`](Algebra/BigOperators/Finprod.lean#L20), [`finsum_mem_setOf_subtype_ne`](Algebra/BigOperators/Finprod.lean#L35): a sum over the elements of a subtype satisfying a predicate is the sum over the elements of the type satisfying it (lengths in the reduced networks of Section 5) | `Mathlib/Algebra/BigOperators/Finprod.lean` |
+| [`Banos2019.Basic.Data.Finset.Card`](Data/Finset/Card.lean) | [`Finset.card_four_of_ne`](Data/Finset/Card.lean#L21), [`Finset.injOn_four`](Data/Finset/Card.lean#L27), [`Finset.exists_ne_mem_of_card_four_subset_insert`](Data/Finset/Card.lean#L36): sets of four elements (sets of four taxa, Sections 8 and 9) | `Mathlib/Data/Finset/Card.lean` |
+| [`Banos2019.Basic.Data.Finset.Image`](Data/Finset/Image.lean) | [`Finset.range_eq_coe_of_image_univ_eq`](Data/Finset/Image.lean#L20), [`Finset.image_val_univ_coe`](Data/Finset/Image.lean#L24): images of `univ` (the cycle of Figure 17, quartet trees on a set of taxa) | `Mathlib/Data/Fintype/Basic.lean` |
+| [`Banos2019.Basic.Data.Set.Card`](Data/Set/Card.lean) | [`Finset.sum_ncard_le_of_pairwiseDisjoint`](Data/Set/Card.lean#L29): the cardinalities of pairwise disjoint subsets of a finite type add up to at most its cardinality (the blocks of a cycle, Lemma 5); [`Set.ncard_setOf_subtype_ne_add`](Data/Set/Card.lean#L43), [`Set.ncard_setOf_subtype_of_imp`](Data/Set/Card.lean#L59): the elements of a subtype satisfying a predicate, counted in the type (degrees in the reduced networks of Section 5); [`Set.exists_mem_and_exists_notMem_of_ncard_eq_two`](Data/Set/Card.lean#L67), [`Set.exists_not_and_forall_ne_of_ncard_eq_three`](Data/Set/Card.lean#L77): subsets of two and three elements of a type with four (splits of four taxa, Section 5); [`Set.ncard_nontrivialClasses_subtype_lt`](Data/Set/Card.lean#L94): restricting an equivalence relation to a set that meets one of its classes with at least two elements in a single element leaves fewer such classes (the induction of Theorem 4); [`Set.ncard_setOf_eq_card_filter`](Data/Set/Card.lean#L129): the size of a set of elements of `Fin n` as a finset (the explicit tree of equation (1)) | `Mathlib/Data/Set/Card.lean` |
+| [`Banos2019.Basic.Logic.EquivOfInjective`](Logic/EquivOfInjective.lean) | [`Equiv.ofInjectiveSubtype`](Logic/EquivOfInjective.lean#L17), [`Equiv.ofInjectiveSubtype_trans_symm_apply`](Logic/EquivOfInjective.lean#L31): a type with an injective map is equivalent to the subtype of its image (isomorphisms onto the image of a network, Proposition 1) | `Mathlib/Logic/Equiv/Set.lean` |
+| [`Banos2019.Basic.Logic.RelationAvoid`](Logic/RelationAvoid.lean) | [`Relation.ReflTransGen.through_of_not_avoiding`](Logic/RelationAvoid.lean#L24), [`Relation.ReflTransGen.ne_of_avoiding`](Logic/RelationAvoid.lean#L41): paths of a relation that cannot avoid an element pass through it (the correspondence of cycles in the proof of Lemma 12) | `Mathlib/Logic/Relation.lean` |
+| [`Banos2019.Basic.Logic.RelationSymm`](Logic/RelationSymm.lean) | [`Relation.ReflTransGen.symm_of_symm`](Logic/RelationSymm.lean#L15): the reflexive transitive closure of a symmetric relation is symmetric (walks of undirected graphs) | `Mathlib/Logic/Relation.lean` |
+| [`Banos2019.Basic.MeasureTheory.SumCoordsNull`](MeasureTheory/SumCoordsNull.lean) | [`MeasureTheory.prod_pi_volume_preimage_sum_coords_null`](MeasureTheory/SumCoordsNull.lean#L26): the preimage of a null set under an affine map onto `ℝ³` given by sums of coordinates is null (the map `ν` of Proposition 10) | `Mathlib/MeasureTheory/Measure/Haar/`, as a case of the pushforward of a Haar measure by a surjective linear map |
+| [`Banos2019.Basic.Order.FiniteTotal`](Order/FiniteTotal.lean) | [`Set.Finite.exists_greatest_of_total`](Order/FiniteTotal.lean#L16), [`Set.Finite.exists_least_of_total`](Order/FiniteTotal.lean#L25): a finite nonempty set on which the order is total has a greatest and a least element (the common nodes of two paths, Lemma 17) | `Mathlib/Order/Preorder/Finite.lean` |
 
 Before adding one, search Mathlib and lean4-phylogenetics (`Phylogenetics/ForMathlib/`): a lemma
 that a second repository of the collection needs moves up the tree, to the lowest hub above both
-(lean4-phylogenetics, docs/CONVENTIONS.md, Section 4).
+(lean4-phylogenetics, `docs/CONVENTIONS.md`, Section 4).

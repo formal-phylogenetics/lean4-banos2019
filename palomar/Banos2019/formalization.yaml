@@ -1,0 +1,213 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+version: "v0.4"
+
+project:
+  name: "Identifying species network features from gene tree quartets under the coalescent model"
+  description: >-
+    A Lean formalization of Baños 2019, on what the quartet concordance factors of gene trees identify of a level-1
+    species network under the network multispecies coalescent. No result of the literature is assumed. No person has
+    reviewed the proofs.
+
+
+    Proved: every numbered result of the paper. Among them, the computation of the concordance factors of quartet
+    networks from those of trees (Theorem 2, Lemmas 7-11, Proposition 5); Theorem 3, that for generic parameters four
+    taxa have three different concordance factors exactly when their induced unrooted network has a 4-cycle; and
+    Theorem 4, that for generic parameters the orderings of the concordance factors identify the network obtained by
+    contracting the 2- and 3-cycles and undirecting the hybrid edges of the 4-cycles. The cited results of Allman,
+    Degnan, Rhodes 2011 and of Semple, Steel 2003 are proved from lean4-allman2011 and lean4-phylogenetics. The
+    statements of record are Theorems 3 and 4 and Proposition 5, in the Challenge, on definitions in Mathlib's
+    vocabulary, with eight theorems that check those definitions.
+
+
+    The audit records 20 findings (E1-E20). Proposition 13 is false as printed, and is refuted and proved in a
+    corrected form; Theorem 4 needs the nodes of degree two that the contraction leaves to be suppressed; the second
+    claim of Proposition 7 fails at the vertices of the simplex; the other findings are gaps, all repaired, and
+    misprints.
+  authors:
+    - "The-Anh Vu-Le"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "The-Anh Vu-Le"
+
+classification:
+  arxiv: ["q-bio.PE", "math.CO"]
+  msc2020: ["92D15", "92B10", "60J90", "05C90", "05C38"]
+
+sources:
+  - title: "Identifying species network features from gene tree quartets under the coalescent model"
+    authors:
+      - "Hector Baños"
+    id: "doi:10.1007/s11538-018-0485-4"
+    type: "article"
+    location: "https://doi.org/10.1007/s11538-018-0485-4"
+    relationship: "formalizes"
+    note: "Bull. Math. Biol. 81 (2019) 494-534. The published version is formalized, read in the PMC author manuscript PMC6344282, with the LaTeX source of arXiv:1711.10545v1, the only arXiv version; the report lists their differences."
+    author_endorsement: "not-contacted"
+  - title: "Identifying the rooted species tree from the distribution of unrooted gene trees under the coalescent"
+    authors:
+      - "Elizabeth S. Allman"
+      - "James H. Degnan"
+      - "John A. Rhodes"
+    id: "doi:10.1007/s00285-010-0355-7"
+    type: "article"
+    location: "https://doi.org/10.1007/s00285-010-0355-7"
+    relationship: "background"
+    note: "Cited for equation (1) and the paper's Propositions 3 and 4; its proofs use the invariance of the concordance factors under the root placement, which the source proves (Theorem 9 for four taxa, Section 5). The four statements are in Banos2019/External/AllmanDegnanRhodes2011 and are proved from the theorems of lean4-allman2011, which formalizes the source by its own arguments."
+    author_endorsement: "not-contacted"
+  - title: "Phylogenetics"
+    authors:
+      - "Charles Semple"
+      - "Mike Steel"
+    type: "book"
+    location: "Oxford Lecture Series in Mathematics and its Applications 24, Oxford University Press, 2003"
+    relationship: "background"
+    note: "Cited in the proof of Theorem 4: two phylogenetic X-trees displaying the same quartet trees are isomorphic. Stated in Banos2019/External/SempleSteel2003 and proved from the Splits Equivalence Theorem of lean4-phylogenetics, by the splits, not by the book's argument; the book was not available."
+  - title: "All that glisters is not galled"
+    authors:
+      - "Francesc Rosselló"
+      - "Gabriel Valiente"
+    id: "doi:10.1016/j.mbs.2009.06.007"
+    type: "article"
+    location: "https://doi.org/10.1016/j.mbs.2009.06.007"
+    relationship: "background"
+    note: "The paper takes the proof of its Lemma 3 from this source; Banos2019.lemma3 proves Lemma 3 by an argument of the formalization's own."
+
+related_formalizations:
+  - id: "https://github.com/vltanh/lean4-phylogenetics"
+    relationship: "builds-on"
+    note: "Required at commit 3fcabfd7d191990dda268b0b3968d945b65eb59a: rooted and semidirected networks, species trees, the network multispecies coalescent and its exchangeability, Theorem 2 in general form (Phylogenetics.NMSC.nmscCF_inducedNetwork), the Splits Equivalence Theorem and analytic null sets. The Challenge restates the definitions it needs in Mathlib's vocabulary, and Banos2019/Bridge proves that they are the library's."
+  - id: "https://github.com/vltanh/lean4-phylo-network"
+    relationship: "builds-on"
+    note: "The library of the hub of this paper, required at commit 4ed2bb0f7085acbf1326f43e2a5c582ba4566125."
+  - id: "https://github.com/vltanh/lean4-allman2011"
+    relationship: "builds-on"
+    note: "Allman, Degnan, Rhodes 2011, required at commit d4ada2c6cbbb5b8629eb9740dc5d5a9984a06a78; the cited results of Banos2019/External/AllmanDegnanRhodes2011 are proved from its theorems."
+
+status:
+  scope: >-
+    Unconditional: no result of the literature is assumed. Every numbered result of the paper is proved: Lemmas 1-17,
+    Propositions 1-13, Theorems 2-4, Corollaries 1-4, Observation 1 and Examples 2-7. Corrected statements: Theorem 4,
+    with the nodes of degree two that the contraction of 2-cycles leaves suppressed (E14); the second claim of
+    Proposition 7, off the vertices of the simplex (E9); Proposition 13, with a hypothesis in place of the false step
+    of its proof, its printed form refuted (E18). Lemma 1 is read for nonempty sets of taxa and Proposition 1 for at
+    least two taxa. The cited results that the proofs use (Allman, Degnan, Rhodes 2011; Semple, Steel 2003) are
+    proved; Lemma 3, which the paper takes from Rossello and Valiente 2009, is proved too. Not formalized: Example 1,
+    the remarks with no statement to prove, and the citations that give context only. The Challenge states Theorems 3
+    and 4 and Proposition 5 with eight checks of its definitions; the other results are in the library. See Section 9
+    of docs/Banos2019/REPORT.md.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: []
+
+automation:
+  methods:
+    - method: "agent"
+      models: ["claude-opus-5-5"]
+      framework: "Claude Code 2.1.331 (VS Code extension)"
+      tool_setup: "formalize-math-paper skill (https://github.com/vltanh/formalize-math-paper), version 4.6.3, under the conventions of lean4-phylogenetics; one session with 53 sub-agents on this paper, at most 8 at once."
+      cost:
+        wall_time: "10.12 h elapsed, from 2026-11-24 18:29 (UTC-6) to the commit that completes the report, 2026-11-25 04:36 (e9d35aa), including the session's coordination of work on other repositories of the collection; 39.7 h of sub-agent work on this paper."
+        spend_usd: "not tracked"
+        hardware: "local machine"
+      prompting_notes: "The maintainer asked for the paper to be formalized with the skill under the collection's conventions, and decided the layout, the libraries, and the correction of Proposition 13 with a refutation of the printed statement."
+  spend_usd: "not tracked"
+  notes: >-
+    The maintainer chose the paper and decided the layout, the libraries and the correction of Proposition 13. AI
+    systems wrote the statements, the proofs, the audit and the documents. The audit checks every declaration of this
+    repository and of the modules of the libraries it imports, all on the standard axioms. Comparator has not been run
+    on this repository. See docs/Banos2019/CREDITS.md.
+
+fidelity:
+  divergences: >-
+    Statements corrected (Sections 3 and 4 of docs/Banos2019/REPORT.md): Theorem 4, whose network N~ has the nodes of
+    degree two left by contracting 2-cycles suppressed, as Allman et al. 2024 restate it (E14); Proposition 7, whose
+    second claim holds off the vertices of the simplex (E9); Proposition 13, false as printed, with a hypothesis in
+    place of the false step of its proof (E18). Readings (Section 6 of the report): Lemma 1 for nonempty sets of taxa
+    and Proposition 1 for at least two; Lemma 12 for each set of four taxa; "for generic parameters" as Lebesgue-null
+    sets of metrics in the coordinates of edge lengths and one inheritance probability per hybrid node; Theorem 4 as
+    the existence of a generic property of the parameters under which equal orderings give isomorphic networks N~;
+    Example 7 with the values that equation (8) gives, the paper's for two taxa exchanged (E10).
+
+
+    Departures from the paper's proofs, each with what the paper does, what Lean does and why, in Section 7 of the
+    report: Lemmas 7 and 9 and Proposition 5 use the root-placement invariance of Allman, Degnan, Rhodes 2011 where
+    they cite Propositions 3 and 4, identifiability statements (a gap, E6); Lemma 8 uses exchangeability of the three
+    lineages at the hybrid node once, as the order of coalescent events is not part of the model (representation);
+    Lemma 13 uses the direction of Lemma 12 that holds for all parameters (a gap, E12); Lemma 14 applies its general
+    argument to every set of taxa (a gap, E13); Proposition 12 uses Corollary 4 (a gap, E17); Proposition 13 makes
+    its false step a hypothesis (E18); Lemma 17, case 5 (ii), treats the case that the paper's "without loss of
+    generality" omits (a gap, E19). docs/Banos2019/route_differences.tsv records every difference of route.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "AI agent (claude-opus-5-5), 2026-11-24: the statements of the library against the paper"
+    - "AI agents (claude-opus-5-5), 2026-11-24 and 2026-11-25: the Challenge's statements against the paper, twice"
+    - "AI agents (claude-opus-5-5), 2026-11-25: the formal proofs against the paper's, by sections (2-5 and the Appendix, 6-7, 8-9), and again after the revision of Theorem 4, Lemma 16 and Proposition 13"
+    - "AI agents (claude-opus-5-5), 2026-11-24 and 2026-11-25: the literature, and the report's findings against the paper's text and TeX"
+  notes: >-
+    No person has reviewed the proofs. Independent AI agents, which did not write what they checked, reviewed the
+    statements and the Challenge against the paper, compared the formal proofs with the paper's, searched the
+    literature, and checked the findings against the paper's text and the TeX source of arXiv v1. The axiom audit and
+    the route check run locally and in CI. Comparator has not been run on this repository.
+
+alignment:
+  namespace: "Banos2019Challenge"
+  statements:
+    - source: "Baños 2019, Theorem 3"
+      lean: "Banos2019Challenge.theorem3"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "For generic parameters, on the induced unrooted network (N-)_s of Definition 10, as printed."
+    - source: "Baños 2019, Theorem 4"
+      lean: "Banos2019Challenge.theorem4"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "Corrected: N~ has the nodes of degree two left by the contraction suppressed (E14). Stated as identifiability: a property of the parameters, generic on every binary level-1 network, under which two networks on the same taxa with the same orderings of concordance factors have isomorphic networks N~."
+    - source: "Baños 2019, Proposition 5"
+      lean: "Banos2019Challenge.proposition5"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "As printed, with 'induce the same unrooted network' read as an isomorphism of the metric unrooted networks."
+    - source: "Baños 2019, equation (1) (from Allman, Degnan, Rhodes 2011)"
+      lean: "Banos2019Challenge.equation1_balanced"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the concordance factors of the balanced rooted quartet tree with root edges t1, t2."
+    - source: "Baños 2019, Definition 4"
+      lean: "Banos2019Challenge.lsa_isLSA"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: a binary rooted network has a lowest stable ancestor of its taxa."
+    - source: "Baños 2019, Definition 1"
+      lean: "Banos2019Challenge.root_reaches"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the root of a binary rooted network reaches every node, so Definition 1's connectedness follows from its other clauses."
+    - source: "Baños 2019, 'for generic parameters' (Proposition 10)"
+      lean: "Banos2019Challenge.not_forGenericParams_false"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the metrics of a binary rooted network are not a null set, so Theorems 3 and 4 are not satisfied vacuously."
+    - source: "Baños 2019, Example 6"
+      lean: "Banos2019Challenge.example6"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the 3_2-cycle of Figure 18 with the paper's parameters has concordance factors (32, 33, 33)/98 and not the Big Cycle property."
+    - source: "Baños 2019, Example 7"
+      lean: "Banos2019Challenge.example7"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the 4-cycle of Figure 17 with the paper's parameters has concordance factors (33, 32, 33)/98, the paper's values for the taxa b and c exchanged (E10)."
+    - source: "Baños 2019, Figures 17 and 18, Definition 5"
+      lean: "Banos2019Challenge.fig17_fig18_unrooted"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: N- of Figure 17 has a 4-cycle, and N- of Figure 18 none."
+    - source: "Baños 2019, Figures 17 and 18, Theorem 4"
+      lean: "Banos2019Challenge.fig17_fig18_tilde"
+      module: "Banos2019.Challenge"
+      status: "proved"
+      note: "A check of the definitions: the networks N~ of Figures 18 and 17 are not isomorphic."
+
+acknowledgements: "Lean and Mathlib; the libraries lean4-phylogenetics, lean4-phylo-network and lean4-allman2011 of the collection; the author of the paper and of its sources."

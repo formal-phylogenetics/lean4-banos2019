@@ -14,6 +14,8 @@ Restates each theorem of `Banos2019.Challenge` word for word, in the namespace `
 and proves it from the library, through the bridges of `Banos2019.Bridge` between the Challenge's
 definitions and the library's. It is the entry point of the library. -/
 
+public section
+
 namespace Banos2019Challenge
 
 open Finset Banos2019.Model
@@ -145,3 +147,5 @@ theorem fig17_fig18_tilde :
   exact Banos2019.Model.fig17_fig18_tilde
 
 end Banos2019Challenge
+
+end
