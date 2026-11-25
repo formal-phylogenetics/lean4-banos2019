@@ -250,8 +250,15 @@ theorem proposition1_metric [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
       (unrooted (inducedRooted N hN.1 Z hZ.nonempty) (inducedRooted_isBinaryRootedNetwork hN hZ)
         hZ.coe_sort)
       (unrootedMetric _ (inducedRooted_isBinaryRootedNetwork hN hZ) hZ.coe_sort
-        (inducedRootedMetric N hN.1 Z hZ.nonempty θ))) := by
-  sorry
+        (inducedRootedMetric N hN.1 Z hZ.nonempty θ))) :=
+  -- the same isomorphism; along a chain, lengths add, and the inheritance probability is that of the
+  -- last arc, the others being tree arcs
+  nonempty_sdMetricIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
+    (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
+    (isContraction_contractRoot _ _) θ hθ.1.2.2.1 _ fun e => by
+      let _ : Fintype (N.AncestralArc Z) := Fintype.ofFinite _
+      exact ⟨suppressMetric_length_ancestral hN.1 hZ.nonempty θ e.1,
+        suppressMetric_inheritance_ancestral hN.1 hZ.nonempty θ e.1⟩
 
 /-! ### Quartet networks -/
 

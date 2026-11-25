@@ -562,6 +562,57 @@ theorem exists_mem_chainArcs {a : E} (ha : a ∈ N.ancestralArcs Z) :
   refine ⟨(chainHead hM ⟨a, ha⟩).1.1, fun ⟨_, hc⟩ => (chainHead hM ⟨a, ha⟩).2 hc,
     (chainHead hM ⟨a, ha⟩).1.2, ha, isOnChain_chainHead hM ⟨a, ha⟩⟩
 
+/-- Two arcs of a chain entering a node that is not a chain node are the same. -/
+theorem eq_of_mem_chainArcs_of_target {f a b : E} (ha : a ∈ chainArcs hN hZ f)
+    (hb : b ∈ chainArcs hN hZ f) (ht : N.graph.target a = N.graph.target b)
+    (hc : ¬ ChainZ hN hZ (N.graph.target a)) : a = b := by
+  obtain ⟨hf, ha', hona⟩ := ha
+  obtain ⟨_, hb', honb⟩ := hb
+  exact congrArg Subtype.val (hona.eq_of_target honb
+    (Subtype.ext ht : (N.ancestralNetwork Z hZ hN.root_reaches).graph.target ⟨a, ha'⟩ =
+      (N.ancestralNetwork Z hZ hN.root_reaches).graph.target ⟨b, hb'⟩) fun h => hc ⟨ha', h⟩)
+
+/-- **The lengths of the suppressed ancestral network** are the sums along the chains. -/
+theorem suppressMetric_length_ancestral [Fintype (N.AncestralArc Z)] (θ : MetricData E)
+    (a : {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source e)}) :
+    ((N.ancestralNetwork Z hZ hN.root_reaches).suppressMetric
+      ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩).length a =
+      ∑ᶠ b ∈ chainArcs hN hZ a.1.1, θ.length b := by
+  classical
+  unfold RootedNetwork.suppressMetric
+  simp only
+  rw [← finsum_mem_coe_finset, Finset.coe_filter]
+  simp only [Finset.mem_univ, true_and]
+  rw [← finsum_mem_image (g := Subtype.val) Subtype.val_injective.injOn]
+  refine finsum_mem_congr (Set.ext fun b => ?_) fun _ _ => rfl
+  constructor
+  · rintro ⟨c, hc, rfl⟩
+    exact ⟨a.1.2, c.2, hc⟩
+  · rintro ⟨_, hb, h⟩
+    exact ⟨⟨b, hb⟩, h, rfl⟩
+
+/-- **The inheritance probabilities of the suppressed ancestral network** are the products along the
+chains. -/
+theorem suppressMetric_inheritance_ancestral [Fintype (N.AncestralArc Z)] (θ : MetricData E)
+    (a : {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source e)}) :
+    ((N.ancestralNetwork Z hZ hN.root_reaches).suppressMetric
+      ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩).inheritance a =
+      ∏ᶠ b ∈ chainArcs hN hZ a.1.1, θ.inheritance b := by
+  classical
+  unfold RootedNetwork.suppressMetric
+  simp only
+  rw [← finprod_mem_coe_finset, Finset.coe_filter]
+  simp only [Finset.mem_univ, true_and]
+  rw [← finprod_mem_image (g := Subtype.val) Subtype.val_injective.injOn]
+  refine finprod_mem_congr (Set.ext fun b => ?_) fun _ _ => rfl
+  constructor
+  · rintro ⟨c, hc, rfl⟩
+    exact ⟨a.1.2, c.2, hc⟩
+  · rintro ⟨_, hb, h⟩
+    exact ⟨⟨b, hb⟩, h, rfl⟩
+
 end Anc
 
 end Banos2019

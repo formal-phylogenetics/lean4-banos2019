@@ -1284,6 +1284,268 @@ theorem nonempty_sdIso_trekNet :
     (vertEquivR_leaf hN hX hZ h17 hC ι κ hK)
   exact ⟨ι'⟩
 
+/-! ### The metric version -/
+
+include hK in
+/-- The arcs of the chain of an edge of `(N⁺_Z)⁻` are below `LSA(Z)` and above a taxon of `Z`. -/
+theorem edgeArcsR_subset (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    edgeArcsR hN hZ hC κ g ⊆ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z := by
+  obtain ⟨hf₁s, -, -⟩ := rootArcR_spec hN hZ hC ι κ hK
+  obtain ⟨-, -, hmf, -⟩ := (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  rintro a (ha | ⟨-, ha⟩)
+  · exact ⟨hmf.trans (reaches_source_of_mem_chainArcs hN.1 hZ.nonempty ha), ha.2.1⟩
+  · exact ⟨hf₁s ▸ reaches_source_of_mem_chainArcs hN.1 hZ.nonempty ha, ha.2.1⟩
+
+include hK in
+/-- The chain of an edge of `(N⁺_Z)⁻` containing one arc out of `LSA(Z)` contains the other. -/
+theorem mem_edgeArcsR_of_lsa (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) {a b : E}
+    (has : N.graph.source a = lsa hN.1 Z hZ.nonempty) (hbs : N.graph.source b = lsa hN.1 Z hZ.nonempty)
+    (hb : b ∈ N.ancestralArcs Z) (hab : a ≠ b) (ha : a ∈ edgeArcsR hN hZ hC κ g) :
+    b ∈ edgeArcsR hN hZ hC κ g := by
+  have := hN.1.finite_arcs
+  obtain ⟨hf₁s, -, hf₁a⟩ := rootArcR_spec hN hZ hC ι κ hK
+  obtain ⟨hf, hnc, -, hff₁⟩ := (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  have hmnc := not_chainZ_lsa hN.1 hN.2 hZ
+  have hself : ∀ {c : E}, c ∈ N.ancestralArcs Z → c ∈ chainArcs hN.1 hZ.nonempty c := fun hc => by
+    rw [chainArcs_eq hN.1 hZ.nonempty hc]
+    exact Set.mem_insert _ _
+  have ha' : a ∈ N.ancestralArcs Z := (edgeArcsR_subset hN hZ hC ι κ hK g ha).2
+  have hout : N.graph.outdegree (lsa hN.1 Z hZ.nonempty) = 2 := by
+    unfold DirectedMultigraph.outdegree
+    rw [arcs_lsa hN hZ]
+    exact lsa_outdegree_ancestral hN.1 hN.2 hZ
+  -- the edge is the one out of `LSA(Z)`, whose chain has both arcs out of `LSA(Z)`
+  have hgm : N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty ∧
+      (a = valRE hN hZ hC κ g ∨ a = rootArcR hN hZ hC κ) := by
+    rcases ha with ha | ⟨hs, ha⟩
+    · have := eq_of_mem_chainArcs hN.1 hZ.nonempty (hself ha') ha (has ▸ hmnc) hnc
+      exact ⟨this ▸ has, Or.inl this⟩
+    · exact ⟨hs, Or.inr (eq_of_mem_chainArcs hN.1 hZ.nonempty (hself ha') ha (has ▸ hmnc)
+        (hf₁s ▸ hmnc))⟩
+  obtain ⟨hgm, ha''⟩ := hgm
+  have hb' : b = valRE hN hZ hC κ g ∨ b = rootArcR hN hZ hC κ := by
+    by_contra hne
+    push Not at hne
+    rcases ha'' with rfl | rfl
+    · exact not_three_of_outdegree_eq_two hout hbs has hf₁s hab.symm hne.2 hff₁
+    · exact not_three_of_outdegree_eq_two hout hbs has hgm hab.symm hne.1 (Ne.symm hff₁)
+  rcases hb' with rfl | rfl
+  · exact Or.inl (hself hb)
+  · exact Or.inr ⟨hgm, hself hb⟩
+
+include h17 hK in
+/-- **The length of an edge of `(N⁻)_Z`** is the sum of the lengths of the arcs of its chain. -/
+theorem sum_length_chainOfR (θ : MetricData E) (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    ∑ᶠ e ∈ chainOfR hN hX hZ hC κ g, (semidirectedMetric hN.1 hN.2 hX θ).length e.1 =
+      ∑ᶠ a ∈ edgeArcsR hN hZ hC κ g, θ.length a := by
+  classical
+  have := hN.1.finite_arcs
+  have hf₀s : N.graph.source (sdRootArc hN.1 hN.2 hX) = lsa hN.1 Set.univ Set.univ_nonempty :=
+    (sdRootArc_spec hN.1 hN.2 hX).1
+  have hA := edgeArcsR_subset hN hZ hC ι κ hK g
+  have hlen : ∀ e : trekEdges (semidirected hN.1 hN.2 hX) Z,
+      (semidirectedMetric hN.1 hN.2 hX θ).length e.1 = θ.length (valK hN hX e) +
+        if N.graph.source (valK hN hX e) = lsa hN.1 Set.univ Set.univ_nonempty then
+          θ.length (sdRootArc hN.1 hN.2 hX) else 0 := by
+    intro e
+    rw [semidirectedMetric_length]
+    by_cases h : N.graph.source (sdArc hN.1 hN.2 hX e.1) = lsa hN.1 Set.univ Set.univ_nonempty
+    · rw [ite_eq_left h, ite_eq_left (show N.graph.source (valK hN hX e) = _ from h)]
+      rfl
+    · rw [ite_eq_right h, ite_eq_right (show ¬ N.graph.source (valK hN hX e) = _ from h),
+        add_zero]
+      rfl
+  rw [finsum_mem_congr rfl fun e _ => hlen e, finsum_mem_add_distrib (Set.toFinite _)]
+  -- the arcs of the chain other than `rootTreeArc` are edges of `K`
+  have himage : valK hN hX '' chainOfR hN hX hZ hC κ g =
+      edgeArcsR hN hZ hC κ g \ {sdRootArc hN.1 hN.2 hX} := by
+    ext a
+    constructor
+    · rintro ⟨e, he, rfl⟩
+      exact ⟨he, ((mem_range_sdArc hN.1 hN.2 hX _).mp ⟨e.1, rfl⟩).2⟩
+    · rintro ⟨ha, ha₀⟩
+      obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (hA ha) ha₀
+      exact ⟨e, show valK hN hX e ∈ edgeArcsR hN hZ hC κ g from he ▸ ha, he⟩
+  rw [← finsum_mem_image (g := valK hN hX) (valK_injective hN hX).injOn, himage]
+  -- the edge of `K` out of `LSA(X)`, when there is one, carries the length of `rootTreeArc`
+  have hite : ∑ᶠ e ∈ chainOfR hN hX hZ hC κ g,
+      (if N.graph.source (valK hN hX e) = lsa hN.1 Set.univ Set.univ_nonempty then
+        θ.length (sdRootArc hN.1 hN.2 hX) else 0) =
+        if sdRootArc hN.1 hN.2 hX ∈ edgeArcsR hN hZ hC κ g then
+          θ.length (sdRootArc hN.1 hN.2 hX) else 0 := by
+    by_cases h₀ : sdRootArc hN.1 hN.2 hX ∈ edgeArcsR hN hZ hC κ g
+    · rw [ite_eq_left h₀]
+      have hmρ := lsa_eq_of_source_eq hN hX hZ (hA h₀) hf₀s
+      obtain ⟨f₂, hf₂s, hf₂, hf₂a, hf₂u⟩ := exists_other_arc_lsa hN hZ (hf₀s.trans hmρ.symm)
+      have hf₂A : f₂ ∈ edgeArcsR hN hZ hC κ g := mem_edgeArcsR_of_lsa hN hZ hC ι κ hK g
+        (hf₀s.trans hmρ.symm) hf₂s hf₂a (Ne.symm hf₂) h₀
+      obtain ⟨es, hes⟩ := exists_valK hN hX hZ h17 (hA hf₂A) hf₂
+      have hesC : es ∈ chainOfR hN hX hZ hC κ g :=
+        show valK hN hX es ∈ edgeArcsR hN hZ hC κ g from hes ▸ hf₂A
+      have hiff : ∀ e ∈ chainOfR hN hX hZ hC κ g,
+          N.graph.source (valK hN hX e) = lsa hN.1 Set.univ Set.univ_nonempty → e = es := by
+        intro e _ he
+        exact valK_injective hN hX ((hf₂u _ (he.trans hmρ.symm)
+          ((mem_range_sdArc hN.1 hN.2 hX _).mp ⟨e.1, rfl⟩).2).trans hes.symm)
+      have hsplit : chainOfR hN hX hZ hC κ g = insert es (chainOfR hN hX hZ hC κ g \ {es}) :=
+        (Set.insert_sdiff_singleton.trans (Set.insert_eq_of_mem hesC)).symm
+      rw [hsplit, finsum_mem_insert _ (Set.notMem_sdiff_of_mem (Set.mem_singleton es))
+        (Set.toFinite _), finsum_mem_of_eqOn_zero, add_zero]
+      · rw [ite_eq_left (by rw [hes, hf₂s]; exact hmρ)]
+      · intro e he
+        show (if _ then _ else _) = (0 : ℝ)
+        rw [ite_eq_right fun h => he.2 (hiff e he.1 h)]
+    · rw [ite_eq_right h₀]
+      refine finsum_mem_of_eqOn_zero fun e he => ?_
+      have hs : ¬ N.graph.source (valK hN hX e) = lsa hN.1 Set.univ Set.univ_nonempty := by
+        intro hs
+        have hmρ := lsa_eq_of_source_eq hN hX hZ (hA he) hs
+        have hf₀a : sdRootArc hN.1 hN.2 hX ∈ N.ancestralArcs Z := by
+          have : sdRootArc hN.1 hN.2 hX ∈ {e | N.graph.source e = lsa hN.1 Z hZ.nonempty} :=
+            hf₀s.trans hmρ.symm
+          rw [arcs_lsa hN hZ] at this
+          exact this.2
+        exact h₀ (mem_edgeArcsR_of_lsa hN hZ hC ι κ hK g (hs.trans hmρ.symm)
+          (hf₀s.trans hmρ.symm) hf₀a ((mem_range_sdArc hN.1 hN.2 hX _).mp ⟨e.1, rfl⟩).2 he)
+      show (if _ then _ else _) = (0 : ℝ)
+      rw [ite_eq_right hs]
+  rw [hite]
+  by_cases h₀ : sdRootArc hN.1 hN.2 hX ∈ edgeArcsR hN hZ hC κ g
+  · rw [ite_eq_left h₀]
+    have hsplit : edgeArcsR hN hZ hC κ g =
+        insert (sdRootArc hN.1 hN.2 hX) (edgeArcsR hN hZ hC κ g \ {sdRootArc hN.1 hN.2 hX}) :=
+      (Set.insert_sdiff_singleton.trans (Set.insert_eq_of_mem h₀)).symm
+    conv_rhs => rw [hsplit]
+    rw [finsum_mem_insert _ (Set.notMem_sdiff_of_mem (Set.mem_singleton _)) (Set.toFinite _),
+      add_comm]
+  · rw [ite_eq_right h₀, Set.sdiff_singleton_eq_self h₀, add_zero]
+
+include hK in
+/-- **The length of an edge of `(N⁺_Z)⁻`** is the sum of the lengths of the arcs of its chain, when
+the lengths of `C` are the sums along the chains of the ancestral network. -/
+theorem semidirectedMetricR_length (θ : MetricData E) (θC : MetricData EC)
+    (hθC : ∀ e, θC.length e = ∑ᶠ a ∈ chainArcs hN.1 hZ.nonempty (valCE hN hZ κ e), θ.length a)
+    (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    (semidirectedMetric hC.1 hC.2 hZ.coe_sort θC).length g =
+      ∑ᶠ a ∈ edgeArcsR hN hZ hC κ g, θ.length a := by
+  classical
+  have := hN.1.finite_arcs
+  have : Nonempty Z := hZ.coe_sort.to_nonempty
+  have hl := valC_lsa hN hZ hC ι κ hK
+  obtain ⟨hf₁s, -, -⟩ := rootArcR_spec hN hZ hC ι κ hK
+  obtain ⟨-, hnc, -, hff₁⟩ := (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  have key : C.graph.source (sdArc hC.1 hC.2 hZ.coe_sort g) =
+      lsa hC.1 Set.univ Set.univ_nonempty ↔
+        N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty := by
+    unfold valRE
+    rw [← valC_source hN hZ ι κ hK, ← hl]
+    exact (valC_injective hN hZ ι κ hK).eq_iff.symm
+  rw [semidirectedMetric_length]
+  split_ifs with h
+  · have hm := key.mp h
+    rw [hθC, hθC, ← finsum_mem_union]
+    · refine finsum_mem_congr (Set.ext fun a => ?_) fun _ _ => rfl
+      exact ⟨fun h' => h'.elim Or.inl fun h'' => Or.inr ⟨hm, h''⟩,
+        fun h' => h'.elim Or.inl fun h'' => Or.inr h''.2⟩
+    · refine Set.disjoint_left.mpr fun a h₁ h₂ => hff₁ ?_
+      exact eq_of_mem_chainArcs hN.1 hZ.nonempty h₁ h₂ hnc
+        (hf₁s ▸ not_chainZ_lsa hN.1 hN.2 hZ)
+    · exact Set.toFinite _
+    · exact Set.toFinite _
+  · rw [hθC]
+    refine finsum_mem_congr (Set.ext fun a => ?_) fun _ _ => rfl
+    exact ⟨Or.inl, fun h' => h'.elim id fun h'' => absurd h''.1 (fun h''' => h (key.mpr h'''))⟩
+
+include h17 hK in
+/-- **The hybrid edges of `(N⁻)_Z` and `(N⁺_Z)⁻` have the inheritance probability of the last arc of
+their chain**, the other arcs of the chain being tree arcs. -/
+theorem inheritance_chainOfR (θ : MetricData E)
+    (hθ : ∀ e, N.IsTreeArc e → θ.inheritance e = 1) (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
+    (hg : (semidirected hC.1 hC.2 hZ.coe_sort).IsDirected g) :
+    ∏ᶠ e ∈ {e | e ∈ chainOfR hN hX hZ hC κ g ∧ (trekNet hN hX Z).IsDirected e},
+        (semidirectedMetric hN.1 hN.2 hX θ).inheritance e.1 =
+      ∏ᶠ a ∈ chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g), θ.inheritance a := by
+  have := hN.1.finite_arcs
+  obtain ⟨hf, hnc, hmf, hff₁⟩ := (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  obtain ⟨hf₁s, hf₁in, -⟩ := rootArcR_spec hN hZ hC ι κ hK
+  have h2 := (semidirectedR_isDirected_iff hN hZ hC ι κ hK g).mp hg
+  obtain ⟨ℓ, hℓ, hℓt⟩ := exists_last_mem_chainArcs hN.1 hZ.nonempty hf
+  have hℓnc : ¬ ChainZ hN.1 hZ.nonempty (N.graph.target ℓ) := fun h => by
+    have := indegree_of_chainZ hN.1 hZ.nonempty h
+    rw [hℓt] at this
+    omega
+  -- the product along the chain is the inheritance probability of its last arc
+  have hR : ∏ᶠ a ∈ chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g), θ.inheritance a =
+      θ.inheritance ℓ := by
+    have hsplit : chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g) =
+        insert ℓ (chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g) \ {ℓ}) :=
+      (Set.insert_sdiff_singleton.trans (Set.insert_eq_of_mem hℓ)).symm
+    rw [hsplit, finprod_mem_insert _ (Set.notMem_sdiff_of_mem (Set.mem_singleton ℓ))
+      (Set.toFinite _), finprod_mem_of_eqOn_one, mul_one]
+    intro a ha
+    have hc : ChainZ hN.1 hZ.nonempty (N.graph.target a) := by
+      by_contra hc
+      have ht := target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty ha.1 hc
+      exact ha.2 (eq_of_mem_chainArcs_of_target hN.1 hZ.nonempty ha.1 hℓ (ht.trans hℓt.symm) hc)
+    exact hθ a (indegree_of_chainZ hN.1 hZ.nonempty hc)
+  rw [hR]
+  -- the only hybrid edge of the chain of `K` is the last arc
+  have hℓb : ℓ ∈ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z :=
+    ⟨hmf.trans (reaches_source_of_mem_chainArcs hN.1 hZ.nonempty hℓ), hℓ.2.1⟩
+  obtain ⟨eℓ, heℓ⟩ := exists_valK hN hX hZ h17 hℓb fun h => by
+    have h1 := (sdRootArc_spec hN.1 hN.2 hX).2
+    unfold IsTreeArc at h1
+    rw [← h, hℓt] at h1
+    omega
+  have hset : {e | e ∈ chainOfR hN hX hZ hC κ g ∧ (trekNet hN hX Z).IsDirected e} = {eℓ} := by
+    ext e
+    constructor
+    · rintro ⟨he, hd⟩
+      rw [trekNet_isDirected_iff] at hd
+      have hnc' : ¬ ChainZ hN.1 hZ.nonempty (N.graph.target (valK hN hX e)) := fun h => by
+        rw [indegree_of_chainZ hN.1 hZ.nonempty h] at hd
+        omega
+      rcases he with he | ⟨-, he⟩
+      · have ht := target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc'
+        exact valK_injective hN hX ((eq_of_mem_chainArcs_of_target hN.1 hZ.nonempty he hℓ
+          (ht.trans hℓt.symm) hnc').trans heℓ.symm)
+      · rw [target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc', hf₁in] at hd
+        omega
+    · intro he
+      rw [Set.mem_singleton_iff.mp he]
+      refine ⟨Or.inl (show valK hN hX eℓ ∈ _ from heℓ ▸ hℓ), ?_⟩
+      rw [trekNet_isDirected_iff, heℓ, hℓt]
+      exact h2
+  rw [hset, finprod_mem_singleton]
+  change θ.inheritance (valK hN hX eℓ) = _
+  rw [heℓ]
+
+include h17 hK in
+/-- **Proposition 1 for metric networks, for a contraction `C`**, when the parameters of `C` are
+the sums of the lengths and the products of the inheritance probabilities along the chains of the
+ancestral network, and tree arcs have inheritance probability one. -/
+theorem nonempty_sdMetricIso_trekNet (θ : MetricData E)
+    (hθ : ∀ e, N.IsTreeArc e → θ.inheritance e = 1) (θC : MetricData EC)
+    (hθC : ∀ e, θC.length e = ∑ᶠ a ∈ chainArcs hN.1 hZ.nonempty (valCE hN hZ κ e), θ.length a ∧
+      θC.inheritance e = ∏ᶠ a ∈ chainArcs hN.1 hZ.nonempty (valCE hN hZ κ e), θ.inheritance a) :
+    Nonempty (SDMetricIso (suppress (trekNet hN hX Z))
+      (suppressMetric (trekNet hN hX Z) ⟨fun e => (semidirectedMetric hN.1 hN.2 hX θ).length e.1,
+        fun e => (semidirectedMetric hN.1 hN.2 hX θ).inheritance e.1⟩)
+      (semidirected hC.1 hC.2 hZ.coe_sort) (semidirectedMetric hC.1 hC.2 hZ.coe_sort θC)) := by
+  have := hN.1.finite_arcs
+  refine nonempty_sdMetricIso_suppress _ _ (vertEquivR hN hX hZ h17 hC ι κ hK)
+    (chainOfR hN hX hZ hC κ) (chainOfR_isChain hN hX hZ h17 hC ι κ hK) (psiR hN hX hZ h17 hC ι κ hK)
+    (mem_chainOfR_psiR hN hX hZ h17 hC ι κ hK) (fun _ _ he => psiR_eq hN hX hZ h17 hC ι κ hK he)
+    (chainEnds_chainOfR hN hX hZ h17 hC ι κ hK)
+    (semidirectedR_source_ne_target hN hX hZ h17 hC ι κ hK)
+    (semidirectedR_isDirected_iff_chain hN hX hZ h17 hC ι κ hK)
+    (target_of_mem_chainOfR hN hX hZ h17 hC ι κ hK)
+    (vertEquivR_leaf hN hX hZ h17 hC ι κ hK) (fun g => ?_) (fun g hg => ?_)
+  · rw [semidirectedMetricR_length hN hZ hC ι κ hK θ θC (fun e => (hθC e).1) g]
+    exact (sum_length_chainOfR hN hX hZ h17 hC ι κ hK θ g).symm
+  · rw [semidirectedMetric_inheritance, (hθC _).2]
+    exact (inheritance_chainOfR hN hX hZ h17 hC ι κ hK θ hθ g hg).symm
+
 end Chains
 
 end Banos2019

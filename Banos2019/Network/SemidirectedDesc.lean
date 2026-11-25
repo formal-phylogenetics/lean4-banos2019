@@ -103,6 +103,27 @@ theorem semidirected_isDirected_iff (g : SemidirectedArc hM hB hX) :
     (hleaf := fun _ hx => (lsa_spec hM Set.univ Set.univ_nonempty).1.reaches_leaf hM hx) hM
     (lsa_spec hM Set.univ Set.univ_nonempty).1 g.1
 
+open Classical in
+/-- The length of an edge of `semidirected M`: that of its arc, plus that of `rootTreeArc` for the
+edge out of the LSA. -/
+theorem semidirectedMetric_length (θ : MetricData E) (g : SemidirectedArc hM hB hX) :
+    (semidirectedMetric hM hB hX θ).length g =
+      if M.graph.source (sdArc hM hB hX g) = lsa hM Set.univ Set.univ_nonempty then
+        θ.length (sdArc hM hB hX g) + θ.length (sdRootArc hM hB hX)
+      else θ.length (sdArc hM hB hX g) := by
+  have key : (lsaPlus hM hX).graph.source g.1 = (lsaPlus hM hX).root ↔
+      M.graph.source (sdArc hM hB hX g) = lsa hM Set.univ Set.univ_nonempty :=
+    ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
+  simp only [semidirectedMetric]
+  split_ifs with h₁ h₂ h₂
+  · rfl
+  · exact absurd (key.mp h₁) h₂
+  · exact absurd (key.mpr h₂) h₁
+  · rfl
+
+theorem semidirectedMetric_inheritance (θ : MetricData E) (g : SemidirectedArc hM hB hX) :
+    (semidirectedMetric hM hB hX θ).inheritance g = θ.inheritance (sdArc hM hB hX g) := rfl
+
 /-- The nodes of `semidirected M`, as the nodes of `M` strictly below the LSA. -/
 def sdVertEquiv : SemidirectedVertex hM hX ≃
     {v : V // M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) v ∧
