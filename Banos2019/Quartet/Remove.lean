@@ -11,15 +11,15 @@ of the network as a convex combination of those of networks with one cycle fewer
 lemmas produce (`deleteArc`, `contractRooted`) have nodes of degree two; suppressing them gives LSA
 quartet networks with the same concordance factors and the remaining cycles.
 
-* `HasCycleWith Q n D`: a cycle of `Q⊕` induces an `n`-cycle of `Q⁻` with the taxa `D` below its
-  hybrid node; `numCycles`; `SameCyclesBut Q' Q P`: the cycles of `Q'` are those of `Q` that do not
+* `HasCycleWithBelow Q n D`: a cycle of `Q⊕` induces an `n`-cycle of `Q⁻` with the taxa `D` below its
+  hybrid node; `numRootedCycles`; `SameCyclesBut Q' Q P`: the cycles of `Q'` are those of `Q` that do not
   satisfy `P`.
 * `inducesCycleType_cases`, `exists_inducesCycleType_of_isCycle`, `eq_of_inducesCycleType_three_two`:
   the cycles of an LSA quartet network.
 * `exists_lsaQuartet_of_corollary2`, `exists_lsaQuartet_deleteArc`, `exists_lsaQuartet_contractRooted`:
   the networks of Corollary 2 and of Lemmas 9 and 10, as LSA quartet networks.
 * `exists_fig18`: with a single cycle, a `3₂`-cycle, `Q⁻` is the network of Figure 18.
-* `TreeOrdered`, `OnSegment`: the orderings of Propositions 6 and 7, kept by convex combinations.
+* `OrderedAsQuartetTree`, `OnSegmentOfI`: the orderings of Propositions 6 and 7, kept by convex combinations.
 -/
 
 @[expose] public noncomputable section
@@ -34,25 +34,25 @@ variable {V E X : Type*}
 /-! ### Cycles -/
 
 /-- `Q⊕` has a cycle that induces an `n`-cycle of `Q⁻` with the taxa `D` below its hybrid node. -/
-def HasCycleWith (Q : RootedNetwork V E X) (n : ℕ) (D : Set X) : Prop :=
+def HasCycleWithBelow (Q : RootedNetwork V E X) (n : ℕ) (D : Set X) : Prop :=
   ∃ C v, InducesCycleType Q C v n D.ncard ∧ {x | Q.graph.Reaches v (Q.leaf x)} = D
 
 /-- The number of cycles of `Q⊕`. -/
-def numCycles (Q : RootedNetwork V E X) : ℕ := {C | IsCycle Q.graph C}.ncard
+def numRootedCycles (Q : RootedNetwork V E X) : ℕ := {C | IsCycle Q.graph C}.ncard
 
 /-- The cycles of `Q'` are those of `Q` that do not satisfy `P`: they induce cycles of the same sizes,
 with the same taxa below their hybrid nodes. -/
 def SameCyclesBut {V' E' : Type*} (Q' : RootedNetwork V' E' X) (Q : RootedNetwork V E X)
     (P : Set E → Prop) : Prop :=
-  ∀ n D, HasCycleWith Q' n D ↔
+  ∀ n D, HasCycleWithBelow Q' n D ↔
     ∃ C v, ¬ P C ∧ InducesCycleType Q C v n D.ncard ∧ {x | Q.graph.Reaches v (Q.leaf x)} = D
 
-theorem HasCycleWith.of_inducesCycleType {Q : RootedNetwork V E X} {C : Set E} {v : V} {n k : ℕ}
-    (h : InducesCycleType Q C v n k) : HasCycleWith Q n {x | Q.graph.Reaches v (Q.leaf x)} :=
+theorem HasCycleWithBelow.of_inducesCycleType {Q : RootedNetwork V E X} {C : Set E} {v : V} {n k : ℕ}
+    (h : InducesCycleType Q C v n k) : HasCycleWithBelow Q n {x | Q.graph.Reaches v (Q.leaf x)} :=
   ⟨C, v, h.2.2.2.2 ▸ h, rfl⟩
 
-theorem HasCycleWith.exists_inducesCycleType {Q : RootedNetwork V E X} {n : ℕ} {D : Set X}
-    (h : HasCycleWith Q n D) : ∃ C v, InducesCycleType Q C v n D.ncard := by
+theorem HasCycleWithBelow.exists_inducesCycleType {Q : RootedNetwork V E X} {n : ℕ} {D : Set X}
+    (h : HasCycleWithBelow Q n D) : ∃ C v, InducesCycleType Q C v n D.ncard := by
   obtain ⟨C, v, hC, -⟩ := h
   exact ⟨C, v, hC⟩
 
@@ -62,7 +62,7 @@ theorem SameCyclesBut.not_exists {V' E' : Type*} {Q' : RootedNetwork V' E' X}
     {Q : RootedNetwork V E X} {P : Set E → Prop} (h : SameCyclesBut Q' Q P) {n k : ℕ}
     (hQ : ¬ ∃ C v, InducesCycleType Q C v n k) : ¬ ∃ C v, InducesCycleType Q' C v n k := by
   rintro ⟨C, v, hC⟩
-  obtain ⟨C', v', -, hC', -⟩ := (h n _).1 (HasCycleWith.of_inducesCycleType hC)
+  obtain ⟨C', v', -, hC', -⟩ := (h n _).1 (HasCycleWithBelow.of_inducesCycleType hC)
   rw [hC.2.2.2.2] at hC'
   exact hQ ⟨C', v', hC'⟩
 
@@ -81,11 +81,13 @@ theorem inducesCycleType_cases {Q : RootedNetwork V E X} {θ : MetricData E} (hQ
     (n = 2 ∧ 1 ≤ k ∧ k ≤ 3) ∨ (n = 3 ∧ (k = 1 ∨ k = 2)) ∨ (n = 4 ∧ k = 1) := by
   sorry
 
+omit [Fintype V] in
 /-- Every cycle of `Q⊕` induces a cycle of `Q⁻`, with the hybrid node of the cycle (Lemma 3). -/
 theorem exists_inducesCycleType_of_isCycle {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) {C : Set E} (hC : IsCycle Q.graph C) :
     ∃ v n k, InducesCycleType Q C v n k := by
-  sorry
+  obtain ⟨⟨v, ⟨hv, h2⟩, -⟩, -, -⟩ := lemma3 hQ.binary hQ.levelOne hC
+  exact ⟨v, _, _, hC, hv, h2, rfl, rfl⟩
 
 /-- **`Q⊕` has at most one cycle inducing a `3₂`-cycle** (Lemma 6, for the cycles of `Q⊕`, which
 induce distinct cycles of `Q⁻`). -/
@@ -119,7 +121,7 @@ theorem exists_lsaQuartet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E
     (hh : Q.graph.target h = v) :
     ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q' : RootedNetwork V' E' X)
       (θ' : MetricData E') (_ : IsLSAQuartet Q' θ'),
-      cf Q' θ' = cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧ numCycles Q' < numCycles Q ∧
+      cf Q' θ' = cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧ numRootedCycles Q' < numRootedCycles Q ∧
         SameCyclesBut Q' Q (· = C) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
   sorry
@@ -132,7 +134,7 @@ theorem exists_lsaQuartet_contractRooted {Q : RootedNetwork V E X} {θ : MetricD
     ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q' : RootedNetwork V' E' X)
       (θ' : MetricData E') (_ : IsLSAQuartet Q' θ'),
       cf Q' θ' = cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) ∧
-        numCycles Q' < numCycles Q ∧ SameCyclesBut Q' Q (· = C) ∧
+        numRootedCycles Q' < numRootedCycles Q ∧ SameCyclesBut Q' Q (· = C) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
   sorry
 
@@ -153,21 +155,22 @@ variable [DecidableEq X]
 
 /-- The concordance factors `p` are ordered as those of a quartet tree with the cherry `A`: the quartet
 tree with the cherry `A` has the largest, strictly, and the two others are equal. -/
-def TreeOrdered (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
+def OrderedAsQuartetTree (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
   (∀ q r : QuartetTree X, A ∈ q.val → A ∉ r.val → p r < p q) ∧
     ∀ r r' : QuartetTree X, A ∉ r.val → A ∉ r'.val → p r = p r'
 
 /-- The concordance factors `p` lie on the open segment of Proposition 7 for the cherry `A`: the
 quartet tree with the cherry `A` has more than `1/6`, the two others are equal, and the three are
 the coordinates of a point of the simplex. -/
-def OnSegment (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
+def OnSegmentOfI (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
   (∀ q : QuartetTree X, A ∈ q.val → 1 / 6 < p q) ∧
     (∀ r r' : QuartetTree X, A ∉ r.val → A ∉ r'.val → p r = p r') ∧ (∀ q, 0 ≤ p q) ∧
     ∑ q ∈ treesOn (univ : Finset X), p q = 1
 
-theorem TreeOrdered.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ : TreeOrdered p₁ A)
-    (h₂ : TreeOrdered p₂ A) {w₁ w₂ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂) :
-    TreeOrdered (fun q => w₁ * p₁ q + w₂ * p₂ q) A := by
+omit [Fintype X] in
+theorem OrderedAsQuartetTree.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OrderedAsQuartetTree p₁ A)
+    (h₂ : OrderedAsQuartetTree p₂ A) {w₁ w₂ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂) :
+    OrderedAsQuartetTree (fun q => w₁ * p₁ q + w₂ * p₂ q) A := by
   refine ⟨fun q r hq hr => ?_, fun r r' hr hr' => ?_⟩
   · have := h₁.1 q r hq hr
     have := h₂.1 q r hq hr
@@ -176,9 +179,10 @@ theorem TreeOrdered.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁
   · dsimp only
     rw [h₁.2 r r' hr hr', h₂.2 r r' hr hr']
 
-theorem TreeOrdered.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X} (h₁ : TreeOrdered p₁ A)
-    (h₂ : TreeOrdered p₂ A) (h₃ : TreeOrdered p₃ A) {w₁ w₂ w₃ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
-    (hw₃ : 0 < w₃) : TreeOrdered (fun q => w₁ * p₁ q + w₂ * p₂ q + w₃ * p₃ q) A := by
+omit [Fintype X] in
+theorem OrderedAsQuartetTree.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OrderedAsQuartetTree p₁ A)
+    (h₂ : OrderedAsQuartetTree p₂ A) (h₃ : OrderedAsQuartetTree p₃ A) {w₁ w₂ w₃ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
+    (hw₃ : 0 < w₃) : OrderedAsQuartetTree (fun q => w₁ * p₁ q + w₂ * p₂ q + w₃ * p₃ q) A := by
   refine ⟨fun q r hq hr => ?_, fun r r' hr hr' => ?_⟩
   · have := h₁.1 q r hq hr
     have := h₂.1 q r hq hr
@@ -188,9 +192,9 @@ theorem TreeOrdered.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset 
   · dsimp only
     rw [h₁.2 r r' hr hr', h₂.2 r r' hr hr', h₃.2 r r' hr hr']
 
-theorem OnSegment.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OnSegment p₁ A)
-    (h₂ : OnSegment p₂ A) {w₁ w₂ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂) (hw : w₁ + w₂ = 1) :
-    OnSegment (fun q => w₁ * p₁ q + w₂ * p₂ q) A := by
+theorem OnSegmentOfI.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OnSegmentOfI p₁ A)
+    (h₂ : OnSegmentOfI p₂ A) {w₁ w₂ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂) (hw : w₁ + w₂ = 1) :
+    OnSegmentOfI (fun q => w₁ * p₁ q + w₂ * p₂ q) A := by
   refine ⟨fun q hq => ?_, fun r r' hr hr' => ?_, fun q => ?_, ?_⟩
   · have := h₁.1 q hq
     have := h₂.1 q hq
@@ -205,10 +209,10 @@ theorem OnSegment.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ :
   · rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum, h₁.2.2.2, h₂.2.2.2]
     linarith
 
-theorem OnSegment.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OnSegment p₁ A)
-    (h₂ : OnSegment p₂ A) (h₃ : OnSegment p₃ A) {w₁ w₂ w₃ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
+theorem OnSegmentOfI.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OnSegmentOfI p₁ A)
+    (h₂ : OnSegmentOfI p₂ A) (h₃ : OnSegmentOfI p₃ A) {w₁ w₂ w₃ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
     (hw₃ : 0 < w₃) (hw : w₁ + w₂ + w₃ = 1) :
-    OnSegment (fun q => w₁ * p₁ q + w₂ * p₂ q + w₃ * p₃ q) A := by
+    OnSegmentOfI (fun q => w₁ * p₁ q + w₂ * p₂ q + w₃ * p₃ q) A := by
   refine ⟨fun q hq => ?_, fun r r' hr hr' => ?_, fun q => ?_, ?_⟩
   · have := h₁.1 q hq
     have := h₂.1 q hq
@@ -226,12 +230,13 @@ theorem OnSegment.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X}
       ← Finset.mul_sum, h₁.2.2.2, h₂.2.2.2, h₃.2.2.2]
     linarith
 
+omit [Fintype X] in
 /-- Two families of concordance factors ordered as the same quartet tree have the same ordering. -/
-theorem TreeOrdered.sameOrdering (hX : Fintype.card X = 4) {p p' : QuartetTree X → ℝ}
-    {A : Finset X} (h : TreeOrdered p A) (h' : TreeOrdered p' A) : SameOrdering p p' := by
+theorem OrderedAsQuartetTree.sameOrdering {p p' : QuartetTree X → ℝ}
+    {A : Finset X} (h : OrderedAsQuartetTree p A) (h' : OrderedAsQuartetTree p' A) : SameOrdering p p' := by
   intro q r hqr
   by_cases hq : A ∈ q.val <;> by_cases hr : A ∈ r.val
-  · have : q = r := quartetTree_eq_of_mem hqr hq hr
+  · have : q = r := quartetTree_eq_of_taxa_eq_of_mem hqr hq hr
     subst this
     exact ⟨fun _ => le_rfl, fun _ => le_rfl⟩
   · exact ⟨fun hle => absurd hle (not_le.2 (h.1 q r hq hr)),
@@ -241,9 +246,9 @@ theorem TreeOrdered.sameOrdering (hX : Fintype.card X = 4) {p p' : QuartetTree X
 
 /-- **Equation (1)**: the concordance factors of a species tree with the split `A | Aᶜ` are ordered as
 the quartet tree with the cherry `A`. -/
-theorem treeOrdered_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {A : Finset X}
+theorem orderedAsQuartetTree_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {A : Finset X}
     (hA : #A = 2) (hsplit : A ∈ unroot σ.clusters) :
-    TreeOrdered (External.AllmanDegnanRhodes2011.quartetProb σ) A := by
+    OrderedAsQuartetTree (External.AllmanDegnanRhodes2011.quartetProb σ) A := by
   obtain ⟨a, b, hab, rfl⟩ := Finset.card_eq_two.1 hA
   -- the two other taxa
   have hc : (univ \ {a, b} : Finset X).card = 2 := by
@@ -253,7 +258,7 @@ theorem treeOrdered_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {
   have hdm : d ∈ univ \ {a, b} := hcd' ▸ mem_insert_of_mem (mem_singleton_self d)
   simp only [mem_sdiff, mem_univ, true_and, mem_insert, mem_singleton, not_or] at hcm hdm
   have h4 : Distinct4 a b c d := ⟨hab, Ne.symm hcm.1, Ne.symm hdm.1, Ne.symm hcm.2, Ne.symm hdm.2, hcd⟩
-  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h4.card_eq, hX])
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h4.card_insert_eq, hX])
   obtain ⟨h₁, h₂⟩ := External.AllmanDegnanRhodes2011.equation1 hX σ
     (q := quartetTree a b c d h4) rfl hsplit
   -- the internal edge has a positive length
@@ -271,7 +276,7 @@ theorem treeOrdered_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {
   have htaxa : ∀ q : QuartetTree X, q.taxa = univ := fun q =>
     eq_univ_of_card _ (by rw [q.card_taxa, hX])
   have hT : ∀ q : QuartetTree X, {a, b} ∈ q.val → q = quartetTree a b c d h4 := fun q hq =>
-    quartetTree_eq_of_mem ((htaxa q).trans (htaxa _).symm) hq (by simp)
+    quartetTree_eq_of_taxa_eq_of_mem ((htaxa q).trans (htaxa _).symm) hq (by simp)
   have halt : ∀ r : QuartetTree X, {a, b} ∉ r.val → r ∈ (quartetTree a b c d h4).alternatives :=
     fun r hr => QuartetTree.mem_alternatives.2 ⟨(htaxa r).trans (htaxa _).symm,
       fun e => hr (e ▸ by simp)⟩

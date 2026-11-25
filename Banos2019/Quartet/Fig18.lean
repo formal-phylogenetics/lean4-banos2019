@@ -73,20 +73,21 @@ theorem figLeaf_d (h : Distinct4 a b c d) : figLeaf a b c d = 3 := by
 variable [Fintype X]
 
 /-- Every taxon is `a`, `b`, `c` or `d`. -/
-theorem eq_or_of_distinct4 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) (x : X) :
+theorem eq_or_of_distinct4_of_card_eq (hX : Fintype.card X = 4) (h : Distinct4 a b c d) (x : X) :
     x = a ∨ x = b ∨ x = c ∨ x = d := by
-  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_eq, hX])
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_insert_eq, hX])
   have : x ∈ ({a, b, c, d} : Finset X) := huniv ▸ mem_univ x
   simpa using this
 
 theorem figLeaf_injective (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
     Function.Injective (figLeaf a b c) := by
   intro x y hxy
-  rcases eq_or_of_distinct4 hX h x with rfl | rfl | rfl | rfl <;>
-    rcases eq_or_of_distinct4 hX h y with rfl | rfl | rfl | rfl <;>
+  rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl <;>
+    rcases eq_or_of_distinct4_of_card_eq hX h y with rfl | rfl | rfl | rfl <;>
     simp only [figLeaf_a, figLeaf_b h, figLeaf_c h, figLeaf_d h] at hxy <;>
     first | rfl | exact absurd hxy (by decide)
 
+omit [Fintype X] in
 /-- The leaves of `q18` are `0, 1, 2, 3`. -/
 theorem q18_leaf_mem (x : X) : (q18 a b c).leaf x ∈ ({0, 1, 2, 3} : Finset (Fin 9)) := by
   simp only [q18, figLeaf]
@@ -148,6 +149,7 @@ theorem q18_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
       simp only [mem_insert, mem_singleton] at this
       rcases this with h' | h' | h' | h' <;> rw [h'] <;> decide
 
+omit [Fintype X] in
 theorem q18_isBinary (a b c : X) : (q18 a b c).IsBinary := by
   refine ⟨by rw [q18_outdegree]; show #(univ.filter fun e => q18Src e = 8) = 2; decide,
     fun v hv h0 => ?_⟩
@@ -186,6 +188,7 @@ theorem IsCycleOf.exists_two_incident {V' E' : Type*} {G : DirectedMultigraph V'
 /-- The edges `8 → 5`, `6 → 5`, `7 → 6`, `8 → 7` of the cycle of `q18`. -/
 def q18Cycle : Finset (Fin 9) := {5, 6, 7, 8}
 
+omit [Fintype X] in
 /-- **The only cycle of `q18`**: leaves and the node `4` above two leaves are on no cycle, and the
 four edges left form one cycle. -/
 theorem q18_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q18 a b c).graph C) : C = ↑q18Cycle := by
@@ -290,7 +293,7 @@ theorem q18_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q18 a b c).graph C) : C = 
     exact fun g hg => reach g hg _ h₀ ⟨⟨0, hk⟩, rfl⟩
   rw [← hrange]
   ext f
-  simp only [Set.mem_range, coe_insert, coe_singleton, Set.mem_insert_iff, Set.mem_singleton_iff]
+  simp only [Set.mem_range]
   constructor
   · rintro ⟨j, rfl⟩
     have := hsub j
@@ -298,11 +301,13 @@ theorem q18_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q18 a b c).graph C) : C = 
   · intro hf
     exact hall f (by simpa [q18Cycle] using hf)
 
-theorem q18_isLevelOne : IsLevelOne (q18 a b c).graph := fun C C' hC hC' _ =>
+omit [Fintype X] in
+theorem q18_isLevelOne : IsLevelOne (q18 a b c).graph := fun _ _ hC hC' _ =>
   (q18_cycle_eq hC).trans (q18_cycle_eq hC').symm
 
 /-! ### The root is the LSA -/
 
+omit [Fintype X] in
 /-- The path `8 → u₁ → u₂ → t` of `q18`, along the edges `e₁, e₂, e₃`, avoids every other node. -/
 theorem q18_hasPathAvoiding {e₁ e₂ e₃ : Fin 9} (h₁ : q18Src e₁ = 8) (h₂ : q18Tgt e₁ = q18Src e₂)
     (h₃ : q18Tgt e₂ = q18Src e₃) {w : Fin 9}
@@ -314,6 +319,7 @@ theorem q18_hasPathAvoiding {e₁ e₂ e₃ : Fin 9} (h₁ : q18Src e₁ = 8) (h
   refine ((Relation.ReflTransGen.single ⟨⟨e₁, h₁, rfl⟩, Ne.symm hw₀, Ne.symm hw₁⟩).tail
     ⟨⟨e₂, h₂.symm, rfl⟩, Ne.symm hw₁, Ne.symm hw₂⟩).tail ⟨⟨e₃, h₃.symm, rfl⟩, Ne.symm hw₂, Ne.symm hw₃⟩
 
+omit [Fintype X] in
 theorem q18_isLSANetwork (h : Distinct4 a b c d) : (q18 a b c).IsLSANetwork := by
   refine ⟨root_isStableAncestor _ _, fun w hw => ?_⟩
   suffices hw8 : w = 8 by rw [hw8]; exact .refl
@@ -334,6 +340,7 @@ theorem q18_isLSANetwork (h : Distinct4 a b c d) : (q18 a b c).IsLSANetwork := b
 
 /-! ### The parameters -/
 
+omit [Fintype X] in
 theorem q18_isHybridArc_iff (e : Fin 9) : (q18 a b c).IsHybridArc e ↔ e = 6 ∨ e = 7 := by
   unfold IsHybridArc
   rw [q18_indegree]
@@ -341,6 +348,7 @@ theorem q18_isHybridArc_iff (e : Fin 9) : (q18 a b c).IsHybridArc e ↔ e = 6 �
   revert e
   decide
 
+omit [Fintype X] in
 theorem q18_isTreeArc_iff (e : Fin 9) : (q18 a b c).IsTreeArc e ↔ ¬ (e = 6 ∨ e = 7) := by
   unfold IsTreeArc
   rw [q18_indegree]
@@ -348,6 +356,7 @@ theorem q18_isTreeArc_iff (e : Fin 9) : (q18 a b c).IsTreeArc e ↔ ¬ (e = 6 �
   revert e
   decide
 
+omit [Fintype X] in
 theorem q18Metric_isMetricNetwork {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ)
     (hγ₁ : γ < 1) : IsMetricNetwork (q18 a b c) (q18Metric len γ) := by
   have hpos : ∀ e, 0 < (q18Metric len γ).length e := by
@@ -368,6 +377,7 @@ theorem q18Metric_isMetricNetwork {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i
 
 /-! ### The `3₂`-cycle -/
 
+omit [Fintype X] in
 theorem q18_reaches_five {w : Fin 9} (hw : (q18 a b c).graph.Reaches 5 w) :
     w ∈ ({5, 4, 0, 1} : Finset (Fin 9)) := by
   induction hw with
@@ -402,15 +412,15 @@ theorem exists_inducesCycleType_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b
   refine ⟨↑q18Cycle, 5, hcyc, ⟨6, by decide, Or.inr rfl⟩, by rw [q18_indegree]; decide, ?_, ?_⟩
   · have h8 : (q18 a b c).root ∈ cycleNodes (q18 a b c).graph ↑q18Cycle :=
       ⟨6, by decide, Or.inl rfl⟩
-    rw [if_pos h8, Set.ncard_coe_finset]
+    rw [ite_eq_left h8, Set.ncard_coe_finset]
     decide
   · have hset : {x | (q18 a b c).graph.Reaches 5 ((q18 a b c).leaf x)} = {a, b} := by
       ext x
-      simp only [Set.mem_setOf_eq, Set.mem_insert_iff, Set.mem_singleton_iff]
+      simp only [Set.mem_ofPred_eq, Set.mem_insert_iff, Set.mem_singleton_iff]
       constructor
       · intro hx
         have := q18_reaches_five hx
-        rcases eq_or_of_distinct4 hX h x with rfl | rfl | rfl | rfl
+        rcases eq_or_of_distinct4_of_card_eq hX h x with rfl | rfl | rfl | rfl
         · exact Or.inl rfl
         · exact Or.inr rfl
         · rw [hlc] at this; exact absurd this (by decide)
@@ -490,11 +500,11 @@ theorem inducesNetwork_q18 (h : Distinct4 a b c d) {len : Fin 8 → ℝ} {γ : �
       (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
     simp only [unrootAt]
     by_cases h8 : q18Src e.1.1 = 8
-    · rw [dite_eq_left ((hroot e).2 h8), if_pos h8]
+    · rw [dite_eq_left ((hroot e).2 h8), ite_eq_left h8]
       show q18Tgt (rootTreeArc hP hB hXn).1 = 7
       rw [hr]
       rfl
-    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), if_neg h8]
+    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), ite_eq_right h8]
       rfl
   have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = q18Tgt e.1.1 := fun e => rfl
   have hdir : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>

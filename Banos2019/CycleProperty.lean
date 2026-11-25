@@ -32,12 +32,13 @@ variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 def IsTwoOrThreeOne (Q : RootedNetwork V E X) (C : Set E) : Prop :=
   ∃ v, (∃ k, InducesCycleType Q C v 2 k) ∨ InducesCycleType Q C v 3 1
 
+omit [Fintype V] [Fintype X] in
 /-- The two hybrid edges of the hybrid node of a cycle. -/
 theorem exists_hybrid_edges {Q : RootedNetwork V E X} {C : Set E} {v : V} {n k : ℕ}
     (hC : InducesCycleType Q C v n k) :
     ∃ h₁ h₂, h₁ ≠ h₂ ∧ Q.graph.target h₁ = v ∧ Q.graph.target h₂ = v ∧ Q.IsHybridArc h₁ := by
   have h2 := hC.2.2.1
-  rw [indegree_eq_card_filter] at h2
+  rw [indegree_eq_card_filter_target] at h2
   obtain ⟨h₁, h₂, hne, he⟩ := Finset.card_eq_two.1 h2
   have m₁ : h₁ ∈ univ.filter fun e => Q.graph.target e = v := he ▸ mem_insert_self _ _
   have m₂ : h₂ ∈ univ.filter fun e => Q.graph.target e = v :=
@@ -53,6 +54,7 @@ def OnlyTwoTwoThreeOne (Q : RootedNetwork V E X) : Prop :=
   (¬ ∃ C v, InducesCycleType Q C v 3 2) ∧ (¬ ∃ C v k, InducesCycleType Q C v 4 k) ∧
     (¬ ∃ C v, InducesCycleType Q C v 2 1) ∧ ¬ ∃ C v, InducesCycleType Q C v 2 3
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 theorem SameCyclesBut.onlyTwoTwoThreeOne {V' E' : Type*} {Q' : RootedNetwork V' E' X}
     {Q : RootedNetwork V E X} {P : Set E → Prop} (h : SameCyclesBut Q' Q P)
     (hK : OnlyTwoTwoThreeOne Q) : OnlyTwoTwoThreeOne Q' :=
@@ -63,14 +65,14 @@ theorem SameCyclesBut.onlyTwoTwoThreeOne {V' E' : Type*} {Q' : RootedNetwork V' 
 concordance factors are ordered as the quartet tree of any of its cut edges between two pairs of taxa.
 With no cycle, `Q` is a tree (equation (1)); otherwise Lemmas 9 and 10 write the concordance factors
 of `Q` as a convex combination of those of networks with one cycle fewer and the same cut edges. -/
-theorem treeOrdered_of_onlyTwoTwoThreeOne (n : ℕ) :
+theorem orderedAsQuartetTree_of_onlyTwoTwoThreeOne (n : ℕ) :
     ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
-      IsLSAQuartet Q θ → numCycles Q = n → OnlyTwoTwoThreeOne Q →
-      ∀ A : Finset X, #A = 2 → Q.HasCutSplit ↑A → TreeOrdered (cf Q θ) A := by
+      IsLSAQuartet Q θ → numRootedCycles Q = n → OnlyTwoTwoThreeOne Q →
+      ∀ A : Finset X, #A = 2 → Q.HasCutSplit ↑A → OrderedAsQuartetTree (cf Q θ) A := by
   induction n using Nat.strong_induction_on with
   | _ n ih =>
   intro V' E' _ _ Q θ hQ hn hK A hA hcut
-  by_cases h0 : numCycles Q = 0
+  by_cases h0 : numRootedCycles Q = 0
   · -- no cycle: by Corollary 2, which contracts nothing, `Q` is the tree `Q'`; equation (1)
     have hnone : ∀ C, ¬ IsCycle Q.graph C := fun C hC => by
       have := Set.ncard_eq_zero (s := {C | IsCycle Q.graph C}) (finite_setOf_isCycle _)
@@ -84,7 +86,7 @@ theorem treeOrdered_of_onlyTwoTwoThreeOne (n : ℕ) :
       · rintro ⟨v, ⟨k, h⟩ | h⟩ <;> exact absurd h.1 (hnone C)
     obtain ⟨σ, -, hσcut, hcf⟩ := exists_speciesTree_contractRooted hQ hK.1 hK.2.1 _ hP
     rw [corollary2 hQ, hcf]
-    exact treeOrdered_quartetProb hQ.card_taxa σ hA ((hσcut A hA).1 hcut)
+    exact orderedAsQuartetTree_quartetProb hQ.card_taxa σ hA ((hσcut A hA).1 hcut)
   · -- a cycle, which is a `2₂`- or a `3₁`-cycle
     obtain ⟨C, hC⟩ := Set.nonempty_of_ncard_ne_zero h0
     obtain ⟨v, m, k, hCt⟩ := exists_inducesCycleType_of_isCycle hQ hC
@@ -113,7 +115,7 @@ theorem treeOrdered_of_onlyTwoTwoThreeOne (n : ℕ) :
         funext q
         rw [lemma9 hQ hCt hne hh₁ hh₂ q, hcf₁, hcf₂, hcf₀]
       rw [hcfQ]
-      exact TreeOrdered.add₃ t₁ t₂ t₀ (by positivity) (pow_pos (by linarith) 2)
+      exact OrderedAsQuartetTree.add₃ t₁ t₂ t₀ (by positivity) (pow_pos (by linarith) 2)
         (by have : 0 < 1 - θ.inheritance h₁ := by linarith
             positivity)
     · have hk1 : k = 1 := by
@@ -133,7 +135,7 @@ theorem treeOrdered_of_onlyTwoTwoThreeOne (n : ℕ) :
         funext q
         rw [lemma10 hQ (Or.inr hCt) hne hh₁ hh₂ q, hcf₁, hcf₂]
       rw [hcfQ]
-      exact TreeOrdered.add t₁ t₂ hγ₀ (by linarith)
+      exact OrderedAsQuartetTree.add t₁ t₂ hγ₀ (by linarith)
     · exact absurd ⟨C, v, 1, hCt⟩ hK.2.1
 
 /-- **Proposition 6** (`prop:Cfspreserv`): if `Q⁻` has no `3₂`-cycle, the ordering of `CF(Q)` is that of
@@ -180,20 +182,20 @@ theorem proposition6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
       refine ⟨hsame.not_exists h32, fun ⟨C, v, k, hC⟩ =>
         hsame.not_exists (fun ⟨C', v', h'⟩ => h4 ⟨C', v', k, h'⟩) ⟨C, v, hC⟩, ?_, ?_⟩
       · rintro ⟨C, v, hC⟩
-        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC)
+        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC)
         rw [hC.2.2.2.2] at hC'
         exact hnot ⟨v', Or.inl hC'⟩
       · rintro ⟨C, v, hC⟩
-        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC)
+        obtain ⟨C', v', hnot, hC', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC)
         rw [hC.2.2.2.2] at hC'
         exact hnot ⟨v', Or.inr hC'⟩
     have hA : #({a, b} : Finset X) = 2 := card_pair habcd.1
     have hcutQ : Q.HasCutSplit ↑({a, b} : Finset X) := (hσcut _ hA).2 hsplit
-    have t := treeOrdered_of_onlyTwoTwoThreeOne _ hQ' rfl hK _ hA ((hcut' _ hA).2 hcutQ)
+    have t := orderedAsQuartetTree_of_onlyTwoTwoThreeOne _ hQ' rfl hK _ hA ((hcut' _ hA).2 hcutQ)
     rw [hcf', ← hc2] at t
     rw [hcf]
     -- equation (1): `Q'` and `Q` have the ordering of the quartet tree `ab|cd`
-    exact t.sameOrdering hQ.card_taxa (treeOrdered_quartetProb hQ.card_taxa σ hA hsplit)
+    exact t.sameOrdering (orderedAsQuartetTree_quartetProb hQ.card_taxa σ hA hsplit)
 
 /-- The probability simplex `Δ₂`. -/
 def simplex2 : Set (ℝ × ℝ × ℝ) := {p | 0 ≤ p.1 ∧ 0 ≤ p.2.1 ∧ 0 ≤ p.2.2 ∧ p.1 + p.2.1 + p.2.2 = 1}
@@ -280,12 +282,12 @@ theorem fig18_bounds {γ x₁ x₂ x₃ x₄ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : 
 
 /-- Concordance factors `(X, Y, Y)` with `X > 1/6`, `Y ≥ 0`, `X + 2Y = 1` on the quartet trees
 `ab|cd, ac|bd, ad|bc` lie on the open segment for the cherry `{a, b}`. -/
-theorem onSegment_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
+theorem onSegmentOfI_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
     {p : QuartetTree X → ℝ} {x y : ℝ} (h₁ : p (quartetTree a b c d h) = x)
     (h₂ : p (quartetTree a c b d (distinct4_acbd h)) = y)
     (h₃ : p (quartetTree a d b c (distinct4_adbc h)) = y) (hx : 1 / 6 < x) (hy : 0 ≤ y)
-    (hs : x + 2 * y = 1) : OnSegment p {a, b} := by
-  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_eq, hX])
+    (hs : x + 2 * y = 1) : OnSegmentOfI p {a, b} := by
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_insert_eq, hX])
   have hall : ∀ q : QuartetTree X, q = quartetTree a b c d h ∨
       q = quartetTree a c b d (distinct4_acbd h) ∨ q = quartetTree a d b c (distinct4_adbc h) := by
     intro q
@@ -296,14 +298,14 @@ theorem onSegment_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Distinc
     simpa using this
   obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
   have n₂ : ({a, b} : Finset X) ∉ (quartetTree a c b d (distinct4_acbd h)).val := by
-    simp only [quartetTree_val_eq, mem_insert, mem_singleton, not_or]
+    simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton, not_or]
     refine ⟨fun e => ?_, fun e => ?_⟩
     · have : b ∈ ({a, c} : Finset X) := e ▸ by simp
       simp [Ne.symm hab, hbc] at this
     · have : a ∈ ({b, d} : Finset X) := e ▸ by simp
       simp [hab, had] at this
   have n₃ : ({a, b} : Finset X) ∉ (quartetTree a d b c (distinct4_adbc h)).val := by
-    simp only [quartetTree_val_eq, mem_insert, mem_singleton, not_or]
+    simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton, not_or]
     refine ⟨fun e => ?_, fun e => ?_⟩
     · have : b ∈ ({a, d} : Finset X) := e ▸ by simp
       simp [Ne.symm hab, hbd] at this
@@ -329,11 +331,11 @@ theorem onSegment_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Distinc
     linarith
 
 /-- The concordance factors on the open segment for a pair of taxa lie in `I`. -/
-theorem mem_segmentsI_of_onSegment (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
-    {p : QuartetTree X → ℝ} {A : Finset X} (hA : #A = 2) (hp : OnSegment p A) :
+theorem mem_segmentsI_of_onSegmentOfI (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
+    {p : QuartetTree X → ℝ} {A : Finset X} (hA : #A = 2) (hp : OnSegmentOfI p A) :
     (p (quartetTree a b c d h), p (quartetTree a c b d (distinct4_acbd h)),
       p (quartetTree a d b c (distinct4_adbc h))) ∈ segmentsI := by
-  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_eq, hX])
+  have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h.card_insert_eq, hX])
   have hsum := hp.2.2.2
   rw [← huniv, treesOn_eq_triple h, sum_insert (by simp [quartetTree_abcd_ne_acbd h,
     quartetTree_abcd_ne_adbc h]), sum_pair (quartetTree_acbd_ne_adbc h)] at hsum
@@ -346,7 +348,7 @@ theorem mem_segmentsI_of_onSegment (hX : Fintype.card X = 4) {a b c d : X} (h : 
     exact eq_univ_of_card _ (by rw [qA.card_taxa, hX])
   rw [treesOn_eq_triple h] at hmem
   have hne : ∀ r : QuartetTree X, r ≠ qA → A ∉ r.val := fun r hr hAr =>
-    hr (quartetTree_eq_of_mem (by
+    hr (quartetTree_eq_of_taxa_eq_of_mem (by
       rw [eq_univ_of_card r.taxa (by rw [r.card_taxa, hX]),
         eq_univ_of_card qA.taxa (by rw [qA.card_taxa, hX])]) hAr hqA)
   simp only [mem_insert, mem_singleton] at hmem
@@ -369,18 +371,18 @@ its hybrid node, and no `2₁`- or `2₃`-cycle, its concordance factors lie on 
 With no other cycle, `Q⁻` is the network of Figure 18 (equation (9)); otherwise the other cycles are
 `2₂`- and `3₁`-cycles (Lemmas 5 and 6), and Lemmas 9 and 10 write the concordance factors as a
 convex combination of those of networks with the same `3₂`-cycle and one cycle fewer. -/
-theorem onSegment_of_threeTwo (n : ℕ) :
+theorem onSegmentOfI_of_threeTwo (n : ℕ) :
     ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
-      IsLSAQuartet Q θ → numCycles Q = n → ∀ A : Finset X, #A = 2 → HasCycleWith Q 3 ↑A →
+      IsLSAQuartet Q θ → numRootedCycles Q = n → ∀ A : Finset X, #A = 2 → HasCycleWithBelow Q 3 ↑A →
       (¬ ∃ C v, InducesCycleType Q C v 2 1) → (¬ ∃ C v, InducesCycleType Q C v 2 3) →
-      OnSegment (cf Q θ) A := by
+      OnSegmentOfI (cf Q θ) A := by
   induction n using Nat.strong_induction_on with
   | _ n ih =>
   intro V' E' _ _ Q θ hQ hn A hA h32 h21 h23
   obtain ⟨C₀, v₀, hC₀, hD₀⟩ := h32
   rw [Set.ncard_coe_finset, hA] at hC₀
   have hC₀c : C₀ ∈ {C | IsCycle Q.graph C} := hC₀.1
-  by_cases hone : numCycles Q = 1
+  by_cases hone : numRootedCycles Q = 1
   · -- the only cycle: Figure 18, equation (9)
     have hall : ∀ C, IsCycle Q.graph C → C = C₀ := by
       obtain ⟨C₁, hC₁⟩ := Set.ncard_eq_one.1 hone
@@ -399,10 +401,10 @@ theorem onSegment_of_threeTwo (n : ℕ) :
       ⟨Real.exp_pos _, Real.exp_lt_one_iff.2 (by linarith [hlen i])⟩
     obtain ⟨hs, hY, hX'⟩ := fig18_bounds hγ₀ hγ₁ (hx 4).1 (hx 4).2 (hx 7).1 (hx 7).2 (hx 5).1
       (hx 5).2 (hx 6).1 (hx 6).2
-    exact onSegment_of_triple hQ.card_taxa h4 e₁ e₂ e₃ hX' hY.le hs
+    exact onSegmentOfI_of_triple hQ.card_taxa h4 e₁ e₂ e₃ hX' hY.le hs
   · -- another cycle `C`, a `2₂`- or a `3₁`-cycle
-    have hlt : 1 < numCycles Q := by
-      have : numCycles Q ≠ 0 := fun h0 => by
+    have hlt : 1 < numRootedCycles Q := by
+      have : numRootedCycles Q ≠ 0 := fun h0 => by
         have := (Set.ncard_eq_zero (finite_setOf_isCycle Q.graph)).1 h0
         exact (this ▸ hC₀c : C₀ ∈ (∅ : Set (Set E')))
       omega
@@ -416,7 +418,7 @@ theorem onSegment_of_threeTwo (n : ℕ) :
     obtain ⟨hγ₀, hγ₁⟩ := inheritance_mem_Ioo hQ.binary hQ.metric hyb
     -- the `3₂`-cycle and the absence of `2₁`-, `2₃`-cycles stay
     have keep : ∀ {V'' E'' : Type} {Q' : RootedNetwork V'' E'' X}, SameCyclesBut Q' Q (· = C) →
-        HasCycleWith Q' 3 ↑A ∧ (¬ ∃ C v, InducesCycleType Q' C v 2 1) ∧
+        HasCycleWithBelow Q' 3 ↑A ∧ (¬ ∃ C v, InducesCycleType Q' C v 2 1) ∧
           ¬ ∃ C v, InducesCycleType Q' C v 2 3 := fun hs =>
       ⟨(hs 3 ↑A).2 ⟨C₀, v₀, fun e => hCC₀ e.symm, by rwa [Set.ncard_coe_finset, hA], hD₀⟩,
         hs.not_exists h21, hs.not_exists h23⟩
@@ -447,7 +449,7 @@ theorem onSegment_of_threeTwo (n : ℕ) :
         rw [lemma9 hQ hCt hne hh₁ hh₂ q, hcf₁, hcf₂, hcf₀]
       rw [hcfQ]
       have : 0 < 1 - θ.inheritance h₁ := by linarith
-      exact OnSegment.add₃ t₁ t₂ t₀ (by positivity) (by positivity) (by positivity) (by ring)
+      exact OnSegmentOfI.add₃ t₁ t₂ t₀ (by positivity) (by positivity) (by positivity) (by ring)
     · rcases hk with rfl | rfl
       · -- Lemma 10
         obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, hlt₁, hs₁, -⟩ :=
@@ -463,7 +465,7 @@ theorem onSegment_of_threeTwo (n : ℕ) :
           funext q
           rw [lemma10 hQ (Or.inr hCt) hne hh₁ hh₂ q, hcf₁, hcf₂]
         rw [hcfQ]
-        exact OnSegment.add t₁ t₂ hγ₀ (by linarith) (by ring)
+        exact OnSegmentOfI.add t₁ t₂ hγ₀ (by linarith) (by ring)
       · -- a second `3₂`-cycle is the first (Lemma 6)
         exact absurd (eq_of_inducesCycleType_three_two hQ hCt hC₀) hCC₀
     · -- a 4-cycle and a 3-cycle (Lemma 5)
@@ -493,7 +495,7 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
     obtain ⟨V', E', _, _, Q', θ', hQ', hcf', hsame, -⟩ := exists_lsaQuartet_of_corollary2 hQ
     have hnot : ∀ C' v', InducesCycleType Q C' v' 2 1 ∨ InducesCycleType Q C' v' 2 3 →
         IsTwoOneOrThree Q C' := fun C' v' h => ⟨v', h⟩
-    have h32' : HasCycleWith Q' 3 ↑({a', b'} : Finset X) := by
+    have h32' : HasCycleWithBelow Q' 3 ↑({a', b'} : Finset X) := by
       refine (hsame 3 _).2 ⟨C, v, ?_, ?_, ?_⟩
       · rintro ⟨v', h | h⟩ <;> have := h.2.2.2.1 <;> have := hC.2.2.2.1 <;> omega
       · rw [Finset.coe_pair, Set.ncard_pair hab]
@@ -502,18 +504,18 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
         exact hD
     have h21 : ¬ ∃ C v, InducesCycleType Q' C v 2 1 := by
       rintro ⟨C', v', hC'⟩
-      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC')
+      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC')
       rw [hC'.2.2.2.2] at hC''
       exact hn (hnot _ _ (Or.inl hC''))
     have h23 : ¬ ∃ C v, InducesCycleType Q' C v 2 3 := by
       rintro ⟨C', v', hC'⟩
-      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWith.of_inducesCycleType hC')
+      obtain ⟨C'', v'', hn, hC'', -⟩ := (hsame 2 _).1 (HasCycleWithBelow.of_inducesCycleType hC')
       rw [hC'.2.2.2.2] at hC''
       exact hn (hnot _ _ (Or.inr hC''))
     -- Lemmas 9 and 10, by induction: the concordance factors lie on the segment for `{a', b'}`
-    have hseg := onSegment_of_threeTwo _ hQ' rfl _ (card_pair hab) h32' h21 h23
+    have hseg := onSegmentOfI_of_threeTwo _ hQ' rfl _ (card_pair hab) h32' h21 h23
     rw [hcf', ← corollary2 hQ] at hseg
-    exact mem_segmentsI_of_onSegment hX habcd (card_pair hab) hseg
+    exact mem_segmentsI_of_onSegmentOfI hX habcd (card_pair hab) hseg
   · -- the network of Figure 18, with the taxa below its hybrid node in the cherry of the large
     -- concordance factor, and parameters on the segment
     obtain ⟨x, y, z⟩ := p
@@ -546,7 +548,7 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
       obtain ⟨h₁, h₂, h₃⟩ := hcf
       have e : quartetTree a d c b (distinct4_adbc (distinct4_acbd habcd)) =
           quartetTree a d b c (distinct4_adbc habcd) :=
-        quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm c b])
+        quartetTree_eq_of_val_eq _ _ (by rw [Finset.pair_comm c b])
       rw [e] at h₃
       dsimp only at hxz hy
       exact ⟨h₂, by rw [h₁]; linarith, h₃.trans hxz⟩
@@ -557,10 +559,10 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
       simp only [CF, Prod.mk.injEq] at hcf ⊢
       obtain ⟨h₁, h₂, h₃⟩ := hcf
       have e₁ : quartetTree a b d c (distinct4_acbd (distinct4_adbc habcd)) =
-          quartetTree a b c d habcd := quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm d c])
+          quartetTree a b c d habcd := quartetTree_eq_of_val_eq _ _ (by rw [Finset.pair_comm d c])
       have e₂ : quartetTree a c d b (distinct4_adbc (distinct4_adbc habcd)) =
           quartetTree a c b d (distinct4_acbd habcd) :=
-        quartetTree_eq_of_val _ _ (by rw [Finset.pair_comm d b])
+        quartetTree_eq_of_val_eq _ _ (by rw [Finset.pair_comm d b])
       rw [e₁] at h₂
       rw [e₂] at h₃
       dsimp only at hxy hz
@@ -577,7 +579,7 @@ theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   obtain ⟨σ, ⟨a, b, c, d, habcd, hsplit⟩, -, hcf⟩ :=
     exists_speciesTree_contractRooted hQ h32 h4 (IsTwoOrThreeOne Q) rfl
   have huniv : ({a, b, c, d} : Finset X) = univ :=
-    eq_univ_of_card _ (by rw [habcd.card_eq, hQ.card_taxa])
+    eq_univ_of_card _ (by rw [habcd.card_insert_eq, hQ.card_taxa])
   have htree : IsTreelikeOn
       (cf (contractRooted Q (IsTwoOrThreeOne Q)) (contractMetric Q (IsTwoOrThreeOne Q) θ)) univ := by
     rw [hcf, ← huniv]
@@ -690,7 +692,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
   let _ : DecidableEq (s : Set X) := fun a b => Classical.propDecidable (a = b)
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   -- `Q⊕_s` is an LSA quartet network (named here with one of its metrics)
-  have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs) (halfMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
+  have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs) (halfInheritanceMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
     ⟨hQb, quartetLSA_isLevelOne hN h1 hs, quartetLSA_isLSANetwork hN hs, by simp [hs],
       isMetricNetwork_halfMetric hQb fun _ => one_pos⟩
   -- its 4-cycle, the hybrid block `{c}` adjacent to the blocks of `b` and `d`
@@ -700,7 +702,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
   obtain ⟨-, -, -, -, a, b, c, d, habcd, -, -, -, -, A, B, h, hA, hB, hAB, hh, hCF⟩ :=
     cf_eq_fig17 hQ₀ hCt.1 hCt.2.1
   have huniv : ({a, b, c, d} : Finset _) = univ :=
-    eq_univ_of_card _ (by rw [habcd.card_eq]; simp [hs])
+    eq_univ_of_card _ (by rw [habcd.card_insert_eq]; simp [hs])
   have hsum : ∀ θ' : MetricData _, IsMetricNetwork (quartetLSA N hN.1 s hs) θ' → ∀ A : Finset _,
       A.Nonempty → 0 < ∑ e ∈ A, θ'.length e :=
     fun θ' hθ' A hA => Finset.sum_pos (fun e _ => hθ'.2 e) hA
@@ -742,14 +744,14 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
         · exact one_pos
       have hθw := isMetricNetwork_halfMetric hQb hℓ
       refine isGenericNull_nmscCF_eq hθw.1 fun heq => ?_
-      have hγ : (halfMetric (quartetLSA N hN.1 s hs) ℓ).inheritance h = 1 / 2 := by
-        simp [halfMetric, hh]
-      have hLA : ∑ e ∈ A, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B + 1 := by
-        simp only [halfMetric, hℓdef]
+      have hγ : (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).inheritance h = 1 / 2 := by
+        simp [halfInheritanceMetric, hh]
+      have hLA : ∑ e ∈ A, (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B + 1 := by
+        simp only [halfInheritanceMetric, hℓdef]
         rw [Finset.sum_congr rfl fun e he => ite_eq_left he, Finset.sum_const, nsmul_eq_mul]
         field_simp
-      have hLB : ∑ e ∈ B, (halfMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B := by
-        simp only [halfMetric, hℓdef]
+      have hLB : ∑ e ∈ B, (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B := by
+        simp only [halfInheritanceMetric, hℓdef]
         rw [Finset.sum_congr rfl fun e he => ite_eq_right (Finset.disjoint_right.1 hAB he),
           Finset.sum_const, nsmul_eq_mul, mul_one]
       have := ((horder _ hθw).2.2.1 heq)
@@ -870,7 +872,7 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
     (Finset.sum_pos (fun e _ => hθs.2 e) hB) (hCF _ hθs)
   simp only [CF] at hy₁ hy₂
   have huniv : ({a', b', c', d'} : Finset _) = univ :=
-    eq_univ_of_card _ (by rw [h'.card_eq]; simp [hs])
+    eq_univ_of_card _ (by rw [h'.card_insert_eq]; simp [hs])
   -- `q^BC_s = a'c'|b'd'`, the quartet of the blocks that are not adjacent
   have hbcQ : IsBCQuartet (cf (quartetLSA N hN.1 {a, b, c, d} hs)
       (quartetLSAMetric N hN {a, b, c, d} hs θ)) univ (quartetTree a' c' b' d' (distinct4_acbd h')) := by
@@ -886,7 +888,7 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
   have hmap : (quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4)).map
       Subtype.val_injective = quartetTree a c b d (distinct4_acbd habcd) := by
     apply Subtype.ext
-    simp [x, y, QuartetTree.map_val, quartetTree_val_eq]
+    simp [x, y, QuartetTree.map_val, quartetTree_val_eq_pair]
   rw [← hmap, ← isBCQuartet_comp_map_iff]
   -- `q^BC_s = ac|bd` exactly when `{a, c}` is `{a', c'}` or `{b', d'}`
   have h₁ : IsBCQuartet (fun q => cf N θ (q.map Subtype.val_injective)) univ
@@ -894,22 +896,22 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
       (({x, y} : Finset _) = {a', c'} ∨ ({x, y} : Finset _) = {b', d'}) := by
     have hmemT : ({x, y} : Finset _) ∈ (quartetTree a' c' b' d' (distinct4_acbd h')).val ↔
         ({x, y} : Finset _) = {a', c'} ∨ ({x, y} : Finset _) = {b', d'} := by
-      simp [quartetTree_val_eq]
+      simp [quartetTree_val_eq_pair]
     rw [← hmemT]
     constructor
     · intro hq
       rw [← hq.unique hbcQ]
-      simp [quartetTree_val_eq]
+      simp [quartetTree_val_eq_pair]
     · intro hm
       have hq : quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4) =
           quartetTree a' c' b' d' (distinct4_acbd h') := by
         have t₁ : (quartetTree x y ⟨b, by simp⟩ ⟨d, by simp⟩ (distinct4_acbd hd4)).taxa = univ := by
-          rw [quartetTree_taxa_eq]
-          exact eq_univ_of_card _ (by rw [(distinct4_acbd hd4).card_eq]; simp [hs])
+          rw [quartetTree_taxa_eq_insert]
+          exact eq_univ_of_card _ (by rw [(distinct4_acbd hd4).card_insert_eq]; simp [hs])
         have t₂ : (quartetTree a' c' b' d' (distinct4_acbd h')).taxa = univ := by
-          rw [quartetTree_taxa_eq]
-          exact eq_univ_of_card _ (by rw [(distinct4_acbd h').card_eq]; simp [hs])
-        exact quartetTree_eq_of_mem (t₁.trans t₂.symm) (by simp [quartetTree_val_eq]) hm
+          rw [quartetTree_taxa_eq_insert]
+          exact eq_univ_of_card _ (by rw [(distinct4_acbd h').card_insert_eq]; simp [hs])
+        exact quartetTree_eq_of_taxa_eq_of_mem (t₁.trans t₂.symm) (by simp [quartetTree_val_eq_pair]) hm
       rw [hq]
       exact hbcQ
   -- the blocks of `a, c` are adjacent exactly when their nodes are consecutive on `C`
@@ -1001,7 +1003,7 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
     Determines hN {a, b, c, d} h₁ v ↔ Determines hN {a, b, c, e} h₂ v := by
   -- the decidable equality of the statement is the classical one
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
-  have hd₁ := distinct4_of_card_eq h₁
+  have hd₁ := distinct4_of_card_insert_eq h₁
   have hX : Nontrivial X := ⟨⟨a, b, hd₁.1⟩⟩
   -- a set of four taxa with the Big Cycle property determines a hybrid node (Proposition 9)
   have hex : ∀ {s : Finset X} (hs : #s = 4), BigCycleOn (cf N θ) s → ∃ u, Determines hN s hs u := by
@@ -1046,7 +1048,7 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
     have hz₀ := hmem hu'
     have hK : ∀ f ∈ Cu, G.graph.Walks Cvᶜ (G.graph.source f) u' := fun f hf =>
       DirectedMultigraph.walks_mono (fun g hg => hedge g hg)
-        (walks_of_mem_cycleNodes G.graph hCu ⟨f, hf, Or.inl rfl⟩ hz₀)
+        (walks_cycle_of_mem_cycleNodes G.graph hCu ⟨f, hf, Or.inl rfl⟩ hz₀)
     -- at most one of `a, b, c` is in `K`: they are in distinct `v`-blocks
     have hone : ∀ x ∈ s₁, ∀ y ∈ s₁, x ≠ y → G.graph.Walks Cvᶜ (G.leaf x) u' →
         G.graph.Walks Cvᶜ (G.leaf y) u' → False := fun x hx y hy hxy h₁ h₂ =>
@@ -1061,7 +1063,7 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
       have hCv' : Cv ⊆ Cuᶜ := fun f hfv hfu => hedge f hfu hfv
       refine hblk₂ x hx y hy hxy ?_
       exact ((DirectedMultigraph.walks_mono Set.inter_subset_right hwx).trans
-        (DirectedMultigraph.walks_mono hCv' (walks_of_mem_cycleNodes G.graph hCv hzx hzy))).trans
+        (DirectedMultigraph.walks_mono hCv' (walks_cycle_of_mem_cycleNodes G.graph hCv hzx hzy))).trans
         (G.graph.walks_symm (DirectedMultigraph.walks_mono Set.inter_subset_right hwy))
     obtain ⟨hab, hac, -, hbc, -, -⟩ := hd₁
     by_cases hA : G.graph.Walks Cvᶜ (G.leaf a) u' <;> by_cases hB : G.graph.Walks Cvᶜ (G.leaf b) u'

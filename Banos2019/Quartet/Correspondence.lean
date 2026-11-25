@@ -13,7 +13,7 @@ hybrid block. The hybrid node of the 4-cycle of `Q⁻_s` is then that of `C_v`.
 * `exists_fourCycle_of_separates`, `exists_separates_of_fourCycle`: the two directions, as the proof
   of Lemma 12 states them.
 * `unrooted_isConnected`: `N⁻` is connected.
-* `walks_of_mem_cycleNodes`: two nodes of a cycle are joined along it.
+* `walks_cycle_of_mem_cycleNodes`: two nodes of a cycle are joined along it.
 * `exists_walks_cycleNodes_of_not_walks`: in a connected graph, a node not joined to a node `z₀` of a
   cycle `C'` by a walk avoiding a cycle `C`, disjoint from `C'`, reaches a node of `C` by a walk
   avoiding both (the argument of Lemma 13).
@@ -35,7 +35,7 @@ section Walks
 variable {V' E' : Type*} (G : DirectedMultigraph V' E')
 
 /-- Two nodes of a cycle are joined by a walk along its edges. -/
-theorem walks_of_mem_cycleNodes {C : Set E'} (hC : IsCycle G C) {p q : V'}
+theorem walks_cycle_of_mem_cycleNodes {C : Set E'} (hC : IsCycle G C) {p q : V'}
     (hp : p ∈ cycleNodes G C) (hq : q ∈ cycleNodes G C) : G.Walks C p q := by
   obtain ⟨k, v, e, hcyc, hrange⟩ := hC
   -- every node of the cycle is joined to `v 0`

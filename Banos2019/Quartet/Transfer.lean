@@ -27,37 +27,38 @@ section Triple
 
 variable {X : Type*} [DecidableEq X] {a b c d : X}
 
-theorem Distinct4.card_eq (h : Distinct4 a b c d) : #({a, b, c, d} : Finset X) = 4 := by
+theorem Distinct4.card_insert_eq (h : Distinct4 a b c d) : #({a, b, c, d} : Finset X) = 4 := by
   obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := h
   rw [card_insert_of_notMem (by simp [hab, hac, had]), card_insert_of_notMem (by simp [hbc, hbd]),
     card_pair hcd]
 
-theorem distinct4_of_card_eq (h : #({a, b, c, d} : Finset X) = 4) : Distinct4 a b c d :=
+theorem distinct4_of_card_insert_eq (h : #({a, b, c, d} : Finset X) = 4) : Distinct4 a b c d :=
   ne_of_card_four h
 
+omit [DecidableEq X] in
 /-- Four distinct taxa, listed. -/
 theorem Distinct4.injective_vec (h : Distinct4 a b c d) : Function.Injective ![a, b, c, d] := by
   obtain ⟨e₁, e₂, e₃, e₄, e₅, e₆⟩ := h
   intro i j hij
   fin_cases i <;> fin_cases j <;> simp at hij ⊢ <;> simp_all [eq_comm]
 
-@[simp] theorem quartetTree_val_eq (h : Distinct4 a b c d) :
+@[simp] theorem quartetTree_val_eq_pair (h : Distinct4 a b c d) :
     (quartetTree a b c d h).val = {{a, b}, {c, d}} := rfl
 
-theorem quartetTree_taxa_eq (h : Distinct4 a b c d) :
+theorem quartetTree_taxa_eq_insert (h : Distinct4 a b c d) :
     (quartetTree a b c d h).taxa = {a, b, c, d} := by
   ext x
   simp [QuartetTree.taxa]
   tauto
 
 /-- `ab|cd` is `cd|ab`, `ba|cd`, … -/
-theorem quartetTree_eq_of_val {a' b' c' d' : X} (h : Distinct4 a b c d) (h' : Distinct4 a' b' c' d')
+theorem quartetTree_eq_of_val_eq {a' b' c' d' : X} (h : Distinct4 a b c d) (h' : Distinct4 a' b' c' d')
     (hv : ({{a, b}, {c, d}} : Finset (Finset X)) = {{a', b'}, {c', d'}}) :
     quartetTree a b c d h = quartetTree a' b' c' d' h' :=
   Subtype.ext hv
 
 /-- Two quartet trees on the same four taxa are equal when they have a common cherry. -/
-theorem quartetTree_eq_of_mem {q r : QuartetTree X} (hqr : q.taxa = r.taxa) {B : Finset X}
+theorem quartetTree_eq_of_taxa_eq_of_mem {q r : QuartetTree X} (hqr : q.taxa = r.taxa) {B : Finset X}
     (hq : B ∈ q.val) (hr : B ∈ r.val) : q = r :=
   QuartetTree.eq_of_taxa_eq_of_mem hqr hq hr
 
@@ -67,7 +68,7 @@ theorem quartetTree_abcd_ne_acbd (h : Distinct4 a b c d) :
   intro e
   have h1 : ({a, b} : Finset X) ∈ (quartetTree a c b d (distinct4_acbd h)).val :=
     e ▸ (by simp)
-  simp only [quartetTree_val_eq, mem_insert, mem_singleton] at h1
+  simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton] at h1
   rcases h1 with h1 | h1
   · have : b ∈ ({a, c} : Finset X) := h1 ▸ (by simp)
     simp [Ne.symm hab, hbc] at this
@@ -80,7 +81,7 @@ theorem quartetTree_abcd_ne_adbc (h : Distinct4 a b c d) :
   intro e
   have h1 : ({a, b} : Finset X) ∈ (quartetTree a d b c (distinct4_adbc h)).val :=
     e ▸ (by simp)
-  simp only [quartetTree_val_eq, mem_insert, mem_singleton] at h1
+  simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton] at h1
   rcases h1 with h1 | h1
   · have : b ∈ ({a, d} : Finset X) := h1 ▸ (by simp)
     simp [Ne.symm hab, hbd] at this
@@ -93,7 +94,7 @@ theorem quartetTree_acbd_ne_adbc (h : Distinct4 a b c d) :
   intro e
   have h1 : ({a, c} : Finset X) ∈ (quartetTree a d b c (distinct4_adbc h)).val :=
     e ▸ (by simp)
-  simp only [quartetTree_val_eq, mem_insert, mem_singleton] at h1
+  simp only [quartetTree_val_eq_pair, mem_insert, mem_singleton] at h1
   rcases h1 with h1 | h1
   · have : c ∈ ({a, d} : Finset X) := h1 ▸ (by simp)
     simp [Ne.symm hac, hcd] at this
@@ -119,7 +120,7 @@ theorem treesOn_eq_triple (h : Distinct4 a b c d) :
       {quartetTree a b c d h, quartetTree a c b d (distinct4_acbd h),
         quartetTree a d b c (distinct4_adbc h)} := by
   obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
-  have h4 := Distinct4.card_eq h
+  have h4 := Distinct4.card_insert_eq h
   ext r
   simp only [mem_treesOn, mem_insert, mem_singleton]
   constructor
@@ -141,17 +142,17 @@ theorem treesOn_eq_triple (h : Distinct4 a b c d) :
     rcases hxq with rfl | rfl | rfl | rfl
     · exact absurd rfl hxa
     · left
-      exact quartetTree_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq]) (hBe ▸ hB) (by simp)
+      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq_insert]) (hBe ▸ hB) (by simp)
     · right; left
-      exact quartetTree_eq_of_mem (B := {a, x}) (by
-        rw [hr, quartetTree_taxa_eq]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
+      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by
+        rw [hr, quartetTree_taxa_eq_insert]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
     · right; right
-      exact quartetTree_eq_of_mem (B := {a, x}) (by
-        rw [hr, quartetTree_taxa_eq]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
+      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by
+        rw [hr, quartetTree_taxa_eq_insert]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
   · rintro (rfl | rfl | rfl)
-    · exact quartetTree_taxa_eq _
-    · rw [quartetTree_taxa_eq]; ext y; simp; tauto
-    · rw [quartetTree_taxa_eq]; ext y; simp; tauto
+    · exact quartetTree_taxa_eq_insert _
+    · rw [quartetTree_taxa_eq_insert]; ext y; simp; tauto
+    · rw [quartetTree_taxa_eq_insert]; ext y; simp; tauto
 
 /-- The Big Cycle property on four distinct taxa: the three concordance factors differ. -/
 theorem bigCycleOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d) :
@@ -260,8 +261,8 @@ section Subtype
 
 variable {X : Type*} [Fintype X] [DecidableEq X] (s : Finset X) [DecidableEq (s : Set X)]
 
-omit [DecidableEq (s : Set X)] in
-theorem image_val_univ_coe : (univ : Finset (s : Set X)).image Subtype.val = s := by
+omit [DecidableEq (s : Set X)] [Fintype X] in
+theorem image_val_univ_finsetCoe : (univ : Finset (s : Set X)).image Subtype.val = s := by
   ext x
   simp
 
@@ -273,12 +274,12 @@ theorem treesOn_eq_image :
   constructor
   · intro hq
     obtain ⟨q₀, rfl⟩ := QuartetTree.exists_map_eq Subtype.val_injective q
-      (by rw [hq, image_val_univ_coe])
+      (by rw [hq, image_val_univ_finsetCoe])
     refine ⟨q₀, ?_, rfl⟩
     apply image_injective Subtype.val_injective
-    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, image_val_univ_coe]
+    rw [← QuartetTree.map_taxa Subtype.val_injective, hq, image_val_univ_finsetCoe]
   · rintro ⟨q₀, hq₀, rfl⟩
-    rw [QuartetTree.map_taxa, hq₀, image_val_univ_coe]
+    rw [QuartetTree.map_taxa, hq₀, image_val_univ_finsetCoe]
 
 theorem bigCycleOn_comp_map_iff (p : QuartetTree X → ℝ) :
     BigCycleOn (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) ↔
@@ -425,6 +426,7 @@ abbrev quartetLSAMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N)
     (hs : #s = 4) (θ : MetricData E) :=
   inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ
 
+omit [Fintype V] [Fintype X] in
 /-- The parameters that `Q⊕_s` inherits from a metric are a metric: every edge, a chain of edges of
 `N`, has positive length. -/
 theorem quartetLSA_isMetricNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
@@ -434,6 +436,7 @@ theorem quartetLSA_isMetricNetwork {N : RootedNetwork V E X} (hN : IsBinaryRoote
   simp only [quartetLSAMetric, inducedMetric, belowMetric]
   exact Finset.sum_pos (fun f _ => hθ.2 _) ⟨e.1, Finset.mem_filter.mpr ⟨@Finset.mem_univ _ (Fintype.ofFinite _) _, Or.inl rfl⟩⟩
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- `Q⊕_s` is the LSA network of its taxa. -/
 theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     {s : Finset X} (hs : #s = 4) : (quartetLSA N hN.1 s hs).IsLSANetwork :=

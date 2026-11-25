@@ -10,7 +10,7 @@ public import Banos2019.External.AllmanDegnanRhodes2011.Basic
 The proofs of Sections 6 and 7 reduce an LSA quartet network to a simpler one with the same
 concordance factors, and read these off a figure or off equation (1).
 
-* `halfMetric`: a metric on a binary network, with inheritance `1/2` on hybrid edges.
+* `halfInheritanceMetric`: a metric on a binary network, with inheritance `1/2` on hybrid edges.
 * `exists_speciesTree_contractRooted` (proof of Proposition 6): without a `3₂`-cycle or a 4-cycle,
   contracting the 2-cycles and the `3₁`-cycles (the cycles satisfying `P`) leaves a tree, whose concordance factors are those of a
   species tree with an internal edge; `isTreelikeOn_quartetProb`: by equation (1), they are treelike.
@@ -32,11 +32,11 @@ variable {V E X : Type*}
 /-! ### A metric on a binary network -/
 
 /-- The parameters with lengths `ℓ`, inheritance `1/2` on the hybrid edges and `1` on the tree edges. -/
-def halfMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricData E :=
+def halfInheritanceMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricData E :=
   ⟨ℓ, fun e => if N.IsHybridArc e then 1 / 2 else 1⟩
 
 /-- The number of edges entering `v`, as the size of a finite set. -/
-theorem indegree_eq_card_filter [Fintype E] (G : DirectedMultigraph V E) (v : V) :
+theorem indegree_eq_card_filter_target [Fintype E] (G : DirectedMultigraph V E) (v : V) :
     G.indegree v = (univ.filter fun e => G.target e = v).card := by
   unfold DirectedMultigraph.indegree
   rw [← Set.ncard_coe_finset]
@@ -55,26 +55,26 @@ theorem indegree_eq_two_of_two_le {N : RootedNetwork V E X} (hN : IsBinaryRooted
     omega
   rcases hother v hvr hvl with h | h <;> omega
 
-/-- `halfMetric` with positive lengths is a metric. -/
+/-- `halfInheritanceMetric` with positive lengths is a metric. -/
 theorem isMetricNetwork_halfMetric [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) {ℓ : E → ℝ} (hℓ : ∀ e, 0 < ℓ e) :
-    IsMetricNetwork N (halfMetric N ℓ) := by
+    IsMetricNetwork N (halfInheritanceMetric N ℓ) := by
   refine ⟨⟨fun e _ => hℓ e, fun e _ => (hℓ e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩, hℓ⟩
   · have : ¬ N.IsHybridArc e := by unfold IsTreeArc at he; unfold IsHybridArc; omega
-    simp [halfMetric, this]
-  · simp [halfMetric, he]
+    simp [halfInheritanceMetric, this]
+  · simp [halfInheritanceMetric, he]
   · have h2 := indegree_eq_two_of_two_le hN hv
-    have hterm : ∀ e, (if N.graph.target e = v then (halfMetric N ℓ).inheritance e else 0) =
+    have hterm : ∀ e, (if N.graph.target e = v then (halfInheritanceMetric N ℓ).inheritance e else 0) =
         if N.graph.target e = v then 1 / 2 else 0 := by
       intro e
       by_cases he : N.graph.target e = v
       · have hh : N.IsHybridArc e := by unfold IsHybridArc; rw [he]; exact hv
-        simp [he, halfMetric, hh]
+        simp [he, halfInheritanceMetric, hh]
       · simp [he]
     simp only [hterm]
     rw [← Finset.sum_filter, Finset.sum_const, nsmul_eq_mul]
     have hc : (univ.filter fun e => N.graph.target e = v).card = 2 := by
-      rw [← h2, indegree_eq_card_filter]
+      rw [← h2, indegree_eq_card_filter_target]
     rw [hc]
     norm_num
 
@@ -89,7 +89,7 @@ theorem inheritance_mem_Ioo [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
   rw [← Finset.sum_filter] at hs
   have hmem : h ∈ univ.filter fun e => N.graph.target e = N.graph.target h := by simp
   have hc : (univ.filter fun e => N.graph.target e = N.graph.target h).card = 2 := by
-    rw [← h2, indegree_eq_card_filter]
+    rw [← h2, indegree_eq_card_filter_target]
   obtain ⟨h', hh', hne⟩ : ∃ h' ∈ univ.filter (fun e => N.graph.target e = N.graph.target h), h' ≠ h := by
     by_contra hcon
     have : (univ.filter fun e => N.graph.target e = N.graph.target h) ⊆ {h} := fun e he =>
@@ -113,6 +113,7 @@ theorem inheritance_mem_Ioo [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
 
 variable [Fintype V] [Fintype E] [Fintype X]
 
+omit [Fintype V] in
 /-- An LSA quartet network with other metric parameters. -/
 theorem IsLSAQuartet.ofMetric {Q : RootedNetwork V E X} {θ θ' : MetricData E}
     (hQ : IsLSAQuartet Q θ) (hθ' : IsMetricNetwork Q θ') : IsLSAQuartet Q θ' :=
@@ -143,10 +144,10 @@ theorem isTreelikeOn_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) 
   obtain ⟨h₁, h₂⟩ := External.AllmanDegnanRhodes2011.equation1 hX σ
     (q := quartetTree a b c d h) rfl hsplit
   have m₁ : quartetTree a c b d (distinct4_acbd h) ∈ (quartetTree a b c d h).alternatives := by
-    rw [QuartetTree.mem_alternatives, quartetTree_taxa_eq, quartetTree_taxa_eq]
+    rw [QuartetTree.mem_alternatives, quartetTree_taxa_eq_insert, quartetTree_taxa_eq_insert]
     exact ⟨by ext y; simp; tauto, (quartetTree_abcd_ne_acbd h).symm⟩
   have m₂ : quartetTree a d b c (distinct4_adbc h) ∈ (quartetTree a b c d h).alternatives := by
-    rw [QuartetTree.mem_alternatives, quartetTree_taxa_eq, quartetTree_taxa_eq]
+    rw [QuartetTree.mem_alternatives, quartetTree_taxa_eq_insert, quartetTree_taxa_eq_insert]
     exact ⟨by ext y; simp; tauto, (quartetTree_abcd_ne_adbc h).symm⟩
   have hL : 0 ≤ σ.unrootedLength {a, b} := by
     unfold SpeciesTree.unrootedLength
