@@ -4,6 +4,7 @@ public import Banos2019.Identify.Generic
 public import Banos2019.Identify.QuartetCycles
 public import Banos2019.Identify.Counterexample
 public import Banos2019.Identify.BlocksFromS
+public import Banos2019.Identify.TildeInduction
 
 /-!
 # Identifying cycles in networks (Baños 2019, Sections 8 and 9)
@@ -24,6 +25,13 @@ proofs use are in `Identify/`: the blocks of a cycle (`Identify/Blocks.lean`,
 `Identify/HybridBlock.lean`), their order (`Identify/CycleOrder.lean`), and the cycles that a cycle of
 `N⁻` induces in `Q⁻_s` (`Identify/QuartetCycles.lean`). The network refuting Proposition 13 as printed
 is in `Identify/Counterexample.lean`.
+
+The induction of Theorem 4 is in `Identify/TildeInduction.lean` (`tildeDetermined`), on: its claim and
+generic conditions (`Identify/TildeDefs.lean`, `Identify/NonDegenerate.lean`), the base case
+(`Identify/TildeBase.lean`, with `Identify/TreeIso.lean`), the induced networks
+(`Identify/InducedCycles.lean`), the gluing of two networks at leaves (`Identify/Glue.lean`), the leaf
+cycle and a cycle whose blocks are single taxa (`Identify/TildeCycle.lean`), and the counterpart of a
+cycle in a network with the same orderings (`Identify/SameData.lean`).
 -/
 
 @[expose] public noncomputable section
@@ -151,7 +159,37 @@ from `N⁻` by contracting all 2- and 3-cycles and forgetting the directions of 
 4-cycles, while retaining the directions of the hybrid edges of larger cycles. There is a property `G`
 of the parameters of each network, which holds for generic parameters, such that two level-1 networks on
 the same taxa, with parameters satisfying `G` and the same orderings of concordance factors, have
-isomorphic networks `Ñ`. -/
+isomorphic networks `Ñ`.
+
+The proof is the paper's induction on the number of cycles of size at least four of `N₁⁻`
+(`tildeDetermined`, `Identify/TildeInduction.lean`), with `G` the conditions `GoodParams`, which hold
+for generic parameters (`forGenericParams_goodParams`). Without such a cycle, `Ñ₁` and `Ñ₂` are trees,
+the orderings give the quartet trees they display, and these determine the trees (Semple and Steel
+2003; `tildeDetermined_zero`). With one cycle `C_v`, Lemmas 15 and 16 give a cycle of `N₂⁻` with the
+same blocks, size, order of the blocks and, for size at least five, hybrid block
+(`exists_bigCycle_sameData`). When the blocks are single taxa, `Ñ` is that cycle with a taxon at each
+node (`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block `P_u` of at least two taxa,
+read from the network induced on `P_u ∪ {q}` with an outgroup `q`, is joined to the node `u`: `Ñ` is
+the gluing at `u` of the networks `Ñ` of the networks induced on `P_u ∪ {q}`, which has no cycle of
+size at least four, and on the other taxa with one taxon of `P_u`, which has fewer taxa
+(`tildeDetermined_one`, by induction on the number of taxa). With more cycles, a cycle `C_v` and a node
+`u` of it, with block `S_2`, such that every other cycle of size at least four has the taxa of
+`S_1 = X ∖ S_2` in one of its blocks, split `Ñ` into the networks `Ñ` of the networks induced on
+`S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}`, which have fewer cycles of size at least four, and `Ñ` is obtained
+by identifying `s_1` in one with `s_2` in the other and suppressing that node (`tildeDetermined_of_lt`,
+`tilde_sdIso_glue`, `glue_congr`).
+
+Departure from the paper: the induced networks `N⁻_{S_i ∪ {s_j}}` are taken as `(N⊕_Y)⁻`, the network
+`N⁻` of the induced LSA network on `Y`, as `Q⁻_s` is for quartets (Section 5).
+Departure from the paper: the generic conditions are those of Lemma 12 and concordance factors that are
+not all equal on any set of four taxa (`GoodParams`). The paper does not state the second; with a
+`3₂`-cycle the three concordance factors can be equal (Proposition 7).
+Departure from the paper: in the base case the quartet tree displayed by `Ñ` is read from the orderings
+as the one whose concordance factor differs from the two others, not as the one with the largest
+concordance factor, which with a `3₂`-cycle it need not be (Example 6).
+Departure from the paper: the leaf of the tree of cycles (Definition 13) is taken as a cycle of size at
+least four and a node of it with a largest block, which has the property of a leaf that the proof uses
+(`exists_leaf_bigCycle`, `Identify/TildeCycle.lean`). -/
 theorem theorem4 (hX : Nontrivial X) :
     ∃ G : ∀ (V E : Type) [Fintype V] [Fintype E], RootedNetwork V E X → MetricData E → Prop,
       (∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X),
@@ -163,7 +201,10 @@ theorem theorem4 (hX : Nontrivial X) :
         ∀ θ₁ θ₂, IsMetricNetwork N₁ θ₁ → IsMetricNetwork N₂ θ₂ → G V₁ E₁ N₁ θ₁ → G V₂ E₂ N₂ θ₂ →
           SameOrdering (cf N₁ θ₁) (cf N₂ θ₂) →
           Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by
-  sorry
+  refine ⟨fun V E _ _ N θ => GoodParams hX N θ, fun V E _ _ N hN h1 =>
+    forGenericParams_goodParams hN h1 hX, ?_⟩
+  intro V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord
+  exact tildeDetermined _ X hX V₁ E₁ V₂ E₂ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord rfl
 
 variable {V E : Type*} [Fintype V] [Fintype E]
 
