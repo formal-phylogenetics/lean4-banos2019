@@ -21,12 +21,38 @@ jobs:
           df -h /
       - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
-      # formalize-math-paper adds its checks here (its assets/lean_action_ci.yml), with its
-      # `ProjectName` the root Banos2019
-      # and its `PaperName` the paper Banos2019:
-      # the audit of every module of Banos2019/,
-      # of palomar/Banos2019/Solution.lean
-      # and of the libraries this repository requires (lean4-phylogenetics, docs/CONVENTIONS.md,
-      # Section 3); the route check of docs/Banos2019/paper_routes.tsv;
-      # the copy of Banos2019/Defs.lean
-      # in palomar/Banos2019/Challenge.lean; the links and the tables.
+      # The audit imports the modules of the required libraries (lean4-phylogenetics, the hub) too,
+      # so that one run checks every axiom a result depends on (lean4-phylogenetics,
+      # docs/CONVENTIONS.md, Section 3); lake build has built them.
+      # The audit sees a module's proofs only through its own `import all` line: every module of
+      # Banos2019/ (Basic/, External/ and the paper's library) and the paper's Solution in palomar/,
+      # but no Challenge (it holds a copy of the paper's definitions). With several papers
+      # (references/multi-paper.md), find ProjectName instead, and grep for
+      # '^import all (ProjectName|PaperA|PaperB)\.'.
+      - name: Check that the audit imports every module of the libraries
+        run: >-
+          diff <({ find Banos2019 -name '*.lean'; cd palomar && find . -name Solution.lean; }
+          | sed 's#^\./##; s/\.lean$//; s#/#.#g' | sort)
+          <(grep -E '^import all Banos2019\.' scripts/Audit.lean
+          | sed 's/^import all //' | sort)
+      - name: Audit axioms and dependencies
+        run: lake env lean scripts/Audit.lean
+      # The routes of the paper's proofs (docs/Banos2019/paper_routes.tsv, from route_check.py
+      # extract) and the reviewed differences (docs/Banos2019/route_differences.tsv); see SKILL.md,
+      # "Faithful proofs". With several papers, one such step per paper, with its own two files.
+      - name: Check that the proofs follow the routes of the paper's proofs
+        run: >-
+          python3 scripts/route_check.py check docs/Banos2019/paper_routes.tsv
+          --accept docs/Banos2019/route_differences.tsv
+      # The copy of Banos2019/Defs.lean in palomar/Banos2019/Challenge.lean. Delete this step if the
+      # Challenge carries no copy of shared definitions.
+      - name: Check that the Challenge's copy of the shared definitions is current
+        run: python3 scripts/sync_challenge_defs.py --check
+      - name: Check that the documentation's links to the code are current
+        run: python3 scripts/linkify_docs.py --check
+      # With several papers, list every document: README.md and each paper's README.md, REPORT.md
+      # and CREDITS.md in its docs/Banos2019/.
+      - name: Check the Markdown tables
+        run: >-
+          python3 scripts/check_md_tables.py README.md
+          docs/Banos2019/REPORT.md docs/Banos2019/CREDITS.md
