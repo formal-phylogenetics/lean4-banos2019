@@ -3,7 +3,7 @@ module
 public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
-public import Banos2019.Quartet.Contract
+public import Banos2019.Quartet.CycleBlocks
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -780,11 +780,17 @@ theorem lemma9 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2) {h₁ 
   sorry
 
 /-- A cycle inducing a 4-cycle of `Q⁻` has a single taxon below its hybrid node (Section 5, before
-Lemma 7: "if `C'_v` has size four then `l_v = 1`"): the four cycle nodes of `Q⁻` other than the hybrid
-node each have taxa below them that are not below the others. -/
+Lemma 7: "if `C'_v` has size four then `l_v = 1`", as Figure 9 shows): the four nodes of the cycle
+other than the root have pairwise disjoint nonempty blocks, and the block of the hybrid node is the
+set of taxa below it (`add_le_of_inducesCycleType`). -/
 theorem le_one_below_of_four (hQ : IsLSAQuartet Q θ) {k : ℕ} (hC : InducesCycleType Q C v 4 k)
     (x y : X) (hx : Q.graph.Reaches v (Q.leaf x)) (hy : Q.graph.Reaches v (Q.leaf y)) : x = y := by
-  sorry
+  obtain ⟨h, -, -⟩ := add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hC
+  rw [hQ.card_taxa] at h
+  have hk : {x | Q.graph.Reaches v (Q.leaf x)}.ncard ≤ 1 := by
+    rw [hC.2.2.2.2]
+    omega
+  exact (Set.ncard_le_one (Set.toFinite _)).1 hk x hx y hy
 
 /-- **Lemma 10** (`lem::formula43:1`): for a cycle inducing a 4-cycle or a `3₁`-cycle,
 `CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`.
