@@ -28,7 +28,11 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
 * `corollary2Net`, `corollary2Net_spec`: the network `Q̃⊕` of Corollary 2, with its nodes of degree
   two suppressed, as an LSA quartet network for all parameters of `Q⊕`; `corollary2_step`: one step
   of Corollary 2.
-* `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network.
+* `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network;
+  `proposition5_aux`: the induction on the number of cycles, which applies the lemma of the type of a
+  cycle to two networks with isomorphic unrooted networks and the induction hypothesis to the
+  networks it produces (`nonempty_sdMetricIso_reduceNet_deleteArc`, `nonempty_sdMetricIso_contractNet`,
+  `nonempty_sdMetricIso_disjointNet`); `cf_eq_of_forall_not_isCycle`: networks without cycles.
 -/
 
 @[expose] public noncomputable section
@@ -50,7 +54,8 @@ structure IsLSAQuartet (Q : RootedNetwork V E X) (θ : MetricData E) : Prop wher
   metric : IsMetricNetwork Q θ
 
 omit [Fintype V] in
-theorem IsLSAQuartet.nontrivial {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
+theorem IsLSAQuartet.nontrivial {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) :
     Nontrivial X :=
   Fintype.one_lt_card_iff_nontrivial.mp (by rw [hQ.card_taxa]; norm_num)
 
@@ -2272,12 +2277,11 @@ end Reduction
 
 section Proposition5
 
-variable {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
-  {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
 
 /-- The cycle `liftEdges D` of `Q⊕` of a cycle `D` of `Q⁻` with hybrid node `w` induces the type of
 `D`, with the hybrid node `w`. -/
-theorem inducesCycleType_liftEdges_of_isHybridNodeOf (hQ : IsLSAQuartet Q θ) {D : Set _}
+theorem inducesCycleType_liftEdges_of_isHybridNodeOf {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {D : Set _}
     (hD : IsCycle hQ.unrooted.graph D) {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial}
     (hw : IsHybridNodeOf hQ.unrooted D w) :
     InducesCycleType Q (liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)
@@ -2295,7 +2299,8 @@ theorem inducesCycleType_liftEdges_of_isHybridNodeOf (hQ : IsLSAQuartet Q θ) {D
 
 /-- **The types of the cycles of `Q⁻`** (Section 5, before Lemma 5): a cycle of `Q⁻` is a `2₁`-,
 `2₂`-, `2₃`-, `3₁`-, `3₂`- or `4₁`-cycle, with a hybrid node (Lemma 3). -/
-theorem exists_isCycleType_of_isCycle (hQ : IsLSAQuartet Q θ) {D : Set _}
+theorem exists_isCycleType_of_isCycle {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {D : Set _}
     (hD : IsCycle hQ.unrooted.graph D) :
     ∃ n k, IsCycleType hQ.unrooted D n k ∧
       ((n = 2 ∧ 1 ≤ k ∧ k ≤ 3) ∨ (n = 3 ∧ (k = 1 ∨ k = 2)) ∨ (n = 4 ∧ k = 1)) := by
@@ -2310,7 +2315,8 @@ theorem exists_isCycleType_of_isCycle (hQ : IsLSAQuartet Q θ) {D : Set _}
 
 /-- **Base case of Proposition 5, the trees**: two LSA quartet networks without hybrid edges whose
 unrooted metric networks are isomorphic have species trees with the same unrooted metric tree. -/
-theorem sameUnrootedMetricTree_of_sdMetricIso (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem sameUnrootedMetricTree_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (ht : ∀ e, ¬ Q.IsHybridArc e) (ht' : ∀ e, ¬ Q'.IsHybridArc e)
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
@@ -2344,7 +2350,8 @@ theorem not_isHybridArc_of_forall_not_isCycle {N : RootedNetwork V E X}
 tree (`sameUnrootedMetricTree_of_sdMetricIso`), and by Proposition 3 of Allman, Degnan, Rhodes (2011)
 (`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`) the same distribution of
 unrooted gene trees. -/
-theorem cf_eq_of_forall_not_isCycle (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (h0 : ∀ D, ¬ IsCycle Q.graph D) (h0' : ∀ D, ¬ IsCycle Q'.graph D)
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
@@ -2365,7 +2372,8 @@ theorem cf_eq_of_forall_not_isCycle (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet
 /-- **`Q₁⊕`, `Q₂⊕` as LSA quartet networks**: without a hybrid edge `h` of a cycle `C`, and with its
 nodes of degree two suppressed (`reduceNet`), an LSA quartet network gives an LSA quartet network with
 the concordance factors of `deleteArc Q h` and fewer cycles. -/
-theorem isLSAQuartet_reduceNet_deleteArc (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V} {n k : ℕ}
+theorem isLSAQuartet_reduceNet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V} {n k : ℕ}
     (hC : InducesCycleType Q C v n k) {h : E} (hh : Q.graph.target h = v)
     (hM : IsReducible (deleteArc Q h) (deleteArcMetric Q h θ)) :
     IsLSAQuartet (reduceNet (deleteArc Q h) hM.phylo)
@@ -2387,7 +2395,8 @@ theorem isLSAQuartet_reduceNet_deleteArc (hQ : IsLSAQuartet Q θ) {C : Set E} {v
 /-- **The unrooted networks of `Q₁⊕` and `Q̃₁⊕`** (proof of Proposition 5): deleting corresponding
 hybrid edges `h` and `φ h` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic
 metric unrooted networks. -/
-theorem nonempty_sdMetricIso_reduceNet_deleteArc (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {h : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hh : hQ.unrooted.IsDirected h)
@@ -2405,7 +2414,8 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc (hQ : IsLSAQuartet Q θ) (hQ' :
 /-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
 2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
 unrooted networks. -/
-theorem nonempty_sdMetricIso_contractNet (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
@@ -2424,7 +2434,8 @@ theorem nonempty_sdMetricIso_contractNet (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQu
 
 /-- **`Q_a⊕` as an LSA quartet network**: when the only cycle `C` of `Q⊕` induces a `3₂`-cycle with
 the taxa `a`, `b` below its hybrid node `v`, `Q_a⊕` is an LSA quartet network without cycles. -/
-theorem isLSAQuartet_disjointNet (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
+theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     (hC : InducesCycleType Q C v 3 2) (hone : ∀ C', IsCycle Q.graph C' → C' = C) {h₁ h₂ : E}
     (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) {a b : X}
     (hab : a ≠ b) (hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b) :
@@ -2439,7 +2450,8 @@ theorem isLSAQuartet_disjointNet (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
 /-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
 nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
 edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. -/
-theorem nonempty_sdMetricIso_disjointNet (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial}
@@ -2475,7 +2487,8 @@ Lemma 11): when the only cycle of `Q⊕` induces a `3₂`-cycle `D` of `Q⁻`, t
 node `v` has the two leaves `a`, `b` as children; the two lineages coalesce on the edge `c` from `v`
 to `u` with probability `1 - e^{-ℓ(c)}`, and given one lineage at `v` the cherry `{a, b}` decides the
 quartet tree. The length of `c` is that of the edge of `Q⁻` from `v` that is not hybrid. -/
-theorem probLineages_condCF_eq_of_threeTwo (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X} {θ : MetricData E}
+    {Q' : RootedNetwork V' E' X} {θ' : MetricData E'} (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
     (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
@@ -2528,7 +2541,24 @@ theorem probLineages_condCF_eq_of_threeTwo (hQ : IsLSAQuartet Q θ) (hQ' : IsLSA
 
 
 omit [Fintype X] in
-/-- **Proposition 5, by induction on the number of cycles**, for networks on `Type`. -/
+/-- **Proposition 5, by induction on the number of cycles**, for networks on `Type`.
+
+The paper's proof. With no cycle, `Q⊕` and `Q̃⊕` are trees, and Proposition 3 of Allman, Degnan,
+Rhodes (2011) gives the equality (`cf_eq_of_forall_not_isCycle`). Otherwise a cycle `D` of `Q⁻` is the
+cycle `φ D` of `Q̃⁻` of the same type (`SDIso.isCycleType_image`), and `D`, `φ D` come from cycles of
+`Q⊕`, `Q̃⊕` of that type (`inducesCycleType_liftEdges_of_isHybridNodeOf`). The lemma of that type
+writes the concordance factors of `Q⊕` and of `Q̃⊕` in terms of networks with fewer cycles, the same
+for both since their unrooted metric networks are isomorphic (`nonempty_sdMetricIso_reduceNet_deleteArc`,
+`nonempty_sdMetricIso_contractNet`, `nonempty_sdMetricIso_disjointNet`), so the induction hypothesis
+applies, and the inheritance probabilities are those of corresponding hybrid edges of `Q⁻` and `Q̃⁻`.
+The cycles are taken in this order: a `2₁`- or `2₃`-cycle (Lemma 7 or 8, through `corollary2_step`),
+then a `2₂`-cycle (Lemma 9), then a `3₁`- or 4-cycle (Lemma 10), then a `3₂`-cycle (Lemma 11).
+
+Lemma 11 has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of networks
+with fewer cycles; the paper does not say why they agree for `Q⊕` and `Q̃⊕`. With the `3₂`-cycle taken
+last, it is the only cycle (Lemma 6), the child of its hybrid node is the parent of the two taxa below
+it, and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of these two taxa, for
+the length `ℓ` of the edge out of the hybrid node (`probLineages_condCF_eq_of_threeTwo`). -/
 theorem proposition5_aux [Fintype X] (n : ℕ) :
     ∀ {V₀ E₀ V₁ E₁ : Type} [Fintype V₀] [Fintype E₀] [Fintype V₁] [Fintype E₁]
       {Q : RootedNetwork V₀ E₀ X} {θ : MetricData E₀} (hQ : IsLSAQuartet Q θ)
@@ -2848,7 +2878,8 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
 
 /-- An LSA quartet network on any types of nodes and edges is isomorphic to one on `Type`, with the
 same concordance factors and an isomorphic metric unrooted network. -/
-theorem exists_isLSAQuartet_type (hQ : IsLSAQuartet Q θ) :
+theorem exists_isLSAQuartet_type {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) :
     ∃ (V₀ E₀ : Type) (_ : Fintype V₀) (_ : Fintype E₀) (Q₀ : RootedNetwork V₀ E₀ X)
       (θ₀ : MetricData E₀) (hQ₀ : IsLSAQuartet Q₀ θ₀), cf Q₀ θ₀ = cf Q θ ∧
       Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ)
@@ -2868,7 +2899,10 @@ theorem exists_isLSAQuartet_type (hQ : IsLSAQuartet Q θ) :
 end Proposition5
 
 /-- **Proposition 5** (`prop::CFunrooted`): two LSA quartet networks that induce the same metric unrooted
-network have the same concordance factors. -/
+network have the same concordance factors.
+
+The paper's proof, by induction on the number of cycles (`proposition5_aux`), for networks renamed to
+`Type` (`exists_isLSAQuartet_type`). -/
 theorem proposition5 {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X}
     {θ : MetricData E} (hQ : IsLSAQuartet Q θ) {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ' : IsLSAQuartet Q' θ')
