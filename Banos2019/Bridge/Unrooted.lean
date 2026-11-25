@@ -8,10 +8,10 @@ public import Banos2019.Bridge.Invariance
 The Challenge defines `N⁻` (Definition 5) as the part of `N` below `LSA(X)` with its tree edges
 undirected (`Model.Network.belowLSA`), all its nodes of degree two suppressed. The library's `N⁻`
 (`RootedNetwork.semidirected`) removes the LSA and merges its two edges into one (`unrootAt`, at the
-tree edge `rootTreeArc`). Below the LSA every node keeps its degree, one or three, so the LSA is the one
-node that suppression removes, and the chains are the edges not at the LSA, each alone, and the two
-edges at the LSA together (`exists_sdIso_suppressExcept`). The metrics agree: a chain has the sum of the
-lengths of its edges and the inheritance probability of its hybrid edge (Definition 6).
+tree edge `rootTreeArc`). Below the LSA every node keeps its degree, one or three, so the LSA is the
+one node that suppression removes, and the chains are the edges not at the LSA, each alone, and the
+two edges at the LSA together (`exists_sdIso_suppressExcept`). The metrics agree: a chain has the
+sum of the lengths of its edges and the inheritance probability of its hybrid edge (Definition 6).
 
 * `Model.Network.nonempty_sdIso_unrooted`, `Model.Network.nonempty_sdMetricIso_unrooted`.
 -/
@@ -49,12 +49,14 @@ theorem reaches_lsaL_source_iff (e : E) :
 theorem lsaL_ne_leaf (x : X) : N.leaf x ≠ N.lsaL hb :=
   (lsa_spec hb.1 Set.univ Set.univ_nonempty).1.leaf_ne hb.1 Set.nontrivial_univ x
 
-theorem target_ne_lsaL {e : E} (he : N.toRooted.graph.Reaches (N.lsaL hb) (N.toRooted.graph.source e)) :
+theorem target_ne_lsaL {e : E}
+    (he : N.toRooted.graph.Reaches (N.lsaL hb) (N.toRooted.graph.source e)) :
     N.toRooted.graph.target e ≠ N.lsaL hb := fun h =>
   not_reaches_target_source hb.1.acyclic e (by rw [h]; exact he)
 
 /-- An edge entering a node strictly below the LSA leaves a node below the LSA. -/
-theorem reaches_source_of_target {e : E} (hv : N.toRooted.graph.Reaches (N.lsaL hb) (N.graph.target e))
+theorem reaches_source_of_target {e : E}
+    (hv : N.toRooted.graph.Reaches (N.lsaL hb) (N.graph.target e))
     (hne : N.graph.target e ≠ N.lsaL hb) :
     N.toRooted.graph.Reaches (N.lsaL hb) (N.toRooted.graph.source e) := by
   obtain ⟨x, hx⟩ := exists_reaches_leaf hb.1 (N.toRooted.graph.target e)
@@ -164,13 +166,15 @@ theorem exists_otherArc : ∃ b : SemidirectedArc hb.1 hb.2 hX,
 
 open Classical in
 /-- The edge of the library's `N⁻` of an edge of `belowLSA`. -/
-def unrootedPsi (e : {e // N.graph.Reaches N.lsa (N.graph.source e)}) : SemidirectedArc hb.1 hb.2 hX :=
+def unrootedPsi (e : {e // N.graph.Reaches N.lsa (N.graph.source e)}) :
+    SemidirectedArc hb.1 hb.2 hX :=
   if h : e.1 = sdRootArc hb.1 hb.2 hX then (N.exists_otherArc hb).choose
   else ⟨⟨e.1, (N.reaches_lsaL_source_iff hb e.1).mp e.2, mem_ancestralVertices_univ hb.1 _⟩,
     fun h' => h (congrArg Subtype.val h')⟩
 
 theorem rootBE_ne_toBE_source (g : SemidirectedArc hb.1 hb.2 hX) :
-    N.toRooted.graph.target (sdRootArc hb.1 hb.2 hX) ≠ N.toRooted.graph.target (sdArc hb.1 hb.2 hX g) :=
+    N.toRooted.graph.target (sdRootArc hb.1 hb.2 hX) ≠
+      N.toRooted.graph.target (sdArc hb.1 hb.2 hX g) :=
   fun h => sdArc_target_ne hb hX g h.symm
 
 theorem isChain_unrootedChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
@@ -178,7 +182,8 @@ theorem isChain_unrootedChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       chainEnds N.belowLSA.toSD ∅ (N.unrootedChainOf hb g) =
         {((N.unrootedVertEquiv hb).symm ((semidirected hb.1 hb.2 hX).graph.source g)).1,
           ((N.unrootedVertEquiv hb).symm ((semidirected hb.1 hb.2 hX).graph.target g)).1} := by
-  have hgs : N.toRooted.graph.Reaches (N.lsaL hb) (N.toRooted.graph.source (sdArc hb.1 hb.2 hX g)) :=
+  have hgs : N.toRooted.graph.Reaches (N.lsaL hb)
+    (N.toRooted.graph.source (sdArc hb.1 hb.2 hX g)) :=
     g.1.2.1
   have htne := N.target_ne_lsaL hb hgs
   -- the nodes of `belowLSA`
@@ -227,7 +232,8 @@ theorem isChain_unrootedChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       · exact absurd rfl h₂
     rw [hQ]
     refine ⟨htr.isChain (Set.insert_nonempty _ _) (hbr _ hr0 hr0ne) (hbr _ ht htne) hin, ?_⟩
-    rw [htr.chainEnds_eq (Set.insert_nonempty _ _) (hbr _ hr0 hr0ne) (hbr _ ht htne) hin, hsrc, htgt]
+    rw [htr.chainEnds_eq (Set.insert_nonempty _ _) (hbr _ hr0 hr0ne)
+      (hbr _ ht htne) hin, hsrc, htgt]
     congr 1
     refine Subtype.ext ?_
     change _ = sdVert hb.1 hX ((semidirected hb.1 hb.2 hX).graph.source g)
@@ -241,7 +247,8 @@ theorem isChain_unrootedChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     have hab : a ≠ b := fun h => hsne (congrArg Subtype.val h)
     have hj : Joins N.belowLSA.toSD.graph (N.toBE hb g) a b := Or.inl ⟨rfl, rfl⟩
     have htr := IsUTrail.single hj hab
-    have hin : ∀ s ∈ ({a, b} : Set _), s ≠ a → s ≠ b → ¬ Banos2019.IsBranch N.belowLSA.toSD ∅ s := by
+    have hin : ∀ s ∈ ({a, b} : Set _), s ≠ a → s ≠ b →
+      ¬ Banos2019.IsBranch N.belowLSA.toSD ∅ s := by
       rintro s (rfl | rfl) h₁ h₂
       · exact absurd rfl h₁
       · exact absurd rfl h₂
@@ -266,19 +273,22 @@ theorem mem_unrootedChainOf_psi (e : {e // N.graph.Reaches N.lsa (N.graph.source
     · exact rfl
 
 theorem psi_eq_of_mem (g : SemidirectedArc hb.1 hb.2 hX)
-    (e : {e // N.graph.Reaches N.lsa (N.graph.source e)}) (he : e ∈ N.unrootedChainOf hb g) : N.unrootedPsi hb e = g := by
+    (e : {e // N.graph.Reaches N.lsa (N.graph.source e)})
+    (he : e ∈ N.unrootedChainOf hb g) : N.unrootedPsi hb e = g := by
   have hg : sdArc hb.1 hb.2 hX g ≠ sdRootArc hb.1 hb.2 hX := fun h =>
     ((mem_range_sdArc hb.1 hb.2 hX _).mp ⟨g, rfl⟩).2 h
   have hto : N.unrootedPsi hb (N.toBE hb g) = g := by
     unfold unrootedPsi
-    rw [dite_eq_right_of_eq_false (eq_false (show ¬ (N.toBE hb g).1 = sdRootArc hb.1 hb.2 hX from hg))]
+    rw [dite_eq_right_of_eq_false
+      (eq_false (show ¬ (N.toBE hb g).1 = sdRootArc hb.1 hb.2 hX from hg))]
     rfl
   unfold unrootedChainOf at he
   split_ifs at he with hm
   · rcases he with rfl | rfl
     · exact hto
     · unfold unrootedPsi
-      rw [dite_eq_left_of_eq_true (eq_true (show (N.rootBE hb).1 = sdRootArc hb.1 hb.2 hX from rfl))]
+      rw [dite_eq_left_of_eq_true
+        (eq_true (show (N.rootBE hb).1 = sdRootArc hb.1 hb.2 hX from rfl))]
       obtain ⟨-, huniq⟩ := (N.exists_otherArc hb).choose_spec
       exact sdArc_injective hb.1 hb.2 hX (huniq _ hm hg).symm
   · rw [Set.mem_singleton_iff] at he
@@ -341,7 +351,8 @@ theorem unrooted_source_ne_target (g : SemidirectedArc hb.1 hb.2 hX) :
   · exact not_reaches_target_source hb.1.acyclic _ (by rw [h']; exact Relation.ReflTransGen.refl)
 
 /-- **The Challenge's `N⁻` is the library's** (Definition 5). -/
-theorem nonempty_sdIso_unrooted : Nonempty (Banos2019.SDIso N.unrooted.toSD (Banos2019.unrooted N.toRooted hb hX)) := by
+theorem nonempty_sdIso_unrooted : Nonempty
+    (Banos2019.SDIso N.unrooted.toSD (Banos2019.unrooted N.toRooted hb hX)) := by
   have := hb.1.finite_arcs
   obtain ⟨ι, -⟩ := exists_sdIso_suppressExcept (N.unrootedVertEquiv hb) (N.unrootedChainOf hb)
     (fun g => (N.isChain_unrootedChainOf hb g).1) (N.unrootedPsi hb) (N.mem_unrootedChainOf_psi hb)
@@ -353,7 +364,8 @@ theorem nonempty_sdIso_unrooted : Nonempty (Banos2019.SDIso N.unrooted.toSD (Ban
 /-- **The Challenge's metric `N⁻` is the library's** (Definitions 5 and 6). -/
 theorem nonempty_sdMetricIso_unrooted [Fintype E] (θ : Params E) :
     Nonempty (Banos2019.SDMetricIso N.unrooted.toSD (N.unrootedParams θ).toMetric
-      (Banos2019.unrooted N.toRooted hb hX) (Banos2019.unrootedMetric N.toRooted hb hX θ.toMetric)) := by
+      (Banos2019.unrooted N.toRooted hb hX)
+        (Banos2019.unrootedMetric N.toRooted hb hX θ.toMetric)) := by
   have hbn := N.isBinaryNetwork_iff.mpr hb
   let θ' : Params {e // N.graph.Reaches N.lsa (N.graph.source e)} :=
     ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩

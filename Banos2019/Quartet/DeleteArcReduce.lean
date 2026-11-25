@@ -8,9 +8,9 @@ public import Banos2019.Quartet.CutSplits
 
 For a hybrid edge `h` of a cycle `C` of a binary level-1 network `Q`, `deleteArc Q h` has two nodes
 of indegree one and outdegree one, the source of `h` (unless it is the root) and the hybrid node `v`
-of `C`; both are on `C` only. It satisfies `IsReducible`, its cycles are those of `Q` other than `C`,
-with the same types, and, for a cycle inducing a `2₂`- or a `3₁`-cycle, it has the cut edges of `Q`
-between two pairs of taxa.
+of `C`; both are on `C` only. It satisfies `IsReducible`, its cycles are those of `Q` other than
+`C`, with the same types, and, for a cycle inducing a `2₂`- or a `3₁`-cycle, it has the cut edges of
+`Q` between two pairs of taxa.
 
 * `deleteArc_reaches_of_notMem`: from a node off `C`, the paths of `Q` can avoid `h`: they enter `C`
   at its top, from which `v` is reached along the other side of `C`.
@@ -82,7 +82,8 @@ theorem deleteArc_reaches_or {a b : V} (hr : Q.graph.Reaches a b) :
       · exact Or.inr ⟨ih.1, ih.2.tail ⟨⟨f, hf⟩, rfl, rfl⟩⟩
 
 /-- **From a node off the cycle `C` of `h`, the paths of `Q` can avoid `h`**: a path through `h`
-enters `C` at its top `t`, from which the target of `h` is reached along the other hybrid edge `h'`. -/
+enters `C` at its top `t`, from which the target of `h` is reached along the other hybrid edge `h'`.
+-/
 theorem deleteArc_reaches_of_notMem (hA : Q.graph.IsAcyclic) {C : Set E} {t : V}
     (hK : IsContractible Q C t) (hhC : h ∈ C) {h' : E} (hne : h' ≠ h) (hh'C : h' ∈ C)
     (ht : Q.graph.target h' = Q.graph.target h) {u z : V} (hu : u ∉ cycleNodes Q.graph C)
@@ -90,7 +91,8 @@ theorem deleteArc_reaches_of_notMem (hA : Q.graph.IsAcyclic) {C : Set E} {t : V}
   have htv : t ≠ Q.graph.target h := fun he => hK.top_entry h he.symm hhC
   -- from the top to the target of `h` without `h`
   have hR2 : (deleteArc Q h).graph.Reaches t (Q.graph.target h) := by
-    rcases deleteArc_reaches_or (h := h) (hK.top_reaches _ (source_mem_cycleNodes hh'C)) with h₁ | h₁
+    rcases deleteArc_reaches_or (h := h)
+      (hK.top_reaches _ (source_mem_cycleNodes hh'C)) with h₁ | h₁
     · exact h₁.tail ⟨⟨h', hne⟩, rfl, ht⟩
     · exact absurd (Relation.TransGen.tail' (reaches_of_deleteArc h₁.2) ⟨h', rfl, ht⟩) (hA _)
   -- from `u` to a node of `C`, through the top
@@ -241,7 +243,8 @@ theorem isReducible_deleteArc [Fintype E] {θ : MetricData E} (hθ : IsMetricNet
     rcases eq_of_isChainVertex_deleteArc hQ hhv hc with rfl | rfl
     · exact notMem_cycleNodes_of_deleteArc hQ h1 hC hhv hD hw (source_mem_cycleNodes hhC)
     · exact notMem_cycleNodes_of_deleteArc hQ h1 hC hhv hD hw hC.2.1
-  have hrootdeg : (deleteArc Q h).graph.outdegree Q.root + (if Q.graph.source h = Q.root then 1 else 0)
+  have hrootdeg : (deleteArc Q h).graph.outdegree Q.root +
+    (if Q.graph.source h = Q.root then 1 else 0)
       = 2 := (deleteArc_outdegree (Q := Q) (h := h) Q.root).trans hQ.2.1
   refine
     { phylo := hM
@@ -370,7 +373,8 @@ theorem deleteArc_exists_inducesCycleType_iff [Fintype V] [Fintype E] (n' k' : �
     refine ⟨D', w, hD'', ?_⟩
     rw [hbelow w ((key D' w hD').2 hD''.2.1)]
 
-/-- **`deleteArc Q h` has fewer cycles than `Q`**: its cycles are cycles of `Q`, and `C` is not one. -/
+/-- **`deleteArc Q h` has fewer cycles than `Q`**: its cycles are cycles of `Q`, and `C` is not one.
+-/
 theorem ncard_setOf_isCycle_deleteArc_lt [Finite E] :
     {D | IsCycle (deleteArc Q h).graph D}.ncard < {D | IsCycle Q.graph D}.ncard := by
   have hhC := hybrid_mem_cycle hQ h1 hC hhv
@@ -381,13 +385,13 @@ theorem ncard_setOf_isCycle_deleteArc_lt [Finite E] :
   obtain ⟨e, -, he⟩ := (hD ▸ hhC : h ∈ Subtype.val '' D')
   exact e.2 he
 
-/-- **`deleteArc Q h` has the cut edges of `Q` between two pairs of taxa**, for a cycle `C` inducing a
-`2₂`- or a `3₁`-cycle. A cut edge of `Q` is off `C`, so it remains. A cut edge `e` of `deleteArc Q h`
-whose side `T` is crossed by `h` in `Q` is on `C`, and each block of `C` is on one side of `T`; with
-`v` on the other side of `T` than its two taxa, the two taxa of `T` are the block of a node of `C`
-(of size two) or the complement of the two taxa below `v` (for a `2₂`-cycle): the paper's "the edges
-of the cycle that remain are cut edges between one taxon and three, or between the two pairs that
-the cycle already separates". -/
+/-- **`deleteArc Q h` has the cut edges of `Q` between two pairs of taxa**, for a cycle `C` inducing
+a `2₂`- or a `3₁`-cycle. A cut edge of `Q` is off `C`, so it remains. A cut edge `e` of
+`deleteArc Q h` whose side `T` is crossed by `h` in `Q` is on `C`, and each block of `C` is on one
+side of `T`; with `v` on the other side of `T` than its two taxa, the two taxa of `T` are the block
+of a node of `C` (of size two) or the complement of the two taxa below `v` (for a `2₂`-cycle): the
+paper's "the edges of the cycle that remain are cut edges between one taxon and three, or between
+the two pairs that the cycle already separates". -/
 theorem deleteArc_hasCutSplit_iff [Fintype V] [Fintype E] [Fintype X] (hX : Fintype.card X = 4)
     (hnk : (n = 2 ∧ k = 2) ∨ (n = 3 ∧ k = 1)) {A : Set X}
     (hA : A.ncard = 2) : (deleteArc Q h).HasCutSplit A ↔ Q.HasCutSplit A := by
@@ -412,7 +416,8 @@ theorem deleteArc_hasCutSplit_iff [Fintype V] [Fintype E] [Fintype X] (hX : Fint
   -- `e` is on `C`, and each block of `C` is on one side of `T`
   have heC : e ∈ C := by
     by_contra heC
-    have hw := hC.1.walks_sdiff_singleton hhC (target_mem_cycleNodes hhC) (source_mem_cycleNodes hhC)
+    have hw := hC.1.walks_sdiff_singleton hhC (target_mem_cycleNodes hhC)
+      (source_mem_cycleNodes hhC)
     have := Q.graph.mem_iff_mem_of_walks (F := C \ {h}) (S := T) (fun f hf hc =>
       heC (((hM f hf.2).1 hc) ▸ hf.1)) hw
     unfold DirectedMultigraph.Crosses at hcr

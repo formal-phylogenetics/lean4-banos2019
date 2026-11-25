@@ -13,15 +13,15 @@ A set `s` of four taxa induces a quartet network `Q⁻_s` with a 4-cycle exactly
 hybrid block. The hybrid node of the 4-cycle of `Q⁻_s` is then that of `C_v`.
 
 * `exists_fourCycle_of_separates`, `exists_separates_of_fourCycle`: the two directions, as the proof
-  of Lemma 12 states them. The two cycles correspond through a cycle of `N`: the arcs of the edges of
-  `C_v` (`liftEdges`), and the chains of the arcs of the cycle of `Q⊕_s` (`cycleChainArcs`).
+  of Lemma 12 states them. The two cycles correspond through a cycle of `N`: the arcs of the edges
+  of `C_v` (`liftEdges`), and the chains of the arcs of the cycle of `Q⊕_s` (`cycleChainArcs`).
 * `unrooted_isConnected`: `N⁻` is connected.
 * `walks_cycle_of_mem_cycleNodes`: two nodes of a cycle are joined along it.
-* `exists_walks_cycleNodes_of_not_walks`: in a connected graph, a node not joined to a node `z₀` of a
-  cycle `C'` by a walk avoiding a cycle `C`, disjoint from `C'`, reaches a node of `C` by a walk
+* `exists_walks_cycleNodes_of_not_walks`: in a connected graph, a node not joined to a node `z₀` of
+  a cycle `C'` by a walk avoiding a cycle `C`, disjoint from `C'`, reaches a node of `C` by a walk
   avoiding both (the argument of Lemma 13).
-* `exists_walks_unrooted_quartetLSA`: the taxa of `s` in the blocks of the nodes of a cycle of `Q⊕_s`
-  are in the blocks of those nodes in `N⁻`, for the cycle of `N⁻` of its chains.
+* `exists_walks_unrooted_quartetLSA`: the taxa of `s` in the blocks of the nodes of a cycle of
+  `Q⊕_s` are in the blocks of those nodes in `N⁻`, for the cycle of `N⁻` of its chains.
 -/
 @[expose] public noncomputable section
 
@@ -118,8 +118,8 @@ theorem walks_of_reflTransGen_mem {G : DirectedMultigraph V E} {C F : Set E} {a 
 
 /-! ### `N⁻` is connected -/
 
-/-- **`N⁻` is connected**: every node is joined to the child of the edge of the root that suppression
-merges, along a directed path from the root. -/
+/-- **`N⁻` is connected**: every node is joined to the child of the edge of the root that
+suppression merges, along a directed path from the root. -/
 theorem unrooted_isConnected {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (hX : Nontrivial X) : (unrooted N hN hX).graph.IsConnected := by
   set M := lsaPlus hN.1 hX
@@ -184,7 +184,8 @@ theorem walks_unrooted_of_walks_quartetLSA {D : Set _} {u w : _}
     (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) (sdNode hN.1 hN.2 hX w.1.1) := by
   have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
   have h₁ := walks_cycleChainArcs_of_walks (lsaNetwork_isPhylogenetic hN.1 hZ) h
-  have h₂ := walks_image_of_hom (φ := Subtype.val) (ψ := Subtype.val) (fun _ => rfl) (fun _ => rfl) h₁
+  have h₂ := walks_image_of_hom (φ := Subtype.val) (ψ := Subtype.val) (fun _ => rfl)
+    (fun _ => rfl) h₁
   refine walks_semidirected_of_walks hN.1 hN.2 hX (fun f hf => ?_) (fun g hg hgC => ?_) h₂
   · obtain ⟨e, -, rfl⟩ := hf
     exact (lsa_univ_reaches hN.1 hZ.nonempty).trans e.2.1
@@ -226,10 +227,12 @@ theorem exists_walks_unrooted_quartetLSA (h1 : IsLevelOne N.graph) {D : Set _}
     (hC' : liftEdges hN.1 hN.2 hX C' = Subtype.val '' cycleChainArcs _ D) :
     (∀ x : (s : Set X), ∃ u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D,
       u ≠ (quartetLSA N hN.1 s hs).root ∧
-        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) ((unrooted N hN hX).leaf x)) ∧
+        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1)
+          ((unrooted N hN hX).leaf x)) ∧
     (∀ u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D, u ≠ (quartetLSA N hN.1 s hs).root →
       ∃ x : (s : Set X),
-        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) ((unrooted N hN hX).leaf x)) := by
+        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1)
+          ((unrooted N hN hX).leaf x)) := by
   have hQ := quartetLSA_isBinaryRootedNetwork hN hs
   have hsub : ∀ g ∈ C', sdArc hN.1 hN.2 hX g ∈ Subtype.val '' cycleChainArcs _ D := fun g hg =>
     hC' ▸ (sdArc_mem_liftEdges_iff hN.1 hN.2 hX C' g).2 hg
@@ -280,17 +283,17 @@ end Quartet
 cycle `C_v` for which the taxa of `s` are in distinct `v`-blocks, one of them in the hybrid block,
 then `s` induces a quartet network with a 4-cycle.
 
-The cycle of `N` of `C_v` lies below `LSA(s)`. Otherwise the root reaches the top of the cycle avoiding
-`LSA(s)`, then `v` along one of the two sides of the cycle (were `LSA(s)` on both, the two sides from
-`LSA(s)` to the parents of `v` would close a cycle through an arc into `v` without the arc into
-`LSA(s)`, another cycle sharing an arc with `C_v`), and then the taxon of `s` below `v`; and `LSA(s)` is
-not below `v`, whose block would then hold all of `s`. The arcs of the cycle are above that taxon, so
-they are arcs of the LSA network of `s` (the edges of `N⁻` on simple treks between taxa of `s`,
-`mem_trekEdges_iff`), and their chains form a cycle of `Q⊕_s` with hybrid node `v`. Each taxon of `s` is
-in the block of a node of this cycle other than the root, and then in the block of that node in `N⁻`;
-the four taxa being in distinct `v`-blocks, the cycle has four nodes other than the root, and no more
-since `Q⊕_s` has four taxa. The size of `C_v`, at least four in the paper's statement, follows from
-the other hypotheses, and the statement leaves it out.
+The cycle of `N` of `C_v` lies below `LSA(s)`. Otherwise the root reaches the top of the cycle
+avoiding `LSA(s)`, then `v` along one of the two sides of the cycle (were `LSA(s)` on both, the two
+sides from `LSA(s)` to the parents of `v` would close a cycle through an arc into `v` without the
+arc into `LSA(s)`, another cycle sharing an arc with `C_v`), and then the taxon of `s` below `v`;
+and `LSA(s)` is not below `v`, whose block would then hold all of `s`. The arcs of the cycle are
+above that taxon, so they are arcs of the LSA network of `s` (the edges of `N⁻` on simple treks
+between taxa of `s`, `mem_trekEdges_iff`), and their chains form a cycle of `Q⊕_s` with hybrid node
+`v`. Each taxon of `s` is in the block of a node of this cycle other than the root, and then in the
+block of that node in `N⁻`; the four taxa being in distinct `v`-blocks, the cycle has four nodes
+other than the root, and no more since `Q⊕_s` has four taxa. The size of `C_v`, at least four in the
+paper's statement, follows from the other hypotheses, and the statement leaves it out.
 
 The paper asserts this step without argument (TeX l. 1102); this proof fills it. -/
 theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
@@ -426,8 +429,8 @@ theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRo
       exact hbelowv m (reaches_of_not_hasPathAvoiding hva hp).1 fun x hx =>
         hst.reaches_leaf hN.1 hx
     exact hst a ha ⟨hpv.1, hpa.2.1, hpv.2.2.trans hpa.2.2⟩
-  -- so the arcs of `CN` are arcs of the LSA network `L` on `s`: they form a cycle `CL` of `L`, and the
-  -- arcs of `Q⊕_s` whose chains are on `CL` a cycle `CQ` of `Q⊕_s`
+  -- so the arcs of `CN` are arcs of the LSA network `L` on `s`: they form a cycle `CL` of `L`, and
+  -- the arcs of `Q⊕_s` whose chains are on `CL` a cycle `CQ` of `Q⊕_s`
   have hCNL : ∀ f ∈ CN, f ∈ N.belowArcs m (s : Set X) := fun f hf =>
     ⟨hmt.trans (htreach _ (source_mem_cycleNodes hf)),
       ⟨a, ha, (reaches_hybrid hN h1 hCN hvCN hv2 _ (target_mem_cycleNodes hf)).trans hva⟩⟩
@@ -449,7 +452,8 @@ theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRo
   have hvnc : ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex ⟨vN, hvL⟩ := fun h => by
     have := h.1
     omega
-  have hvQC : (⟨⟨vN, hvL⟩, hvnc⟩ : {v // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex v})
+  have hvQC : (⟨⟨vN, hvL⟩, hvnc⟩ : {v // ¬
+    (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex v})
       ∈ cycleNodes (quartetLSA N hN.1 s hs).graph CQ := by
     refine mem_cycleNodes_suppress_of_val hL ?_
     rw [hchain]
@@ -492,11 +496,11 @@ same node of `N`, for which the taxa of `s` are in distinct `w'`-blocks, one of 
 `w'`.
 
 The 4-cycle is the image of a cycle of `Q⊕_s` with four nodes other than the root. The chains of its
-arcs form a cycle of `N` below `LSA(X)`, the cycle of `N` of a cycle `C'` of `N⁻` with at least as many
-edges. The block in `Q⊕_s` of each of the four nodes holds a taxon of `s`, joined to the node by a walk
-of `Q⊕_s` avoiding the cycle, and the chains of the arcs of that walk give a walk of `N⁻` avoiding
-`C'`. So the four nodes, distinct nodes of `C'`, have taxa of `s` in their `w'`-blocks, which are
-disjoint: two taxa in distinct blocks of `Q⁻_s` are in distinct blocks of `N⁻`.
+arcs form a cycle of `N` below `LSA(X)`, the cycle of `N` of a cycle `C'` of `N⁻` with at least as
+many edges. The block in `Q⊕_s` of each of the four nodes holds a taxon of `s`, joined to the node
+by a walk of `Q⊕_s` avoiding the cycle, and the chains of the arcs of that walk give a walk of `N⁻`
+avoiding `C'`. So the four nodes, distinct nodes of `C'`, have taxa of `s` in their `w'`-blocks,
+which are disjoint: two taxa in distinct blocks of `Q⁻_s` are in distinct blocks of `N⁻`.
 
 The paper asserts this step without argument (TeX l. 1103); this proof fills it. -/
 theorem exists_separates_of_fourCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)

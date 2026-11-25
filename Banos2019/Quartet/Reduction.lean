@@ -21,9 +21,9 @@ public import Banos2019.Quartet.RootPlacement
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
 
-An *LSA quartet network* (`IsLSAQuartet`) is a metric binary rooted level-1 network on four taxa whose
-root is the LSA of its taxa: `Q⊕_abcd` for a network on more taxa, and its own `Q⊕` for itself. Its
-concordance factors are `cf Q θ`, a function on the quartet trees.
+An *LSA quartet network* (`IsLSAQuartet`) is a metric binary rooted level-1 network on four taxa
+whose root is the LSA of its taxa: `Q⊕_abcd` for a network on more taxa, and its own `Q⊕` for
+itself. Its concordance factors are `cf Q θ`, a function on the quartet trees.
 
 * `lemma5`, `lemma6`: the cycles of `Q⁻`.
 * `observation1`, `theorem2`.
@@ -32,10 +32,11 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
   two suppressed, as an LSA quartet network for all parameters of `Q⊕`; `corollary2_step`: one step
   of Corollary 2.
 * `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network;
-  `proposition5_aux`: the induction on the number of cycles, which applies the lemma of the type of a
-  cycle to two networks with isomorphic unrooted networks and the induction hypothesis to the
-  networks it produces (`nonempty_sdMetricIso_reduceNet_deleteArc`, `nonempty_sdMetricIso_contractNet`,
-  `nonempty_sdMetricIso_disjointNet`); `cf_eq_of_forall_not_isCycle`: networks without cycles.
+  `proposition5_aux`: the induction on the number of cycles, which applies the lemma of the type of
+  a cycle to two networks with isomorphic unrooted networks and the induction hypothesis to the
+  networks it produces (`nonempty_sdMetricIso_reduceNet_deleteArc`,
+  `nonempty_sdMetricIso_contractNet`, `nonempty_sdMetricIso_disjointNet`);
+  `cf_eq_of_forall_not_isCycle`: networks without cycles.
 -/
 
 @[expose] public noncomputable section
@@ -47,8 +48,8 @@ namespace Banos2019
 
 variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X]
 
-/-- An *LSA quartet network* `(Q⊕, θ)`: a metric binary rooted level-1 network on four taxa whose root is
-the LSA of the taxa. -/
+/-- An *LSA quartet network* `(Q⊕, θ)`: a metric binary rooted level-1 network on four taxa whose
+root is the LSA of the taxa. -/
 structure IsLSAQuartet (Q : RootedNetwork V E X) (θ : MetricData E) : Prop where
   binary : IsBinaryRootedNetwork Q
   levelOne : IsLevelOne Q.graph
@@ -86,10 +87,10 @@ theorem inducesCycleType_liftEdges {Q : RootedNetwork V E X} {θ : MetricData E}
     ext x
     exact (descendsFrom_semidirected_iff _ _ _ v' h2 x).symm
 
-/-- **The cycles of `Q⁻` are those of `Q⊕`** (Section 5, the paragraph before Lemma 5): a cycle of `Q⊕`
-with hybrid node `v` induces an `n_k`-cycle of `Q⁻` exactly when its image is an `n_k`-cycle of `Q⁻`,
-and every cycle of `Q⁻` is such an image. The edge of `Q⁻` merged at the root stands for both edges at
-the root; the others are the edges of `Q⊕` (`liftEdges`, `exists_liftEdges_eq`). -/
+/-- **The cycles of `Q⁻` are those of `Q⊕`** (Section 5, the paragraph before Lemma 5): a cycle of
+`Q⊕` with hybrid node `v` induces an `n_k`-cycle of `Q⁻` exactly when its image is an `n_k`-cycle of
+`Q⁻`, and every cycle of `Q⁻` is such an image. The edge of `Q⁻` merged at the root stands for both
+edges at the root; the others are the edges of `Q⊕` (`liftEdges`, `exists_liftEdges_eq`). -/
 theorem inducesCycleType_iff {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (n k : ℕ) :
     (∃ C v, InducesCycleType Q C v n k) ↔ ∃ C, IsCycleType hQ.unrooted C n k := by
@@ -116,15 +117,16 @@ theorem inducesCycleType_iff {Q : RootedNetwork V E X} {θ : MetricData E} (hQ :
     obtain ⟨v, hv⟩ := inducesCycleType_liftEdges hQ hD
     exact ⟨_, v, hv⟩
 
-/-- **Lemma 5** (`lem:numberofcycles`): `Q⁻` has no `k`-cycle for `k ≥ 5`, at most one 4-cycle, and then
-no 3-cycle, and at most two 3-cycles.
+/-- **Lemma 5** (`lem:numberofcycles`): `Q⁻` has no `k`-cycle for `k ≥ 5`, at most one 4-cycle, and
+then no 3-cycle, and at most two 3-cycles.
 
 The paper's proof, on the blocks of the cycles (`nodeBlock`), read on the cycles of `Q⊕` that the
-cycles of `Q⁻` come from (`liftEdges`): a cycle of `Q⁻` of size `k` has `k` pairwise disjoint nonempty
-blocks (`card_cycleNodesOffRoot_le`); two cycles of sizes `k₁`, `k₂` keep `k₁ + k₂ - 2` of them, all
-disjoint (`card_add_card_le_of_cycles`). For three cycles the paper counts `k₁ + k₂ + k₃ - 3` blocks;
-the cycle between the two others loses two, so the count is `k₁ + k₂ + k₃ - 4`
-(`card_add_card_add_card_le_of_cycles`), which is still more than four for three 3-cycles. -/
+cycles of `Q⁻` come from (`liftEdges`): a cycle of `Q⁻` of size `k` has `k` pairwise disjoint
+nonempty blocks (`card_cycleNodesOffRoot_le`); two cycles of sizes `k₁`, `k₂` keep `k₁ + k₂ - 2` of
+them, all disjoint (`card_add_card_le_of_cycles`). For three cycles the paper counts
+`k₁ + k₂ + k₃ - 3` blocks; the cycle between the two others loses two, so the count is
+`k₁ + k₂ + k₃ - 4` (`card_add_card_add_card_le_of_cycles`), which is still more than four for three
+3-cycles. -/
 theorem lemma5 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
     (∀ k ≥ 5, ∀ C, IsCycle hQ.unrooted.graph C → C.ncard ≠ k) ∧
       {C | IsCycle hQ.unrooted.graph C ∧ C.ncard = 4}.ncard ≤ 1 ∧
@@ -162,18 +164,20 @@ theorem lemma5 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet 
       (isCycle_liftEdges _ _ _ ha.1) (isCycle_liftEdges _ _ _ hb.1) (isCycle_liftEdges _ _ _ hc.1)
       (fun h => hab (liftEdges_injective _ _ _ h)) (fun h => hac (liftEdges_injective _ _ _ h))
       (fun h => hbc (liftEdges_injective _ _ _ h))
-    rw [card_cycleNodesOffRoot_liftEdges _ _ _ hr ha.1, card_cycleNodesOffRoot_liftEdges _ _ _ hr hb.1,
+    rw [card_cycleNodesOffRoot_liftEdges _ _ _ hr ha.1,
+      card_cycleNodesOffRoot_liftEdges _ _ _ hr hb.1,
       card_cycleNodesOffRoot_liftEdges _ _ _ hr hc.1, ha.2, hb.2, hc.2, hX] at h3
     omega
 
 /-- **Lemma 6** (`lem::no2 3_2`): `Q⁻` does not have two `3₂`-cycles, nor a `2₂`-cycle and a
 `4₁`-cycle.
 
-The paper's proof, on the cycles of `Q⊕` that the cycles of `Q⁻` come from (`inducesCycleType_liftEdges`):
-the two blocks of a `3₂`-cycle away from another `3₂`-cycle lie in the block of the node toward it,
-which is therefore the hybrid block, and each hybrid node would be below the other
-(`eq_of_inducesCycleType_three_two_of_card`); the blocks of a `4`-cycle are singletons, and a block of
-two taxa of the `2₂`-cycle would lie in one of them (`not_inducesCycleType_two_two_of_four`). -/
+The paper's proof, on the cycles of `Q⊕` that the cycles of `Q⁻` come from
+(`inducesCycleType_liftEdges`): the two blocks of a `3₂`-cycle away from another `3₂`-cycle lie in
+the block of the node toward it, which is therefore the hybrid block, and each hybrid node would be
+below the other (`eq_of_inducesCycleType_three_two_of_card`); the blocks of a `4`-cycle are
+singletons, and a block of two taxa of the `2₂`-cycle would lie in one of them
+(`not_inducesCycleType_two_two_of_four`). -/
 theorem lemma6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
     (∀ C C', IsCycleType hQ.unrooted C 3 2 → IsCycleType hQ.unrooted C' 3 2 → C = C') ∧
       ¬ ((∃ C, IsCycleType hQ.unrooted C 2 2) ∧ ∃ C, IsCycleType hQ.unrooted C 4 1) := by
@@ -189,9 +193,9 @@ theorem lemma6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet 
 
 omit [Fintype V] [Fintype E] in
 /-- **Observation 1** (`obs:quartetcoales`): the first coalescent event of a gene tree on four taxa
-determines its unrooted topology. The two lineages it joins form a cluster `A` with two elements of the
-rooted binary gene tree, and the unrooted gene tree displays `A | Aᶜ`: a fact about rooted binary trees
-on four taxa, which is what the observation rests on. -/
+determines its unrooted topology. The two lineages it joins form a cluster `A` with two elements of
+the rooted binary gene tree, and the unrooted gene tree displays `A | Aᶜ`: a fact about rooted
+binary trees on four taxa, which is what the observation rests on. -/
 theorem observation1 (hX : Fintype.card X = 4) {G : Finset (Finset X)} (hG : IsBinaryHierarchy G)
     {A : Finset X} (hA : A ∈ G) (hA2 : #A = 2) :
     ∃ q : QuartetTree X, q.val = {A, Aᶜ} ∧ Displays (unroot G) q := by
@@ -224,22 +228,23 @@ theorem observation1 (hX : Fintype.card X = 4) {G : Finset (Finset X)} (hG : IsB
 /-- **Theorem 2** (`thm::MRCA`): the concordance factors of four taxa `s` under the network
 multispecies coalescent on a level-1 rooted metric network are those of the LSA network `Q⊕_s`.
 
-This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`. As in the paper, by the Markov property at the LSA
-of `s` (`NMSC.sum_sum_mul_injDist_atInj`) the process is a mixture over the forest of the four lineages
-arriving there, and a forest with a cluster of two lineages decides the quartet tree (Observation 1,
-as `NMSC.cherryMass_of_mem`). With four lineages at the LSA, the paper conditions on the two rooted
-shapes of the gene tree (caterpillar and balanced), uses exchangeability of the lineages within each
-shape, and notes that four taxa have a single unrooted shape (TeX 592–594). The library uses the same
-exchangeability without splitting by rooted shape: the process above the LSA is invariant under the
-transpositions of the four lineages, so the three quartet trees are equally likely
-(`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library proves it for every phylogenetic
-network with valid parameters and every inheritance correlation in `[0, 1]`; the level-1 hypothesis is
-not needed. -/
+This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`. As in the paper, by the Markov property at the
+LSA of `s` (`NMSC.sum_sum_mul_injDist_atInj`) the process is a mixture over the forest of the four
+lineages arriving there, and a forest with a cluster of two lineages decides the quartet tree
+(Observation 1, as `NMSC.cherryMass_of_mem`). With four lineages at the LSA, the paper conditions on
+the two rooted shapes of the gene tree (caterpillar and balanced), uses exchangeability of the
+lineages within each shape, and notes that four taxa have a single unrooted shape (TeX 592–594). The
+library uses the same exchangeability without splitting by rooted shape: the process above the LSA
+is invariant under the transpositions of the four lineages, so the three quartet trees are equally
+likely (`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library proves it for every
+phylogenetic network with valid parameters and every inheritance correlation in `[0, 1]`; the
+level-1 hypothesis is not needed. -/
 theorem theorem2 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4)
     (q : QuartetTree (s : Set X)) :
     nmscCF (quartetLSA N hN.1 s hs)
-        (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
+        (inducedMetric hN.1 (s : Set X)
+          (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
         0 q =
       nmscCF N θ 0 (QuartetTree.map Subtype.val_injective q) := by
   convert NMSC.nmscCF_inducedNetwork hN.1 hθ.1 ⟨le_refl 0, zero_le_one⟩ hs _ q
@@ -506,7 +511,8 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
   -- the other child arc `g` of `w`
   have hwout : Q.graph.outdegree (Q.graph.source e₀) = 2 := by
     have h3 := hQ.2.2 _ he₀r (fun h0 => (Q.graph.outdegree_eq_zero_iff _).1 h0 e₀ rfl)
-    have : Q.graph.indegree (Q.graph.source e₀) = 1 := le_antisymm hind1 (hN.nonroot_indegree _ he₀r)
+    have : Q.graph.indegree (Q.graph.source e₀) = 1 :=
+      le_antisymm hind1 (hN.nonroot_indegree _ he₀r)
     omega
   obtain ⟨g, hgs, hge₀⟩ : ∃ g, Q.graph.source g = Q.graph.source e₀ ∧ g ≠ e₀ := by
     obtain ⟨x, y, hxy, hxy'⟩ := Set.ncard_eq_two.1 hwout
@@ -519,7 +525,8 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
     intro hgC
     have hinc := hcyc.ncard_incident hloop hwS
     have hsub : ({f, e₀, g} : Set E) ⊆
-        {e | e ∈ C ∧ (Q.graph.source e = Q.graph.source e₀ ∨ Q.graph.target e = Q.graph.source e₀)} := by
+        {e | e ∈ C ∧ (Q.graph.source e = Q.graph.source e₀ ∨ Q.graph.target e =
+          Q.graph.source e₀)} := by
       intro x hx
       rcases hx with rfl | rfl | hx
       · exact ⟨hfC, Or.inr hf⟩
@@ -562,21 +569,22 @@ theorem shape_of_root_mem (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.grap
     · exact Or.inl (h ▸ he₀v)
     · exact Or.inr h
 
-/-- Lemma 7 when the root `r` is on the cycle: with `w` the third node of `C` (the paper's `u`) and `y`
-the other child of `w`, the three taxa other than the taxon `d` below `v` are below `y`, and
-`CF(Q⊕ ∖ b) = CF(Q₀⊕)`. The two networks share the law of the forest at the top of the edge `g` above
-`y` (`jointCF_eq_sum_arc`), and the proof conditions on that forest, as the paper conditions on `K'`.
-If two of the three lineages have coalesced (`K' = 1`), their cluster decides the quartet tree in both
-networks (`NMSC.cherryMass_of_mem`). If not (`K' = 0`), the lineage of `d` goes up unchanged to the
-source of its hybrid edge in `Q⊕ ∖ b`, and to the contracted root in `Q₀⊕`
-(`cherryMass_liftInj_single`), and the process is the multispecies coalescent on a four-taxon species
-tree: in `Q⊕ ∖ b`, the tree `((a,b,c):ℓ,d)`, with `ℓ` the length of the edge from `r` to `w`, if its
-hybrid edge leaves `r`, and the star tree if it leaves `w` (`cherryMass_rootArc_eq_quartetProb_erase`,
-`cherryMass_rootArc_eq_quartetProb_univ`); in `Q₀⊕`, the star tree
-(`cherryMass_atRoot_eq_quartetProb_univ`). These trees have the same unrooted metric tree, and the root
-placement does not matter (`pub:rootplace`, `quartetProb_cladeSpeciesTree_erase`), which Allman,
-Degnan, Rhodes 2011 prove (Theorem 9 and Proposition 11). For this step the paper cites its Proposition
-4, taken from that source, which as printed states identifiability (see `lemma7`). -/
+/-- Lemma 7 when the root `r` is on the cycle: with `w` the third node of `C` (the paper's `u`) and
+`y` the other child of `w`, the three taxa other than the taxon `d` below `v` are below `y`, and
+`CF(Q⊕ ∖ b) = CF(Q₀⊕)`. The two networks share the law of the forest at the top of the edge `g`
+above `y` (`jointCF_eq_sum_arc`), and the proof conditions on that forest, as the paper conditions
+on `K'`. If two of the three lineages have coalesced (`K' = 1`), their cluster decides the quartet
+tree in both networks (`NMSC.cherryMass_of_mem`). If not (`K' = 0`), the lineage of `d` goes up
+unchanged to the source of its hybrid edge in `Q⊕ ∖ b`, and to the contracted root in `Q₀⊕`
+(`cherryMass_liftInj_single`), and the process is the multispecies coalescent on a four-taxon
+species tree: in `Q⊕ ∖ b`, the tree `((a,b,c):ℓ,d)`, with `ℓ` the length of the edge from `r` to
+`w`, if its hybrid edge leaves `r`, and the star tree if it leaves `w`
+(`cherryMass_rootArc_eq_quartetProb_erase`, `cherryMass_rootArc_eq_quartetProb_univ`); in `Q₀⊕`, the
+star tree (`cherryMass_atRoot_eq_quartetProb_univ`). These trees have the same unrooted metric tree,
+and the root placement does not matter (`pub:rootplace`, `quartetProb_cladeSpeciesTree_erase`),
+which Allman, Degnan, Rhodes 2011 prove (Theorem 9 and Proposition 11). For this step the paper
+cites its Proposition 4, taken from that source, which as printed states identifiability (see
+`lemma7`). -/
 theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : IsCycle Q.graph C)
     (hv : v ∈ cycleNodes Q.graph C) (h2 : Q.graph.indegree v = 2)
     (hroot : Q.root ∈ cycleNodes Q.graph C) (hcard : C.ncard = 3) {d : X}
@@ -596,7 +604,8 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
   have hwy : Q.graph.Reaches w y := .single ⟨g, hgs, rfl⟩
   have hsrc_v : ∀ e, Q.graph.target e = v → Q.graph.source e = Q.root ∨ Q.graph.source e = w := by
     intro e he
-    rcases mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e he with rfl | rfl <;> rcases hab' with h | h
+    rcases mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e he
+      with rfl | rfl <;> rcases hab' with h | h
     · exact Or.inl h.1
     · exact Or.inr h.1
     · exact Or.inr h.2
@@ -620,7 +629,8 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
     rcases Relation.ReflTransGen.cases_tail h with h' | ⟨c, -, e, -, he⟩
     · exact hnoin g h'.symm
     · exact hnoin e he
-  have hyw : ¬ Q.graph.Reaches y w := fun h => hN.acyclic w (Relation.TransGen.head' ⟨g, hgs, rfl⟩ h)
+  have hyw : ¬ Q.graph.Reaches y w :=
+    fun h => hN.acyclic w (Relation.TransGen.head' ⟨g, hgs, rfl⟩ h)
   have hyv : ¬ Q.graph.Reaches y v := fun h => by
     rcases Relation.ReflTransGen.cases_tail h with h' | ⟨c, hc, e, rfl, he⟩
     · exact hgC (mem_of_target_eq_hybrid hQ.binary hQ.levelOne hcyc hv h2 h'.symm)
@@ -867,8 +877,8 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
       cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩ hv₀
         (v := (contractRooted Q (· = C)).graph.source g₀)
         (by simp only [liftInj, ite_true]; exact mem_union_right _ hD) hD2 (hDq D)]
-  -- `K' = 0`: the lineages of the three taxa below `y` at the top of `g`, the multispecies coalescent
-  -- on a four-taxon species tree above it
+  -- `K' = 0`: the lineages of the three taxa below `y` at the top of `g`, the multispecies
+  -- coalescent on a four-taxon species tree above it
   have ht' : t' = (univ.erase d).image fun x => {x} := by rw [hgood.eq_singletons hC2, hlin']
   have hS₃ : (univ.erase d).Nonempty := by
     rw [← card_pos, card_erase_of_mem (mem_univ d), card_univ, hX]
@@ -886,7 +896,8 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
       by_cases hxd : x = d
       · exact Or.inr (by rw [hxd])
       · exact Or.inl ⟨x, hxd, rfl⟩
-  -- in `Q₀⊕`: the lineage of `d` up to the contracted root, where the three others are: the star tree
+  -- in `Q₀⊕`: the lineage of `d` up to the contracted root, where the three others are: the star
+  -- tree
   have hinj₀ : ∀ u, (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ (Q.graph.target c)) u →
       liftInj (contractRooted Q (· = C)) g₀ (taxaInj (contractRooted Q (· = C)) univ) t' u =
         taxaInj (contractRooted Q (· = C)) univ u := by
@@ -910,16 +921,16 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
     rcases hpart₀ u with rfl | h | h
     · have hat : atRoot (contractRooted Q (· = C)) (univ.image fun x => {x}) (Quot.mk _ Q.root) =
           univ.image fun x => {x} := atRoot_root _ _
-      rw [hat, ite_eq_right hnotc, ite_eq_left hc₀s.symm, ite_eq_right hnotg, ite_eq_left hg₀s.symm, hinjr₀,
-        empty_union, hall]
+      rw [hat, ite_eq_right hnotc, ite_eq_left hc₀s.symm, ite_eq_right hnotg, ite_eq_left hg₀s.symm,
+        hinjr₀, empty_union, hall]
     · have hur : u ≠ Quot.mk _ Q.root := fun h' => hnotc (h' ▸ h)
       have huc : u ≠ (contractRooted Q (· = C)).graph.source c₀ := by rw [hc₀s]; exact hur
       rw [atRoot_of_ne _ _ hur, ite_eq_left h, ite_eq_right huc, union_empty]
     · have hur : u ≠ Quot.mk _ Q.root := fun h' => hnotg (h' ▸ h)
       have huc : u ≠ (contractRooted Q (· = C)).graph.source c₀ := by rw [hc₀s]; exact hur
       have hug : u ≠ (contractRooted Q (· = C)).graph.source g₀ := by rw [hg₀s]; exact hur
-      rw [atRoot_of_ne _ _ hur, ite_eq_right (hdisj₀ u h), ite_eq_left h, ite_eq_right hug, ite_eq_right huc, union_empty,
-        union_empty]
+      rw [atRoot_of_ne _ _ hur, ite_eq_right (hdisj₀ u h), ite_eq_left h, ite_eq_right hug,
+        ite_eq_right huc, union_empty, union_empty]
   have hcond₀ : cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
       (liftInj (contractRooted Q (· = C)) g₀ (taxaInj (contractRooted Q (· = C)) univ) t') q =
         External.AllmanDegnanRhodes2011.quartetProb (cladeSpeciesTree univ hU 1 one_pos) q := by
@@ -1004,24 +1015,28 @@ theorem cf_deleteArc_eq_contract_of_root_mem (hQ : IsLSAQuartet Q θ) (hcyc : Is
   · -- the hybrid edge of `Q⊕ ∖ b` leaves the root: the tree `((a,b,c):ℓ,d)`
     rw [cherryMass_rootArc_eq_quartetProb_erase hX hN₁.acyclic (NMSC.target_ne_root hN₁) hfs₁
       huniqf₁ h1f₁ (hθ.2 f) le_rfl hinjJ₁ hS₃
-      (by rw [htf₁, hJ₁, ite_eq_left rfl, ite_eq_right fun h => hwr (h.trans har), union_empty, ht'])
-      ((hJ₁ Q.root).trans (by rw [ite_eq_right (Ne.symm hwr), ite_eq_left har.symm, empty_union])) q]
+      (by rw [htf₁, hJ₁, ite_eq_left rfl, ite_eq_right fun h => hwr (h.trans har), union_empty,
+        ht'])
+      ((hJ₁ Q.root).trans (by rw [ite_eq_right (Ne.symm hwr), ite_eq_left har.symm, empty_union]))
+      q]
     exact quartetProb_cladeSpeciesTree_erase hX d hS₃ _ _ hU 1 one_pos q
   · -- the hybrid edge of `Q⊕ ∖ b` leaves `w`: the star tree
     exact cherryMass_rootArc_eq_quartetProb_univ hX hN₁.acyclic (NMSC.target_ne_root hN₁) hfs₁
       huniqf₁ h1f₁ le_rfl hinjJ₁ hU (by rw [htf₁, hJ₁, ite_eq_left rfl, ite_eq_left haw.symm, hall])
-      ((hJ₁ Q.root).trans (by rw [ite_eq_right (Ne.symm hwr), ite_eq_right fun h => hwr (h.trans haw).symm,
+      ((hJ₁ Q.root).trans
+        (by rw [ite_eq_right (Ne.symm hwr), ite_eq_right fun h => hwr (h.trans haw).symm,
         union_empty])) q
 
-/-- **Lemma 7** (`lem::formula2:1`): contracting a cycle that induces a `2₁`-cycle does not change the
-concordance factors: `CF(Q⊕) = CF(Q₀⊕)`.
+/-- **Lemma 7** (`lem::formula2:1`): contracting a cycle that induces a `2₁`-cycle does not change
+the concordance factors: `CF(Q⊕) = CF(Q₀⊕)`.
 
-The paper's proof: one taxon is below `v`, so `P(K = 1) = 1` and `CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`
-(`cf_eq_mixture`, as in Lemma 10); it remains that `CF(Q₁⊕) = CF(Q₂⊕) = CF(Q₀⊕)`. If the root is not
-on `C`, only the single lineage of the taxon below `v` is on the edges in which `Q₁⊕`, `Q₂⊕` and
-`Q₀⊕` differ (`cf_deleteArc_eq_contract_of_root_notMem`). If the root `r` is on `C`, with nodes
-`r, u, v` and `y` the other child of `u`, the three other taxa are below `y`, and the paper conditions
-on `K'`, whether a coalescent event has occurred among them before they leave `y`
+The paper's proof: one taxon is below `v`, so `P(K = 1) = 1` and
+`CF(Q⊕) = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)` (`cf_eq_mixture`, as in Lemma 10); it remains that
+`CF(Q₁⊕) = CF(Q₂⊕) = CF(Q₀⊕)`. If the root is not on `C`, only the single lineage of the taxon below
+`v` is on the edges in which `Q₁⊕`, `Q₂⊕` and `Q₀⊕` differ
+(`cf_deleteArc_eq_contract_of_root_notMem`). If the root `r` is on `C`, with nodes `r, u, v` and `y`
+the other child of `u`, the three other taxa are below `y`, and the paper conditions on `K'`,
+whether a coalescent event has occurred among them before they leave `y`
 (`cf_deleteArc_eq_contract_of_root_mem`): if so, the event decides the quartet tree in the three
 networks alike; if not, the process above `y` is, in each of the three networks, the multispecies
 coalescent on a four-taxon species tree, and these trees have the same unrooted metric tree.
@@ -1029,13 +1044,14 @@ coalescent on a four-taxon species tree, and these trees have the same unrooted 
 For `K' = 0` the paper concludes `CF(Q₁⊕ | K' = 0) = CF(Q₂⊕ | K' = 0) = CF(Q₀⊕ | K' = 0)` "by
 Proposition 4", which it takes from Allman, Degnan, Rhodes 2011 (arXiv v1: "Proposition 11 in
 [Allman2011]"). As printed in the paper, Proposition 3 states that for four taxa the unrooted metric
-species tree is identifiable from the distribution of unrooted gene trees and the rooted one is not, and
-Proposition 4 that this remains valid for non-binary trees: these are identifiability statements, not
-the invariance of the concordance factors under the root placement. The step uses that the root
-placement does not matter, which Allman, Degnan, Rhodes 2011 prove (`pub:rootplace`: the source's
-Theorem 9 and Proposition 11, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`).
-`K'` is read at the top of the edge above `y` (the paper's "before `a`, `b`, `c` trace back to `y`"
-counts at its bottom); the argument is the same. -/
+species tree is identifiable from the distribution of unrooted gene trees and the rooted one is not,
+and Proposition 4 that this remains valid for non-binary trees: these are identifiability
+statements, not the invariance of the concordance factors under the root placement. The step uses
+that the root placement does not matter, which Allman, Degnan, Rhodes 2011 prove (`pub:rootplace`:
+the source's Theorem 9 and Proposition 11,
+`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`). `K'` is read at the
+top of the edge above `y` (the paper's "before `a`, `b`, `c` trace back to `y`" counts at its
+bottom); the argument is the same. -/
 theorem lemma7 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 1) :
     cf Q θ = cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) := by
   obtain ⟨hcyc, hv, h2, hn, h1t⟩ := hC
@@ -1104,13 +1120,13 @@ theorem reaches_leaf_iff_of_hybrid (hQ : IsBinaryRootedNetwork Q) (h2 : Q.graph.
     · exact h'
   · exact fun h => Relation.ReflTransGen.head ⟨c, hc, rfl⟩ h
 
-/-- **Lemma 8** (`lem::formula2:3`): contracting a cycle that induces a `2₃`-cycle does not change the
-concordance factors.
+/-- **Lemma 8** (`lem::formula2:3`): contracting a cycle that induces a `2₃`-cycle does not change
+the concordance factors.
 
 The paper's proof: with `K` the number of lineages at the hybrid node `v` (at the top of its child
-edge `c`), `CF(Q⊕) = ∑ₖ P(K = k) CF(Q⊕ | K = k)` (`cf_eq_sum_jointCF`), and the same for `Q₀⊕`, whose
-part below `c` is that of `Q⊕` (`rootDist_cutLower_contract`), so `K` has the same law. Given the
-forest at the top of `c`, its value for a quartet tree is `quartetValue` in both networks
+edge `c`), `CF(Q⊕) = ∑ₖ P(K = k) CF(Q⊕ | K = k)` (`cf_eq_sum_jointCF`), and the same for `Q₀⊕`,
+whose part below `c` is that of `Q⊕` (`rootDist_cutLower_contract`), so `K` has the same law. Given
+the forest at the top of `c`, its value for a quartet tree is `quartetValue` in both networks
 (`jointCF_eq_sum_quartetValue`): for `K = 1, 2` a coalescence has occurred and its cluster of two
 lineages decides the quartet tree; for `K = 3` the three quartet trees are equally likely by
 exchangeability of the three lineages at `v`.
@@ -1193,8 +1209,8 @@ abbrev corollary2Metric (hQ : IsLSAQuartet Q θ) (θ' : MetricData E) :=
 /-- **`Q̃⊕` is an LSA quartet network**, with the concordance factors of `contractRooted Q
 (IsTwoOneOrThree Q)`, the cycles of `Q⊕` that do not induce `2₁`- or `2₃`-cycles with their types,
 and the cut edges of `Q⊕` between two pairs of taxa, for all parameters `θ'` of `Q⊕`. -/
-theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E} (hθ' : IsMetricNetwork Q θ') :
-    IsLSAQuartet (corollary2Net hQ) (corollary2Metric hQ θ') ∧
+theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E}
+    (hθ' : IsMetricNetwork Q θ') : IsLSAQuartet (corollary2Net hQ) (corollary2Metric hQ θ') ∧
       cf (corollary2Net hQ) (corollary2Metric hQ θ') =
         cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ') ∧
       {D | IsCycle (corollary2Net hQ).graph D}.ncard =
@@ -1212,7 +1228,8 @@ theorem corollary2Net_spec (hQ : IsLSAQuartet Q θ) {θ' : MetricData E} (hθ' :
 /-- With no cycle inducing a `2₁`- or `2₃`-cycle, contracting them changes nothing. -/
 theorem cf_contractRooted_of_forall_not (hQ : IsLSAQuartet Q θ)
     (hP : ∀ C, IsCycle Q.graph C → ¬ IsTwoOneOrThree Q C) :
-    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q))
+      (contractMetric Q (IsTwoOneOrThree Q) θ) := by
   have hK := isContraction_contractSet_of_forall_not hQ.binary hQ.levelOne hP
   have htwo : ∃ x y : X, x ≠ y := by
     have : Nontrivial X := hQ.nontrivial
@@ -1222,10 +1239,10 @@ theorem cf_contractRooted_of_forall_not (hQ : IsLSAQuartet Q θ)
     le_rfl q).symm
 
 /-- **One step of Corollary 2**: contracting a cycle `C` inducing a `2₁`- or `2₃`-cycle does not
-change the concordance factors (Lemma 7 or 8), and the network obtained, with its nodes of degree two
-suppressed (`contractNet`), is an LSA quartet network with one cycle fewer. -/
-theorem corollary2_step (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C) (hCP : IsTwoOneOrThree Q C) :
-    IsLSAQuartet (contractNet Q hQ.binary hQ.levelOne (· = C))
+change the concordance factors (Lemma 7 or 8), and the network obtained, with its nodes of degree
+two suppressed (`contractNet`), is an LSA quartet network with one cycle fewer. -/
+theorem corollary2_step (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.graph C)
+    (hCP : IsTwoOneOrThree Q C) : IsLSAQuartet (contractNet Q hQ.binary hQ.levelOne (· = C))
         (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
       cf Q θ = cf (contractNet Q hQ.binary hQ.levelOne (· = C))
         (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ) ∧
@@ -1269,7 +1286,8 @@ omit [Fintype V] [Fintype E] in
 theorem corollary2_aux (n : ℕ) :
     ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
       IsLSAQuartet Q θ → {D | IsCycle Q.graph D}.ncard = n →
-        cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+        cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q))
+          (contractMetric Q (IsTwoOneOrThree Q) θ) := by
   induction n using Nat.strong_induction_on with
   | _ n ih =>
   intro V' E' _ _ Q θ hQ hn
@@ -1280,17 +1298,18 @@ theorem corollary2_aux (n : ℕ) :
   · push Not at hex
     exact cf_contractRooted_of_forall_not hQ hex
 
-/-- **Corollary 2** (`cor:2isgood`): contracting all cycles that induce `2₁`- or `2₃`-cycles does not
-change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`.
+/-- **Corollary 2** (`cor:2isgood`): contracting all cycles that induce `2₁`- or `2₃`-cycles does
+not change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`.
 
-The paper's proof applies Lemmas 7 and 8 to these cycles one after the other. Contracting one of them,
-`C`, does not change the concordance factors (`corollary2_step`, by Lemma 7 or 8); the network
+The paper's proof applies Lemmas 7 and 8 to these cycles one after the other. Contracting one of
+them, `C`, does not change the concordance factors (`corollary2_step`, by Lemma 7 or 8); the network
 obtained, with its nodes of degree two suppressed, is an LSA quartet network with the other cycles
 (`contractNet_spec`), to which the induction applies (`corollary2_aux`); and contracting its cycles
 inducing `2₁`- and `2₃`-cycles has the concordance factors of contracting those of `Q⊕` at once
 (`cf_contractRooted_contractNet`). -/
 theorem corollary2 (hQ : IsLSAQuartet Q θ) :
-    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
+    cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q))
+      (contractMetric Q (IsTwoOneOrThree Q) θ) := by
   by_cases hex : ∃ C, IsCycle Q.graph C ∧ IsTwoOneOrThree Q C
   · obtain ⟨C, hC, hCP⟩ := hex
     obtain ⟨hQ₁, hcf, -⟩ := corollary2_step hQ hC hCP
@@ -1313,8 +1332,8 @@ theorem arcLaw_withPair {N : RootedNetwork V E X} {r : V} (hc : IsCut N r) {h₁
   rw [hm, withPair_length]
 
 omit [Fintype E] [Fintype X] in
-/-- Lifting a forest to a vertex `v` whose only child arc is `c` injects it at `v`, with nothing below
-`v`. -/
+/-- Lifting a forest to a vertex `v` whose only child arc is `c` injects it at `v`, with nothing
+below `v`. -/
 theorem liftInj_eq_cutInj {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {v : V} {c : E}
     (hc : N.graph.source c = v) (hcu : ∀ g, N.graph.source g = v → g = c)
     (inj : V → Finset (Finset X)) (hinj : inj v = ∅) (t : Finset (Finset X)) :
@@ -1340,8 +1359,8 @@ theorem liftInj_eq_cutInj {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {v :
 common part of the two cases of Lemma 9. With `K` the lineages at the top of the child edge `c` of
 `v` (`cherryMass_eq_sum_arc`), the forest `G` at `v` splits between the hybrid edges
 (`cherryMass_cutInj_hybrid`): both lineages, or the single one, on `h₁` (probability `γ²`, or `γ`),
-on `h₂`, or one on each. The first two cases are the processes of `Q₁⊕` and `Q₂⊕`, which are those of
-`Q⊕` with inheritance `1` and `0` on `h₁` (`cf_deleteArc`); it remains that one lineage on each
+on `h₂`, or one on each. The first two cases are the processes of `Q₁⊕` and `Q₂⊕`, which are those
+of `Q⊕` with inheritance `1` and `0` on `h₁` (`cf_deleteArc`); it remains that one lineage on each
 hybrid edge gives the concordance factors of `Q₀⊕` given `G` (the hypothesis `HZ`). -/
 theorem cf_eq_of_two_two_of_split (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2)
     {h₁ h₂ : E} (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v)
@@ -1442,7 +1461,8 @@ theorem cf_eq_of_two_two_of_split (hQ : IsLSAQuartet Q θ) (hC : InducesCycleTyp
   have hQ₀ : cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) q =
       ∑ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G *
         cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
-          (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q := by
+          (liftInj (contractRooted Q (· = C)) c₀
+            (taxaInj (contractRooted Q (· = C)) univ) G) q := by
     have h1₀ : (contractMetric Q (· = C) θ).inheritance c₀ = 1 := by
       change θ.inheritance c₀.1 = 1
       rw [hc₀]
@@ -1459,7 +1479,8 @@ theorem cf_eq_of_two_two_of_split (hQ : IsLSAQuartet Q θ) (hC : InducesCycleTyp
         (γ ^ 2 * hybridPoly G (θ.length h₁) (θ.length h₂) W 1 +
           (1 - γ) ^ 2 * hybridPoly G (θ.length h₁) (θ.length h₂) W 0 +
           2 * γ * (1 - γ) * cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
-            (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q) := by
+            (liftInj (contractRooted Q (· = C)) c₀
+              (taxaInj (contractRooted Q (· = C)) univ) G) q) := by
     intro G
     by_cases hG : arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G = 0
     · rw [hG, zero_mul, zero_mul]
@@ -1610,9 +1631,11 @@ theorem lemma9_of_root_notMem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q 
       by_cases htw : Q.graph.Reaches t w
       · have hwt : w = t := (hchild w htw).resolve_right hvw
         subst hwt
-        rw [ite_eq_left htw, ite_eq_left rfl, hinjt, empty_union, ite_eq_left hat.symm, ite_eq_left hbt.symm]
+        rw [ite_eq_left htw, ite_eq_left rfl, hinjt, empty_union, ite_eq_left hat.symm,
+          ite_eq_left hbt.symm]
       · have hwt : w ≠ t := fun h => htw (h ▸ .refl)
-        rw [ite_eq_right htw, ite_eq_right (hat ▸ hwt), ite_eq_right (hbt ▸ hwt), union_empty, union_empty]
+        rw [ite_eq_right htw, ite_eq_right (hat ▸ hwt), ite_eq_right (hbt ▸ hwt),
+          union_empty, union_empty]
   obtain ⟨hgood, -⟩ := good_of_arcLaw_ne_zero hN hcut (validInj_taxaInj univ) hG
   -- `Q₀⊕`: the contracted node is the top
   obtain ⟨t', -⟩ := (⟨t, hK⟩ : ∃ t, IsContractible Q C t)
@@ -1692,21 +1715,22 @@ theorem lemma9_of_root_notMem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q 
     rw [hd] at hU
     rw [hU]
 
-/-- Lemma 9 when the root `r` is on the cycle: `C` has nodes `r`, `u`, `v` (`u` is `w` in the proof),
-and `y` is the other child of `u`; the two taxa not below `v` are below `y`. With one lineage of `v` on
-each hybrid edge, one reaches `r` alone and the other reaches `u`, where the lineages from `y` join it;
-in `Q₀⊕` the four lineages meet at the contracted root. The proof conditions on the forest at the top
-of the edge `g` above `y` (`cherryMass_eq_sum_arc`), whose law the two processes share, as the paper
-conditions on `K_y`. If the two lineages from `y` have coalesced (`K_y = 1`), their cluster decides the
-quartet tree (`NMSC.cherryMass_of_mem`). If not (`K_y = 2`), the process is the multispecies coalescent
-on a four-taxon species tree: `T_c` or `T_d` above the top of `g`, that is `((a,b,x):ℓ,x')` with `x` the
-lineage that reaches `u`, `x'` the one that reaches `r` and `ℓ` the length of the edge from `r` to `u`
+/-- Lemma 9 when the root `r` is on the cycle: `C` has nodes `r`, `u`, `v` (`u` is `w` in the
+proof), and `y` is the other child of `u`; the two taxa not below `v` are below `y`. With one
+lineage of `v` on each hybrid edge, one reaches `r` alone and the other reaches `u`, where the
+lineages from `y` join it; in `Q₀⊕` the four lineages meet at the contracted root. The proof
+conditions on the forest at the top of the edge `g` above `y` (`cherryMass_eq_sum_arc`), whose law
+the two processes share, as the paper conditions on `K_y`. If the two lineages from `y` have
+coalesced (`K_y = 1`), their cluster decides the quartet tree (`NMSC.cherryMass_of_mem`). If not
+(`K_y = 2`), the process is the multispecies coalescent on a four-taxon species tree: `T_c` or `T_d`
+above the top of `g`, that is `((a,b,x):ℓ,x')` with `x` the lineage that reaches `u`, `x'` the one
+that reaches `r` and `ℓ` the length of the edge from `r` to `u`
 (`cherryMass_rootArc_eq_quartetProb_erase`), and in `Q₀⊕` the tree `((a,b):l,(c,d):0)` above the top
 of `g`, the star tree (`cherryMass_atRoot_eq_quartetProb_univ`). These trees have the same unrooted
 metric tree, and the root placement does not matter (`pub:rootplace`,
 `quartetProb_cladeSpeciesTree_erase`), which Allman, Degnan, Rhodes 2011 prove (Theorem 9 and
-Proposition 11). For this step the paper cites its Propositions 3 and 4, taken from that source, which
-as printed state identifiability (see `lemma9`). -/
+Proposition 11). For this step the paper cites its Propositions 3 and 4, taken from that source,
+which as printed state identifiability (see `lemma9`). -/
 theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2)
     (hroot : Q.root ∈ cycleNodes Q.graph C) {h₁ h₂ : E} (hne : h₁ ≠ h₂)
     (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) (q : QuartetTree X) :
@@ -1986,11 +2010,13 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
       · refine ⟨x₁, x₂, Or.inl ⟨rfl, rfl⟩, hx₁₂, ?_, ?_⟩
         · rw [hJu _ hvr', hinjr, ite_eq_left h₁r.symm, ite_eq_right (h₂w ▸ fun h => hwr h.symm),
             union_empty, empty_union]
-        · rw [hJu _ hvw', hinjw, ite_eq_right (h₁r ▸ hwr), ite_eq_left h₂w.symm, empty_union, empty_union]
+        · rw [hJu _ hvw', hinjw, ite_eq_right (h₁r ▸ hwr), ite_eq_left h₂w.symm,
+            empty_union, empty_union]
       · refine ⟨x₂, x₁, Or.inr ⟨rfl, rfl⟩, hx₁₂.symm, ?_, ?_⟩
         · rw [hJu _ hvr', hinjr, ite_eq_right (h₁w ▸ fun h => hwr h.symm), ite_eq_left h₂r.symm,
             empty_union, empty_union]
-        · rw [hJu _ hvw', hinjw, ite_eq_left h₁w.symm, ite_eq_right (h₂r ▸ hwr), union_empty, empty_union]
+        · rw [hJu _ hvw', hinjw, ite_eq_left h₁w.symm, ite_eq_right (h₂r ▸ hwr),
+            union_empty, empty_union]
     have hvx : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = xr ∨ x = xw := fun x => by
       rw [hbelowv]
       rcases hrw with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
@@ -2080,8 +2106,8 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
       funext u
       unfold liftInj
       rcases hpart₀ u with rfl | h | h
-      · rw [atInj_self, ite_eq_right hnotg, ite_eq_left hg₀s.symm, ite_eq_right hnotc, ite_eq_left hc₀s.symm, hinjr₀,
-          empty_union]
+      · rw [atInj_self, ite_eq_right hnotg, ite_eq_left hg₀s.symm, ite_eq_right hnotc,
+          ite_eq_left hc₀s.symm, hinjr₀, empty_union]
       · have hur : u ≠ Quot.mk _ Q.root := fun h' => hnotc (h' ▸ h)
         have hug : u ≠ (contractRooted Q (· = C)).graph.source g₀ := by rw [hg₀s]; exact hur
         have huc : u ≠ (contractRooted Q (· = C)).graph.source c₀ := by rw [hc₀s]; exact hur
@@ -2106,8 +2132,8 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
         cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩ hv₀ (v := Quot.mk _ Q.root)
           (by rw [atInj_self]; exact mem_union_right _ hD) hD2 (hDq D)]
     -- `K_y = 2`: the multispecies coalescent on a four-taxon species tree, `T_c` or `T_d` above the
-    -- top of `g` (`((a,b,c):ℓ,d)` or `((a,b,d):ℓ,c)` with `ℓ` the length of `f`) in `Q⊕`, and the star
-    -- tree in `Q₀⊕`
+    -- top of `g` (`((a,b,c):ℓ,d)` or `((a,b,d):ℓ,c)` with `ℓ` the length of `f`) in `Q⊕`, and the
+    -- star tree in `Q₀⊕`
     have hlin₃ : ∀ x, x ∈ lineages t₃ ↔ x ≠ xr ∧ x ≠ xw := fun x => by
       rw [hl₃', hvx, not_or]
     have ht₃ : t₃ = (lineages t₃).image fun x => {x} := hg₃.eq_singletons hC2
@@ -2172,14 +2198,14 @@ theorem lemma9_of_root_mem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v
       cherryMass_atRoot_eq_quartetProb_univ hX hN₀.acyclic (NMSC.target_ne_root hN₀) _ 0 hU q]
     exact quartetProb_cladeSpeciesTree_erase hX xr hS₃ _ _ hU 1 one_pos q
 
-/-- **Lemma 9** (`lem::formula2:2`): for a cycle inducing a `2₂`-cycle, with hybrid edges `h₁`, `h₂` of
-its hybrid node `v` and `γ = γ(h₁)`,
+/-- **Lemma 9** (`lem::formula2:2`): for a cycle inducing a `2₂`-cycle, with hybrid edges `h₁`, `h₂`
+of its hybrid node `v` and `γ = γ(h₁)`,
 `CF(Q⊕) = γ² CF(Q₁⊕) + (1 - γ)² CF(Q₂⊕) + 2γ(1 - γ) CF(Q₀⊕)`.
 
 The paper's proof: with `K` the number of lineages at `v`, the lineages at `v` take `h₁` or `h₂`
 (`cf_eq_of_two_two_of_split`); all of them on `h₁`, or all on `h₂`, is the process of `Q₁⊕`, or of
-`Q₂⊕`, and for `K = 1` the topology is decided before `v`. With `K = 2` and one lineage on each hybrid
-edge: if the root is not on `C`, both lineages meet at the top of `C`, as in `Q₀⊕`
+`Q₂⊕`, and for `K = 1` the topology is decided before `v`. With `K = 2` and one lineage on each
+hybrid edge: if the root is not on `C`, both lineages meet at the top of `C`, as in `Q₀⊕`
 (`lemma9_of_root_notMem`); if the root `r` is on `C`, with `y` the other child of the node `u` of
 `C`, the paper conditions on `K_y`, the number of lineages at `y` (`lemma9_of_root_mem`): for
 `K_y = 1` the topology is decided; for `K_y = 2` the process is that of a tree `T_c` or `T_d`, that
@@ -2187,19 +2213,20 @@ of `Q₀⊕` given `K = K_y = 2` is that of the tree `((a,b):l,(c,d):0)` with `l
 from `u` to `y`, and the three have the same concordance factors.
 
 For `K = K_y = 2` the paper concludes `CF(T_d | K_y = 2) = CF(T_c | K_y = 2)` "by Proposition 3" and
-`CF(T_c | K_y = 2) = CF(Q₀⊕ | K = 2, K_y = 2)` "by Proposition 4", which it takes from Allman, Degnan,
-Rhodes 2011 (arXiv v1: "Proposition 3 in [Allman2011]" and "Proposition 11 in [Allman2011]"). As
-printed in the paper, Proposition 3 states that for four taxa the unrooted metric species tree is
-identifiable from the distribution of unrooted gene trees and the rooted one is not, and Proposition 4
-that this remains valid for non-binary trees: these are identifiability statements, not the invariance
-of the concordance factors under the root placement. The step uses that the root placement does not
-matter, which Allman, Degnan, Rhodes 2011 prove (`pub:rootplace`: the source's Theorem 9 and
-Proposition 11, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`): `T_c`,
-`T_d` and the tree of `Q₀⊕` have the same unrooted metric tree. `K_y` is read at the top of the edge
-above `y`, and the trees are taken above it. -/
+`CF(T_c | K_y = 2) = CF(Q₀⊕ | K = 2, K_y = 2)` "by Proposition 4", which it takes from Allman,
+Degnan, Rhodes 2011 (arXiv v1: "Proposition 3 in [Allman2011]" and "Proposition 11 in
+[Allman2011]"). As printed in the paper, Proposition 3 states that for four taxa the unrooted metric
+species tree is identifiable from the distribution of unrooted gene trees and the rooted one is not,
+and Proposition 4 that this remains valid for non-binary trees: these are identifiability
+statements, not the invariance of the concordance factors under the root placement. The step uses
+that the root placement does not matter, which Allman, Degnan, Rhodes 2011 prove (`pub:rootplace`:
+the source's Theorem 9 and Proposition 11,
+`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`): `T_c`, `T_d` and the
+tree of `Q₀⊕` have the same unrooted metric tree. `K_y` is read at the top of the edge above `y`,
+and the trees are taken above it. -/
 theorem lemma9 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2) {h₁ h₂ : E}
-    (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) (q : QuartetTree X) :
-    cf Q θ q =
+    (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v)
+    (q : QuartetTree X) : cf Q θ q =
       θ.inheritance h₁ ^ 2 * cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q +
         (1 - θ.inheritance h₁) ^ 2 * cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q +
         2 * θ.inheritance h₁ * (1 - θ.inheritance h₁) *
@@ -2227,12 +2254,12 @@ theorem le_one_below_of_four (hQ : IsLSAQuartet Q θ) {k : ℕ} (hC : InducesCyc
 The paper's proof: one taxon is below `v`, so exactly one lineage reaches `v` (`P(K = 1) = 1`); it
 takes `h₁` with probability `γ` and `h₂` otherwise, and the process is then that of `Q₁⊕` or `Q₂⊕`.
 This is `cf_eq_mixture`: the weight of a history is affine in `(γ, 1 - γ)` when a single lineage
-passes `v` (`NMSC.nmscCF_withPair`), and the endpoints `(1, 0)` and `(0, 1)` are the networks without
-`h₂` and without `h₁` (`cf_deleteArc`). -/
+passes `v` (`NMSC.nmscCF_withPair`), and the endpoints `(1, 0)` and `(0, 1)` are the networks
+without `h₂` and without `h₁` (`cf_deleteArc`). -/
 theorem lemma10 (hQ : IsLSAQuartet Q θ)
     (hC : (∃ k, InducesCycleType Q C v 4 k) ∨ InducesCycleType Q C v 3 1) {h₁ h₂ : E}
-    (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) (q : QuartetTree X) :
-    cf Q θ q =
+    (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v)
+    (q : QuartetTree X) : cf Q θ q =
       θ.inheritance h₁ * cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q +
         (1 - θ.inheritance h₁) * cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q := by
   have h2 : Q.graph.indegree v = 2 := by
@@ -2276,8 +2303,8 @@ theorem source_ne_of_three_le_ncard (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevel
   omega
 
 /-- **`Q_a⊕` is the network with the lineages of `a` and `b` at the sources of `h₁` and `h₂`**: in
-`disjointNet Q v h₁ h₂ a b` the leaves of `a` and `b` hang from the sources of `h₁` and `h₂` by these
-edges, each carrying a single lineage, and the rest is the part of `Q⊕` not below `v`. -/
+`disjointNet Q v h₁ h₂ a b` the leaves of `a` and `b` hang from the sources of `h₁` and `h₂` by
+these edges, each carrying a single lineage, and the rest is the part of `Q⊕` not below `v`. -/
 theorem cf_disjointNet_eq_cherryMass (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2)
     {h₁ h₂ : E} (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v)
     {a b : X} (hab : a ≠ b) (ha : Q.graph.Reaches v (Q.leaf a))
@@ -2308,16 +2335,16 @@ theorem cf_disjointNet_eq_cherryMass (hQ : IsLSAQuartet Q θ) (hC : InducesCycle
     rootDist_hybInj hQ.binary.1 (isCut_hybrid hQ.binary hQ.levelOne h2) hne hh₁ hh₂
       (hpar_of_hybrid hQ.binary h2 hne hh₁ hh₂) (γ := θ.inheritance h₁) rfl (by linarith)]
 
-/-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has the
-taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge `c`),
-`CF(Q⊕) = γ² CF(Q₁⊕) + (1 - γ)² CF(Q₂⊕) + P(K = 1) 2γ(1 - γ) CF(Q₀⊕ | K = 1)
+/-- **Lemma 11** (`lem::formula3:2`): for a cycle inducing a `3₂`-cycle whose hybrid node `v` has
+the taxa `a`, `b` below it, with `K` the number of lineages at `v` (at the top of its child edge
+`c`), `CF(Q⊕) = γ² CF(Q₁⊕) + (1 - γ)² CF(Q₂⊕) + P(K = 1) 2γ(1 - γ) CF(Q₀⊕ | K = 1)
   + P(K = 2) γ(1 - γ) [CF(Q_a⊕) + CF(Q_b⊕)]`.
 
 The paper's proof: the forest of the lineages of `a`, `b` at `v` splits between `h₁` and `h₂`
 (`cherryMass_cutInj_hybrid`); all its lineages on `h₁`, or on `h₂`, is the process of `Q₁⊕`, or of
 `Q₂⊕` (`cf_deleteArc`). For `K = 1` the cluster `{a, b}` decides the quartet tree in every network,
-and for `K = 2`, with the two lineages on different hybrid edges, the process is that of `Q_a⊕` or of
-`Q_b⊕` (`cf_disjointNet_eq_cherryMass`). -/
+and for `K = 2`, with the two lineages on different hybrid edges, the process is that of `Q_a⊕` or
+of `Q_b⊕` (`cf_disjointNet_eq_cherryMass`). -/
 theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁ h₂ : E}
     (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) {c : E}
     (hc : Q.graph.source c = v) (c₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'})
@@ -2501,7 +2528,8 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
       unfold hybInj
       rw [ite_eq_right (hsv h₂ hh₂)]
       exact mem_union_right _ (mem_union_right _ (by rw [ite_eq_left rfl]; exact hD))
-    · exact cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩ (validInj_of_arcLaw_ne_zero hN₀ hcut₀ hcr₀
+    · exact cherryMass_of_mem hN₀ hθ₀ ⟨le_rfl, zero_le_one⟩
+        (validInj_of_arcLaw_ne_zero hN₀ hcut₀ hcr₀
         (validInj_taxaInj univ) (by rw [hlaw]; exact hG))
         (v := (contractRooted Q (· = C)).graph.source c₀)
         (by simp only [liftInj, ite_true]; exact mem_union_right _ hD) hcard2 hDq
@@ -2533,8 +2561,10 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
         · exact h
       · rintro rfl
         exact ⟨roots_subset G hx, subset_rfl⟩
-    have hx₁ : x₁ ∈ ({a, b} : Finset X) := hlin ▸ mem_lineages.2 ⟨{x₁}, roots_subset G hR₁, mem_singleton_self _⟩
-    have hx₂ : x₂ ∈ ({a, b} : Finset X) := hlin ▸ mem_lineages.2 ⟨{x₂}, roots_subset G hR₂, mem_singleton_self _⟩
+    have hx₁ : x₁ ∈ ({a, b} : Finset X) :=
+      hlin ▸ mem_lineages.2 ⟨{x₁}, roots_subset G hR₁, mem_singleton_self _⟩
+    have hx₂ : x₂ ∈ ({a, b} : Finset X) :=
+      hlin ▸ mem_lineages.2 ⟨{x₂}, roots_subset G hR₂, mem_singleton_self _⟩
     have hx₁₂ : x₁ ≠ x₂ := fun h => hR (by rw [h])
     rw [hfb x₁ hR₁, hfb x₂ hR₂, cf_disjointNet_eq_cherryMass hQ hC' hne hh₁ hh₂ hab ha hb,
       cf_disjointNet_eq_cherryMass hQ hC' hne hh₁ hh₂ hab.symm hb ha]
@@ -2684,12 +2714,13 @@ theorem not_isHybridArc_of_forall_not_isCycle {N : RootedNetwork V E X}
   exact h0 C hC
 
 /-- **Proposition 5 for networks without cycles**: LSA quartet networks without cycles are trees
-(`not_isHybridArc_of_forall_not_isCycle`), whose concordance factors are those of their species trees
-(`nmscCF_eq_quartetProb`); isomorphic unrooted metric networks give the same unrooted metric species
-tree (`sameUnrootedMetricTree_of_sdMetricIso`), and so, as the root placement does not matter
-(`pub:rootplace`, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`, the
-source's Theorem 9 and Proposition 11; the paper cites its Proposition 3, which as printed states
-identifiability), the same distribution of unrooted gene trees. -/
+(`not_isHybridArc_of_forall_not_isCycle`), whose concordance factors are those of their species
+trees (`nmscCF_eq_quartetProb`); isomorphic unrooted metric networks give the same unrooted metric
+species tree (`sameUnrootedMetricTree_of_sdMetricIso`), and so, as the root placement does not
+matter (`pub:rootplace`,
+`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`, the source's Theorem 9
+and Proposition 11; the paper cites its Proposition 3, which as printed states identifiability), the
+same distribution of unrooted gene trees. -/
 theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2711,8 +2742,8 @@ theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E']
 
 
 /-- **`Q₁⊕`, `Q₂⊕` as LSA quartet networks**: without a hybrid edge `h` of a cycle `C`, and with its
-nodes of degree two suppressed (`reduceNet`), an LSA quartet network gives an LSA quartet network with
-the concordance factors of `deleteArc Q h` and fewer cycles. -/
+nodes of degree two suppressed (`reduceNet`), an LSA quartet network gives an LSA quartet network
+with the concordance factors of `deleteArc Q h` and fewer cycles. -/
 theorem isLSAQuartet_reduceNet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V} {n k : ℕ}
     (hC : InducesCycleType Q C v n k) {h : E} (hh : Q.graph.target h = v)
@@ -2745,7 +2776,8 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [F
       (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
     {h : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hh : hQ.unrooted.IsDirected h)
     (hP : (deleteArc Q (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h)).IsPhylogenetic)
-    (hP' : (deleteArc Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h))).IsPhylogenetic)
+    (hP' : (deleteArc Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+        (φ.edge h))).IsPhylogenetic)
     (hb : IsBinaryRootedNetwork (reduceNet _ hP)) (hb' : IsBinaryRootedNetwork (reduceNet _ hP')) :
     Nonempty (SDMetricIso (unrooted _ hb hQ.nontrivial)
       (unrootedMetric _ hb hQ.nontrivial (reduceMetric _ hP
@@ -2759,11 +2791,12 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [F
     hQ'.levelOne hQ'.isLSA hQ'.metric ((φ.isDirected_iff h).2 hh) hP' hb'
   exact ⟨ι.symm.trans ((φ.deleteHybridEdge hh).suppress.trans ι')⟩
 
-/-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
-2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
-unrooted networks. The unrooted network of `Q₀⊕` is `Q⁻` with `D` contracted and its nodes of degree
-two suppressed (`nonempty_sdMetricIso_suppress_contractCycles`), whether or not the cycle of `Q⊕`
-passes through the root, and `φ` maps this network to the one of `Q̃⁻` with `φ D` contracted. -/
+/-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting
+corresponding 2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives
+isomorphic metric unrooted networks. The unrooted network of `Q₀⊕` is `Q⁻` with `D` contracted and
+its nodes of degree two suppressed (`nonempty_sdMetricIso_suppress_contractCycles`), whether or not
+the cycle of `Q⊕` passes through the root, and `φ` maps this network to the one of `Q̃⁻` with `φ D`
+contracted. -/
 theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2807,11 +2840,11 @@ theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
   exact ⟨⟨hb, fun C₁ _ hC₁ => absurd hC₁ (h0 C₁), hl, hQ.card_taxa, hθ⟩, h0⟩
 
 omit [Fintype V] in
-/-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
-nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` and corresponding hybrid edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic
-metric unrooted networks. The unrooted network of `Q_a⊕` is
-`Q⁻` cut below `w` (`nonempty_sdMetricIso_disjointNet_cutSD`), and `φ` maps this network to `Q̃⁻` cut
-below `φ w` (`SDMetricIso.nonempty_cutSD_of_isDirected`). -/
+/-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding
+hybrid nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` and corresponding hybrid edges, `Q_a⊕` and `Q̃_a⊕` have
+isomorphic metric unrooted networks. The unrooted network of `Q_a⊕` is
+`Q⁻` cut below `w` (`nonempty_sdMetricIso_disjointNet_cutSD`), and `φ` maps this network to `Q̃⁻`
+cut below `φ w` (`SDMetricIso.nonempty_cutSD_of_isDirected`). -/
 theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2855,8 +2888,8 @@ theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E
 /-- **`P(K = k)` and `CF(Q₀⊕ | K = 1)` are read from the unrooted network** (proof of Proposition 5,
 Lemma 11): when the only cycle of `Q⊕` induces a `3₂`-cycle `D` of `Q⁻`, the child `u` of its hybrid
 node `v` has the two leaves `a`, `b` as children; the two lineages coalesce on the edge `c` from `v`
-to `u` with probability `1 - e^{-ℓ(c)}`, and given one lineage at `v` the cherry `{a, b}` decides the
-quartet tree. The length of `c` is that of the edge of `Q⁻` from `v` that is not hybrid. -/
+to `u` with probability `1 - e^{-ℓ(c)}`, and given one lineage at `v` the cherry `{a, b}` decides
+the quartet tree. The length of `c` is that of the edge of `Q⁻` from `v` that is not hybrid. -/
 theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype E']
     {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
@@ -2916,26 +2949,28 @@ omit [Fintype X] in
 
 The paper's proof. With no cycle, `Q⊕` and `Q̃⊕` are trees, whose concordance factors are those of
 their species trees, which have the same unrooted metric tree (`cf_eq_of_forall_not_isCycle`). The
-paper cites Proposition 3 of Allman, Degnan, Rhodes (2011) for the equality; the step is the statement
-that the root placement does not matter (`pub:rootplace`,
+paper cites Proposition 3 of Allman, Degnan, Rhodes (2011) for the equality; the step is the
+statement that the root placement does not matter (`pub:rootplace`,
 `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`: the source's Theorem 9
 and Proposition 11, for four taxa). Proposition 3 as printed in the paper states that the unrooted
-metric tree is identifiable from the concordance factors and the rooted one is not, which is not this
-statement. Otherwise a cycle `D` of `Q⁻` is the
-cycle `φ D` of `Q̃⁻` of the same type (`SDIso.isCycleType_image`), and `D`, `φ D` come from cycles of
-`Q⊕`, `Q̃⊕` of that type (`inducesCycleType_liftEdges_of_isHybridNodeOf`). The lemma of that type
+metric tree is identifiable from the concordance factors and the rooted one is not, which is not
+this statement. Otherwise a cycle `D` of `Q⁻` is the
+cycle `φ D` of `Q̃⁻` of the same type (`SDIso.isCycleType_image`), and `D`, `φ D` come from cycles
+of `Q⊕`, `Q̃⊕` of that type (`inducesCycleType_liftEdges_of_isHybridNodeOf`). The lemma of that type
 writes the concordance factors of `Q⊕` and of `Q̃⊕` in terms of networks with fewer cycles, the same
-for both since their unrooted metric networks are isomorphic (`nonempty_sdMetricIso_reduceNet_deleteArc`,
-`nonempty_sdMetricIso_contractNet`, `nonempty_sdMetricIso_disjointNet`), so the induction hypothesis
-applies, and the inheritance probabilities are those of corresponding hybrid edges of `Q⁻` and `Q̃⁻`.
-The cycles are taken in this order: a `2₁`- or `2₃`-cycle (Lemma 7 or 8, through `corollary2_step`),
-then a `2₂`-cycle (Lemma 9), then a `3₁`- or 4-cycle (Lemma 10), then a `3₂`-cycle (Lemma 11).
+for both since their unrooted metric networks are isomorphic
+(`nonempty_sdMetricIso_reduceNet_deleteArc`, `nonempty_sdMetricIso_contractNet`,
+`nonempty_sdMetricIso_disjointNet`), so the induction hypothesis applies, and the inheritance
+probabilities are those of corresponding hybrid edges of `Q⁻` and `Q̃⁻`. The cycles are taken in
+this order: a `2₁`- or `2₃`-cycle (Lemma 7 or 8, through `corollary2_step`), then a `2₂`-cycle
+(Lemma 9), then a `3₁`- or 4-cycle (Lemma 10), then a `3₂`-cycle (Lemma 11).
 
-Lemma 11 has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of networks
-with fewer cycles; the paper does not say why they agree for `Q⊕` and `Q̃⊕`. With the `3₂`-cycle taken
-last, it is the only cycle (Lemma 6), the child of its hybrid node is the parent of the two taxa below
-it, and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of these two taxa, for
-the length `ℓ` of the edge out of the hybrid node (`probLineages_condCF_eq_of_threeTwo`). -/
+Lemma 11 has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of
+networks with fewer cycles; the paper does not say why they agree for `Q⊕` and `Q̃⊕`. With the
+`3₂`-cycle taken last, it is the only cycle (Lemma 6), the child of its hybrid node is the parent of
+the two taxa below it, and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of
+these two taxa, for the length `ℓ` of the edge out of the hybrid node
+(`probLineages_condCF_eq_of_threeTwo`). -/
 theorem proposition5_aux [Fintype X] (n : ℕ) :
     ∀ {V₀ E₀ V₁ E₁ : Type} [Fintype V₀] [Fintype E₀] [Fintype V₁] [Fintype E₁]
       {Q : RootedNetwork V₀ E₀ X} {θ : MetricData E₀} (hQ : IsLSAQuartet Q θ)
@@ -3008,14 +3043,16 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
       hM'.phylo hQ₁.binary hQ₁'.binary)
   -- contracting corresponding 2-cycles
   have hcon : ∀ D, IsCycle hQ.unrooted.graph D → D.ncard = 2 →
-      cf (contractNet Q hQ.binary hQ.levelOne (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+      cf (contractNet Q hQ.binary hQ.levelOne
+        (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
           (contractNetMetric Q hQ.binary hQ.levelOne
             (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) =
         cf (contractNet Q' hQ'.binary hQ'.levelOne
             (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
           (contractNetMetric Q' hQ'.binary hQ'.levelOne
             (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ') ∧
-      cf (contractNet Q hQ.binary hQ.levelOne (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+      cf (contractNet Q hQ.binary hQ.levelOne
+        (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
           (contractNetMetric Q hQ.binary hQ.levelOne
             (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) =
         cf (contractRooted Q (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
@@ -3024,7 +3061,8 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
             (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
           (contractNetMetric Q' hQ'.binary hQ'.levelOne
             (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ') =
-        cf (contractRooted Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
+        cf (contractRooted Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+          (φ.edge '' D)))
           (contractMetric Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
             (φ.edge '' D)) θ') := by
     intro D hD hD2
@@ -3144,13 +3182,15 @@ theorem proposition5_aux [Fintype X] (n : ℕ) :
     have hone : ∀ C', IsCycle Q.graph C' →
         C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D := by
       intro C' hC'c
-      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ.binary.1 hQ.binary.2 hQ.nontrivial hr hQ.binary hC'c
+      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ.binary.1 hQ.binary.2 hQ.nontrivial
+        hr hQ.binary hC'c
       obtain ⟨n', k', hDt, hcases⟩ := exists_isCycleType_of_isCycle hQ hD'
       rw [hnot D' n' k' hDt hcases]
     have hone' : ∀ C', IsCycle Q'.graph C' →
         C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) := by
       intro C' hC'c
-      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial hr' hQ'.binary hC'c
+      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial hr'
+        hQ'.binary hC'c
       obtain ⟨n', k', hDt, hcases⟩ := exists_isCycleType_of_isCycle hQ' hD'
       have h := hnot _ n' k' (φ.symm.isCycleType_image hDt) hcases
       rw [← h]
@@ -3272,21 +3312,22 @@ theorem exists_isLSAQuartet_type {Q : RootedNetwork V E X} {θ : MetricData E}
 
 end Proposition5
 
-/-- **Proposition 5** (`prop::CFunrooted`): two LSA quartet networks that induce the same metric unrooted
-network have the same concordance factors.
+/-- **Proposition 5** (`prop::CFunrooted`): two LSA quartet networks that induce the same metric
+unrooted network have the same concordance factors.
 
-The paper's proof, by induction on the number of cycles (`proposition5_aux`), for networks renamed to
-`Type` (`exists_isLSAQuartet_type`). With no cycle the networks are trees, and the root placement does
-not matter (`pub:rootplace`, `External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`,
-the source's Theorem 9 and Proposition 11; the paper cites Proposition 3 of Allman, Degnan, Rhodes 2011,
-which as printed states identifiability). Otherwise Lemmas 7–11 are applied to corresponding cycles of
-`Q⊕` and `Q̃⊕`. The cycles are reduced in this order: `2₁`- and `2₃`-cycles (Lemmas 7 and 8), then
+The paper's proof, by induction on the number of cycles (`proposition5_aux`), for networks renamed
+to `Type` (`exists_isLSAQuartet_type`). With no cycle the networks are trees, and the root placement
+does not matter (`pub:rootplace`,
+`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`, the source's Theorem 9
+and Proposition 11; the paper cites Proposition 3 of Allman, Degnan, Rhodes 2011, which as printed
+states identifiability). Otherwise Lemmas 7–11 are applied to corresponding cycles of `Q⊕` and
+`Q̃⊕`. The cycles are reduced in this order: `2₁`- and `2₃`-cycles (Lemmas 7 and 8), then
 `2₂`-cycles (Lemma 9), then `3₁`- and 4-cycles (Lemma 10), then the `3₂`-cycle (Lemma 11), which is
-then the only cycle (Lemma 6). This order fills a step the paper leaves unstated (TeX 810–812): Lemma 11
-has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of networks with fewer
-cycles; with the `3₂`-cycle alone, the child of its hybrid node is the parent of the two taxa below it,
-and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of these taxa, for the length
-`ℓ` of the edge out of the hybrid node, which the isomorphism keeps. -/
+then the only cycle (Lemma 6). This order fills a step the paper leaves unstated (TeX 810–812):
+Lemma 11 has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of
+networks with fewer cycles; with the `3₂`-cycle alone, the child of its hybrid node is the parent of
+the two taxa below it, and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of
+these taxa, for the length `ℓ` of the edge out of the hybrid node, which the isomorphism keeps. -/
 theorem proposition5 {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X}
     {θ : MetricData E} (hQ : IsLSAQuartet Q θ) {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ' : IsLSAQuartet Q' θ')
@@ -3317,10 +3358,10 @@ theorem quartetLSA_isLSAQuartet {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
   card_taxa := by simp [hs]
   metric := quartetLSA_isMetricNetwork hN hθ hs
 
-/-- **Corollary 3** (`cor::quartetisgood`): under the network multispecies coalescent on a level-1 rooted
-metric network, `CF_abcd = CF(Q⊕_abcd)` (Theorem 2) can be computed from the metric unrooted network
-`Q⁻_abcd`: two networks whose induced unrooted networks on `s` are isomorphic have the same concordance
-factors on `s`. -/
+/-- **Corollary 3** (`cor::quartetisgood`): under the network multispecies coalescent on a level-1
+rooted metric network, `CF_abcd = CF(Q⊕_abcd)` (Theorem 2) can be computed from the metric unrooted
+network `Q⁻_abcd`: two networks whose induced unrooted networks on `s` are isomorphic have the same
+concordance factors on `s`. -/
 theorem corollary3 {V' E' : Type*} [Fintype V'] [Fintype E'] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) {θ : MetricData E}
     (hθ : IsMetricNetwork N θ) {N' : RootedNetwork V' E' X} (hN' : IsBinaryRootedNetwork N')

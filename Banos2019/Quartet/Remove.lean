@@ -11,16 +11,18 @@ of the network as a convex combination of those of networks with one cycle fewer
 lemmas produce (`deleteArc`, `contractRooted`) have nodes of degree two; suppressing them gives LSA
 quartet networks with the same concordance factors and the remaining cycles.
 
-* `HasCycleWithBelow Q n D`: a cycle of `Q⊕` induces an `n`-cycle of `Q⁻` with the taxa `D` below its
-  hybrid node; `numRootedCycles`; `SameCyclesBut Q' Q P`: the cycles of `Q'` are those of `Q` that do not
-  satisfy `P`.
-* `inducesCycleType_cases`, `exists_inducesCycleType_of_isCycle`, `eq_of_inducesCycleType_three_two`:
-  the cycles of an LSA quartet network.
-* `exists_lsaQuartet_of_corollary2`, `exists_lsaQuartet_deleteArc`, `exists_lsaQuartet_contractRooted`:
-  the networks of Corollary 2 and of Lemmas 9 and 10, as LSA quartet networks; the first is
-  `corollary2Net` (`corollary2Net_spec`, `sameCyclesBut_corollary2Net`).
+* `HasCycleWithBelow Q n D`: a cycle of `Q⊕` induces an `n`-cycle of `Q⁻` with the taxa `D` below
+  its hybrid node; `numRootedCycles`; `SameCyclesBut Q' Q P`: the cycles of `Q'` are those of `Q`
+  that do not satisfy `P`.
+* `inducesCycleType_cases`, `exists_inducesCycleType_of_isCycle`,
+  `eq_of_inducesCycleType_three_two`: the cycles of an LSA quartet network.
+* `exists_lsaQuartet_of_corollary2`, `exists_lsaQuartet_deleteArc`,
+  `exists_lsaQuartet_contractRooted`: the networks of Corollary 2 and of Lemmas 9 and 10, as LSA
+  quartet networks; the first is `corollary2Net` (`corollary2Net_spec`,
+  `sameCyclesBut_corollary2Net`).
 * `exists_fig18`: with a single cycle, a `3₂`-cycle, `Q⁻` is the network of Figure 18.
-* `OrderedAsQuartetTree`, `OnSegmentOfI`: the orderings of Propositions 6 and 7, kept by convex combinations.
+* `OrderedAsQuartetTree`, `OnSegmentOfI`: the orderings of Propositions 6 and 7, kept by convex
+  combinations.
 -/
 
 @[expose] public noncomputable section
@@ -41,14 +43,15 @@ def HasCycleWithBelow (Q : RootedNetwork V E X) (n : ℕ) (D : Set X) : Prop :=
 /-- The number of cycles of `Q⊕`. -/
 def numRootedCycles (Q : RootedNetwork V E X) : ℕ := {C | IsCycle Q.graph C}.ncard
 
-/-- The cycles of `Q'` are those of `Q` that do not satisfy `P`: they induce cycles of the same sizes,
-with the same taxa below their hybrid nodes. -/
+/-- The cycles of `Q'` are those of `Q` that do not satisfy `P`: they induce cycles of the same
+sizes, with the same taxa below their hybrid nodes. -/
 def SameCyclesBut {V' E' : Type*} (Q' : RootedNetwork V' E' X) (Q : RootedNetwork V E X)
     (P : Set E → Prop) : Prop :=
   ∀ n D, HasCycleWithBelow Q' n D ↔
     ∃ C v, ¬ P C ∧ InducesCycleType Q C v n D.ncard ∧ {x | Q.graph.Reaches v (Q.leaf x)} = D
 
-theorem HasCycleWithBelow.of_inducesCycleType {Q : RootedNetwork V E X} {C : Set E} {v : V} {n k : ℕ}
+theorem HasCycleWithBelow.of_inducesCycleType {Q : RootedNetwork V E X} {C : Set E}
+    {v : V} {n k : ℕ}
     (h : InducesCycleType Q C v n k) : HasCycleWithBelow Q n {x | Q.graph.Reaches v (Q.leaf x)} :=
   ⟨C, v, h.2.2.2.2 ▸ h, rfl⟩
 
@@ -108,8 +111,8 @@ theorem exists_lsaQuartet_of_corollary2 {Q : RootedNetwork V E X} {θ : MetricDa
     (hQ : IsLSAQuartet Q θ) :
     ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q' : RootedNetwork V' E' X)
       (θ' : MetricData E') (_ : IsLSAQuartet Q' θ'),
-      cf Q' θ' = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) ∧
-        SameCyclesBut Q' Q (IsTwoOneOrThree Q) ∧
+      cf Q' θ' = cf (contractRooted Q (IsTwoOneOrThree Q))
+        (contractMetric Q (IsTwoOneOrThree Q) θ) ∧ SameCyclesBut Q' Q (IsTwoOneOrThree Q) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
   obtain ⟨hQ', hcf, -, hcyc, hcut⟩ := corollary2Net_spec hQ hQ.metric
   exact ⟨_, _, inferInstance, inferInstance, corollary2Net hQ, corollary2Metric hQ θ, hQ', hcf,
@@ -122,27 +125,28 @@ theorem sameCyclesBut_corollary2Net {Q : RootedNetwork V E X} {θ : MetricData E
   fun n D => (corollary2Net_spec hQ hQ.metric).2.2.2.1 n D.ncard D
 
 /-- **The networks `Q₁⊕`, `Q₂⊕` of Lemmas 9 and 10**: deleting a hybrid edge of a cycle inducing a
-`2₂`- or a `3₁`-cycle, and suppressing the nodes of degree two this leaves (and the edge of the root,
-if the root is left with one child), gives an LSA quartet network with the other cycles of `Q⊕` and
-the same cut edges between two pairs of taxa: the edges of the cycle that remain are cut edges
-between one taxon and three, or between the two pairs that the cycle already separates. -/
+`2₂`- or a `3₁`-cycle, and suppressing the nodes of degree two this leaves (and the edge of the
+root, if the root is left with one child), gives an LSA quartet network with the other cycles of
+`Q⊕` and the same cut edges between two pairs of taxa: the edges of the cycle that remain are cut
+edges between one taxon and three, or between the two pairs that the cycle already separates. -/
 theorem exists_lsaQuartet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     (hC : InducesCycleType Q C v 2 2 ∨ InducesCycleType Q C v 3 1) {h : E}
     (hh : Q.graph.target h = v) :
     ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q' : RootedNetwork V' E' X)
       (θ' : MetricData E') (_ : IsLSAQuartet Q' θ'),
-      cf Q' θ' = cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧ numRootedCycles Q' < numRootedCycles Q ∧
-        SameCyclesBut Q' Q (· = C) ∧
+      cf Q' θ' = cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧ numRootedCycles Q' <
+        numRootedCycles Q ∧ SameCyclesBut Q' Q (· = C) ∧
         ∀ A : Finset X, #A = 2 → (Q'.HasCutSplit ↑A ↔ Q.HasCutSplit ↑A) := by
-  obtain ⟨n, k, hCt, hnk⟩ : ∃ n k, InducesCycleType Q C v n k ∧ ((n = 2 ∧ k = 2) ∨ (n = 3 ∧ k = 1)) := by
+  obtain ⟨n, k, hCt, hnk⟩ : ∃ n k, InducesCycleType Q C v n k ∧
+    ((n = 2 ∧ k = 2) ∨ (n = 3 ∧ k = 1)) := by
     rcases hC with hC | hC
     · exact ⟨2, 2, hC, Or.inl ⟨rfl, rfl⟩⟩
     · exact ⟨3, 1, hC, Or.inr ⟨rfl, rfl⟩⟩
   obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, hlt, hcyc, hcut⟩ :=
     exists_reduce_deleteArc hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric hCt hh
-  exact ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf, hlt,
-    fun n' D => hcyc n' D.ncard D, fun A hA => hcut hnk _ (by rwa [Set.ncard_coe_finset])⟩
+  exact ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf,
+    hlt, fun n' D => hcyc n' D.ncard D, fun A hA => hcut hnk _ (by rwa [Set.ncard_coe_finset])⟩
 
 /-- **The network `Q₀⊕` of Lemma 9**: contracting a cycle inducing a `2₂`-cycle, and suppressing the
 node of degree two this leaves, gives an LSA quartet network with the other cycles of `Q⊕` and the
@@ -157,15 +161,15 @@ theorem exists_lsaQuartet_contractRooted {Q : RootedNetwork V E X} {θ : MetricD
   obtain ⟨V', E', _, _, Q', θ', hb, h1', hlsa', hθ', hcf, hnum, hcyc, hcut⟩ :=
     exists_reduce_contractSet hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric
       (P := (· = C)) fun C' _ hC' => hC' ▸ hC.2.2.2.1
-  refine ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf, ?_,
-    fun n D => hcyc n D.ncard D, fun A hA => hcut _ (by rwa [Set.ncard_coe_finset])⟩
+  refine ⟨V', E', inferInstance, inferInstance, Q', θ', ⟨hb, h1', hlsa', hQ.card_taxa, hθ'⟩, hcf,
+    ?_, fun n D => hcyc n D.ncard D, fun A hA => hcut _ (by rwa [Set.ncard_coe_finset])⟩
   unfold numRootedCycles
   rw [hnum]
   exact Set.ncard_lt_ncard ⟨fun D hD => hD.1, fun hsub => (hsub hC.1).2 rfl⟩ (Set.toFinite _)
 
-/-- **A single `3₂`-cycle is the network of Figure 18** (proof of Proposition 7): if the only cycle of
-`Q⊕` induces a `3₂`-cycle with `a`, `b` below its hybrid node, `Q⁻` is the network of Figure 18 with
-`a`, `b` at the node below the hybrid node and the two other taxa `c`, `d` at the nodes of the
+/-- **A single `3₂`-cycle is the network of Figure 18** (proof of Proposition 7): if the only cycle
+of `Q⊕` induces a `3₂`-cycle with `a`, `b` below its hybrid node, `Q⁻` is the network of Figure 18
+with `a`, `b` at the node below the hybrid node and the two other taxa `c`, `d` at the nodes of the
 cycle. -/
 theorem exists_fig18 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     {C : Set E} {v : V} (hC : InducesCycleType Q C v 3 2) (hone : ∀ C', IsCycle Q.graph C' → C' = C)
@@ -226,8 +230,8 @@ theorem exists_fig18 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
 
 variable [DecidableEq X]
 
-/-- The concordance factors `p` are ordered as those of a quartet tree with the cherry `A`: the quartet
-tree with the cherry `A` has the largest, strictly, and the two others are equal. -/
+/-- The concordance factors `p` are ordered as those of a quartet tree with the cherry `A`: the
+quartet tree with the cherry `A` has the largest, strictly, and the two others are equal. -/
 def OrderedAsQuartetTree (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
   (∀ q r : QuartetTree X, A ∈ q.val → A ∉ r.val → p r < p q) ∧
     ∀ r r' : QuartetTree X, A ∉ r.val → A ∉ r'.val → p r = p r'
@@ -241,7 +245,8 @@ def OnSegmentOfI (p : QuartetTree X → ℝ) (A : Finset X) : Prop :=
     ∑ q ∈ treesOn (univ : Finset X), p q = 1
 
 omit [Fintype X] in
-theorem OrderedAsQuartetTree.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OrderedAsQuartetTree p₁ A)
+theorem OrderedAsQuartetTree.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset X}
+    (h₁ : OrderedAsQuartetTree p₁ A)
     (h₂ : OrderedAsQuartetTree p₂ A) {w₁ w₂ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂) :
     OrderedAsQuartetTree (fun q => w₁ * p₁ q + w₂ * p₂ q) A := by
   refine ⟨fun q r hq hr => ?_, fun r r' hr hr' => ?_⟩
@@ -253,8 +258,10 @@ theorem OrderedAsQuartetTree.add {p₁ p₂ : QuartetTree X → ℝ} {A : Finset
     rw [h₁.2 r r' hr hr', h₂.2 r r' hr hr']
 
 omit [Fintype X] in
-theorem OrderedAsQuartetTree.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X} (h₁ : OrderedAsQuartetTree p₁ A)
-    (h₂ : OrderedAsQuartetTree p₂ A) (h₃ : OrderedAsQuartetTree p₃ A) {w₁ w₂ w₃ : ℝ} (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
+theorem OrderedAsQuartetTree.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset X}
+    (h₁ : OrderedAsQuartetTree p₁ A)
+    (h₂ : OrderedAsQuartetTree p₂ A) (h₃ : OrderedAsQuartetTree p₃ A) {w₁ w₂ w₃ : ℝ}
+    (hw₁ : 0 < w₁) (hw₂ : 0 < w₂)
     (hw₃ : 0 < w₃) : OrderedAsQuartetTree (fun q => w₁ * p₁ q + w₂ * p₂ q + w₃ * p₃ q) A := by
   refine ⟨fun q r hq hr => ?_, fun r r' hr hr' => ?_⟩
   · have := h₁.1 q r hq hr
@@ -306,7 +313,8 @@ theorem OnSegmentOfI.add₃ {p₁ p₂ p₃ : QuartetTree X → ℝ} {A : Finset
 omit [Fintype X] in
 /-- Two families of concordance factors ordered as the same quartet tree have the same ordering. -/
 theorem OrderedAsQuartetTree.sameOrdering {p p' : QuartetTree X → ℝ}
-    {A : Finset X} (h : OrderedAsQuartetTree p A) (h' : OrderedAsQuartetTree p' A) : SameOrdering p p' := by
+    {A : Finset X} (h : OrderedAsQuartetTree p A)
+    (h' : OrderedAsQuartetTree p' A) : SameOrdering p p' := by
   intro q r hqr
   by_cases hq : A ∈ q.val <;> by_cases hr : A ∈ r.val
   · have : q = r := quartetTree_eq_of_taxa_eq_of_mem hqr hq hr
@@ -317,10 +325,10 @@ theorem OrderedAsQuartetTree.sameOrdering {p p' : QuartetTree X → ℝ}
   · exact ⟨fun _ => (h'.1 r q hr hq).le, fun _ => (h.1 r q hr hq).le⟩
   · exact ⟨fun _ => (h'.2 q r hq hr).le, fun _ => (h.2 q r hq hr).le⟩
 
-/-- **Equation (1)**: the concordance factors of a species tree with the split `A | Aᶜ` are ordered as
-the quartet tree with the cherry `A`. -/
-theorem orderedAsQuartetTree_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {A : Finset X}
-    (hA : #A = 2) (hsplit : A ∈ unroot σ.clusters) :
+/-- **Equation (1)**: the concordance factors of a species tree with the split `A | Aᶜ` are ordered
+as the quartet tree with the cherry `A`. -/
+theorem orderedAsQuartetTree_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X)
+    {A : Finset X} (hA : #A = 2) (hsplit : A ∈ unroot σ.clusters) :
     OrderedAsQuartetTree (External.AllmanDegnanRhodes2011.quartetProb σ) A := by
   obtain ⟨a, b, hab, rfl⟩ := Finset.card_eq_two.1 hA
   -- the two other taxa
@@ -330,7 +338,8 @@ theorem orderedAsQuartetTree_quartetProb (hX : Fintype.card X = 4) (σ : Species
   have hcm : c ∈ univ \ {a, b} := hcd' ▸ mem_insert_self c {d}
   have hdm : d ∈ univ \ {a, b} := hcd' ▸ mem_insert_of_mem (mem_singleton_self d)
   simp only [mem_sdiff, mem_univ, true_and, mem_insert, mem_singleton, not_or] at hcm hdm
-  have h4 : Distinct4 a b c d := ⟨hab, Ne.symm hcm.1, Ne.symm hdm.1, Ne.symm hcm.2, Ne.symm hdm.2, hcd⟩
+  have h4 : Distinct4 a b c d := ⟨hab, Ne.symm hcm.1, Ne.symm hdm.1, Ne.symm hcm.2,
+    Ne.symm hdm.2, hcd⟩
   have huniv : ({a, b, c, d} : Finset X) = univ := eq_univ_of_card _ (by rw [h4.card_insert_eq, hX])
   obtain ⟨h₁, h₂⟩ := External.AllmanDegnanRhodes2011.equation1 hX σ
     (q := quartetTree a b c d h4) rfl hsplit

@@ -8,17 +8,18 @@ public import Banos2019.Network.SuppressMetric
 
 `keepRootSD M hP` is `M` with its tree arcs undirected and, when the root has outdegree one, without
 the root and its arc. Its *top* node, the root or its child, has degree two. For `M` satisfying
-`IsReducible` whose reduced network `reduceNet M` is an LSA network, and whose root, when of outdegree
-one, has a child that is not a chain node, the unrooted network of `reduceNet M` is `keepRootSD M hP`
-with its nodes of degree two suppressed (`nonempty_sdMetricIso_suppress_keepRootSD`): the top node and
-the chain nodes.
+`IsReducible` whose reduced network `reduceNet M` is an LSA network, and whose root, when of
+outdegree one, has a child that is not a chain node, the unrooted network of `reduceNet M` is
+`keepRootSD M hP` with its nodes of degree two suppressed
+(`nonempty_sdMetricIso_suppress_keepRootSD`): the top node and the chain nodes.
 
 * `keepRootTop`: the top node, the node of `M` of the root of `reduceNet M`
   (`keepRootTop_eq_root`, `keepRootTop_eq_target`); `isBranch_keepRootSD_iff`: the nodes kept by the
   suppression are those that are neither chain nodes nor the top node.
-* `keepRootChainOf`: the arcs of `M` on the chain of an edge of the unrooted network of `reduceNet M`,
-  a trail of `keepRootSD M` between the nodes of its ends (`exists_isUTrail_keepRootChainOf`), on
-  which every arc lies exactly once (`exists_mem_keepRootChainOf`, `eq_of_mem_keepRootChainOf`).
+* `keepRootChainOf`: the arcs of `M` on the chain of an edge of the unrooted network of
+  `reduceNet M`, a trail of `keepRootSD M` between the nodes of its ends
+  (`exists_isUTrail_keepRootChainOf`), on which every arc lies exactly once
+  (`exists_mem_keepRootChainOf`, `eq_of_mem_keepRootChainOf`).
 -/
 
 @[expose] public noncomputable section
@@ -136,7 +137,8 @@ theorem isUTrail_keepRootSD_chainFrom {a : V} (ha : ¬ (a = M.root ∧ M.graph.o
         · rw [Set.mem_singleton_iff.1 hs]
           exact ⟨hay.tail ⟨hy, f, hfs, hft⟩, .refl⟩
 
-/-- The chain of `M` from a node of `keepRootSD M hP`, to its end, as a trail of `keepRootSD M hP`. -/
+/-- The chain of `M` from a node of `keepRootSD M hP`, to its end, as a trail of `keepRootSD M hP`.
+-/
 theorem exists_isUTrail_keepRootSD_chainEnd {t : V}
     (ht : ¬ (t = M.root ∧ M.graph.outdegree M.root = 1)) :
     ∃ (hE : ¬ (chainEnd hP t = M.root ∧ M.graph.outdegree M.root = 1))
@@ -190,7 +192,8 @@ section KeepAux
 variable [Fintype V] [Fintype E] {M : RootedNetwork V E X} {θ : MetricData E}
 
 /-- The *top node* of `M`: the node of `M` of the root of `reduceNet M`, which is the root of `M`
-when the root has outdegree two, and the end of the chain from its child when it has outdegree one. -/
+when the root has outdegree two, and the end of the chain from its child when it has outdegree one.
+-/
 def keepRootTop (M : RootedNetwork V E X) (hP : M.IsPhylogenetic) : V :=
   (finContractVertex (M.suppress hP) (reduceNet M hP).root).1
 
@@ -370,7 +373,8 @@ omit hc in
 `keepRootSD M`. -/
 theorem reduceArc_keepRoot (g : SemidirectedArc hb.1 hb.2 hX) :
     ¬ (M.graph.source (reduceArc hM hb hX g) = M.root ∧ M.graph.outdegree M.root = 1) := fun h =>
-  (hM.isContraction.range_e _).1 ⟨_, rfl⟩ ⟨Subtype.ext h.1, (suppress_outdegree hM.phylo _).trans h.2⟩
+  (hM.isContraction.range_e _).1 ⟨_, rfl⟩
+    ⟨Subtype.ext h.1, (suppress_outdegree hM.phylo _).trans h.2⟩
 
 include hl in
 theorem exists_reduceArc_eq_keepRoot {e : E} (he : ¬ M.IsChainVertex (M.graph.source e))
@@ -731,8 +735,8 @@ variable [Fintype V] [Fintype E] {M : RootedNetwork V E X} {θ : MetricData E}
 
 /-- **The unrooted network of `reduceNet M` is `keepRootSD M` with its nodes of degree two
 suppressed**: its nodes are the nodes of `M` other than the root, the top node and the chain nodes;
-an edge is the chain of `M` of its arc, and the merged edge at the root the two chains out of the top
-node. -/
+an edge is the chain of `M` of its arc, and the merged edge at the root the two chains out of the
+top node. -/
 theorem nonempty_sdMetricIso_suppress_keepRootSD (hM : IsReducible M θ)
     (hb : IsBinaryRootedNetwork (reduceNet M hM.phylo)) (hX : Nontrivial X)
     (hl : (reduceNet M hM.phylo).IsLSANetwork)

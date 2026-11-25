@@ -12,17 +12,17 @@ degree two; the paper identifies them with their suppressions. `reduceNet` build
 and this module collects what it keeps.
 
 * `exists_reduce_deleteArc`: without a hybrid edge of a cycle `C`: a binary level-1 metric LSA
-  network with the concordance factors of `deleteArc Q h`, fewer cycles, the cycles of `Q` other than
-  `C` with their types, and, for a `2₂`- or `3₁`-cycle, the cut edges of `Q` between two pairs of
-  taxa.
+  network with the concordance factors of `deleteArc Q h`, fewer cycles, the cycles of `Q` other
+  than `C` with their types, and, for a `2₂`- or `3₁`-cycle, the cut edges of `Q` between two pairs
+  of taxa.
 * `contractNet`, `contractNetMetric`: `Q` with the cycles satisfying `P` contracted and its nodes of
   degree two suppressed, with the parameters from those of `Q`; `contractNetChain`,
   `contractNetLastArc`: the chain of arcs of `Q` of each of its arcs, and the last one.
   `contractNetMetric_length`, `contractNetMetric_inheritance`, `isHybridArc_contractNet_iff`: an arc
   has the total length of its chain, and the inheritance and the type of its last arc.
-* `contractNet_spec`, `exists_reduce_contractSet`: when the contracted cycles induce 2-cycles: a binary
-  level-1 metric LSA network with the concordance factors of `contractRooted Q P`, the cycles of `Q`
-  not satisfying `P` with their types, and all the cut edges of `Q`.
+* `contractNet_spec`, `exists_reduce_contractSet`: when the contracted cycles induce 2-cycles: a
+  binary level-1 metric LSA network with the concordance factors of `contractRooted Q P`, the cycles
+  of `Q` not satisfying `P` with their types, and all the cut edges of `Q`.
 -/
 
 @[expose] public noncomputable section
@@ -93,10 +93,12 @@ def contractNet := reduceNet (contractRooted Q P) (contractSet_isPhylogenetic (P
 (`contractNetMetric_length`), and the inheritance is that of the last arc
 (`contractNetMetric_inheritance`). -/
 def contractNetMetric (θ : MetricData E) :=
-  reduceMetric (contractRooted Q P) (contractSet_isPhylogenetic (P := P) hQ h1) (contractMetric Q P θ)
+  reduceMetric (contractRooted Q P) (contractSet_isPhylogenetic (P := P) hQ h1)
+    (contractMetric Q P θ)
 
 /-- The arcs of `Q` on the chain of an arc of `contractNet`. -/
-def contractNetChain (e : ReduceArc (contractRooted Q P) (contractSet_isPhylogenetic (P := P) hQ h1)) :
+def contractNetChain (e : ReduceArc (contractRooted Q P)
+    (contractSet_isPhylogenetic (P := P) hQ h1)) :
     Finset E :=
   (reduceChain _ _ e).map (Function.Embedding.subtype _)
 
@@ -141,11 +143,13 @@ omit [Fintype X] in
 /-- **The inheritance of an arc of `contractNet` is that of the last arc of its chain.** -/
 theorem contractNetMetric_inheritance {θ : MetricData E} (hθ : Q.IsMetric θ)
     (e : ReduceArc (contractRooted Q P) (contractSet_isPhylogenetic (P := P) hQ h1)) :
-    (contractNetMetric Q hQ h1 P θ).inheritance e = θ.inheritance (contractNetLastArc Q hQ h1 P e) :=
+    (contractNetMetric Q hQ h1 P θ).inheritance e =
+      θ.inheritance (contractNetLastArc Q hQ h1 P e) :=
   reduceMetric_inheritance _ (contractSet_isMetric hQ h1 hθ).isNormalized e
 
 omit [Fintype X] in
-/-- **An arc of `contractNet` is a hybrid arc exactly when the last arc of its chain is one of `Q`.** -/
+/-- **An arc of `contractNet` is a hybrid arc exactly when the last arc of its chain is one of
+`Q`.** -/
 theorem isHybridArc_contractNet_iff (htwo : ∃ x y : X, x ≠ y)
     (e : ReduceArc (contractRooted Q P) (contractSet_isPhylogenetic (P := P) hQ h1)) :
     (contractNet Q hQ h1 P).IsHybridArc e ↔ Q.IsHybridArc (contractNetLastArc Q hQ h1 P e) := by
@@ -157,9 +161,9 @@ theorem isHybridArc_contractNet_iff (htwo : ∃ x y : X, x ≠ y)
 end ContractNet
 
 /-- **The network with the cycles satisfying `P` contracted, as a binary LSA network**, when these
-cycles induce 2-cycles: `contractNet`, with the parameters `contractNetMetric θ`, is a binary level-1
-metric LSA network with the concordance factors of `contractRooted Q P`, the cycles of `Q` not
-satisfying `P` with their types, and the cut edges of `Q` between two pairs of taxa. -/
+cycles induce 2-cycles: `contractNet`, with the parameters `contractNetMetric θ`, is a binary
+level-1 metric LSA network with the concordance factors of `contractRooted Q P`, the cycles of `Q`
+not satisfying `P` with their types, and the cut edges of `Q` between two pairs of taxa. -/
 theorem contractNet_spec (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
     (hlsa : Q.IsLSANetwork) (hX : Fintype.card X = 4) (hθ : IsMetricNetwork Q θ)
     {P : Set E → Prop}

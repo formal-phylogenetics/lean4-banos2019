@@ -6,9 +6,9 @@ public import Banos2019.Network.SDPath
 # The edges of `N⁻` on simple treks between taxa of `Z`
 
 For a binary network `N` and a set `Z` of at least two taxa, an edge of `N⁻` is on a simple trek
-between two taxa of `Z` exactly when, as an arc of `N`, it is below `LSA(Z)` and above a taxon of `Z`
-(`mem_trekEdges_iff`): the edges of `K` are those of the LSA network `N⊕_Z` before suppression. This
-is the step `M' = K` (or `M⁻ = K` when `LSA(Z) = LSA(X)`) of the proof of Proposition 1. One
+between two taxa of `Z` exactly when, as an arc of `N`, it is below `LSA(Z)` and above a taxon of
+`Z` (`mem_trekEdges_iff`): the edges of `K` are those of the LSA network `N⊕_Z` before suppression.
+This is the step `M' = K` (or `M⁻ = K` when `LSA(Z) = LSA(X)`) of the proof of Proposition 1. One
 direction is Lemma 17, given as the hypothesis `h17`; for the other, a simple trek of `N⁻` is first
 "uphill" and then "downhill" (`exists_dtrek_of_sdtrek`), so it is a simple trek of `N⁺` with a top
 `u`, and `u` is below `LSA(Z)` since the trek is simple. The edge of `N⁻` that replaces the two arcs
@@ -23,7 +23,8 @@ namespace Banos2019
 
 variable {V E X : Type*}
 
-/-- The image of a directed path by a map of the nodes and edges that keeps the ends of its edges. -/
+/-- The image of a directed path by a map of the nodes and edges that keeps the ends of its edges.
+-/
 theorem IsDPath.map {V' E' : Type*} {H : DirectedMultigraph V E} {H' : DirectedMultigraph V' E'}
     (fv : V' → V) (fe : E' → E) {u w : V'} {S : Set V'} {P : Set E'} (h : IsDPath H' u w S P)
     (hP : ∀ e ∈ P, H.source (fe e) = fv (H'.source e) ∧ H.target (fe e) = fv (H'.target e)) :
@@ -169,7 +170,8 @@ theorem semidirected_isAcyclic : (semidirected hN.1 hN.2 hX).graph.IsAcyclic := 
 
 /-- Two edges of `N⁻` entering a node are hybrid. -/
 theorem semidirected_isDirected_of_target_eq (g g' : SemidirectedArc hN.1 hN.2 hX) (hne : g ≠ g')
-    (ht : (semidirected hN.1 hN.2 hX).graph.target g = (semidirected hN.1 hN.2 hX).graph.target g') :
+    (ht : (semidirected hN.1 hN.2 hX).graph.target g =
+      (semidirected hN.1 hN.2 hX).graph.target g') :
     (semidirected hN.1 hN.2 hX).IsDirected g := by
   have := hN.1.finite_arcs
   rw [semidirected_isDirected_iff]
@@ -298,17 +300,17 @@ theorem mem_belowArcs_of_mem_trekEdges {Z : Set X} (hZ : Z.Nonempty)
     · exact ⟨y, hy, reaches_of_sd_reaches hN hX (hb.reaches_of_mem (hb.ends_mem hg).2).2
         (sdArc_target_ne hN hX g)⟩
 
-/-- The case of `mem_trekEdges_of_mem_belowArcs` where the trek of `N` has top `LSA(X)` and its first
-path starts with `rootTreeArc`: in `N⁻`, the top is the child of `rootTreeArc`, and the second path
-starts with the edge that replaces the two arcs out of `LSA(X)`. -/
+/-- The case of `mem_trekEdges_of_mem_belowArcs` where the trek of `N` has top `LSA(X)` and its
+first path starts with `rootTreeArc`: in `N⁻`, the top is the child of `rootTreeArc`, and the second
+path starts with the edge that replaces the two arcs out of `LSA(X)`. -/
 theorem mem_trekEdges_of_root {Z : Set X} {x y : X} (hx : x ∈ Z) (hy : y ∈ Z) {fb : E}
     {S₁ S₂ : Set V} {P₁ P₂ : Set E}
     (hfb : N.graph.source fb = lsa hN.1 Set.univ Set.univ_nonempty)
     (hfab : sdRootArc hN.1 hN.2 hX ≠ fb)
     (h₁ : IsDPath N.graph (N.graph.target (sdRootArc hN.1 hN.2 hX)) (N.leaf x) S₁ P₁)
     (h₂ : IsDPath N.graph (N.graph.target fb) (N.leaf y) S₂ P₂)
-    (hρ₁ : lsa hN.1 Set.univ Set.univ_nonempty ∉ S₁) (hρ₂ : lsa hN.1 Set.univ Set.univ_nonempty ∉ S₂)
-    (hS : S₁ ∩ S₂ = ∅)
+    (hρ₁ : lsa hN.1 Set.univ Set.univ_nonempty ∉ S₁)
+    (hρ₂ : lsa hN.1 Set.univ Set.univ_nonempty ∉ S₂) (hS : S₁ ∩ S₂ = ∅)
     (hρS : ∀ s ∈ S₁ ∪ S₂, N.graph.Reaches (lsa hN.1 Set.univ Set.univ_nonempty) s)
     (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : sdArc hN.1 hN.2 hX g ∈ insert (sdRootArc hN.1 hN.2 hX) P₁ ∪ insert fb P₂) :
@@ -359,9 +361,9 @@ theorem mem_trekEdges_of_root {Z : Set X} {x y : X} (hx : x ∈ Z) (hy : y ∈ Z
     · exact Or.inr (Or.inr h)
 
 /-- **The edges of the LSA network are in `K`** (by Lemma 17, the hypothesis `h17`): an arc of `N`
-below `LSA(Z)` and above a taxon of `Z` is, as an edge of `N⁻`, on a simple trek between taxa of `Z`.
-The trek of Lemma 17 is a trek of `N⁻`; when its top is `LSA(X)`, its two arcs out of `LSA(X)` are
-replaced by the edge of `N⁻` that joins their children. -/
+below `LSA(Z)` and above a taxon of `Z` is, as an edge of `N⁻`, on a simple trek between taxa of
+`Z`. The trek of Lemma 17 is a trek of `N⁻`; when its top is `LSA(X)`, its two arcs out of `LSA(X)`
+are replaced by the edge of `N⁻` that joins their children. -/
 theorem mem_trekEdges_of_mem_belowArcs {Z : Set X} (hZ : Z.Nonempty)
     (h17 : ∀ e : E, N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e) →
       (∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) →

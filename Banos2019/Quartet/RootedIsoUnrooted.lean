@@ -10,9 +10,9 @@ public import Banos2019.Network.Suppress
 An isomorphism `φ` of rooted networks keeps binarity, level-1, the LSA network property and the
 metrics. When the two networks are binary and their roots are the LSAs of their taxa, it gives an
 isomorphism of their metric unrooted networks (`RootedNetworkIso.nonempty_sdMetricIso`): the nodes
-and edges of `N⁻` are those of `N` but the root and the arc `e₀` merged at the root, and `φ` maps them
-to those of `N'⁻`, after exchanging the two arcs at the root of `N'` when `φ e₀` is not the arc that
-`N'⁻` merges (`unrootedArcMap`). Renaming the nodes and arcs by `Fin` (`finCopy`) gives such an
+and edges of `N⁻` are those of `N` but the root and the arc `e₀` merged at the root, and `φ` maps
+them to those of `N'⁻`, after exchanging the two arcs at the root of `N'` when `φ e₀` is not the arc
+that `N'⁻` merges (`unrootedArcMap`). Renaming the nodes and arcs by `Fin` (`finCopy`) gives such an
 isomorphism onto a network on `Type`.
 -/
 
@@ -55,10 +55,12 @@ include φ in
 theorem isBinaryRootedNetwork (hN : IsBinaryRootedNetwork N) : IsBinaryRootedNetwork N' :=
   ⟨φ.isPhylogenetic hN.1, φ.isBinary hN.2⟩
 
-theorem source_symm (e' : E') : N.graph.source (φ.arc.symm e') = φ.vert.symm (N'.graph.source e') := by
+theorem source_symm (e' : E') : N.graph.source (φ.arc.symm e') =
+    φ.vert.symm (N'.graph.source e') := by
   rw [Equiv.eq_symm_apply, ← φ.source, Equiv.apply_symm_apply]
 
-theorem target_symm (e' : E') : N.graph.target (φ.arc.symm e') = φ.vert.symm (N'.graph.target e') := by
+theorem target_symm (e' : E') : N.graph.target (φ.arc.symm e') =
+    φ.vert.symm (N'.graph.target e') := by
   rw [Equiv.eq_symm_apply, ← φ.target, Equiv.apply_symm_apply]
 
 include φ in

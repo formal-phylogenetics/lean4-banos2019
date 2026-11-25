@@ -6,9 +6,9 @@ public import Banos2019.Quartet.Defs
 /-!
 # Isomorphisms of semidirected networks keep the types of cycles
 
-An isomorphism of semidirected networks keeps the hybrid node of a cycle and the taxa descending from
-a node, so it keeps the type `n_k` of a cycle (`SDIso.isCycleType_image`). Proposition 5 matches the
-cycles of `Q⁻` and of `Q̃⁻` this way.
+An isomorphism of semidirected networks keeps the hybrid node of a cycle and the taxa descending
+from a node, so it keeps the type `n_k` of a cycle (`SDIso.isCycleType_image`). Proposition 5
+matches the cycles of `Q⁻` and of `Q̃⁻` this way.
 -/
 
 @[expose] public noncomputable section
@@ -34,7 +34,8 @@ theorem SDIso.descendsFrom_of {v : V} {x : X} (h : DescendsFrom G v x) :
   rw [← ι.leaf] at this
   exact ⟨_, _, this⟩
 
-theorem SDIso.descendsFrom_iff (v : V) (x : X) : DescendsFrom G' (ι.vert v) x ↔ DescendsFrom G v x := by
+theorem SDIso.descendsFrom_iff (v : V) (x : X) : DescendsFrom G' (ι.vert v) x ↔
+    DescendsFrom G v x := by
   refine ⟨fun h => ?_, ι.descendsFrom_of⟩
   have := ι.symm.descendsFrom_of h
   rwa [show ι.symm.vert (ι.vert v) = v from ι.vert.symm_apply_apply v] at this

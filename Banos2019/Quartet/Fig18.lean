@@ -7,10 +7,11 @@ public import Banos2019.Quartet.RootedIso
 /-!
 # Figure 18 as an LSA quartet network (Proposition 7)
 
-The `3₂`-cycle of Figure 18 is the unrooted network of the LSA quartet network `q18 a b c`: the nodes
-`0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`, `5` the hybrid node above
-`4`, `6` the node of `c`, `7` that of `d`, and the root `8` has the hybrid edge `8 → 5` and the tree
-edge `8 → 7`, which the unrooted network merges into the hybrid edge `7 → 5` of Figure 18.
+The `3₂`-cycle of Figure 18 is the unrooted network of the LSA quartet network `q18 a b c`: the
+nodes `0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`, `5` the hybrid
+node above `4`, `6` the node of `c`, `7` that of `d`, and the root `8` has the hybrid edge `8 → 5`
+and the tree edge `8 → 7`, which the unrooted network merges into the hybrid edge `7 → 5` of Figure
+18.
 
 * `figLeaf`: the leaves `a, b, c, d` at the nodes `0, 1, 2, 3` of a figure.
 * `isLSAQuartet_q18`, `inducesCycleType_q18`: `q18 a b c` with the parameters `q18Metric len γ` is
@@ -38,14 +39,15 @@ def q18Tgt : Fin 9 → Fin 9 := ![0, 1, 2, 3, 4, 6, 5, 5, 7]
 variable {X : Type*} [DecidableEq X]
 
 /-- The leaves `a, b, c, d` at the nodes `0, 1, 2, 3`. -/
-def figLeaf (a b c : X) (x : X) : Fin 8 := if x = a then 0 else if x = b then 1 else if x = c then 2 else 3
+def figLeaf (a b c : X) (x : X) : Fin 8 := if x = a then 0 else if x = b then 1 else if x =
+    c then 2 else 3
 
 /-- **Figure 18 as a rooted network**, with the root on the hybrid edge from the node of `d`. -/
 def q18 (a b c : X) : RootedNetwork (Fin 9) (Fin 9) X :=
   ⟨⟨q18Src, q18Tgt⟩, 8, fun x => (figLeaf a b c x).castSucc⟩
 
-/-- The parameters of `q18`: those of Figure 18, the length `len 6` of the merged hybrid edge shared by
-the two edges at the root. -/
+/-- The parameters of `q18`: those of Figure 18, the length `len 6` of the merged hybrid edge shared
+by the two edges at the root. -/
 def q18Metric (len : Fin 8 → ℝ) (γ : ℝ) : MetricData (Fin 9) :=
   ⟨![len 0, len 1, len 2, len 3, len 4, len 5, len 6 / 2, len 7, len 6 / 2],
     ![1, 1, 1, 1, 1, 1, γ, 1 - γ, 1]⟩
@@ -102,7 +104,8 @@ theorem q18_isPhylogenetic (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
   finite_vertices := inferInstance
   finite_arcs := inferInstance
   finite_taxa := inferInstance
-  acyclic := DirectedMultigraph.isAcyclic_of_rank _ (fun v : Fin 9 => ![5, 5, 5, 5, 4, 3, 2, 1, 0] v)
+  acyclic := DirectedMultigraph.isAcyclic_of_rank _
+    (fun v : Fin 9 => ![5, 5, 5, 5, 4, 3, 2, 1, 0] v)
     (by show ∀ e, ![5, 5, 5, 5, 4, 3, 2, 1, 0] (q18Src e) < ![5, 5, 5, 5, 4, 3, 2, 1, 0] (q18Tgt e)
         decide)
   root_reaches v := by
@@ -271,7 +274,8 @@ theorem q18_cycle_eq {C : Set (Fin 9)} (hC : IsCycle (q18 a b c).graph C) : C = 
     have key : ∀ p f₁ f₂ f, f₁ ≠ f₂ → f₁ ∈ q18Cycle → f₂ ∈ q18Cycle → f ∈ q18Cycle →
         (q18Src f₁ = p ∨ q18Tgt f₁ = p) → (q18Src f₂ = p ∨ q18Tgt f₂ = p) →
         (q18Src f = p ∨ q18Tgt f = p) → f = f₁ ∨ f = f₂ := by decide
-    rcases key (v i) (e m) (e m') g (fun h => hmm (hc.injective_edge h)) (hsub m) (hsub m') hg hm hm'
+    rcases key (v i) (e m) (e m') g (fun h => hmm (hc.injective_edge h)) (hsub m)
+      (hsub m') hg hm hm'
       hgi with h | h
     · exact ⟨m, h.symm⟩
     · exact ⟨m', h.symm⟩
@@ -321,7 +325,8 @@ theorem q18_hasPathAvoiding {e₁ e₂ e₃ : Fin 9} (h₁ : q18Src e₁ = 8) (h
   obtain ⟨hw₀, hw₁, hw₂, hw₃⟩ := hw
   refine ⟨Ne.symm hw₀, Ne.symm hw₃, ?_⟩
   refine ((Relation.ReflTransGen.single ⟨⟨e₁, h₁, rfl⟩, Ne.symm hw₀, Ne.symm hw₁⟩).tail
-    ⟨⟨e₂, h₂.symm, rfl⟩, Ne.symm hw₁, Ne.symm hw₂⟩).tail ⟨⟨e₃, h₃.symm, rfl⟩, Ne.symm hw₂, Ne.symm hw₃⟩
+    ⟨⟨e₂, h₂.symm, rfl⟩, Ne.symm hw₁, Ne.symm hw₂⟩).tail
+    ⟨⟨e₃, h₃.symm, rfl⟩, Ne.symm hw₂, Ne.symm hw₃⟩
 
 omit [Fintype X] in
 theorem q18_isLSANetwork (h : Distinct4 a b c d) : (q18 a b c).IsLSANetwork := by
@@ -366,7 +371,8 @@ theorem q18Metric_isMetricNetwork {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i
   have hpos : ∀ e, 0 < (q18Metric len γ).length e := by
     intro e
     fin_cases e <;> simp [q18Metric, hlen]
-  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩,
+  refine ⟨⟨fun e _ => hpos e, fun e _ => (hpos e).le, fun e he => ?_, fun e he => ?_,
+    fun v hv => ?_⟩,
     hpos⟩
   · rw [q18_isTreeArc_iff] at he
     fin_cases e <;> simp_all [q18Metric]
@@ -483,7 +489,8 @@ def q18DescSeven : Fin 9 → Finset (Fin 9) :=
 def q18Desc : Fin 9 → Finset (Fin 9) :=
   ![{0}, {1}, {2}, {3}, {4, 0, 1}, {5, 4, 0, 1}, {6, 2, 5, 4, 0, 1}, {7, 3, 6, 2, 5, 4, 0, 1}, univ]
 
-/-- The edges of the split `ab|cd` of `q18` without the hybrid edge `7`: `5 → 4`, `8 → 5`, `8 → 7`. -/
+/-- The edges of the split `ab|cd` of `q18` without the hybrid edge `7`: `5 → 4`, `8 → 5`, `8 → 7`.
+-/
 def q18ArcsSeven : Finset {e : Fin 9 // e ≠ 7} := {⟨4, by decide⟩, ⟨6, by decide⟩, ⟨8, by decide⟩}
 
 /-- The edges of the split `ab|cd` of `q18` without the hybrid edge `6`: `5 → 4`, `6 → 5`. -/
@@ -491,7 +498,8 @@ def q18ArcsSix : Finset {e : Fin 9 // e ≠ 6} := {⟨4, by decide⟩, ⟨7, by 
 
 /-- The taxa of the leaves `0, 1` of `q18` are `a, b`, those of `2, 3` are `c, d`. -/
 theorem leafSet_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) :
-    leafSet (quartetLeaf9 a b c) {0, 1} = {a, b} ∧ leafSet (quartetLeaf9 a b c) {2, 3} = {a, b}ᶜ := by
+    leafSet (quartetLeaf9 a b c) {0, 1} = {a, b} ∧ leafSet (quartetLeaf9 a b c)
+      {2, 3} = {a, b}ᶜ := by
   obtain ⟨hab, hac, had, hbc, hbd, hcd⟩ := id h
   constructor
   · ext x
@@ -513,7 +521,8 @@ theorem cf_deleteArc_q18_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d)
       cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
         (quartetTree a c b d (distinct4_acbd h)) = 1 / 3 * (Real.exp (-len 4) * Real.exp (-len 6)) ∧
       cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
-        (quartetTree a d b c (distinct4_adbc h)) = 1 / 3 * (Real.exp (-len 4) * Real.exp (-len 6)) := by
+        (quartetTree a d b c (distinct4_adbc h)) =
+          1 / 3 * (Real.exp (-len 4) * Real.exp (-len 6)) := by
   have hQ := isLSAQuartet_q18 hX h hlen hγ₀ hγ₁
   have hN : (deleteArc (q18 a b c) 7).IsPhylogenetic :=
     isPhylogenetic_deleteArc hQ.binary.1 (h' := 6) (g := 2) (by decide) rfl (by decide) rfl
@@ -524,7 +533,8 @@ theorem cf_deleteArc_q18_seven (hX : Fintype.card X = 4) (h : Distinct4 a b c d)
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 7} => q18Tgt f.1 = q18Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q18 a b c) 7).IsMetric (deleteArcMetric (q18 a b c) 7 (q18Metric len γ)) := by
+  have hθ : (deleteArc (q18 a b c) 7).IsMetric
+    (deleteArcMetric (q18 a b c) 7 (q18Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 7) (h' := 6) (by decide)
       rfl (by rw [q18_indegree]; show #(univ.filter fun e => q18Tgt e = 5) = 2; decide)
   have hD : ∀ u w, (deleteArc (q18 a b c) 7).graph.Reaches u w ↔ w ∈ q18DescSeven u :=
@@ -563,7 +573,8 @@ theorem cf_deleteArc_q18_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {
       cf (deleteArc (q18 a b c) 6) (deleteArcMetric (q18 a b c) 6 (q18Metric len γ))
         (quartetTree a c b d (distinct4_acbd h)) = 1 / 3 * (Real.exp (-len 4) * Real.exp (-len 7)) ∧
       cf (deleteArc (q18 a b c) 6) (deleteArcMetric (q18 a b c) 6 (q18Metric len γ))
-        (quartetTree a d b c (distinct4_adbc h)) = 1 / 3 * (Real.exp (-len 4) * Real.exp (-len 7)) := by
+        (quartetTree a d b c (distinct4_adbc h)) =
+          1 / 3 * (Real.exp (-len 4) * Real.exp (-len 7)) := by
   have hQ := isLSAQuartet_q18 hX h hlen hγ₀ hγ₁
   have hN : (deleteArc (q18 a b c) 6).IsPhylogenetic :=
     isPhylogenetic_deleteArc hQ.binary.1 (h' := 7) (g := 8) (by decide) rfl (by decide) rfl
@@ -574,7 +585,8 @@ theorem cf_deleteArc_q18_six (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {
     show ¬ 2 ≤ #(univ.filter fun f : {e : Fin 9 // e ≠ 6} => q18Tgt f.1 = q18Tgt e.1)
     revert e
     decide
-  have hθ : (deleteArc (q18 a b c) 6).IsMetric (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) := by
+  have hθ : (deleteArc (q18 a b c) 6).IsMetric
+    (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) := by
     convert isMetric_deleteArc hQ.binary.1 hQ.metric.1 hQ.metric.2 (h := 6) (h' := 7) (by decide)
       rfl (by rw [q18_indegree]; show #(univ.filter fun e => q18Tgt e = 5) = 2; decide)
   have hD : ∀ u w, (deleteArc (q18 a b c) 6).graph.Reaches u w ↔ w ∈ q18Desc u :=
@@ -610,9 +622,9 @@ def qDisjSrc : Fin 6 → Fin 7 := ![2, 3, 3, 4, 2, 4]
 /-- The heads of the edges of `qDisj`. -/
 def qDisjTgt : Fin 6 → Fin 7 := ![0, 1, 2, 5, 6, 3]
 
-/-- **`q18` with its hybrid edges disjointed from the hybrid node**: the nodes `6`, `7`, `8` of `q18`
-are `2`, `3`, `4`, the leaves of `c` and `d` are `0` and `1`, and the hybrid edges `8 → 5` and `6 → 5`
-end at the new leaves `5`, of `u₁`, and `6`, of `u₂`. -/
+/-- **`q18` with its hybrid edges disjointed from the hybrid node**: the nodes `6`, `7`, `8` of
+`q18` are `2`, `3`, `4`, the leaves of `c` and `d` are `0` and `1`, and the hybrid edges `8 → 5` and
+`6 → 5` end at the new leaves `5`, of `u₁`, and `6`, of `u₂`. -/
 def qDisj (u₁ u₂ u₃ : X) : RootedNetwork (Fin 7) (Fin 6) X :=
   ⟨⟨qDisjSrc, qDisjTgt⟩, 4,
     fun x => if x = u₁ then 5 else if x = u₂ then 6 else if x = u₃ then 0 else 1⟩
@@ -731,8 +743,8 @@ theorem qDisjMetric_isMetric {len : Fin 8 → ℝ} (hlen : ∀ i, 0 < len i) :
   · rw [qDisj_indegree] at hv
     exact absurd hv (by revert v; decide)
 
-/-- **`qDisj u₁ u₂ u₃` is a tree with the split `u₂u₃|u₁u₄`**, of length `t₃`: the concordance factor
-of `u₂u₃|u₁u₄` is `1 - ⅔x₃`, those of the two others are `⅓x₃` (equation (1)). -/
+/-- **`qDisj u₁ u₂ u₃` is a tree with the split `u₂u₃|u₁u₄`**, of length `t₃`: the concordance
+factor of `u₂u₃|u₁u₄` is `1 - ⅔x₃`, those of the two others are `⅓x₃` (equation (1)). -/
 theorem cf_qDisj (hX : Fintype.card X = 4) (h : Distinct4 u₁ u₂ u₃ u₄) {len : Fin 8 → ℝ}
     (hlen : ∀ i, 0 < len i) (h' : Distinct4 u₂ u₃ u₁ u₄) :
     cf (qDisj u₁ u₂ u₃) (qDisjMetric len) (quartetTree u₂ u₃ u₁ u₄ h') =
@@ -765,7 +777,8 @@ theorem cf_qDisj (hX : Fintype.card X = 4) (h : Distinct4 u₁ u₂ u₃ u₄) {
     simp only [mem_insert, mem_singleton] at hi
     rcases hi with rfl | rfl | rfl | rfl
     exacts [⟨u₃, l₃⟩, ⟨u₄, l₄⟩, ⟨u₁, l₁⟩, ⟨u₂, l₂⟩]
-  obtain ⟨e₁, e₂, e₃⟩ := cf_eq_of_desc (qDisj_isPhylogenetic hX h) (fun e => qDisj_not_isHybridArc e)
+  obtain ⟨e₁, e₂, e₃⟩ := cf_eq_of_desc (qDisj_isPhylogenetic hX h)
+    (fun e => qDisj_not_isHybridArc e)
     (qDisjMetric_isMetric hlen) hX h' qDisjDesc (qDisj_reaches_iff u₁ u₂ u₃) (L := {0, 1, 5, 6})
     qDisj_leaf_mem hsurj hS hSc (v := 2) (by decide) {2} (by
       show ∀ e : Fin 6, e ∈ ({2} : Finset (Fin 6)) ↔
@@ -807,8 +820,8 @@ theorem q18_not_reaches_five_iff (u : Fin 9) :
   decide
 
 open scoped Classical in
-/-- **`Q_a⊕` of `q18` is `qDisj`**: for `{u₁, u₂} = {a, b}`, `disjointNet (q18 a b c) 5 6 7 u₁ u₂` is
-`qDisj u₁ u₂ c`. -/
+/-- **`Q_a⊕` of `q18` is `qDisj`**: for `{u₁, u₂} = {a, b}`, `disjointNet (q18 a b c) 5 6 7 u₁ u₂`
+is `qDisj u₁ u₂ c`. -/
 def disjointNetQ18Iso (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {u₁ u₂ : X}
     (hu : u₁ = a ∧ u₂ = b ∨ u₁ = b ∧ u₂ = a) :
     RootedNetworkIso (disjointNet (q18 a b c) 5 6 7 u₁ u₂) (qDisj u₁ u₂ c) where
@@ -817,15 +830,18 @@ def disjointNetQ18Iso (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {u₁ u�
     constructor
     · rintro (⟨u, hu⟩ | j) (⟨u', hu'⟩ | j') huu
       · rw [hR] at hu hu'
-        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ q ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)),
+        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ q ∈
+          ({2, 3, 6, 7, 8} : Finset (Fin 9)),
             q18DisjVert p = q18DisjVert q → p = q := by decide
         exact congrArg Sum.inl (Subtype.ext (key u hu u' hu' huu))
       · rw [hR] at hu
-        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ j, q18DisjVert p ≠ qDisjNewLeaf j := by
+        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ j, q18DisjVert p ≠
+          qDisjNewLeaf j := by
           decide
         exact absurd huu (key u hu j')
       · rw [hR] at hu'
-        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ j, q18DisjVert p ≠ qDisjNewLeaf j := by
+        have key : ∀ p ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)), ∀ j, q18DisjVert p ≠
+          qDisjNewLeaf j := by
           decide
         exact absurd huu.symm (key u' hu' j)
       · have key : ∀ j j', qDisjNewLeaf j = qDisjNewLeaf j' → j = j' := by decide
@@ -854,7 +870,8 @@ def disjointNetQ18Iso (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {u₁ u�
       have hs : ∀ e : Fin 9, q18Src e ∈ ({2, 3, 6, 7, 8} : Finset (Fin 9)) →
           ¬ (q18 a b c).graph.Reaches 5 ((q18 a b c).graph.source e) := fun e he => (hR _).2 he
       fin_cases i
-      exacts [⟨⟨2, hs 2 (by decide)⟩, rfl⟩, ⟨⟨3, hs 3 (by decide)⟩, rfl⟩, ⟨⟨5, hs 5 (by decide)⟩, rfl⟩,
+      exacts [⟨⟨2, hs 2 (by decide)⟩, rfl⟩, ⟨⟨3, hs 3 (by decide)⟩, rfl⟩,
+        ⟨⟨5, hs 5 (by decide)⟩, rfl⟩,
         ⟨⟨6, hs 6 (by decide)⟩, rfl⟩, ⟨⟨7, hs 7 (by decide)⟩, rfl⟩, ⟨⟨8, hs 8 (by decide)⟩, rfl⟩])
   source e := by
     obtain ⟨e, he⟩ := e
@@ -984,8 +1001,8 @@ theorem q18_reaches_four_leaf_iff (hX : Fintype.card X = 4) (h : Distinct4 a b c
   · rw [quartetLeaf9_c h]; simp [q18Desc, Ne.symm hac, Ne.symm hbc]
   · rw [quartetLeaf9_d h]; simp [q18Desc, Ne.symm had, Ne.symm hbd]
 
-/-- **`P(K = 1) = 1 - x₁` and `P(K = 2) = x₁`** for the lineages of `a` and `b` at the top of the edge
-`5 → 4` of `q18`, of length `t₁`. -/
+/-- **`P(K = 1) = 1 - x₁` and `P(K = 2) = x₁`** for the lineages of `a` and `b` at the top of the
+edge `5 → 4` of `q18`, of length `t₁`. -/
 theorem probLineages_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len : Fin 8 → ℝ}
     (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) :
     probLineages (q18 a b c) (q18Metric len γ) 4 1 = 1 - Real.exp (-len 4) ∧
@@ -1015,8 +1032,8 @@ theorem probLineages_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len 
       (q18_reaches_four_leaf_iff hX h) hr harcs⟩
 
 open scoped Classical in
-/-- **`CF(Q₀⊕ | K = 1) = (1, 0, 0)`**: in the network `Q₀⊕` of `q18`, its cycle contracted, given one
-lineage at the top of the edge `5 → 4`, the cherry `{a, b}` decides the quartet tree. -/
+/-- **`CF(Q₀⊕ | K = 1) = (1, 0, 0)`**: in the network `Q₀⊕` of `q18`, its cycle contracted, given
+one lineage at the top of the edge `5 → 4`, the cherry `{a, b}` decides the quartet tree. -/
 theorem condCF_contract_q18 (hX : Fintype.card X = 4) (h : Distinct4 a b c d) {len : Fin 8 → ℝ}
     (hlen : ∀ i, 0 < len i) {γ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1)
     (c₀ : {e // ∀ C', IsCycle (q18 a b c).graph C' → C' = ↑q18Cycle → e ∉ C'}) (hc₀ : c₀.1 = 4)

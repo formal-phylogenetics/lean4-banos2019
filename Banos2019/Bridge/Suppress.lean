@@ -97,7 +97,8 @@ theorem IsChainOf.eq_of_head [Finite E] {k k' : ℕ} {p : Fin (k + 1) → V} {e 
         intro hi hi'
         have h₁ := h.joins ⟨i, hi⟩
         have h₂ := h'.joins ⟨i, hi'⟩
-        have hpe : p (Fin.castSucc ⟨i, hi⟩) = p' (Fin.castSucc ⟨i, hi'⟩) := ih.1 (by omega) (by omega)
+        have hpe : p (Fin.castSucc ⟨i, hi⟩) = p' (Fin.castSucc ⟨i, hi'⟩) :=
+          ih.1 (by omega) (by omega)
         rw [hpe, ih.2 hi hi'] at h₁
         exact h₁.eq_right h₂
       refine ⟨hpi, fun hi hi' => ?_⟩
@@ -247,7 +248,8 @@ theorem ChainRep.first_eq_last [Finite E] (r : ChainRep G P c) (hf : r.PointsFor
         · exact h'
       set j : Fin r.k := ⟨i.val - 1, by omega⟩
       have hjs : j.succ = i.castSucc := Fin.ext (by simp [j]; omega)
-      have hloop : G.graph.source (r.e i) = r.p i.castSucc ∧ G.graph.target (r.e i) = r.p i.castSucc := by
+      have hloop : G.graph.source (r.e i) = r.p i.castSucc ∧ G.graph.target (r.e i) =
+        r.p i.castSucc := by
         rcases r.isChainOf.joins i with ⟨h₂, h₃⟩ | ⟨h₂, h₃⟩
         · exact ⟨h₂, h₃.trans h₁.symm⟩
         · exact ⟨h₂.trans h₁.symm, h₃⟩

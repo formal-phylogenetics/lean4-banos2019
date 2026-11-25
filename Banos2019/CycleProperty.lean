@@ -16,11 +16,12 @@ public import Banos2019.Quartet.GenericChain
   the Big Cycle property detects 4-cycles, for generic parameters, and the quartet with the smallest
   concordance factor tells which blocks of the 4-cycle are adjacent.
 
-The inductions of the proofs of Propositions 6 and 7 are `orderedAsQuartetTree_of_onlyTwoTwoThreeOne`
-and `onSegmentOfI_of_threeTwo`; `cf_eq_fig17` is the reduction of the proofs of Propositions 10 and 11
-to equation (8); `fig17Nu`, `fig17Eta`, `fig17F` are the maps `ν_s`, `η`, `f` of the proof of
-Proposition 10, and `volume_fig17_eq_null` its null set of parameters of Figure 17;
-`hasFourCycle_of_bigCycleOn` is the direction of Theorem 3 that holds for all parameters.
+The inductions of the proofs of Propositions 6 and 7 are
+`orderedAsQuartetTree_of_onlyTwoTwoThreeOne` and `onSegmentOfI_of_threeTwo`; `cf_eq_fig17` is the
+reduction of the proofs of Propositions 10 and 11 to equation (8); `fig17Nu`, `fig17Eta`, `fig17F`
+are the maps `ν_s`, `η`, `f` of the proof of Proposition 10, and `volume_fig17_eq_null` its null set
+of parameters of Figure 17; `hasFourCycle_of_bigCycleOn` is the direction of Theorem 3 that holds
+for all parameters.
 -/
 
 @[expose] public noncomputable section
@@ -68,9 +69,10 @@ theorem SameCyclesBut.onlyTwoTwoThreeOne {V' E' : Type*} {Q' : RootedNetwork V' 
     ⟨C, v, hC⟩, h.not_exists hK.2.2.1, h.not_exists hK.2.2.2⟩
 
 /-- **The induction of the proof of Proposition 6**: if `Q⁻` has only `2₂`- and `3₁`-cycles, its
-concordance factors are ordered as the quartet tree of any of its cut edges between two pairs of taxa.
-With no cycle, `Q` is a tree (equation (1)); otherwise Lemmas 9 and 10 write the concordance factors
-of `Q` as a convex combination of those of networks with one cycle fewer and the same cut edges. -/
+concordance factors are ordered as the quartet tree of any of its cut edges between two pairs of
+taxa. With no cycle, `Q` is a tree (equation (1)); otherwise Lemmas 9 and 10 write the concordance
+factors of `Q` as a convex combination of those of networks with one cycle fewer and the same cut
+edges. -/
 theorem orderedAsQuartetTree_of_onlyTwoTwoThreeOne (n : ℕ) :
     ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
       IsLSAQuartet Q θ → numRootedCycles Q = n → OnlyTwoTwoThreeOne Q →
@@ -144,11 +146,11 @@ theorem orderedAsQuartetTree_of_onlyTwoTwoThreeOne (n : ℕ) :
       exact OrderedAsQuartetTree.add t₁ t₂ hγ₀ (by linarith)
     · exact absurd ⟨C, v, 1, hCt⟩ hK.2.1
 
-/-- **Proposition 6** (`prop:Cfspreserv`): if `Q⁻` has no `3₂`-cycle, the ordering of `CF(Q)` is that of
-`CF(Q')`, where `Q'` is obtained by contracting all 2-cycles and all `3₁`-cycles.
+/-- **Proposition 6** (`prop:Cfspreserv`): if `Q⁻` has no `3₂`-cycle, the ordering of `CF(Q)` is
+that of `CF(Q')`, where `Q'` is obtained by contracting all 2-cycles and all `3₁`-cycles.
 
-The paper's proof uses that `Q'`, without a 4-cycle, is a quartet tree with an internal edge, without
-arguing that it has one (TeX l. 917); `exists_speciesTree_contractRooted` proves it. -/
+The paper's proof uses that `Q'`, without a 4-cycle, is a quartet tree with an internal edge,
+without arguing that it has one (TeX l. 917); `exists_speciesTree_contractRooted` proves it. -/
 theorem proposition6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2) :
     SameOrdering (cf Q θ)
@@ -233,7 +235,8 @@ theorem isPreconnected_image_fig18CF : IsPreconnected (fig18CF '' fig18Params) :
   unfold fig18CF
   fun_prop
 
-/-- `CF_{AC|BD}` comes arbitrarily close to `0`, the end `(1, 0, 0)` of the segment: let `t₁ → ∞`. -/
+/-- `CF_{AC|BD}` comes arbitrarily close to `0`, the end `(1, 0, 0)` of the segment: let `t₁ → ∞`.
+-/
 theorem exists_fig18CF_lt {ε : ℝ} (hε : 0 < ε) : ∃ p ∈ fig18Params, fig18CF p < ε := by
   set s := min ε (1 / 2) with hs
   have hs₀ : 0 < s := lt_min hε (by norm_num)
@@ -266,9 +269,10 @@ theorem exists_lt_fig18CF {ε : ℝ} (hε : 0 < ε) : ∃ p ∈ fig18Params, 5 /
   nlinarith [mul_pos hδ₀ hδ₀]
 
 /-- The concordance factors of the `3₂`-cycle of Figure 18 (equation (9)) reach every point
-`(1 - 2y, y, y)` with `0 < y < 5/12` (proof of Proposition 7). They lie on the line `(x, y, y)`, with
-`x = 1 - 2y`; `CF_{AC|BD}` is continuous in `γ` and the lengths, so its image is a connected set, which
-contains points arbitrarily close to `0` and to `5/12`; so it contains every `y` between. -/
+`(1 - 2y, y, y)` with `0 < y < 5/12` (proof of Proposition 7). They lie on the line `(x, y, y)`,
+with `x = 1 - 2y`; `CF_{AC|BD}` is continuous in `γ` and the lengths, so its image is a connected
+set, which contains points arbitrarily close to `0` and to `5/12`; so it contains every `y` between.
+-/
 theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
     ∃ (len : Fin 8 → ℝ) (γ : ℝ), (∀ i, 0 < len i) ∧ 0 < γ ∧ γ < 1 ∧
       let x₁ := Real.exp (-len 4); let x₂ := Real.exp (-len 7); let x₃ := Real.exp (-len 5)
@@ -299,7 +303,8 @@ theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
 and `0 < CF_{AC|BD} < 5/12`, the maximum `5/12` being approached at `γ = 1/2`. -/
 theorem fig18_bounds {γ x₁ x₂ x₃ x₄ : ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) (h₁ : 0 < x₁) (h₁' : x₁ < 1)
     (h₂ : 0 < x₂) (h₂' : x₂ < 1) (h₃ : 0 < x₃) (h₃' : x₃ < 1) (h₄ : 0 < x₄) (h₄' : x₄ < 1) :
-    let X := (1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) + 2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
+    let X := (1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂)) +
+      2 * γ * (1 - γ) * (1 - x₁ + 1 / 3 * (x₁ * x₃)) +
       γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄))
     let Y := (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂)) + γ * (1 - γ) * x₁ * (1 - 1 / 3 * x₃) +
       γ ^ 2 * (1 / 3 * (x₁ * x₄))
@@ -379,7 +384,8 @@ theorem onSegmentOfI_of_triple (hX : Fintype.card X = 4) {a b c d : X} (h : Dist
     linarith
 
 /-- The concordance factors on the open segment for a pair of taxa lie in `I`. -/
-theorem mem_segmentsI_of_onSegmentOfI (hX : Fintype.card X = 4) {a b c d : X} (h : Distinct4 a b c d)
+theorem mem_segmentsI_of_onSegmentOfI (hX : Fintype.card X = 4) {a b c d : X}
+    (h : Distinct4 a b c d)
     {p : QuartetTree X → ℝ} {A : Finset X} (hA : #A = 2) (hp : OnSegmentOfI p A) :
     (p (quartetTree a b c d h), p (quartetTree a c b d (distinct4_acbd h)),
       p (quartetTree a d b c (distinct4_adbc h))) ∈ segmentsI := by
@@ -414,11 +420,11 @@ theorem mem_segmentsI_of_onSegmentOfI (hX : Fintype.card X = 4) {a b c d : X} (h
     · rw [e]; exact quartetTree_abcd_ne_adbc h
     · rw [e]; exact quartetTree_acbd_ne_adbc h
 
-/-- **The induction of the proof of Proposition 7**: if `Q⁻` has a `3₂`-cycle with the taxa `A` below
-its hybrid node, and no `2₁`- or `2₃`-cycle, its concordance factors lie on the open segment for `A`.
-With no other cycle, `Q⁻` is the network of Figure 18 (equation (9)); otherwise the other cycles are
-`2₂`- and `3₁`-cycles (Lemmas 5 and 6), and Lemmas 9 and 10 write the concordance factors as a
-convex combination of those of networks with the same `3₂`-cycle and one cycle fewer. -/
+/-- **The induction of the proof of Proposition 7**: if `Q⁻` has a `3₂`-cycle with the taxa `A`
+below its hybrid node, and no `2₁`- or `2₃`-cycle, its concordance factors lie on the open segment
+for `A`. With no other cycle, `Q⁻` is the network of Figure 18 (equation (9)); otherwise the other
+cycles are `2₂`- and `3₁`-cycles (Lemmas 5 and 6), and Lemmas 9 and 10 write the concordance factors
+as a convex combination of those of networks with the same `3₂`-cycle and one cycle fewer. -/
 theorem onSegmentOfI_of_threeTwo (n : ℕ) :
     ∀ {V' E' : Type} [Fintype V'] [Fintype E'] {Q : RootedNetwork V' E' X} {θ : MetricData E'},
       IsLSAQuartet Q θ → numRootedCycles Q = n → ∀ A : Finset X, #A = 2 → HasCycleWithBelow Q 3 ↑A →
@@ -521,10 +527,11 @@ theorem onSegmentOfI_of_threeTwo (n : ℕ) :
       obtain ⟨D₃, hD₃⟩ := (inducesCycleType_iff hQ 3 2).1 ⟨C₀, v₀, hC₀⟩
       exact absurd hD₃.2.1 ((lemma5 hQ).2.2.1 ⟨D₄, hD₄.1, hD₄.2.1⟩ D₃ hD₃.1)
 
-/-- **Proposition 7** (`prop:3c2`): if `Q⁻` has a `3₂`-cycle, `CF(Q)` lies in `I`; and every point of `I`
-off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim for every
-point of `I`. Its proof shows that the image is the union of the three open segments, which do not
-contain the vertices `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)` of `I`: concordance factors are positive.
+/-- **Proposition 7** (`prop:3c2`): if `Q⁻` has a `3₂`-cycle, `CF(Q)` lies in `I`; and every point
+of `I` off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim
+for every point of `I`. Its proof shows that the image is the union of the three open segments,
+which do not contain the vertices `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)` of `I`: concordance factors
+are positive.
 
 The published proof cites the concordance factors of Figure 18 as equations (7), for equation (9)
 (TeX l. 957), and minimizes `CF_{AD|BC}` by letting `t₃ → ∞`, for `t₁ → ∞` (TeX l. 960). The proof
@@ -583,7 +590,8 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
       refine ⟨len, γ, hQ, ?_⟩
       rw [example5 h' hQ len γ (inducesNetwork_q18 h' hQ)]
       exact hcf
-    have h32 : ∀ {a' b' c' d' : X}, Distinct4 a' b' c' d' → ∃ C v, InducesCycleType (q18 a' b' c') C v 3 2 :=
+    have h32 : ∀ {a' b' c' d' : X}, Distinct4 a' b' c' d' →
+      ∃ C v, InducesCycleType (q18 a' b' c') C v 3 2 :=
       fun h' => exists_inducesCycleType_q18 hX h'
     rcases hI with ⟨hx, hyz⟩ | ⟨hy, hxz⟩ | ⟨hz, hxy⟩
     · -- `a, b` below the hybrid node
@@ -620,8 +628,8 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
       dsimp only at hxy hz
       exact ⟨h₂, h₃.trans hxy, by rw [h₁]; linarith⟩
 
-/-- **Proposition 8** (`prop::cpcycle`): if the taxa of `Q` satisfy the Cycle property, `Q⁻` contains a
-`3₂`-cycle or a 4-cycle. -/
+/-- **Proposition 8** (`prop::cpcycle`): if the taxa of `Q` satisfy the Cycle property, `Q⁻`
+contains a `3₂`-cycle or a 4-cycle. -/
 theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (hcp : CyclePropertyOn (cf Q θ) univ) :
     (∃ C v, InducesCycleType Q C v 3 2) ∨ ∃ C v k, InducesCycleType Q C v 4 k := by
@@ -633,7 +641,8 @@ theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   have huniv : ({a, b, c, d} : Finset X) = univ :=
     eq_univ_of_card _ (by rw [habcd.card_insert_eq, hQ.card_taxa])
   have htree : IsTreelikeOn
-      (cf (contractRooted Q (IsTwoOrThreeOne Q)) (contractMetric Q (IsTwoOrThreeOne Q) θ)) univ := by
+      (cf (contractRooted Q (IsTwoOrThreeOne Q))
+        (contractMetric Q (IsTwoOrThreeOne Q) θ)) univ := by
     rw [hcf, ← huniv]
     exact isTreelikeOn_quartetProb hQ.card_taxa σ habcd hsplit
   -- Proposition 6: the concordance factors of `Q` have the ordering of those of `Q'`
@@ -680,8 +689,9 @@ theorem hasFourCycle_of_bigCycleOn {N : RootedNetwork V E X} (hN : IsBinaryRoote
 
 /-- **Corollary 2 and equation (8)**: if `Q⁻` has a 4-cycle `C`, then, with the taxa `a, b, c, d`
 named around `C` (`c` in the hybrid block), the concordance factors of `Q⊕` for every metric are
-those of Figure 17 (equation (8)), in the lengths of two chains `A`, `B` of edges and the inheritance
-probability of a hybrid edge `h` (the map `f ∘ η ∘ ν` of the proof of Proposition 10). -/
+those of Figure 17 (equation (8)), in the lengths of two chains `A`, `B` of edges and the
+inheritance probability of a hybrid edge `h` (the map `f ∘ η ∘ ν` of the proof of Proposition 10).
+-/
 theorem cf_eq_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     {C : Set _} (hC : IsCycle hQ.unrooted.graph C) (hC4 : C.ncard = 4) :
     ∃ (u : Fin 4 → _) (f : Fin 4 → _), IsCycleOf hQ.unrooted.graph 4 u f ∧ Set.range f = C ∧
@@ -716,8 +726,8 @@ theorem cf_eq_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQua
   rw [← hl4, ← hl5]
   exact h8
 
-/-- The order of the concordance factors of equation (8): `CF_{AC|BD}` is the smallest, strictly, and
-`CF_{AB|CD} = CF_{AD|BC}` exactly when `(1 - γ)(1 - x₁) = γ(1 - x₂)`. -/
+/-- The order of the concordance factors of equation (8): `CF_{AC|BD}` is the smallest, strictly,
+and `CF_{AB|CD} = CF_{AD|BC}` exactly when `(1 - γ)(1 - x₁) = γ(1 - x₂)`. -/
 theorem fig17_order {γ L₁ L₂ : ℝ} {t : ℝ × ℝ × ℝ} (hγ₀ : 0 < γ) (hγ₁ : γ < 1) (h₁ : 0 < L₁)
     (h₂ : 0 < L₂)
     (h : t =
@@ -734,17 +744,18 @@ theorem fig17_order {γ L₁ L₂ : ℝ} {t : ℝ × ℝ × ℝ} (hγ₀ : 0 < �
   refine ⟨by dsimp only; nlinarith, by dsimp only; nlinarith,
     ⟨fun h => by dsimp only at h; linarith, fun h => by dsimp only; linarith⟩⟩
 
-/-- The map `ν_s` of the proof of Proposition 10, on the parameters of `Q⊕_s`: the lengths `t₁`, `t₂`
-of the edges of Figure 17 joining the node of `a` to those of `d` and `b`, totals of the lengths of the
-chains of edges `A` and `B`, and the inheritance probability `γ` of the hybrid edge `h`. -/
+/-- The map `ν_s` of the proof of Proposition 10, on the parameters of `Q⊕_s`: the lengths `t₁`,
+`t₂` of the edges of Figure 17 joining the node of `a` to those of `d` and `b`, totals of the
+lengths of the chains of edges `A` and `B`, and the inheritance probability `γ` of the hybrid edge
+`h`. -/
 def fig17Nu {E : Type*} (A B : Finset E) (h : E) (θ : MetricData E) : Fin 3 → ℝ :=
   ![∑ e ∈ A, θ.length e, ∑ e ∈ B, θ.length e, θ.inheritance h]
 
 /-- The map `η` of the proof of Proposition 10: `(t₁, t₂, γ) ↦ (e^{-t₁}, e^{-t₂}, γ)`. -/
 def fig17Eta (p : Fin 3 → ℝ) : Fin 3 → ℝ := ![Real.exp (-p 0), Real.exp (-p 1), p 2]
 
-/-- The map `f` of the proof of Proposition 10: the concordance factors of Figure 17 (equation (8)) in
-`x₁ = e^{-t₁}`, `x₂ = e^{-t₂}` and `γ`. -/
+/-- The map `f` of the proof of Proposition 10: the concordance factors of Figure 17 (equation (8))
+in `x₁ = e^{-t₁}`, `x₂ = e^{-t₂}` and `γ`. -/
 def fig17F (p : Fin 3 → ℝ) : ℝ × ℝ × ℝ :=
   ((1 - p 2) * (1 - 2 / 3 * p 0) + p 2 * (1 / 3 * p 1),
     (1 - p 2) * (1 / 3 * p 0) + p 2 * (1 / 3 * p 1),
@@ -752,12 +763,12 @@ def fig17F (p : Fin 3 → ℝ) : ℝ × ℝ × ℝ :=
 
 /-- **The parameters of Figure 17 where `CF_{AB|CD} = CF_{AD|BC}` form a null set** (proof of
 Proposition 10): the zero set of `(f ∘ η)₁ - (f ∘ η)₃`, analytic in `(t₁, t₂, γ)` and equal to
-`1 - e⁻¹ ≠ 0` at `(1, 0, 0)`, is null (`AnalyticOnNhd.volume_setOf_eq_zero`). The paper argues on `f`:
-a polynomial map whose image is not in the variety `V` of the points failing the Big Cycle property,
-so that `f⁻¹(V)` lies in a proper subvariety, null, and so is its preimage under the biholomorphic
-`η`. The analytic zero-set lemma applied to `f ∘ η` takes the place of these two steps, a difference
-of mechanics only. On `V`, only this component matters: `CF_{AC|BD}` is strictly the smallest
-(`fig17_order`). -/
+`1 - e⁻¹ ≠ 0` at `(1, 0, 0)`, is null (`AnalyticOnNhd.volume_setOf_eq_zero`). The paper argues on
+`f`: a polynomial map whose image is not in the variety `V` of the points failing the Big Cycle
+property, so that `f⁻¹(V)` lies in a proper subvariety, null, and so is its preimage under the
+biholomorphic `η`. The analytic zero-set lemma applied to `f ∘ η` takes the place of these two
+steps, a difference of mechanics only. On `V`, only this component matters: `CF_{AC|BD}` is strictly
+the smallest (`fig17_order`). -/
 theorem volume_fig17_eq_null : MeasureTheory.volume
     {p : Fin 3 → ℝ | (fig17F (fig17Eta p)).1 = (fig17F (fig17Eta p)).2.2} = 0 := by
   have hset : {p : Fin 3 → ℝ | (fig17F (fig17Eta p)).1 = (fig17F (fig17Eta p)).2.2} =
@@ -780,17 +791,17 @@ theorem volume_fig17_eq_null : MeasureTheory.volume
   norm_num
   linarith
 
-/-- **Proposition 10** (`prop:BCgenerically`): if `Q⁻_s` has a 4-cycle, `s` satisfies the Cycle property,
-and for generic numerical parameters it satisfies the Big Cycle property.
+/-- **Proposition 10** (`prop:BCgenerically`): if `Q⁻_s` has a 4-cycle, `s` satisfies the Cycle
+property, and for generic numerical parameters it satisfies the Big Cycle property.
 
-The proof is the paper's. The taxa are named so that `c` is in the hybrid block, adjacent to the blocks
-of `b` and `d`, as in the published proof (TeX l. 1032 has the blocks of `a` and `b`). By Corollary 2
-and equation (8), which the published proof cites as equations (6) (TeX l. 1032),
-`CF(Q⁻_s) = f(η(ν_s(θ)))` (`cf_eq_fig17`, `fig17F`, `fig17Eta`, `fig17Nu`), and equation (8) gives the
-Cycle property (`fig17_order`). The parameters of Figure 17 where `f ∘ η` fails the Big Cycle property
-form a null set (`volume_fig17_eq_null`), and its preimage under `ν_s`, an affine map onto `ℝ³`, is
-null (`isGenericNull_preimage_chainSum`): in the parameters of `Q⊕_s`, and then in those of `N`, which
-`Q⊕_s` inherits (`isGenericNull_inducedMetric`). -/
+The proof is the paper's. The taxa are named so that `c` is in the hybrid block, adjacent to the
+blocks of `b` and `d`, as in the published proof (TeX l. 1032 has the blocks of `a` and `b`). By
+Corollary 2 and equation (8), which the published proof cites as equations (6) (TeX l. 1032),
+`CF(Q⁻_s) = f(η(ν_s(θ)))` (`cf_eq_fig17`, `fig17F`, `fig17Eta`, `fig17Nu`), and equation (8) gives
+the Cycle property (`fig17_order`). The parameters of Figure 17 where `f ∘ η` fails the Big Cycle
+property form a null set (`volume_fig17_eq_null`), and its preimage under `ν_s`, an affine map onto
+`ℝ³`, is null (`isGenericNull_preimage_chainSum`): in the parameters of `Q⊕_s`, and then in those of
+`N`, which `Q⊕_s` inherits (`isGenericNull_inducedMetric`). -/
 theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) (h4 : HasFourCycle N hN s hs) :
     (∀ θ, IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s) ∧
@@ -799,7 +810,8 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
   let _ : DecidableEq (s : Set X) := fun a b => Classical.propDecidable (a = b)
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   -- `Q⊕_s` is an LSA quartet network (named here with one of its metrics)
-  have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs) (halfInheritanceMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
+  have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs)
+    (halfInheritanceMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
     ⟨hQb, quartetLSA_isLevelOne hN h1 hs, quartetLSA_isLSANetwork hN hs, by simp [hs],
       isMetricNetwork_halfInheritanceMetric hQb fun _ => one_pos⟩
   -- its 4-cycle, the hybrid block `{c}` adjacent to the blocks of `b` and `d`
@@ -848,7 +860,8 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     have hθs := quartetLSA_isMetricNetwork hN hθm hs
     refine ⟨hθm.1, hθs.1, ?_⟩
     obtain ⟨hy₁, hy₂, -⟩ := horder _ hθs
-    have hnbc' : ¬ BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+    have hnbc' : ¬ BigCycleOn
+      (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
       rw [cf_quartetLSA hN h1 hθm hs]
       convert (bigCycleOn_comp_map_iff s (cf N θ)).not.2 hnbc
     rw [← huniv, bigCycleOn_iff_triple _ habcd] at hnbc'
@@ -860,11 +873,12 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       (fig17F (fig17Eta (fig17Nu A B h (quartetLSAMetric N hN s hs θ)))).2.2
     exact (congrArg Prod.fst hf).symm.trans (heq.trans (congrArg (fun t => t.2.2) hf))
 
-/-- **Theorem 3** (`thm::twocor`): for generic numerical parameters, `s` satisfies the Big Cycle property
-if and only if `Q⁻_s` has a 4-cycle. -/
+/-- **Theorem 3** (`thm::twocor`): for generic numerical parameters, `s` satisfies the Big Cycle
+property if and only if `Q⁻_s` has a 4-cycle. -/
 theorem theorem3 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {s : Finset X} (hs : #s = 4) :
-    ForGenericParams N fun θ => IsMetricNetwork N θ → (BigCycleOn (cf N θ) s ↔ HasFourCycle N hN s hs) := by
+    ForGenericParams N fun θ => IsMetricNetwork N θ →
+      (BigCycleOn (cf N θ) s ↔ HasFourCycle N hN s hs) := by
   by_cases h4 : HasFourCycle N hN s hs
   · -- Proposition 10: with a 4-cycle, the Big Cycle property holds generically
     exact (proposition10 hN h1 hs h4).2.mono fun θ h hθ => ⟨fun _ => h4, fun _ => h hθ⟩
@@ -875,34 +889,36 @@ theorem theorem3 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : 
       exact hbc
     exact proposition9 (quartetLSA_isLSAQuartet hN h1 hθ hs) (by convert hbc')
 
-/-- **Corollary 4** (`cor::Cpgen`): for generic numerical parameters, if `s` satisfies the Cycle property
-but not the Big Cycle property, `Q⁻_s` contains a `3₂`-cycle. -/
-theorem corollary4 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
-    {s : Finset X} (hs : #s = 4) :
+/-- **Corollary 4** (`cor::Cpgen`): for generic numerical parameters, if `s` satisfies the Cycle
+property but not the Big Cycle property, `Q⁻_s` contains a `3₂`-cycle. -/
+theorem corollary4 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s →
       ¬ BigCycleOn (cf N θ) s → HasThreeTwoCycle N hN s hs := by
   -- Theorem 3: generically, no Big Cycle property means no 4-cycle
   refine (theorem3 hN h1 hs).mono fun θ h hθ hcp hnbc => ?_
   have hn4 : ¬ HasFourCycle N hN s hs := fun h4 => hnbc ((h hθ).2 h4)
   -- Proposition 8: the Cycle property gives a `3₂`-cycle or a 4-cycle
-  have hcp' : CyclePropertyOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+  have hcp' : CyclePropertyOn
+    (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
     rw [cf_quartetLSA hN h1 hθ hs, cyclePropertyOn_comp_map_iff]
     exact hcp
   exact (proposition8 (quartetLSA_isLSAQuartet hN h1 hθ hs) (by convert hcp')).resolve_right hn4
 
-/-- The blocks of the cycle `C` of a semidirected network containing the taxa `x` and `y` are adjacent:
-the nodes of `C` they are associated with are joined by an edge of `C`. -/
+/-- The blocks of the cycle `C` of a semidirected network containing the taxa `x` and `y` are
+adjacent: the nodes of `C` they are associated with are joined by an edge of `C`. -/
 def AdjacentBlocks {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (x y : X') :
     Prop :=
   ∃ e ∈ C, ∃ u w, Joins G.graph e u w ∧ x ∈ nodeBlock G.graph G.leaf C u ∧
     y ∈ nodeBlock G.graph G.leaf C w
 
 omit [Fintype V] [Fintype X] in
-/-- Around a 4-cycle `C` of `N⁻`, with nodes `u 0, …, u 3` in order, the blocks of `u i` and `u j` are
-adjacent exactly when `u i` and `u j` are consecutive: two nodes of a cycle are not joined by a walk
-avoiding it. -/
+/-- Around a 4-cycle `C` of `N⁻`, with nodes `u 0, …, u 3` in order, the blocks of `u i` and `u j`
+are adjacent exactly when `u i` and `u j` are consecutive: two nodes of a cycle are not joined by a
+walk avoiding it. -/
 theorem adjacentBlocks_iff_of_isCycleOf {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C)
+    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C)
     {u : Fin 4 → _} {f : Fin 4 → _} (hcyc : IsCycleOf (unrooted N hN hX).graph 4 u f)
     (hf : Set.range f = C) {i j : Fin 4} {x y : X}
     (hx : x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C (u i))
@@ -937,9 +953,9 @@ theorem adjacentBlocks_iff_of_isCycleOf {N : RootedNetwork V E X} (hN : IsBinary
     · exact ⟨f j, hf ▸ ⟨j, rfl⟩, u (finRotate 4 j), u j,
         (hcyc.joins j).symm, hx, hy⟩
 
-/-- **Proposition 11** (`prop:isbc`): if `s = {a, b, c, d}` satisfies the Big Cycle property, so that
-`Q⁻_s` contains a 4-cycle `C_v`, then `q^BC_s = ac|bd` if and only if the `v`-blocks of `Q⁻_s` containing
-`a` and `c` are not adjacent. -/
+/-- **Proposition 11** (`prop:isbc`): if `s = {a, b, c, d}` satisfies the Big Cycle property, so
+that `Q⁻_s` contains a 4-cycle `C_v`, then `q^BC_s = ac|bd` if and only if the `v`-blocks of `Q⁻_s`
+containing `a` and `c` are not adjacent. -/
 theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {a b c d : X}
     (habcd : Distinct4 a b c d) (hs : #({a, b, c, d} : Finset X) = 4)
@@ -949,7 +965,8 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
       ¬ AdjacentBlocks (quartetUnrooted N hN {a, b, c, d} hs) C ⟨a, by simp⟩ ⟨c, by simp⟩ := by
   -- the decidable equalities are the classical ones, those of the results on quartet networks
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
-  let _ : DecidableEq (({a, b, c, d} : Finset X) : Set X) := fun a b => Classical.propDecidable (a = b)
+  let _ : DecidableEq (({a, b, c, d} : Finset X) : Set X) :=
+    fun a b => Classical.propDecidable (a = b)
   have hQ := quartetLSA_isLSAQuartet hN h1 hθ hs
   have hQb := quartetLSA_isBinaryRootedNetwork hN hs
   -- by Corollary 2, `CF(Q) = CF(Q')`, and `Q'` is the network of Figure 17: equation (8)
@@ -964,7 +981,8 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
     eq_univ_of_card _ (by rw [h'.card_insert_eq]; simp [hs])
   -- `q^BC_s = a'c'|b'd'`, the quartet of the blocks that are not adjacent
   have hbcQ : IsBCQuartet (cf (quartetLSA N hN.1 {a, b, c, d} hs)
-      (quartetLSAMetric N hN {a, b, c, d} hs θ)) univ (quartetTree a' c' b' d' (distinct4_acbd h')) := by
+      (quartetLSAMetric N hN {a, b, c, d} hs θ)) univ
+      (quartetTree a' c' b' d' (distinct4_acbd h')) := by
     rw [← huniv, isBCQuartet_acbd_iff _ h']
     exact ⟨hy₁, hy₂⟩
   rw [cf_quartetLSA hN h1 hθ hs] at hbcQ
@@ -1000,7 +1018,8 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
         have t₂ : (quartetTree a' c' b' d' (distinct4_acbd h')).taxa = univ := by
           rw [quartetTree_taxa_eq_insert]
           exact eq_univ_of_card _ (by rw [(distinct4_acbd h').card_insert_eq]; simp [hs])
-        exact quartetTree_eq_of_taxa_eq_of_mem (t₁.trans t₂.symm) (by simp [quartetTree_val_eq_pair]) hm
+        exact quartetTree_eq_of_taxa_eq_of_mem (t₁.trans t₂.symm)
+          (by simp [quartetTree_val_eq_pair]) hm
       rw [hq]
       exact hbcQ
   -- the blocks of `a, c` are adjacent exactly when their nodes are consecutive on `C`
@@ -1036,19 +1055,19 @@ theorem proposition11 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRo
         ¬(j = finRotate 4 i ∨ i = finRotate 4 j)) := by decide
   exact key i j hij
 
-/-- The cycle `C` of `N⁻`, with hybrid node `v`, separates the taxa of `s`: they are in four distinct
-`v`-blocks, and one of them is in the hybrid block (descends from `v`). -/
+/-- The cycle `C` of `N⁻`, with hybrid node `v`, separates the taxa of `s`: they are in four
+distinct `v`-blocks, and one of them is in the hybrid block (descends from `v`). -/
 def SeparatesQuartet {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') (v : V')
     (s : Finset X') : Prop :=
   IsCycle G.graph C ∧ IsHybridNodeOf G C v ∧
     (∀ x ∈ s, ∀ y ∈ s, x ≠ y → ¬ SameBlock G.graph G.leaf C x y) ∧ ∃ x ∈ s, DescendsFrom G v x
 
 /-- **Lemma 12** (`cfs`): for generic numerical parameters, a set `s` of four taxa satisfies the Big
-Cycle property if and only if `N⁻` has a cycle `C_v` of size at least 4 for which the taxa of `s` are in
-distinct `v`-blocks, one of them in the hybrid block. The paper's statement is garbled ("there exists
-`{a,b,c,d}` satisfying the BC property if and only if `N⁻` contains a cycle `C_v` of size `k ≥ 4` with
-one of these taxa is in the hybrid block, and the others in distinct `v`-blocks"); its proof and every
-use of it are this statement, for each set of four taxa. -/
+Cycle property if and only if `N⁻` has a cycle `C_v` of size at least 4 for which the taxa of `s`
+are in distinct `v`-blocks, one of them in the hybrid block. The paper's statement is garbled
+("there exists `{a,b,c,d}` satisfying the BC property if and only if `N⁻` contains a cycle `C_v` of
+size `k ≥ 4` with one of these taxa is in the hybrid block, and the others in distinct `v`-blocks");
+its proof and every use of it are this statement, for each set of four taxa. -/
 theorem lemma12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     (hX : Nontrivial X) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → ∀ s : Finset X, #s = 4 →
@@ -1071,13 +1090,13 @@ theorem lemma12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : I
     exact exists_fourCycle_of_separates hN h1 hX hs hC hv hblk hdesc
 
 /-- The node of `N` underlying a node of `Q⁻_s`. -/
-def quartetNode {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {s : Finset X} (hs : #s = 4)
-    (w : SemidirectedVertex (quartetLSA_isBinaryRootedNetwork hN hs).1
+def quartetNode {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {s : Finset X}
+    (hs : #s = 4) (w : SemidirectedVertex (quartetLSA_isBinaryRootedNetwork hN hs).1
       (Finset.one_lt_card_iff_nontrivial.mp (by omega)).coe_sort) : V :=
   w.1.1.1.1
 
-/-- The set `s` of four taxa satisfying the Big Cycle property *determines* the hybrid node `v` of `N`
-(`ψ(s) = v`): `v` is the hybrid node of the 4-cycle of `Q⁻_s`. -/
+/-- The set `s` of four taxa satisfying the Big Cycle property *determines* the hybrid node `v` of
+`N` (`ψ(s) = v`): `v` is the hybrid node of the 4-cycle of `Q⁻_s`. -/
 def Determines {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (s : Finset X) (hs : #s = 4)
     (v : V) : Prop :=
   ∃ C w, IsCycle (quartetUnrooted N hN s hs).graph C ∧ C.ncard = 4 ∧
@@ -1088,8 +1107,8 @@ determine the same hybrid node.
 
 Departure from the paper: the paper cites Lemma 12 for the taxa of a set with the Big Cycle property
 being in distinct blocks of the cycle of `N⁻` that the set determines; Lemma 12 holds for generic
-parameters, and Lemma 13 is stated for given parameters, so the proof uses the direction of the proof
-of Lemma 12 that holds for all parameters: Proposition 9 (`hasFourCycle_of_bigCycleOn`) and
+parameters, and Lemma 13 is stated for given parameters, so the proof uses the direction of the
+proof of Lemma 12 that holds for all parameters: Proposition 9 (`hasFourCycle_of_bigCycleOn`) and
 `exists_separates_of_fourCycle`. -/
 theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {a b c d e : X}
@@ -1158,7 +1177,8 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
       have hCv' : Cv ⊆ Cuᶜ := fun f hfv hfu => hedge f hfu hfv
       refine hblk₂ x hx y hy hxy ?_
       exact ((DirectedMultigraph.walks_mono Set.inter_subset_right hwx).trans
-        (DirectedMultigraph.walks_mono hCv' (walks_cycle_of_mem_cycleNodes G.graph hCv hzx hzy))).trans
+        (DirectedMultigraph.walks_mono hCv'
+          (walks_cycle_of_mem_cycleNodes G.graph hCv hzx hzy))).trans
         (G.graph.walks_symm (DirectedMultigraph.walks_mono Set.inter_subset_right hwy))
     obtain ⟨hab, hac, -, hbc, -, -⟩ := hd₁
     by_cases hA : G.graph.Walks Cvᶜ (G.leaf a) u' <;> by_cases hB : G.graph.Walks Cvᶜ (G.leaf b) u'

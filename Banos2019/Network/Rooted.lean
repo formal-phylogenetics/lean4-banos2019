@@ -5,16 +5,16 @@ public import Phylogenetics.Network.Semidirected
 /-!
 # Rooted networks and the lowest stable ancestor (Baños 2019, Sections 2.1 and 2.2)
 
-The paper's networks are the library's `Phylogenetics.RootedNetwork`: a directed multigraph with named
-arcs, a root and a labelling of the taxa. Definition 1 allows up to two edges between two nodes, as the
-library does.
+The paper's networks are the library's `Phylogenetics.RootedNetwork`: a directed multigraph with
+named arcs, a root and a labelling of the taxa. Definition 1 allows up to two edges between two
+nodes, as the library does.
 
-* `IsBinaryRootedNetwork` (Definition 1): `IsPhylogenetic` and `IsBinary`; `isBinaryRootedNetwork_iff`
-  restates the clauses of Definition 1.
-* `IsMetricNetwork` (Definition 2): positive edge lengths and inheritance probabilities in `(0, 1)` that
-  sum to one at each hybrid node. The library's `MetricData` gives every arc an inheritance probability,
-  and the coalescent reads it on tree arcs too, so a tree arc has inheritance probability `1`
-  (`isMetricNetwork_iff`).
+* `IsBinaryRootedNetwork` (Definition 1): `IsPhylogenetic` and `IsBinary`;
+  `isBinaryRootedNetwork_iff` restates the clauses of Definition 1.
+* `IsMetricNetwork` (Definition 2): positive edge lengths and inheritance probabilities in `(0, 1)`
+  that sum to one at each hybrid node. The library's `MetricData` gives every arc an inheritance
+  probability, and the coalescent reads it on tree arcs too, so a tree arc has inheritance
+  probability `1` (`isMetricNetwork_iff`).
 * `IsAbove` (Definition 3).
 * The lowest stable ancestor (Definition 4) is the library's `RootedNetwork.lsa`, characterized by
   `RootedNetwork.IsLeastStableAncestor`; `isLeastStableAncestor_iff_def4` restates Definition 4.
@@ -29,17 +29,19 @@ namespace Banos2019
 
 variable {V E X : Type*}
 
-/-- **Definition 1** (`def::network`): a *topological binary rooted phylogenetic network* on the taxa
-`X`: a phylogenetic network (a finite directed acyclic graph whose root, of indegree `0`, reaches every
-node, and whose sinks are exactly the leaves, labelled bijectively by `X`, each of indegree `1`) that is
-binary (the root has outdegree `2`, every other node that is not a leaf has degree `3`). Up to two edges
-may join the same two nodes. `isBinaryRootedNetwork_iff` gives the clauses of Definition 1. -/
+/-- **Definition 1** (`def::network`): a *topological binary rooted phylogenetic network* on the
+taxa `X`: a phylogenetic network (a finite directed acyclic graph whose root, of indegree `0`,
+reaches every node, and whose sinks are exactly the leaves, labelled bijectively by `X`, each of
+indegree `1`) that is binary (the root has outdegree `2`, every other node that is not a leaf has
+degree `3`). Up to two edges may join the same two nodes. `isBinaryRootedNetwork_iff` gives the
+clauses of Definition 1. -/
 def IsBinaryRootedNetwork (N : RootedNetwork V E X) : Prop :=
   N.IsPhylogenetic ∧ N.IsBinary
 
-/-- **Definition 1, clause by clause**: a connected directed acyclic graph with root of indegree `0` and
-outdegree `2`, leaves of indegree `1` and outdegree `0` labelled injectively by `X`, and every other node
-a tree node (indegree `1`, outdegree `2`) or a hybrid node (indegree `2`, outdegree `1`). -/
+/-- **Definition 1, clause by clause**: a connected directed acyclic graph with root of indegree `0`
+and outdegree `2`, leaves of indegree `1` and outdegree `0` labelled injectively by `X`, and every
+other node a tree node (indegree `1`, outdegree `2`) or a hybrid node (indegree `2`, outdegree `1`).
+-/
 theorem isBinaryRootedNetwork_iff (N : RootedNetwork V E X) :
     IsBinaryRootedNetwork N ↔
       Finite V ∧ Finite E ∧ Finite X ∧ N.graph.IsConnected ∧ N.graph.IsAcyclic ∧
@@ -212,17 +214,18 @@ theorem not_isStableAncestor_of_adj_lsa {N : RootedNetwork V E X} (hN : N.IsPhyl
 
 end Helpers
 
-/-- **Definition 2**: a *metric* `(λ, γ)` for a binary rooted network: every edge has a positive length,
-and the inheritance probabilities make the library's valid parameters (`RootedNetwork.IsMetric`: those
-of the two hybrid edges of a hybrid node are positive and sum to `1`; a tree edge has `1`). -/
+/-- **Definition 2**: a *metric* `(λ, γ)` for a binary rooted network: every edge has a positive
+length, and the inheritance probabilities make the library's valid parameters
+(`RootedNetwork.IsMetric`: those of the two hybrid edges of a hybrid node are positive and sum to
+`1`; a tree edge has `1`). -/
 def IsMetricNetwork [Fintype E] (N : RootedNetwork V E X) (θ : MetricData E) : Prop :=
   N.IsMetric θ ∧ ∀ e, 0 < θ.length e
 
-/-- **Definition 2, clause by clause**: on a binary rooted network, a metric gives every edge a positive
-length and every hybrid edge an inheritance probability in `(0, 1)`, with those of the two hybrid edges
-of a hybrid node summing to `1`. The paper's `γ` is defined on hybrid edges only; the library's
-`MetricData` gives every arc an inheritance probability, and a tree edge has `1`, the convention stated
-in the module docstring. -/
+/-- **Definition 2, clause by clause**: on a binary rooted network, a metric gives every edge a
+positive length and every hybrid edge an inheritance probability in `(0, 1)`, with those of the two
+hybrid edges of a hybrid node summing to `1`. The paper's `γ` is defined on hybrid edges only; the
+library's `MetricData` gives every arc an inheritance probability, and a tree edge has `1`, the
+convention stated in the module docstring. -/
 theorem isMetricNetwork_iff [Fintype E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (θ : MetricData E) :
     IsMetricNetwork N θ ↔
@@ -273,16 +276,17 @@ theorem isMetricNetwork_iff [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
     rw [hsum v hv h₁ h₂ hne h₁v h₂v]
     exact hS h₁ h₂ hne (by unfold IsHybridArc; rw [h₁v]; exact hv) (h₁v.trans h₂v.symm)
 
-/-- **Definition 3** (`def::above`): `v` is *above* `u` (and `u` *below* `v`) if a non-empty directed
-path leads from `v` to `u`. An edge from `x` to `y` is above `v` if `y` is above or equal to `v`
-(`N.graph.Reaches y v`), and below `v` if `x` is below or equal to `v` (`N.graph.Reaches v x`). -/
+/-- **Definition 3** (`def::above`): `v` is *above* `u` (and `u` *below* `v`) if a non-empty
+directed path leads from `v` to `u`. An edge from `x` to `y` is above `v` if `y` is above or equal
+to `v` (`N.graph.Reaches y v`), and below `v` if `x` is below or equal to `v`
+(`N.graph.Reaches v x`). -/
 def IsAbove (N : RootedNetwork V E X) (v u : V) : Prop :=
   Relation.TransGen N.graph.Adj v u
 
-/-- **Definition 4** (`def::MRCA`; LSA in the published version), as printed: for `D` the set of nodes
-on every directed path from the root to a taxon of `Z`, the LSA of `Z` is the node of `D` below every
-other node of `D`. The library's stable ancestors are the nodes of `D`, and its least stable ancestor
-(`RootedNetwork.lsa`) is this node. -/
+/-- **Definition 4** (`def::MRCA`; LSA in the published version), as printed: for `D` the set of
+nodes on every directed path from the root to a taxon of `Z`, the LSA of `Z` is the node of `D`
+below every other node of `D`. The library's stable ancestors are the nodes of `D`, and its least
+stable ancestor (`RootedNetwork.lsa`) is this node. -/
 theorem isLeastStableAncestor_iff_def4 (N : RootedNetwork V E X) (Z : Set X) (v : V) :
     N.IsLeastStableAncestor Z v ↔
       N.IsStableAncestor Z v ∧ ∀ u, N.IsStableAncestor Z u → u ≠ v → IsAbove N u v := by
@@ -295,15 +299,16 @@ theorem isLeastStableAncestor_iff_def4 (N : RootedNetwork V E X) (Z : Set X) (v 
       exact .refl
     · exact (h₂ u hu huv).to_reflTransGen
 
-/-- **Lemma 1** (`lem::MRCAproperties`): for nonempty sets of taxa `Z ⊆ Y` of a binary rooted network,
-(i) the LSA of `Z` has indegree at most one; (ii) at most one of its out-edges is hybrid; (iii) the LSA
-of `Z` is below or equal to the LSA of `Y`. The paper states the lemma for every `Z ⊆ X`; the LSA of
-the empty set does not exist (every node lies on every path to a taxon of `∅`).
+/-- **Lemma 1** (`lem::MRCAproperties`): for nonempty sets of taxa `Z ⊆ Y` of a binary rooted
+network, (i) the LSA of `Z` has indegree at most one; (ii) at most one of its out-edges is hybrid;
+(iii) the LSA of `Z` is below or equal to the LSA of `Y`. The paper states the lemma for every
+`Z ⊆ X`; the LSA of the empty set does not exist (every node lies on every path to a taxon of `∅`).
 
-The proof of (ii) is the paper's, with two steps filled in. A taxon of `Z` is below each child `xᵢ` of
-`LSA(Z)`: otherwise every path to `Z` would leave `LSA(Z)` through the other child, a lower stable
-ancestor. If the other parent of `x₁` is below `LSA(Z)`, a path to it from `LSA(Z)` starts with `e₂`,
-since through `e₁` it would close a directed cycle; so it is below `x₂`, and symmetrically. -/
+The proof of (ii) is the paper's, with two steps filled in. A taxon of `Z` is below each child `xᵢ`
+of `LSA(Z)`: otherwise every path to `Z` would leave `LSA(Z)` through the other child, a lower
+stable ancestor. If the other parent of `x₁` is below `LSA(Z)`, a path to it from `LSA(Z)` starts
+with `e₂`, since through `e₁` it would close a directed cycle; so it is below `x₂`, and
+symmetrically. -/
 theorem lemma1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z Y : Set X}
     (hZ : Z.Nonempty) (hZY : Z ⊆ Y) :
     N.graph.indegree (lsa hN.1 Z hZ) ≤ 1 ∧

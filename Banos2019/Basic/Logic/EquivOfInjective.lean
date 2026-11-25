@@ -12,8 +12,8 @@ namespace Equiv
 
 variable {α β : Type*}
 
-/-- A type with an injective map to `β` is equivalent to the subtype of `β` of a predicate that holds
-exactly on the image. -/
+/-- A type with an injective map to `β` is equivalent to the subtype of `β` of a predicate that
+holds exactly on the image. -/
 def ofInjectiveSubtype (f : α → β) (hf : Function.Injective f) (Q : β → Prop)
     (hQ : ∀ b, Q b ↔ ∃ a, f a = b) : α ≃ {b // Q b} :=
   (Equiv.ofInjective f hf).trans (Equiv.subtypeEquivRight fun b => (hQ b).symm)

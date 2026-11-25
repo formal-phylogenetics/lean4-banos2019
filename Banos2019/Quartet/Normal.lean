@@ -14,8 +14,9 @@ concordance factors, and read these off a figure or off equation (1).
 
 * `halfInheritanceMetric`: a metric on a binary network, with inheritance `1/2` on hybrid edges.
 * `exists_speciesTree_contractRooted` (proof of Proposition 6): without a `3₂`-cycle or a 4-cycle,
-  contracting the 2-cycles and the `3₁`-cycles (the cycles satisfying `P`) leaves a tree, whose concordance factors are those of a
-  species tree with an internal edge; `isTreelikeOn_quartetProb`: by equation (1), they are treelike.
+  contracting the 2-cycles and the `3₁`-cycles (the cycles satisfying `P`) leaves a tree, whose
+  concordance factors are those of a species tree with an internal edge; `isTreelikeOn_quartetProb`:
+  by equation (1), they are treelike.
 * `exists_fig17` (proofs of Propositions 10 and 11): with a 4-cycle, contracting the `2₁`- and
   `2₃`-cycles gives the network of Figure 17, with the taxa named around the 4-cycle.
 * `eq_of_walks_compl_of_mem_cycleNodes`: in `N⁻` of a level-1 network, two nodes of a cycle are not
@@ -33,7 +34,8 @@ variable {V E X : Type*}
 
 /-! ### A metric on a binary network -/
 
-/-- The parameters with lengths `ℓ`, inheritance `1/2` on the hybrid edges and `1` on the tree edges. -/
+/-- The parameters with lengths `ℓ`, inheritance `1/2` on the hybrid edges and `1` on the tree
+edges. -/
 def halfInheritanceMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricData E :=
   ⟨ℓ, fun e => if N.IsHybridArc e then 1 / 2 else 1⟩
 
@@ -41,12 +43,14 @@ def halfInheritanceMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricDa
 theorem isMetricNetwork_halfInheritanceMetric [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) {ℓ : E → ℝ} (hℓ : ∀ e, 0 < ℓ e) :
     IsMetricNetwork N (halfInheritanceMetric N ℓ) := by
-  refine ⟨⟨fun e _ => hℓ e, fun e _ => (hℓ e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩, hℓ⟩
+  refine ⟨⟨fun e _ => hℓ e, fun e _ => (hℓ e).le, fun e he => ?_, fun e he => ?_,
+    fun v hv => ?_⟩, hℓ⟩
   · have : ¬ N.IsHybridArc e := by unfold IsTreeArc at he; unfold IsHybridArc; omega
     simp [halfInheritanceMetric, this]
   · simp [halfInheritanceMetric, he]
   · have h2 := indegree_eq_two_of_two_le hN hv
-    have hterm : ∀ e, (if N.graph.target e = v then (halfInheritanceMetric N ℓ).inheritance e else 0) =
+    have hterm : ∀ e, (if N.graph.target e =
+      v then (halfInheritanceMetric N ℓ).inheritance e else 0) =
         if N.graph.target e = v then 1 / 2 else 0 := by
       intro e
       by_cases he : N.graph.target e = v
@@ -70,25 +74,26 @@ theorem IsLSAQuartet.ofMetric {Q : RootedNetwork V E X} {θ θ' : MetricData E}
 
 /-! ### Without `3₂`-cycles and 4-cycles: a tree -/
 
-/-- **The network `Q'` of Proposition 6 is a tree** (Section 6): if `Q⁻` has neither a `3₂`-cycle nor
-a 4-cycle, its cycles are `2`-cycles and `3₁`-cycles, so contracting them leaves no cycle. The
-concordance factors of the tree `Q'` are those of a species tree, the tree obtained by suppressing its
-nodes of degree two (`nmscCF_eq_quartetProb`). The splits of two pairs of taxa of this species tree
-are those of the cut edges of `Q⊕`: a cut edge is on no cycle and every cycle is on one side of it
-(`contractSet_hasCutSplit_iff`), and the cut edges of a tree are the splits of its clusters
+/-- **The network `Q'` of Proposition 6 is a tree** (Section 6): if `Q⁻` has neither a `3₂`-cycle
+nor a 4-cycle, its cycles are `2`-cycles and `3₁`-cycles, so contracting them leaves no cycle. The
+concordance factors of the tree `Q'` are those of a species tree, the tree obtained by suppressing
+its nodes of degree two (`nmscCF_eq_quartetProb`). The splits of two pairs of taxa of this species
+tree are those of the cut edges of `Q⊕`: a cut edge is on no cycle and every cycle is on one side of
+it (`contractSet_hasCutSplit_iff`), and the cut edges of a tree are the splits of its clusters
 (`hasCutSplit_iff_mem_unroot_treeClusters`).
 
-The species tree has an internal edge, which the proof of Proposition 6 uses without argument when it
-calls `Q'` a quartet tree (TeX l. 917): a lowest node with at least two taxa below it has one child
-per taxon below it, and a node of the contracted network has at most two children, the root at most
-three, so that node has exactly two taxa below it (`exists_card_two_mem_treeClusters`). -/
+The species tree has an internal edge, which the proof of Proposition 6 uses without argument when
+it calls `Q'` a quartet tree (TeX l. 917): a lowest node with at least two taxa below it has one
+child per taxon below it, and a node of the contracted network has at most two children, the root at
+most three, so that node has exactly two taxa below it (`exists_card_two_mem_treeClusters`). -/
 theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2)
     (h4 : ¬ ∃ C v k, InducesCycleType Q C v 4 k) (P : Set E → Prop)
     (hP : P = fun C => ∃ v, (∃ k, InducesCycleType Q C v 2 k) ∨ InducesCycleType Q C v 3 1) :
     ∃ σ : SpeciesTree X, (∃ (a b c d : X) (_ : Distinct4 a b c d), {a, b} ∈ unroot σ.clusters) ∧
       (∀ A : Finset X, #A = 2 → (Q.HasCutSplit ↑A ↔ A ∈ unroot σ.clusters)) ∧
-      cf (contractRooted Q P) (contractMetric Q P θ) = External.AllmanDegnanRhodes2011.quartetProb σ := by
+      cf (contractRooted Q P) (contractMetric Q P θ) =
+        External.AllmanDegnanRhodes2011.quartetProb σ := by
   have hX := hQ.card_taxa
   -- every cycle is a 2-cycle or a `3₁`-cycle, and is contracted
   have hall : ∀ C, IsCycle Q.graph C → P C := by
@@ -144,8 +149,8 @@ theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : Metric
     exact (contractSet_hasCutSplit_iff hQ.binary hQ.levelOne (P := P) ↑A).symm.trans
       (hasCutSplit_iff_mem_unroot_treeClusters hM ht hne hne')
 
-/-- **The concordance factors of a species tree are treelike** (equation (1)): on a species tree with
-the split `ab|cd`, those of the two alternatives `ac|bd`, `ad|bc` are equal and smaller. -/
+/-- **The concordance factors of a species tree are treelike** (equation (1)): on a species tree
+with the split `ab|cd`, those of the two alternatives `ac|bd`, `ad|bc` are equal and smaller. -/
 theorem isTreelikeOn_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) {a b c d : X}
     (h : Distinct4 a b c d) (hsplit : {a, b} ∈ unroot σ.clusters) :
     IsTreelikeOn (External.AllmanDegnanRhodes2011.quartetProb σ) {a, b, c, d} := by
@@ -159,7 +164,8 @@ theorem isTreelikeOn_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) 
     exact ⟨by ext y; simp; tauto, (quartetTree_abcd_ne_adbc h).symm⟩
   have hL : 0 ≤ σ.unrootedLength {a, b} := by
     unfold SpeciesTree.unrootedLength
-    exact Finset.sum_nonneg fun C hC => (σ.length_pos C (mem_filter.1 hC).1 (mem_filter.1 hC).2.1).le
+    exact Finset.sum_nonneg fun C hC => (σ.length_pos C (mem_filter.1 hC).1
+      (mem_filter.1 hC).2.1).le
   have hx : Real.exp (-σ.unrootedLength {a, b}) ≤ 1 := Real.exp_le_one_iff.2 (by linarith)
   rw [isTreelikeOn_iff_triple _ h]
   left
@@ -168,14 +174,15 @@ theorem isTreelikeOn_quartetProb (hX : Fintype.card X = 4) (σ : SpeciesTree X) 
 
 /-! ### With a 4-cycle: the network of Figure 17 -/
 
-/-- **`Q'` is the network of Figure 17** (proofs of Propositions 10 and 11): if `Q⁻` has a 4-cycle `C`,
-its other cycles are `2₁`- or `2₃`-cycles (Lemmas 5 and 6), and contracting them in `Q⊕` gives,
+/-- **`Q'` is the network of Figure 17** (proofs of Propositions 10 and 11): if `Q⁻` has a 4-cycle
+`C`, its other cycles are `2₁`- or `2₃`-cycles (Lemmas 5 and 6), and contracting them in `Q⊕` gives,
 after suppressing the nodes of degree two this leaves, an LSA quartet network `Q'` whose unrooted
 network is that of Figure 17: the taxa `a, b, c, d` in the blocks of consecutive nodes `u 0, …, u 3`
-of `C`, `c` in the hybrid block. The edge of Figure 17 joining the nodes of `a` and `d` is a chain of
-the edges `A` of `Q⊕`, the one joining the nodes of `a` and `b` a chain of the edges `B`, and the
+of `C`, `c` in the hybrid block. The edge of Figure 17 joining the nodes of `a` and `d` is a chain
+of the edges `A` of `Q⊕`, the one joining the nodes of `a` and `b` a chain of the edges `B`, and the
 hybrid edge from the node of `b` has the inheritance probability of the hybrid edge `h` of `Q⊕`: so
-the parameters of Figure 17 are a linear function of those of `Q⊕` (the map `ν` of Proposition 10). -/
+the parameters of Figure 17 are a linear function of those of `Q⊕` (the map `ν` of Proposition 10).
+-/
 theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     {C : Set _} (hC : IsCycle hQ.unrooted.graph C) (hC4 : C.ncard = 4) :
     ∃ (u : Fin 4 → _) (f : Fin 4 → _), IsCycleOf hQ.unrooted.graph 4 u f ∧ Set.range f = C ∧
@@ -189,7 +196,8 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
             ∃ (V' E' : Type) (_ : Fintype V') (_ : Fintype E') (Q' : RootedNetwork V' E' X)
               (θ'' : MetricData E') (hQ' : IsLSAQuartet Q' θ'') (len : Fin 8 → ℝ),
               cf Q' θ'' =
-                  cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ') ∧
+                  cf (contractRooted Q (IsTwoOneOrThree Q))
+                    (contractMetric Q (IsTwoOneOrThree Q) θ') ∧
                 InducesNetwork hQ' (fig17 a b c) (figMetric len (θ'.inheritance h)) ∧
                 len 4 = ∑ e ∈ A, θ'.length e ∧ len 5 = ∑ e ∈ B, θ'.length e := by
   have hB := hQ.binary
@@ -257,8 +265,10 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
   -- the nodes and arcs of `Q⊕` of those of the rooting
   set n : Fin 9 → V := fun i => contractNetVertex hQ.binary hQ.levelOne P (φ.vert i) with hn_def
   set β : Fin 9 → E := fun j => contractNetArc hQ.binary hQ.levelOne P (φ.arc j) with hβ_def
-  have hninj : Function.Injective n := (contractNetVertex_injective hQ.binary hQ.levelOne P).comp φ.vert.injective
-  have hβinj : Function.Injective β := (contractNetArc_injective hQ.binary hQ.levelOne P).comp φ.arc.injective
+  have hninj : Function.Injective n := (contractNetVertex_injective hQ.binary hQ.levelOne P).comp
+    φ.vert.injective
+  have hβinj : Function.Injective β := (contractNetArc_injective hQ.binary hQ.levelOne P).comp
+    φ.arc.injective
   have hD'φ : φ.arc '' ↑(fig17CycArcs s) = D' :=
     hone' _ (IsCycle.image_of_hom φ.vert.injective φ.arc.injective φ.source φ.target
       (isCycle_fig17Root s))
@@ -432,13 +442,14 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
       exact contractNetMetric_length θ' (φ.arc 5)
 
 omit [Fintype V] [Fintype X] in
-/-- In `N⁻` of a binary level-1 network, two nodes of a cycle `C` are in different components of what
-is left after removing the edges of `C`: a walk between them avoiding `C` would close, with a part of
-`C`, a second cycle sharing edges with `C`. -/
+/-- In `N⁻` of a binary level-1 network, two nodes of a cycle `C` are in different components of
+what is left after removing the edges of `C`: a walk between them avoiding `C` would close, with a
+part of `C`, a second cycle sharing edges with `C`. -/
 theorem eq_of_walks_compl_of_mem_cycleNodes {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
     (hC : IsCycle (unrooted N hN hX).graph C) {u w : _}
-    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) (hw : w ∈ cycleNodes (unrooted N hN hX).graph C)
+    (hu : u ∈ cycleNodes (unrooted N hN hX).graph C)
+    (hw : w ∈ cycleNodes (unrooted N hN hX).graph C)
     (huw : (unrooted N hN hX).graph.Walks Cᶜ u w) : u = w := by
   -- `N⁻` is level-1: two cycles sharing an edge share a node, so they are equal (Lemma 3)
   have h1' : IsLevelOne (unrooted N hN hX).graph := by

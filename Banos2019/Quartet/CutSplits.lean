@@ -37,7 +37,8 @@ theorem notMem_of_crosses_iff {G : DirectedMultigraph V E} {T : Set V} {e : E}
 
 variable {N : RootedNetwork V E X}
 
-/-- **The taxa below a cut vertex `r` entered by a single arc `c` are the side of the cut edge `c`.** -/
+/-- **The taxa below a cut vertex `r` entered by a single arc `c` are the side of the cut edge
+`c`.** -/
 theorem hasCutSplit_of_isCut (hN : N.IsPhylogenetic) {r : V} (hc : IsCut N r) {c : E}
     (hcr : N.graph.target c = r) (huniq : ∀ g, N.graph.target g = r → g = c) :
     N.HasCutSplit {x | N.graph.Reaches r (N.leaf x)} := by
@@ -122,8 +123,8 @@ theorem exists_offCycle_edge [Finite E] (hN : IsBinaryRootedNetwork N) {C : Set 
   exact this
 
 /-- **The block of a node `w` of a cycle `C` other than the root is the side of a cut edge**: `w` is
-on three edges, two of `C` and one off `C`, `g`; the nodes joined to `w` avoiding `C`, other than `w`,
-are entered only by `g`. -/
+on three edges, two of `C` and one off `C`, `g`; the nodes joined to `w` avoiding `C`, other than
+`w`, are entered only by `g`. -/
 theorem hasCutSplit_nodeBlock [Finite E] (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {C : Set E} (hC : IsCycle N.graph C) {w : V} (hw : w ∈ cycleNodes N.graph C)
     (hwr : w ≠ N.root) : N.HasCutSplit (nodeBlock N.graph N.leaf C w) := by

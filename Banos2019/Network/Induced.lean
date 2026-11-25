@@ -8,15 +8,16 @@ public import Phylogenetics.NMSC.InducedParams
 # Induced networks on a set of taxa (Baños 2019, Section 2.4, Appendix)
 
 * `inducedRooted` (Definition 7): `N⁺_Z`, the paths from the root to the taxa of `Z`, with the nodes
-  of degree two other than the root suppressed, and the edge at the root contracted when the root then
-  has outdegree one.
-* `inducedLSA` (Definition 8): `N⊕_Z`, the part of `N⁺_Z` below `LSA(Z)`, rooted at `LSA(Z)`. It is the
-  library's `RootedNetwork.inducedNetwork`, which removes what is above the LSA before suppressing the
-  nodes of degree two. The order does not matter: a node below the LSA that is ancestral to `Z` has all
-  its parents below or at the LSA (a parent above it would give a path to a taxon of `Z` avoiding the
-  LSA), so its degree is the same either way, and on a binary network the LSA keeps outdegree two.
-* `inducedUnrooted` (Definition 10): `(N⁻)_Z`, the edges of `N⁻` on simple treks between taxa of `Z`,
-  with the nodes of degree two suppressed.
+  of degree two other than the root suppressed, and the edge at the root contracted when the root
+  then has outdegree one.
+* `inducedLSA` (Definition 8): `N⊕_Z`, the part of `N⁺_Z` below `LSA(Z)`, rooted at `LSA(Z)`. It is
+  the library's `RootedNetwork.inducedNetwork`, which removes what is above the LSA before
+  suppressing the nodes of degree two. The order does not matter: a node below the LSA that is
+  ancestral to `Z` has all its parents below or at the LSA (a parent above it would give a path to a
+  taxon of `Z` avoiding the LSA), so its degree is the same either way, and on a binary network the
+  LSA keeps outdegree two.
+* `inducedUnrooted` (Definition 10): `(N⁻)_Z`, the edges of `N⁻` on simple treks between taxa of
+  `Z`, with the nodes of degree two suppressed.
 * `proposition1`: `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic; `lemma17` (Appendix).
 * `quartetLSA`, `quartetUnrooted`: `Q⊕_s` and `Q⁻_s` for a set `s` of four taxa. In Sections 5–9 the
   induced unrooted quartet network `Q⁻_s` is `(Q⊕_s)⁻`, which Section 5 identifies with `(N⁻)_s` by
@@ -60,9 +61,9 @@ theorem ancestralSuppressed_isPhylogenetic {N : RootedNetwork V E X} (hN : N.IsP
   suppress_isPhylogenetic _
 
 /-- **Definition 7** (`def:inducerootnetontaxa`): the *induced rooted network* `N⁺_Z` on `Z`: retain
-the edges and nodes on paths from the root to the taxa of `Z`; suppress the nodes of degree two except
-the root (a node other than the root has degree two exactly when it has indegree one and outdegree one);
-if the root then has outdegree one, contract the edge at the root. -/
+the edges and nodes on paths from the root to the taxa of `Z`; suppress the nodes of degree two
+except the root (a node other than the root has degree two exactly when it has indegree one and
+outdegree one); if the root then has outdegree one, contract the edge at the root. -/
 def inducedRooted (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (Z : Set X) (hZ : Z.Nonempty) :=
   contractRoot (ancestralSuppressed N hN Z hZ) (ancestralSuppressed_isPhylogenetic hN Z hZ)
 
@@ -256,9 +257,10 @@ theorem inducedRooted_isBinaryRootedNetwork {N : RootedNetwork V E X} (hN : IsBi
 
 /-! ### Definition 8 -/
 
-/-- **Definition 8** (`def:inducemrcanetontaxa`): the *induced LSA network* `N⊕_Z`: `N⁺_Z` without what
-is above `LSA(Z)`, rooted at `LSA(Z)`. This is `RootedNetwork.inducedNetwork`. -/
-abbrev inducedLSA (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (Z : Set X) (hZ : Z.Nontrivial) :=
+/-- **Definition 8** (`def:inducemrcanetontaxa`): the *induced LSA network* `N⊕_Z`: `N⁺_Z` without
+what is above `LSA(Z)`, rooted at `LSA(Z)`. This is `RootedNetwork.inducedNetwork`. -/
+abbrev inducedLSA (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (Z : Set X)
+    (hZ : Z.Nontrivial) :=
   inducedNetwork hN Z hZ
 
 theorem inducedLSA_isBinaryRootedNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
@@ -495,13 +497,14 @@ theorem lemma3_unrooted [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRoote
     ext c
     rw [← hmem_hat C c, ← hmem_hat C' c, hEq]
 
-/-- **Definition 10** (`def:inducenetontaxa`): the *induced unrooted network* `(N⁻)_Z`: retain only the
-edges of `N⁻` on simple treks between pairs of taxa of `Z`, then suppress all nodes of degree two. -/
+/-- **Definition 10** (`def:inducenetontaxa`): the *induced unrooted network* `(N⁻)_Z`: retain only
+the edges of `N⁻` on simple treks between pairs of taxa of `Z`, then suppress all nodes of degree
+two. -/
 def inducedUnrooted {V' E' : Type*} (G : SemidirectedNetwork V' E' X) (Z : Set X) :=
   suppress (restrict G (trekEdges G Z) Z)
 
-/-- The metric of `(N⁻)_Z`: on the retained edges, that of `N⁻`; a suppressed chain has the sum of the
-lengths of its edges and the inheritance probability of its hybrid edges. -/
+/-- The metric of `(N⁻)_Z`: on the retained edges, that of `N⁻`; a suppressed chain has the sum of
+the lengths of its edges and the inheritance probability of its hybrid edges. -/
 def inducedUnrootedMetric {V' E' : Type*} (G : SemidirectedNetwork V' E' X) (Z : Set X)
     (θ : MetricData E') :=
   suppressMetric (restrict G (trekEdges G Z) Z) ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩
@@ -513,7 +516,8 @@ def inducedRootedMetric [Finite E] (N : RootedNetwork V E X) (hN : N.IsPhylogene
     (hZ : Z.Nonempty) (θ : MetricData E) :
     MetricData {e // ¬ ((ancestralSuppressed N hN Z hZ).graph.source e =
       (ancestralSuppressed N hN Z hZ).root ∧
-        (ancestralSuppressed N hN Z hZ).graph.outdegree (ancestralSuppressed N hN Z hZ).root = 1)} :=
+        (ancestralSuppressed N hN Z hZ).graph.outdegree
+          (ancestralSuppressed N hN Z hZ).root = 1)} :=
   have : Fintype (N.AncestralArc Z) := Fintype.ofFinite _
   let μ := (N.ancestralNetwork Z hZ hN.root_reaches).suppressMetric
     ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩
@@ -526,17 +530,17 @@ def asSemidirected (N : RootedNetwork V E X) : SemidirectedNetwork V E X :=
   ⟨N.graph, fun _ => True, N.leaf⟩
 
 /-- **Lemma 17** (`lem::trekmrca`): in a binary rooted network, an edge `e` below `LSA(Z)` with a
-descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` whose edges are all below
-`LSA(Z)`.
+descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` whose edges are all
+below `LSA(Z)`.
 
 The proof follows the paper: `y` comes from Lemma 2; when `y` is not below `e`, the trek is
 `trek_of_not_below`; otherwise `trek_of_config` is the induction on the number of nodes below `e`
 common to the two paths, with the five cases on the position of `w` in `trek_mainStep`, which uses
 that the network is binary.
 
-Departure from the paper, in `trek_mainStep`: in case 5 (ii) the paper takes `w` on `Px` without loss
-of generality; the case `w` on `Py` only is not symmetric to it, and the construction of case 5 (i) is
-used for it. -/
+Departure from the paper, in `trek_mainStep`: in case 5 (ii) the paper takes `w` on `Px` without
+loss of generality; the case `w` on `Py` only is not symmetric to it, and the construction of case 5
+(i) is used for it. -/
 theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X}
     (hZ : Z.Nonempty) {e : E} (he : N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e))
     (hdesc : ∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) :
@@ -653,18 +657,18 @@ theorem isContraction_contractRoot (M : RootedNetwork V E X) (hM : M.IsPhylogene
     exact ⟨_, Set.Nonempty.some_mem (s := {e | M.graph.source e = M.root}) _, rfl⟩
   root_ne h := by simp only [contractRoot, h, ↓reduceDIte]
 
-/-- **Proposition 1** (`prop::ancestralinduced`): for a binary rooted network `N` and a set `Z` of at
-least two taxa, `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic as leaf-labelled semidirected networks;
-`proposition1_metric` gives the isomorphism of metric networks. The paper allows any `Z ⊆ X`; with one
-taxon the LSA is a leaf, which Definition 5 cannot suppress, so `(N⁺_Z)⁻` is defined only for at least
-two taxa. -/
+/-- **Proposition 1** (`prop::ancestralinduced`): for a binary rooted network `N` and a set `Z` of
+at least two taxa, `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic as leaf-labelled semidirected networks;
+`proposition1_metric` gives the isomorphism of metric networks. The paper allows any `Z ⊆ X`; with
+one taxon the LSA is a leaf, which Definition 5 cannot suppress, so `(N⁺_Z)⁻` is defined only for at
+least two taxa. -/
 theorem proposition1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X)
     {Z : Set X} (hZ : Z.Nontrivial) :
     Nonempty (SDIso (inducedUnrooted (unrooted N hN hX) Z)
       (unrooted (inducedRooted N hN.1 Z hZ.nonempty) (inducedRooted_isBinaryRootedNetwork hN hZ)
         hZ.coe_sort)) :=
-  -- the edges of `N⁻` on simple treks between taxa of `Z` are those of the LSA network (by Lemma 17,
-  -- `mem_trekEdges_iff`), and suppressing their nodes of degree two gives `(N⁺_Z)⁻`
+  -- the edges of `N⁻` on simple treks between taxa of `Z` are those of the LSA network (by Lemma
+  -- 17, `mem_trekEdges_iff`), and suppressing their nodes of degree two gives `(N⁺_Z)⁻`
   nonempty_sdIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
     (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
     (isContraction_contractRoot _ _)
@@ -680,8 +684,8 @@ theorem proposition1_metric [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
         hZ.coe_sort)
       (unrootedMetric _ (inducedRooted_isBinaryRootedNetwork hN hZ) hZ.coe_sort
         (inducedRootedMetric N hN.1 Z hZ.nonempty θ))) :=
-  -- the same isomorphism; along a chain, lengths add, and the inheritance probability is that of the
-  -- last arc, the others being tree arcs
+  -- the same isomorphism; along a chain, lengths add, and the inheritance probability is that of
+  -- the last arc, the others being tree arcs
   nonempty_sdMetricIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
     (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
     (isContraction_contractRoot _ _) θ hθ.1.2.2.1 _ fun e => by
@@ -692,7 +696,8 @@ theorem proposition1_metric [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
 /-! ### Quartet networks -/
 
 /-- `Q⊕_s`: the induced LSA network on a set `s` of four taxa. -/
-abbrev quartetLSA (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (s : Finset X) (hs : s.card = 4) :=
+abbrev quartetLSA (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (s : Finset X)
+    (hs : s.card = 4) :=
   inducedLSA N hN (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega))
 
 /-- `Q⊕_s` is a binary rooted network. -/

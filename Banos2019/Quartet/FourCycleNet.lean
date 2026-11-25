@@ -8,20 +8,20 @@ public import Banos2019.Quartet.Examples
 # The 4-cycle of `Q⁻` and the network of Corollary 2 (proofs of Propositions 10 and 11)
 
 Contracting the cycles of `Q⊕` satisfying `P` and suppressing the nodes of degree two this leaves
-(`contractNet`) keeps the cycles of `Q⊕` not satisfying `P`, their arcs and their nodes, and the walks
-avoiding them. This module reads the 4-cycle of `Q⁻` and its blocks off the network of Corollary 2,
-a rooting of Figure 17 (`exists_rootedIso_fourOne`).
+(`contractNet`) keeps the cycles of `Q⊕` not satisfying `P`, their arcs and their nodes, and the
+walks avoiding them. This module reads the 4-cycle of `Q⁻` and its blocks off the network of
+Corollary 2, a rooting of Figure 17 (`exists_rootedIso_fourOne`).
 
-* `contractNetArc_mem_contractNetChain`: the arc of `Q⊕` of an arc of `contractNet` (`contractNetArc`,
-  defined with `contractNetVertex` in `Banos2019.Quartet.ContractCompose`), the first arc of its
-  chain, is on the chain.
-* `walks_of_contractNet_walks`: a walk of `contractNet` gives a walk of `Q⊕` on the chains of its arcs
-  and the arcs of the contracted cycles; `walks_compl_of_contractNet_walks`: one avoiding a cycle not
-  contracted gives one avoiding that cycle.
+* `contractNetArc_mem_contractNetChain`: the arc of `Q⊕` of an arc of `contractNet`
+  (`contractNetArc`, defined with `contractNetVertex` in `Banos2019.Quartet.ContractCompose`), the
+  first arc of its chain, is on the chain.
+* `walks_of_contractNet_walks`: a walk of `contractNet` gives a walk of `Q⊕` on the chains of its
+  arcs and the arcs of the contracted cycles; `walks_compl_of_contractNet_walks`: one avoiding a
+  cycle not contracted gives one avoiding that cycle.
 * `isCycle_contractNet_preimage`, `contractNetArc_ends`: the arcs of `contractNet` whose first arc
   is on a cycle not contracted form a cycle, with the ends of their first arcs.
-* `exists_joins_sdNode`, `mem_nodeBlock_sdNode_of_walks`: the edges of `Q⁻` of the arcs of a cycle of
-  `Q⊕`, and the blocks of `Q⁻` of walks of `Q⊕` avoiding the cycle.
+* `exists_joins_sdNode`, `mem_nodeBlock_sdNode_of_walks`: the edges of `Q⁻` of the arcs of a cycle
+  of `Q⊕`, and the blocks of `Q⁻` of walks of `Q⊕` avoiding the cycle.
 * `fig17CycArcs`, `isCycle_fig17Root`: the arcs of the cycle of the rootings of Figure 17.
 -/
 

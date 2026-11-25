@@ -53,13 +53,15 @@ theorem quartetTree_taxa_eq_insert (h : Distinct4 a b c d) :
   tauto
 
 /-- `ab|cd` is `cd|ab`, `ba|cd`, … -/
-theorem quartetTree_eq_of_val_eq {a' b' c' d' : X} (h : Distinct4 a b c d) (h' : Distinct4 a' b' c' d')
+theorem quartetTree_eq_of_val_eq {a' b' c' d' : X} (h : Distinct4 a b c d)
+    (h' : Distinct4 a' b' c' d')
     (hv : ({{a, b}, {c, d}} : Finset (Finset X)) = {{a', b'}, {c', d'}}) :
     quartetTree a b c d h = quartetTree a' b' c' d' h' :=
   Subtype.ext hv
 
 /-- Two quartet trees on the same four taxa are equal when they have a common cherry. -/
-theorem quartetTree_eq_of_taxa_eq_of_mem {q r : QuartetTree X} (hqr : q.taxa = r.taxa) {B : Finset X}
+theorem quartetTree_eq_of_taxa_eq_of_mem {q r : QuartetTree X}
+    (hqr : q.taxa = r.taxa) {B : Finset X}
     (hq : B ∈ q.val) (hr : B ∈ r.val) : q = r :=
   QuartetTree.eq_of_taxa_eq_of_mem hqr hq hr
 
@@ -143,7 +145,8 @@ theorem treesOn_eq_triple (h : Distinct4 a b c d) :
     rcases hxq with rfl | rfl | rfl | rfl
     · exact absurd rfl hxa
     · left
-      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq_insert]) (hBe ▸ hB) (by simp)
+      exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by rw [hr, quartetTree_taxa_eq_insert])
+        (hBe ▸ hB) (by simp)
     · right; left
       exact quartetTree_eq_of_taxa_eq_of_mem (B := {a, x}) (by
         rw [hr, quartetTree_taxa_eq_insert]; ext y; simp; tauto) (hBe ▸ hB) (by simp)
@@ -160,7 +163,8 @@ theorem bigCycleOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d
     BigCycleOn p {a, b, c, d} ↔
       p (quartetTree a b c d h) ≠ p (quartetTree a c b d (distinct4_acbd h)) ∧
         p (quartetTree a b c d h) ≠ p (quartetTree a d b c (distinct4_adbc h)) ∧
-        p (quartetTree a c b d (distinct4_acbd h)) ≠ p (quartetTree a d b c (distinct4_adbc h)) := by
+        p (quartetTree a c b d (distinct4_acbd h)) ≠
+          p (quartetTree a d b c (distinct4_adbc h)) := by
   have n1 := quartetTree_abcd_ne_acbd h
   have n2 := quartetTree_abcd_ne_adbc h
   have n3 := quartetTree_acbd_ne_adbc h
@@ -174,7 +178,8 @@ theorem bigCycleOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d
     rcases hq with rfl | rfl | rfl <;> rcases hr with rfl | rfl | rfl <;>
       first | exact absurd rfl hqr | assumption | exact Ne.symm ‹_›
 
-/-- Treelikeness on four distinct taxa: the two smallest of the three concordance factors are equal. -/
+/-- Treelikeness on four distinct taxa: the two smallest of the three concordance factors are equal.
+-/
 theorem isTreelikeOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c d) :
     IsTreelikeOn p {a, b, c, d} ↔
       let x := p (quartetTree a b c d h)
@@ -218,11 +223,13 @@ theorem isTreelikeOn_iff_triple (p : QuartetTree X → ℝ) (h : Distinct4 a b c
       · exact hxy.le
       · exact hxz
 
-/-- `q^BC = ac|bd` on four distinct taxa: the concordance factor of `ac|bd` is the smallest, strictly. -/
+/-- `q^BC = ac|bd` on four distinct taxa: the concordance factor of `ac|bd` is the smallest,
+strictly. -/
 theorem isBCQuartet_acbd_iff (p : QuartetTree X → ℝ) (h : Distinct4 a b c d) :
     IsBCQuartet p {a, b, c, d} (quartetTree a c b d (distinct4_acbd h)) ↔
       p (quartetTree a c b d (distinct4_acbd h)) < p (quartetTree a b c d h) ∧
-        p (quartetTree a c b d (distinct4_acbd h)) < p (quartetTree a d b c (distinct4_adbc h)) := by
+        p (quartetTree a c b d (distinct4_acbd h)) <
+          p (quartetTree a d b c (distinct4_adbc h)) := by
   have n1 := quartetTree_abcd_ne_acbd h
   have n3 := quartetTree_acbd_ne_adbc h
   unfold IsBCQuartet
@@ -269,7 +276,8 @@ theorem image_val_univ_finsetCoe : (univ : Finset (s : Set X)).image Subtype.val
 
 /-- The quartet trees on `s` are the images of the quartet trees on all of `↥s`. -/
 theorem treesOn_eq_image :
-    treesOn s = (treesOn (univ : Finset (s : Set X))).image (QuartetTree.map Subtype.val_injective) := by
+    treesOn s = (treesOn (univ : Finset (s : Set X))).image
+      (QuartetTree.map Subtype.val_injective) := by
   ext q
   simp only [mem_treesOn, mem_image]
   constructor
@@ -298,9 +306,11 @@ theorem isTreelikeOn_comp_map_iff (p : QuartetTree X → ℝ) :
   unfold IsTreelikeOn
   rw [treesOn_eq_image s]
   simp only [exists_mem_image, forall_mem_image]
-  refine exists_congr fun q => and_congr_right fun _ => exists_congr fun r => and_congr_right fun _ => ?_
+  refine exists_congr
+    fun q => and_congr_right fun _ => exists_congr fun r => and_congr_right fun _ => ?_
   exact and_congr ⟨fun H e => H (QuartetTree.map_injective Subtype.val_injective e),
-    fun H e => H (congrArg _ e)⟩ (and_congr_right fun _ => ⟨fun H u hu => H u hu, fun H u hu => H hu⟩)
+    fun H e => H (congrArg _ e)⟩ (and_congr_right fun _ =>
+      ⟨fun H u hu => H u hu, fun H u hu => H hu⟩)
 
 theorem isBCQuartet_comp_map_iff (p : QuartetTree X → ℝ) (q : QuartetTree (s : Set X)) :
     IsBCQuartet (fun q => p (q.map Subtype.val_injective)) (univ : Finset (s : Set X)) q ↔

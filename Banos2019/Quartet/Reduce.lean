@@ -7,8 +7,8 @@ public import Banos2019.Coalescent
 /-!
 # Networks with nodes of degree two, as binary networks
 
-The reductions of Section 5 (deleting a hybrid edge, contracting cycles) leave networks with nodes of
-indegree one and outdegree one, and possibly a root of outdegree one. The paper identifies such a
+The reductions of Section 5 (deleting a hybrid edge, contracting cycles) leave networks with nodes
+of indegree one and outdegree one, and possibly a root of outdegree one. The paper identifies such a
 network with the network obtained by suppressing these nodes (Section 5: "networks with degree-two
 nodes are identified with their suppressions"). This module builds that network and gives the
 properties it keeps.
@@ -20,8 +20,8 @@ properties it keeps.
   (`RootedNetwork.suppress`, lengths added along each chain), the arc at a root of outdegree one
   contracted, and its nodes and arcs renamed by `Fin`.
 * `IsReducible.reduce_spec`: it is a binary level-1 metric network with the concordance factors of
-  `M` (`NMSC.nmscCF_suppress`, `IsContraction.nmscCF_eq`), the cycles of `M` with their types, and the
-  cut edges of `M` between two nonempty sets of taxa; it is an LSA network when no cycle of `M`
+  `M` (`NMSC.nmscCF_suppress`, `IsContraction.nmscCF_eq`), the cycles of `M` with their types, and
+  the cut edges of `M` between two nonempty sets of taxa; it is an LSA network when no cycle of `M`
   induces a cycle of size one (`isLSANetwork_of_target_ne`).
 -/
 
@@ -52,8 +52,8 @@ structure IsReducible [Fintype E] (M : RootedNetwork V E X) (θ : MetricData E) 
 
 variable [Fintype V] [Fintype E]
 
-/-- **The binary network of `M`**: its nodes of indegree one and outdegree one suppressed, the arc at
-a root of outdegree one contracted, and its nodes and arcs renamed by `Fin`. -/
+/-- **The binary network of `M`**: its nodes of indegree one and outdegree one suppressed, the arc
+at a root of outdegree one contracted, and its nodes and arcs renamed by `Fin`. -/
 def reduceNet (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) :=
   finContract (M.suppress hM) (suppress_isPhylogenetic hM)
 
@@ -240,8 +240,8 @@ theorem hasCutSplit_iff {A : Set X} (hA : ∃ x, x ∈ A) (hA' : ∃ x, x ∉ A)
   (hM.isContraction.hasCutSplit_iff (suppress_isPhylogenetic hM.phylo) hA hA').trans
     (suppress_hasCutSplit_iff hM.phylo A)
 
-/-- **The binary network of `M` is an LSA network** when no cycle of `M` induces a cycle of size one:
-two root arcs with the same target would form a cycle of size two through the root. -/
+/-- **The binary network of `M` is an LSA network** when no cycle of `M` induces a cycle of size
+one: two root arcs with the same target would form a cycle of size two through the root. -/
 theorem isLSANetwork (hno : ∀ C v k, ¬ InducesCycleType M C v 1 k) :
     (reduceNet M hM.phylo).IsLSANetwork := by
   set Q := reduceNet M hM.phylo

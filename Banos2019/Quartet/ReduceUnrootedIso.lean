@@ -145,7 +145,8 @@ theorem nonempty_sdMetricIso_suppress_deleteHybridEdge [Fintype V] [Fintype E] [
       (suppressMetric (deleteHybridEdge (semidirected hQ.1 hQ.2 hX) h)
         (restrictMetric (semidirectedMetric hQ.1 hQ.2 hX θ) _))
       (unrooted _ hb hX)
-      (unrootedMetric _ hb hX (reduceMetric _ hP (deleteArcMetric Q (sdArc hQ.1 hQ.2 hX h) θ)))) := by
+      (unrootedMetric _ hb hX (reduceMetric _ hP
+          (deleteArcMetric Q (sdArc hQ.1 hQ.2 hX h) θ)))) := by
   have := hQ.1.finite_arcs
   have hr := lsa_univ_eq_root hQ.1 hX hlsa
   have htwo : ∃ x y : X, x ≠ y := exists_pair_ne X

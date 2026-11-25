@@ -7,10 +7,10 @@ public import Banos2019.Basic.MeasureTheory.SumCoordsNull
 # Null sets of parameters pulled back along chains of edges
 
 The map `ν` of the proof of Proposition 10 sends the parameters of a network to the lengths of two
-edges of a reduced network, sums of the lengths of disjoint nonempty chains `A`, `B` of edges, and to
-the inheritance probability `γ` of a hybrid edge `h`. In the coordinates of `IsGenericNull`, `γ` is a
-coordinate, or one minus the sum of the coordinates of the other edges into the child of `h`; so `ν` is
-affine and onto, and the preimage of a null set of `ℝ³` is a null set of parameters
+edges of a reduced network, sums of the lengths of disjoint nonempty chains `A`, `B` of edges, and
+to the inheritance probability `γ` of a hybrid edge `h`. In the coordinates of `IsGenericNull`, `γ`
+is a coordinate, or one minus the sum of the coordinates of the other edges into the child of `h`;
+so `ν` is affine and onto, and the preimage of a null set of `ℝ³` is a null set of parameters
 (`isGenericNull_preimage_chainSum`, from `prod_pi_volume_preimage_sum_coords_null`).
 -/
 
@@ -24,8 +24,8 @@ namespace Banos2019
 variable {V E X : Type*} [Fintype E] {N : RootedNetwork V E X}
 
 /-- **The preimage of a null set under `ν` is null**: the parameters whose lengths summed over the
-disjoint nonempty sets of edges `A` and `B`, and whose inheritance probability of the hybrid edge `h`,
-lie in a null set of `ℝ³` form a null set of parameters. -/
+disjoint nonempty sets of edges `A` and `B`, and whose inheritance probability of the hybrid edge
+`h`, lie in a null set of `ℝ³` form a null set of parameters. -/
 theorem isGenericNull_preimage_chainSum {A B : Finset E} (hA : A.Nonempty) (hB : B.Nonempty)
     (hAB : Disjoint A B) {h : E} (hh : N.IsHybridArc h) {Z : Set (Fin 3 → ℝ)} (hZ : volume Z = 0) :
     N.IsGenericNull

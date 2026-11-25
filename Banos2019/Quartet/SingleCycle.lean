@@ -7,11 +7,12 @@ public import Banos2019.Quartet.RootedIso
 # LSA quartet networks with a single cycle (proofs of Propositions 7, 10 and 11)
 
 An LSA quartet network `Q⊕` whose only cycle is `C`, with hybrid node `v`, has one hybrid node, so
-nine nodes and nine arcs (`card_eq_nine_of_single_hybrid`, counting the arcs by their ends). Its nodes
-are then located one by one, and `Q⊕` is isomorphic to an explicit network on `Fin 9`
+nine nodes and nine arcs (`card_eq_nine_of_single_hybrid`, counting the arcs by their ends). Its
+nodes are then located one by one, and `Q⊕` is isomorphic to an explicit network on `Fin 9`
 (`RootedNetworkIso.ofNine`).
 
-* `eq_of_two_le_indegree_of_single_cycle`: the hybrid node of the only cycle is the only hybrid node.
+* `eq_of_two_le_indegree_of_single_cycle`: the hybrid node of the only cycle is the only hybrid
+  node.
 * `card_eq_nine_of_single_hybrid`: nine nodes and nine arcs.
 * `RootedNetworkIso.ofNine`: nine nodes and nine arcs of `Q⊕` with the incidences of a network on
   `Fin 9` give an isomorphism.
@@ -49,8 +50,9 @@ theorem eq_of_two_le_indegree_of_single_cycle (hQ : IsBinaryRootedNetwork Q)
   have hwC := (show Q.graph.target f₁ = w from hf₁) ▸ target_mem_cycleNodes (G := Q.graph) hf₁C
   exact (lemma3 hQ h1 hC').1.unique ⟨hwC, indegree_eq_two_of_two_le hQ hw⟩ ⟨hv, h2⟩
 
-/-- **A binary network on four taxa with a single hybrid node has nine nodes and nine arcs**: counting
-the arcs by their targets, `|E| + 1 = |V| + 1`; by their sources, `|E| + 2·4 + 1 = 2|V|`. -/
+/-- **A binary network on four taxa with a single hybrid node has nine nodes and nine arcs**:
+counting the arcs by their targets, `|E| + 1 = |V| + 1`; by their sources, `|E| + 2·4 + 1 = 2|V|`.
+-/
 theorem card_eq_nine_of_single_hybrid (hQ : IsBinaryRootedNetwork Q) (hX : Fintype.card X = 4)
     {v : V} (hv2 : Q.graph.indegree v = 2) (huniq : ∀ w, 2 ≤ Q.graph.indegree w → w = v) :
     Fintype.card V = 9 ∧ Fintype.card E = 9 := by
@@ -150,9 +152,9 @@ theorem isCycle_pair_of_parallel {G : DirectedMultigraph V E} {f₁ f₂ : E} (h
     tauto
 
 /-- The four rootings of Figure 18 on `Fin 9`: the leaves `a, b, c, d` at `0, 1, 2, 3`, the node `4`
-above `a, b`, the hybrid node `5`, the nodes `6`, `7` of `c`, `d`, the root `8`, and the edges `0, …, 7`
-of the figure, the edge `8` being the arc of the root that the unrooted network merges into the other
-arc of the root, the edge `6`, `5` or `3` of the figure. -/
+above `a, b`, the hybrid node `5`, the nodes `6`, `7` of `c`, `d`, the root `8`, and the edges
+`0, …, 7` of the figure, the edge `8` being the arc of the root that the unrooted network merges
+into the other arc of the root, the edge `6`, `5` or `3` of the figure. -/
 def fig18RootSrc : Fin 4 → Fin 9 → Fin 9 :=
   ![![4, 4, 6, 7, 5, 7, 8, 6, 8], ![4, 4, 6, 7, 5, 8, 7, 6, 8], ![4, 4, 6, 8, 5, 7, 7, 6, 8],
     ![4, 4, 6, 8, 5, 7, 7, 6, 8]]
@@ -164,13 +166,13 @@ def fig18RootTgt : Fin 4 → Fin 9 → Fin 9 :=
 
 variable [DecidableEq X]
 
-/-- **An LSA quartet network whose only cycle induces a `3₂`-cycle is a rooting of Figure 18**, with the
-arc that its unrooted network merges at the root as the edge `8`. The node `u` below the hybrid node
-`v` is the parent of `a` and `b`; the other nodes of the cycle are tree nodes, and with the root they
-are the parents of the other arcs. When the root is on the cycle, it is the parent of `v` (the first
-rooting) or of the two other nodes of the cycle (the second); otherwise it is the parent of the top of
-the cycle and of a taxon (the third and the fourth rootings, by the arc that the unrooted network
-merges). -/
+/-- **An LSA quartet network whose only cycle induces a `3₂`-cycle is a rooting of Figure 18**, with
+the arc that its unrooted network merges at the root as the edge `8`. The node `u` below the hybrid
+node `v` is the parent of `a` and `b`; the other nodes of the cycle are tree nodes, and with the
+root they are the parents of the other arcs. When the root is on the cycle, it is the parent of `v`
+(the first rooting) or of the two other nodes of the cycle (the second); otherwise it is the parent
+of the top of the cycle and of a taxon (the third and the fourth rootings, by the arc that the
+unrooted network merges). -/
 theorem exists_rootedIso_threeTwo (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     (hC : InducesCycleType Q C v 3 2) (hone : ∀ C', IsCycle Q.graph C' → C' = C) {a b : X}
     (hab : a ≠ b) (hD : {x | Q.graph.Reaches v (Q.leaf x)} = {a, b}) :
@@ -278,7 +280,8 @@ theorem exists_rootedIso_threeTwo (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
     intro y hy hyr
     by_cases hyv : y = v
     · exact Or.inl hyv
-    have : y ∈ (cycleNodesOffRoot Q C).erase v := mem_erase.2 ⟨hyv, mem_cycleNodesOffRoot.2 ⟨hy, hyr⟩⟩
+    have : y ∈ (cycleNodesOffRoot Q C).erase v :=
+      mem_erase.2 ⟨hyv, mem_cycleNodesOffRoot.2 ⟨hy, hyr⟩⟩
     rw [hWs] at this
     simp only [mem_insert, mem_singleton] at this
     exact Or.inr this
@@ -301,7 +304,8 @@ theorem exists_rootedIso_threeTwo (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
       obtain ⟨x, -, hx⟩ := mem_image.1 hm
       exact hy x hx
     have hcS : #S = 9 := by
-      rw [card_insert_of_notMem, card_insert_of_notMem, card_insert_of_notMem, card_insert_of_notMem,
+      rw [card_insert_of_notMem, card_insert_of_notMem, card_insert_of_notMem,
+        card_insert_of_notMem,
         card_insert_of_notMem (hnl w' hw'l), card_image_of_injective _ hinj, card_univ, hX]
       · simp only [mem_insert, not_or]; exact ⟨hww', hnl w hwl⟩
       · simp only [mem_insert, not_or]; exact ⟨huw, huw', hnl u hul⟩
@@ -743,7 +747,8 @@ theorem exists_rootedIso_threeTwo (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
       · exact ⟨h₁, h₂, hh₁₂, h, h', hth₁, hth₂, hvin⟩
       · exact absurd (h.trans h'.symm) hsh
     obtain ⟨gr, hgrne, hgrs⟩ := hother_out r hr2 pT hpTs
-    have hrout : ∀ e, Q.graph.source e = r → e = pT ∨ e = gr := hout2 r hr2 pT gr (Ne.symm hgrne) hpTs hgrs
+    have hrout : ∀ e, Q.graph.source e = r → e = pT ∨ e = gr :=
+      hout2 r hr2 pT gr (Ne.symm hgrne) hpTs hgrs
     have hgrv : Q.graph.target gr ≠ v := fun h => by
       rcases hvTX gr h with rfl | rfl
       · exact hYr (hTs.symm.trans hgrs)

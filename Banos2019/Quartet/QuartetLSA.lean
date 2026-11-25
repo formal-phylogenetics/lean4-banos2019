@@ -6,8 +6,8 @@ public import Banos2019.Network.Suppress
 /-!
 # `Q⊕_s` is a metric binary level-1 LSA network
 
-The facts that make `Q⊕_s = quartetLSA N hN.1 s hs`, with the parameters it inherits from `N`, an LSA
-quartet network (`Banos2019.Quartet.Reduction`).
+The facts that make `Q⊕_s = quartetLSA N hN.1 s hs`, with the parameters it inherits from `N`, an
+LSA quartet network (`Banos2019.Quartet.Reduction`).
 
 * `inducedNetwork_isLSANetwork`: the root of the induced network is the LSA of its taxa; a stable
   ancestor of the suppressed network, or of the part below the LSA, is one of the network
@@ -25,8 +25,8 @@ namespace Banos2019
 
 variable {V E X : Type*}
 
-/-- A path avoiding a kept vertex `w` gives a path of the suppressed network avoiding `w`, from the end
-of the chain of its first vertex. -/
+/-- A path avoiding a kept vertex `w` gives a path of the suppressed network avoiding `w`, from the
+end of the chain of its first vertex. -/
 theorem reflTransGen_avoiding_suppress {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
     (w : {v // ¬ M.IsChainVertex v}) {a b : V} (hb : ¬ M.IsChainVertex b) (hbw : b ≠ w.1)
     (h : Relation.ReflTransGen (fun x y => M.graph.Adj x y ∧ x ≠ w.1 ∧ y ≠ w.1) a b) :
@@ -143,8 +143,8 @@ theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
   inducedNetwork_isLSANetwork hN.1 _
 
 omit [Fintype V] [Fintype E] [Fintype X] in
-/-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of edges
-of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
+/-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of
+edges of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
 theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
     IsLevelOne (quartetLSA N hN.1 s hs).graph :=

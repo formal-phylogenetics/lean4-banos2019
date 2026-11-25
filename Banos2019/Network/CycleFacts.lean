@@ -12,7 +12,8 @@ directed along two paths from a *top* node `t` down to `v`:
 * `ncard_cycleNodes`: a cycle has as many nodes as edges.
 * `reaches_hybrid`: every node of `C` is above `v`.
 * `exists_top`: exactly one node `t` of `C` is entered by no edge of `C`; it is above every node of
-  `C` (`top_reaches`), and every other node of `C` is entered by edges of `C` only (`target_eq_top`).
+  `C` (`top_reaches`), and every other node of `C` is entered by edges of `C` only
+  (`target_eq_top`).
 -/
 
 @[expose] public noncomputable section
@@ -243,7 +244,8 @@ theorem notMem_of_source_eq_hybrid {c : E} (hc : N.graph.source c = v) : c ∉ C
   have h1c : c ≠ h₁ := fun h => hloop c (hc.trans (h ▸ hh₁).symm)
   have h2c : c ≠ h₂ := fun h => hloop c (hc.trans (h ▸ hh₂).symm)
   have hinc := hC.ncard_incident hloop hv
-  have hsub : ({c, h₁, h₂} : Set E) ⊆ {e | e ∈ C ∧ (N.graph.source e = v ∨ N.graph.target e = v)} := by
+  have hsub : ({c, h₁, h₂} : Set E) ⊆
+    {e | e ∈ C ∧ (N.graph.source e = v ∨ N.graph.target e = v)} := by
     intro f hf
     rcases hf with rfl | rfl | hf
     · exact ⟨hcC, Or.inl hc⟩
@@ -324,7 +326,8 @@ theorem existsUnique_top [Fintype V] [Fintype E] :
 
 omit h1 hC hv in
 /-- A hybrid node of a binary network has exactly one child arc. -/
-theorem existsUnique_child_of_hybrid : ∃ c, N.graph.source c = v ∧ ∀ g, N.graph.source g = v → g = c := by
+theorem existsUnique_child_of_hybrid :
+    ∃ c, N.graph.source c = v ∧ ∀ g, N.graph.source g = v → g = c := by
   have := hN.1.finite_arcs
   have hvr : v ≠ N.root := fun h => by
     have := hN.1.root_indegree
@@ -344,10 +347,11 @@ theorem existsUnique_child_of_hybrid : ∃ c, N.graph.source c = v ∧ ∀ g, N.
 
 omit hC hv h2 in
 /-- **Two arcs into one vertex lie on a cycle**: the walk from their common target up one of them to
-the root and down to the source of the other closes a cycle through the other (`exists_isCycle_of_walks`),
-which contains both arcs into its node of indegree two (Lemma 3). -/
+the root and down to the source of the other closes a cycle through the other
+(`exists_isCycle_of_walks`), which contains both arcs into its node of indegree two (Lemma 3). -/
 theorem exists_isCycle_of_target_eq {f₁ f₂ : E} (hne : f₁ ≠ f₂)
-    (ht : N.graph.target f₁ = N.graph.target f₂) : ∃ C', IsCycle N.graph C' ∧ f₁ ∈ C' ∧ f₂ ∈ C' := by
+    (ht : N.graph.target f₁ = N.graph.target f₂) : ∃ C', IsCycle N.graph C' ∧ f₁ ∈
+    C' ∧ f₂ ∈ C' := by
   have := hN.1.finite_arcs
   have hcyc : ∀ {a b}, N.graph.Reaches a b → N.graph.Adj b a → False := fun h hab =>
     hN.1.acyclic _ (Relation.TransGen.tail' h hab)
@@ -370,10 +374,10 @@ theorem exists_isCycle_of_target_eq {f₁ f₂ : E} (hne : f₁ ≠ f₂)
 omit hC hv h2 in
 /-- **Below a vertex `z` that is not a lower node of a cycle with another node of indegree two, the
 vertices are entered only from below `z`**: an arc into a vertex below `z`, other than `z`, leaves a
-vertex below `z`. Otherwise its target has a second arc from below `z`, and the cycle through the two
-arcs (`exists_isCycle_of_target_eq`) has its top below `z`: going up the path from `z`, every node of
-the cycle but its top is entered by edges of the cycle only, and `z` is not such a node. The top is
-above the source of the arc, which would then be below `z`. -/
+vertex below `z`. Otherwise its target has a second arc from below `z`, and the cycle through the
+two arcs (`exists_isCycle_of_target_eq`) has its top below `z`: going up the path from `z`, every
+node of the cycle but its top is entered by edges of the cycle only, and `z` is not such a node. The
+top is above the source of the arc, which would then be below `z`. -/
 theorem reaches_source_of_below {z : V}
     (hz : ∀ C', IsCycle N.graph C' → z ∈ cycleNodes N.graph C' →
       (∀ g, N.graph.target g = z → g ∈ C') →

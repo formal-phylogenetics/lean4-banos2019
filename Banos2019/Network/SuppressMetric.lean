@@ -10,8 +10,8 @@ public import Banos2019.Bridge.Invariance
   suppressions, with the lengths added and the inheritance probabilities multiplied along the chains
   (`suppressMetric`).
 * `deleteHybridEdge G h`: `G` without the hybrid edge `h`, the other edges into the target of `h`
-  undirected; `SDMetricIso.deleteHybridEdge`: an isomorphism maps it to the network without the image
-  of `h`.
+  undirected; `SDMetricIso.deleteHybridEdge`: an isomorphism maps it to the network without the
+  image of `h`.
 * `SDMetricIso.contractCycles`: an isomorphism keeping the contracted cycles gives isomorphic metric
   contracted networks.
 -/

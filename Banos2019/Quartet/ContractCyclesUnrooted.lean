@@ -9,9 +9,9 @@ public import Banos2019.Quartet.ContractSet
 For a binary level-1 network `Q` whose root is the LSA of its taxa and a cycle `D` of `Q⁻`,
 `contractCycles Q⁻ (· = D)` is, when the cycle `liftEdges D` of `Q` avoids the root, `unrootAt` of
 `contractRooted Q (· = liftEdges D)` at the arc of `Q` that `Q⁻` merges
-(`nonempty_sdMetricIso_contractCycles_unrootAt`), and, when it passes through the root, the contracted
-network with its root kept (`nonempty_sdMetricIso_contractCycles_keepRootSD`): the node of the
-contracted cycle of `Q⁻` is the root of the contracted network.
+(`nonempty_sdMetricIso_contractCycles_unrootAt`), and, when it passes through the root, the
+contracted network with its root kept (`nonempty_sdMetricIso_contractCycles_keepRootSD`): the node
+of the contracted cycle of `Q⁻` is the root of the contracted network.
 
 * `contractCyclesSdVert`, `contractCyclesSdArc`: the node and the arc of the contracted network of a
   node and an edge of `Q⁻` with `D` contracted, both injective.
@@ -32,8 +32,8 @@ section Maps
 
 variable {Q : RootedNetwork V E X} (hQ : IsBinaryRootedNetwork Q) (hX : Nontrivial X)
 
-/-- The node of `contractRooted Q (· = liftEdges D)` of a node of `Q⁻` with `D` contracted: the class
-of its node of `Q`. -/
+/-- The node of `contractRooted Q (· = liftEdges D)` of a node of `Q⁻` with `D` contracted: the
+class of its node of `Q`. -/
 def contractCyclesSdVert (D : Set (SemidirectedArc hQ.1 hQ.2 hX)) :
     Quot (ContractRel (semidirected hQ.1 hQ.2 hX).graph (· = D)) →
       Quot (RootedContractRel Q (· = liftEdges hQ.1 hQ.2 hX D)) :=
@@ -99,8 +99,8 @@ theorem sdRootArc_notMem_of_root_notMem {D : Set (SemidirectedArc hQ.1 hQ.2 hX)}
   rintro C - rfl hC
   exact hρ ⟨_, hC, Or.inl ((sdRootArc_spec hQ.1 hQ.2 hX).1.trans hr)⟩
 
-/-- **Contracting a 2-cycle of `Q⁻` off the root is `unrootAt` of the contracted network** at the arc
-of `Q` that `Q⁻` merges. -/
+/-- **Contracting a 2-cycle of `Q⁻` off the root is `unrootAt` of the contracted network** at the
+arc of `Q` that `Q⁻` merges. -/
 theorem nonempty_sdMetricIso_contractCycles_unrootAt
     (hr : lsa hQ.1 Set.univ Set.univ_nonempty = Q.root) (θ : MetricData E)
     {D : Set (SemidirectedArc hQ.1 hQ.2 hX)} (hD : IsCycle (semidirected hQ.1 hQ.2 hX).graph D)

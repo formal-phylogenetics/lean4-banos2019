@@ -18,8 +18,8 @@ network, the unrooted network `N⁻` is `unrootAt M hP e₀` with its nodes of d
 (`nonempty_sdMetricIso_suppress_unrootAt`), for `e₀ = reduceRootArc`, the first arc of the chain of
 the arc that `N⁻` merges. The nodes of `N⁻` are the nodes of `M` other than the root and the chain
 nodes (`reduceVert`); an edge of `N⁻` is the chain of `M` of its arc (`reduceArc`, `reduceChainOf`),
-with the chain of `e₀` for the merged edge, a chain of `unrootAt M hP e₀` between the nodes of its ends
-(`exists_isUTrail_reduceChainOf`); it is hybrid when the last arc of the chain is
+with the chain of `e₀` for the merged edge, a chain of `unrootAt M hP e₀` between the nodes of its
+ends (`exists_isUTrail_reduceChainOf`); it is hybrid when the last arc of the chain is
 (`eq_lastArc_of_mem_reduceChainOf`), and has the total length of the chain
 (`length_eq_finsum_reduceChainOf`).
 -/
@@ -244,7 +244,8 @@ def reduceVert (w : SemidirectedVertex hb.1 hX) : V :=
 def reduceArc (g : SemidirectedArc hb.1 hb.2 hX) : E :=
   (finContractArc (M.suppress hM.phylo) (sdArc hb.1 hb.2 hX g)).1
 
-/-- The first arc of `M` of the chain of the arc of `reduceNet M` that its unrooted network merges. -/
+/-- The first arc of `M` of the chain of the arc of `reduceNet M` that its unrooted network merges.
+-/
 def reduceRootArc : E :=
   (finContractArc (M.suppress hM.phylo) (sdRootArc hb.1 hb.2 hX)).1
 
@@ -370,7 +371,8 @@ theorem reduceVert_leaf (x : X) :
   rfl
 
 omit [Fintype V] in
-/-- The chain of `M` from a node other than the root, to its end, as a trail of `unrootAt M hP e₀`. -/
+/-- The chain of `M` from a node other than the root, to its end, as a trail of `unrootAt M hP e₀`.
+-/
 theorem exists_isUTrail_unrootAt_chainEnd {e₀ : E} (he₀ : M.graph.source e₀ = M.root) {t : V}
     (ht : t ≠ M.root) :
     ∃ (hE : chainEnd hM.phylo t ≠ M.root) (S : Set {v // v ≠ M.root}),
@@ -394,16 +396,16 @@ theorem exists_isUTrail_unrootAt_chainEnd {e₀ : E} (he₀ : M.graph.source e�
     · exact absurd h'' hne
     · exact hz.1
 
-/-- The arcs of `unrootAt M hP e₀`, for `e₀ = reduceRootArc`, of the chain of an edge of the unrooted
-network of `reduceNet M`: those of the chain of its arc, and of the chain of `e₀` for the merged
-edge. -/
+/-- The arcs of `unrootAt M hP e₀`, for `e₀ = reduceRootArc`, of the chain of an edge of the
+unrooted network of `reduceNet M`: those of the chain of its arc, and of the chain of `e₀` for the
+merged edge. -/
 def reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) : Set {e // e ≠ reduceRootArc hM hb hX} :=
   {f | M.IsOnChain (reduceArc hM hb hX g) f.1 ∨
     (M.graph.source (reduceArc hM hb hX g) = M.root ∧ M.IsOnChain (reduceRootArc hM hb hX) f.1)}
 
 include h2 hl in
-/-- **The chain of an edge of the unrooted network of `reduceNet M` is a trail of `unrootAt M hP e₀`**
-between the nodes of the ends of the edge, through chain nodes. -/
+/-- **The chain of an edge of the unrooted network of `reduceNet M` is a trail of
+`unrootAt M hP e₀`** between the nodes of the ends of the edge, through chain nodes. -/
 theorem exists_isUTrail_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
     ∃ (u w : {v // v ≠ M.root}) (S : Set {v // v ≠ M.root}),
       IsUTrail (unrootAt M hM.phylo (reduceRootArc hM hb hX)).graph u w S
@@ -726,8 +728,8 @@ theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
 include h2 hl in
 /-- **The inheritance of a hybrid edge of the unrooted network of `reduceNet M` is that of the only
 hybrid arc of its chain.** -/
-theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ) (g : SemidirectedArc hb.1 hb.2 hX)
-    (hd : (unrooted _ hb hX).IsDirected g) :
+theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ)
+    (g : SemidirectedArc hb.1 hb.2 hX) (hd : (unrooted _ hb hX).IsDirected g) :
     (unrootedMetric (reduceNet M hM.phylo) hb hX (reduceMetric M hM.phylo θ)).inheritance g =
       ∏ᶠ f ∈ {f | f ∈ reduceChainOf hM hb hX g ∧
         (unrootAt M hM.phylo (reduceRootArc hM hb hX)).IsDirected f},
@@ -754,7 +756,8 @@ theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ) (g : Semi
 include h2 hl in
 /-- **The unrooted network of `reduceNet M` is `unrootAt M` with its nodes of degree two
 suppressed**, when the root of `M` has outdegree two, for `e₀ = reduceRootArc`: the edges of the
-unrooted network are the chains of `M` through its chain nodes, the two chains at the root merged. -/
+unrooted network are the chains of `M` through its chain nodes, the two chains at the root merged.
+-/
 theorem nonempty_sdMetricIso_suppress_unrootAt (hθ : M.IsNormalized θ) :
     Nonempty (SDMetricIso (suppress (unrootAt M hM.phylo (reduceRootArc hM hb hX)))
       (suppressMetric (unrootAt M hM.phylo (reduceRootArc hM hb hX))

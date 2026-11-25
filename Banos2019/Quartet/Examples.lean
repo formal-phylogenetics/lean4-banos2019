@@ -12,18 +12,18 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 # The examples of Sections 5, 6 and 7 (Baños 2019, Examples 2–7)
 
 The unrooted quartet networks of Figures 15–18, with taxa `a, b, c, d` at the nodes `0, 1, 2, 3`, as
-metric semidirected networks on `Fin 8` nodes and `Fin 8` edges. An edge length `t i` of a figure is the
-length of the edge so labelled; the other edges (pendant edges, and hybrid edges the figure does not
-label) have arbitrary lengths `ℓ`. The concordance factors of an unrooted quartet network are those of
-any LSA quartet network inducing it (Proposition 5), so each example is stated for every LSA quartet
-network whose metric unrooted network is isomorphic to the figure.
+metric semidirected networks on `Fin 8` nodes and `Fin 8` edges. An edge length `t i` of a figure is
+the length of the edge so labelled; the other edges (pendant edges, and hybrid edges the figure does
+not label) have arbitrary lengths `ℓ`. The concordance factors of an unrooted quartet network are
+those of any LSA quartet network inducing it (Proposition 5), so each example is stated for every
+LSA quartet network whose metric unrooted network is isomorphic to the figure.
 
-* `InducesNetwork.len_pos`, `InducesNetwork.inheritance_mem_Ioo`: the parameters of such a figure are
-  those of a metric network.
+* `InducesNetwork.len_pos`, `InducesNetwork.inheritance_mem_Ioo`: the parameters of such a figure
+  are those of a metric network.
 * `inducesNetwork_of_rooting`, `inducesNetwork_q15`, `inducesNetwork_q16`, `inducesNetwork_q17`,
   `inducesNetwork_q18`: the rootings `q15`, `q16`, `q17`, `q18` of Figures 15–18 induce them.
-  Examples 2, 3 and 4 apply Lemma 9 or 10 to these rootings, after Proposition 5, and equation (1) to
-  the trees they give; Example 5 applies Lemma 11.
+  Examples 2, 3 and 4 apply Lemma 9 or 10 to these rootings, after Proposition 5, and equation (1)
+  to the trees they give; Example 5 applies Lemma 11.
 -/
 
 @[expose] public noncomputable section
@@ -35,19 +35,19 @@ namespace Banos2019
 
 variable {X : Type*} [Fintype X] [DecidableEq X]
 
-/-- A semidirected network on `Fin 8` given by the ends of its edges, its two hybrid edges `6` and `7`,
-and the leaves `a, b, c, d` at `0, 1, 2, 3`. -/
+/-- A semidirected network on `Fin 8` given by the ends of its edges, its two hybrid edges `6` and
+`7`, and the leaves `a, b, c, d` at `0, 1, 2, 3`. -/
 def figNet (src tgt : Fin 8 → Fin 8) (a b c : X) : SemidirectedNetwork (Fin 8) (Fin 8) X :=
   ⟨⟨src, tgt⟩, fun e => e = 6 ∨ e = 7, figLeaf a b c⟩
 
-/-- The parameters of a figure: the lengths `len`, inheritance probability `γ` on the hybrid edge `6`
-and `1 - γ` on `7`. -/
+/-- The parameters of a figure: the lengths `len`, inheritance probability `γ` on the hybrid edge
+`6` and `1 - γ` on `7`. -/
 def figMetric (len : Fin 8 → ℝ) (γ : ℝ) : MetricData (Fin 8) :=
   ⟨len, fun e => if e = 6 then γ else if e = 7 then 1 - γ else 1⟩
 
 /-- **Figure 15**, a `2₂`-cycle: `a, b` at node 4, which joins node 5 by the edge `t₁` (edge 4); the
-hybrid edges from 5 to the hybrid node 6, of lengths `t₄` (edge 6, inheritance `γ`) and `t₃` (edge 7);
-node 6 joins node 7, with `c, d`, by `t₂` (edge 5). -/
+hybrid edges from 5 to the hybrid node 6, of lengths `t₄` (edge 6, inheritance `γ`) and `t₃` (edge
+7); node 6 joins node 7, with `c, d`, by `t₂` (edge 5). -/
 def fig15 (a b c : X) : SemidirectedNetwork (Fin 8) (Fin 8) X :=
   figNet ![4, 4, 7, 7, 4, 6, 5, 5] ![0, 1, 2, 3, 5, 7, 6, 6] a b c
 
@@ -57,15 +57,15 @@ hybrid node 7, above `d`. -/
 def fig16 (a b c : X) : SemidirectedNetwork (Fin 8) (Fin 8) X :=
   figNet ![4, 4, 6, 7, 4, 5, 6, 5] ![0, 1, 2, 3, 5, 6, 7, 7] a b c
 
-/-- **Figure 17**, a 4-cycle: the nodes 4, 5, 6, 7 of the cycle carry `a, b, c, d`; node 4 joins 7 by
-`t₁` (edge 4) and 5 by `t₂` (edge 5); the hybrid edges from 5 (edge 6, `γ`) and 7 (edge 7) enter the
-hybrid node 6, above `c`. -/
+/-- **Figure 17**, a 4-cycle: the nodes 4, 5, 6, 7 of the cycle carry `a, b, c, d`; node 4 joins 7
+by `t₁` (edge 4) and 5 by `t₂` (edge 5); the hybrid edges from 5 (edge 6, `γ`) and 7 (edge 7) enter
+the hybrid node 6, above `c`. -/
 def fig17 (a b c : X) : SemidirectedNetwork (Fin 8) (Fin 8) X :=
   figNet ![4, 5, 6, 7, 4, 4, 5, 7] ![0, 1, 2, 3, 7, 5, 6, 6] a b c
 
-/-- **Figure 18**, a `3₂`-cycle: `a, b` at node 4, below the hybrid node 5 by `t₁` (edge 4); node 7, with
-`d`, joins node 6, with `c`, by `t₃` (edge 5); the hybrid edges from 7 (edge 6, length `t₄`, `γ`) and 6
-(edge 7, length `t₂`) enter 5. -/
+/-- **Figure 18**, a `3₂`-cycle: `a, b` at node 4, below the hybrid node 5 by `t₁` (edge 4); node 7,
+with `d`, joins node 6, with `c`, by `t₃` (edge 5); the hybrid edges from 7 (edge 6, length `t₄`,
+`γ`) and 6 (edge 7, length `t₂`) enter 5. -/
 def fig18 (a b c : X) : SemidirectedNetwork (Fin 8) (Fin 8) X :=
   figNet ![4, 4, 6, 7, 5, 7, 7, 6] ![0, 1, 2, 3, 4, 6, 5, 5] a b c
 
@@ -122,15 +122,16 @@ theorem figLeaf_castSucc (a b c x : X) : (figLeaf a b c x).castSucc = quartetLea
   split_ifs <;> rfl
 
 /-- **The metric unrooted network of a rooting of a figure**: a network on `Fin 9` nodes and edges,
-with the leaves `a, b, c, d` at `0, 1, 2, 3`, the root `8`, the hybrid edges `6`, `7` and the tree edge
-`8` at the root, induces the figure `figNet fs ft a b c` when its edges `0, …, 7`, the edge `7` from the
-root merged with the edge `8`, join the nodes of the figure's edges (in the same direction for the
-hybrid edges), with the same lengths and inheritance probabilities. -/
+with the leaves `a, b, c, d` at `0, 1, 2, 3`, the root `8`, the hybrid edges `6`, `7` and the tree
+edge `8` at the root, induces the figure `figNet fs ft a b c` when its edges `0, …, 7`, the edge `7`
+from the root merged with the edge `8`, join the nodes of the figure's edges (in the same direction
+for the hybrid edges), with the same lengths and inheritance probabilities. -/
 theorem inducesNetwork_of_rooting {qs qt : Fin 9 → Fin 9} {fs ft : Fin 8 → Fin 8} {a b c : X}
     {θ : MetricData (Fin 9)} {len : Fin 8 → ℝ} {γ : ℝ}
     (hQ : IsLSAQuartet (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X) θ)
-    (hhyb : ∀ e, (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X).IsHybridArc e ↔
-      e = 6 ∨ e = 7)
+    (hhyb : ∀ e,
+      (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X).IsHybridArc e ↔
+        e = 6 ∨ e = 7)
     (hroot : ∀ r : Fin 9, qs r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8)
     (hmerge : ∀ j : Fin 8, qs j.castSucc = 8 ↔ j = 7)
     (hjoin : ∀ j : Fin 8,
@@ -335,7 +336,8 @@ theorem inducesNetwork_q18 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 �
     intro e
     rw [← hl]
     exact ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
-  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 = if q18Src e.1.1 = 8 then 7 else q18Src e.1.1 := by
+  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 =
+    if q18Src e.1.1 = 8 then 7 else q18Src e.1.1 := by
     intro e
     show ((unrootAt (lsaPlus hP hXn) (lsaPlus_isPhylogenetic hP hXn)
       (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
@@ -360,9 +362,11 @@ theorem inducesNetwork_q18 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 �
   have ftgt : ∀ j : Fin 8, ((fig18 a b c).graph.target j).castSucc = q18Tgt j.castSucc := by
     show ∀ j : Fin 8, ((![0, 1, 2, 3, 4, 6, 5, 5] : Fin 8 → Fin 8) j).castSucc = q18Tgt j.castSucc
     decide
-  have hjs : ∀ e, (fig18 a b c).graph.source (edge e) = vert (hQ.unrooted.graph.source e) := fun e =>
+  have hjs : ∀ e, (fig18 a b c).graph.source (edge e) =
+    vert (hQ.unrooted.graph.source e) := fun e =>
     Fin.castSucc_injective _ (by rw [hvert, hsrc, fsrc, hedge])
-  have hjt : ∀ e, (fig18 a b c).graph.target (edge e) = vert (hQ.unrooted.graph.target e) := fun e =>
+  have hjt : ∀ e, (fig18 a b c).graph.target (edge e) =
+    vert (hQ.unrooted.graph.target e) := fun e =>
     Fin.castSucc_injective _ (by rw [hvert, htgt, ftgt, hedge])
   refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => Or.inl ⟨hjs e, hjt e⟩, fun e _ => ⟨hjs e, hjt e⟩,
     fun x => ?_⟩, fun e => ?_, fun e _ => ?_⟩⟩
@@ -395,9 +399,10 @@ omit [Fintype V] in
 /-- **The metric unrooted network of a network isomorphic to a rooting of a figure**: let `φ` map
 a network `P` on `Fin 9` nodes and edges (the leaves `a, b, c, d` at `0, 1, 2, 3`, the root `8`, the
 hybrid edges `6`, `7`) onto `Q`, the edge `8` at the root onto the edge of `Q` that `Q⁻` merges into
-the other edge `m` at the root. Then `Q⁻` is the figure `figNet fs ft a b c` when the edges `0, …, 7`
-of `P` join the nodes of the figure's edges (the edge `m` from the end of the edge `8`), in the same
-direction for the hybrid edges, with the lengths and inheritance probabilities of `Q`. -/
+the other edge `m` at the root. Then `Q⁻` is the figure `figNet fs ft a b c` when the edges
+`0, …, 7` of `P` join the nodes of the figure's edges (the edge `m` from the end of the edge `8`),
+in the same direction for the hybrid edges, with the lengths and inheritance probabilities of `Q`.
+-/
 theorem inducesNetwork_of_rootedIso {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) {qs qt : Fin 9 → Fin 9} {fs ft : Fin 8 → Fin 8} {a b c : X} {m : Fin 8}
     {len : Fin 8 → ℝ} {γ : ℝ}
@@ -494,7 +499,8 @@ theorem inducesNetwork_of_rootedIso {Q : RootedNetwork V E X} {θ : MetricData E
   have hdir' : ∀ g, hQ.unrooted.IsDirected g ↔ edge g = 6 ∨ edge g = 7 := by
     intro g
     rw [semidirected_isDirected_iff, ← hedge g, φ.isHybridArc_iff]
-    have key : ∀ y : Fin 9, (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9) (Fin 9) X).graph.indegree y =
+    have key : ∀ y : Fin 9, (⟨⟨qs, qt⟩, 8, quartetLeaf9 a b c⟩ : RootedNetwork (Fin 9)
+      (Fin 9) X).graph.indegree y =
         #(univ.filter fun f => qt f = y) := by
       intro y
       unfold DirectedMultigraph.indegree
@@ -541,8 +547,8 @@ theorem inducesNetwork_of_rootedIso {Q : RootedNetwork V E X} {θ : MetricData E
   · show (figMetric len γ).inheritance (edge g) = θ.inheritance (sdArc hP hB hXn g)
     rw [hinh _ ((hdir' g).1 hd), hedge]
 
-/-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with `xᵢ = e^{-tᵢ}`:
-`CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
+/-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with
+`xᵢ = e^{-tᵢ}`: `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
 `CF_{AC|BD} = CF_{AD|BC} = (1-γ)²(⅓x₁x₂x₃) + 2γ(1-γ)(⅓x₁x₂) + γ²(⅓x₁x₂x₄)`. -/
 theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (len : Fin 8 → ℝ) (γ : ℝ)
@@ -566,7 +572,8 @@ theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
   have hQ' := isLSAQuartet_q15 hX h hlen hγ₀ hγ₁
   have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q15 hQ').some.symm⟩
   -- Lemma 9 at the `2₂`-cycle of `q15`, with the hybrid edges `6` (`γ`) and `7`
-  have hL := fun q => lemma9 hQ' (inducesCycleType_q15 hX h) (h₁ := 6) (h₂ := 7) (by decide) rfl rfl q
+  have hL := fun q => lemma9 hQ' (inducesCycleType_q15 hX h) (h₁ := 6) (h₂ :=
+    7) (by decide) rfl rfl q
   -- the three trees `Q₁⊕`, `Q₂⊕`, `Q₀⊕` (equation (1))
   obtain ⟨s₁, s₂, s₃⟩ := cf_deleteArc_q15_seven hX h hlen hγ₀ hγ₁
   obtain ⟨u₁, u₂, u₃⟩ := cf_deleteArc_q15_six hX h hlen hγ₀ hγ₁
@@ -575,7 +582,8 @@ theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
   show (cf Q θ _, cf Q θ _, cf Q θ _) = _
   rw [hcf, hL, hL, hL, hinh]
   refine Prod.ext ?_ (Prod.ext ?_ ?_)
-  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7)
+      (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
           (quartetTree a b c d h) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
           (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a b c d h) +
         2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
@@ -584,9 +592,11 @@ theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 - 2 / 3 * (x₁ * x₂ * x₄)) := by
       rw [s₁, u₁, w₁]; ring
     convert key using 5
-  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7)
+      (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
           (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
-          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) +
+          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ))
+            (quartetTree a c b d (distinct4_acbd h)) +
         2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
           (contractMetric (q15 a b c) (· = ↑q15Cycle) (q15Metric len γ))
           (quartetTree a c b d (distinct4_acbd h)) =
@@ -594,9 +604,11 @@ theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 / 3 * (x₁ * x₂ * x₄)) := by
       rw [s₂, u₂, w₂]; ring
     convert key using 5
-  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7)
+      (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
           (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
-          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) +
+          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ))
+            (quartetTree a d b c (distinct4_adbc h)) +
         2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
           (contractMetric (q15 a b c) (· = ↑q15Cycle) (q15Metric len γ))
           (quartetTree a d b c (distinct4_adbc h)) =
@@ -642,13 +654,15 @@ theorem example3 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     convert key using 5
   · have key : γ * cf (deleteArc (q16 a b c) 7) (deleteArcMetric (q16 a b c) 7 (q16Metric len γ))
           (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) * cf (deleteArc (q16 a b c) 6)
-          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) =
+          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ))
+            (quartetTree a c b d (distinct4_acbd h)) =
         (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂)) := by
       rw [s₂, u₂]; ring
     convert key using 5
   · have key : γ * cf (deleteArc (q16 a b c) 7) (deleteArcMetric (q16 a b c) 7 (q16Metric len γ))
           (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) * cf (deleteArc (q16 a b c) 6)
-          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) =
+          (deleteArcMetric (q16 a b c) 6 (q16Metric len γ))
+            (quartetTree a d b c (distinct4_adbc h)) =
         (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * (x₁ * x₂)) := by
       rw [s₃, u₃]; ring
     convert key using 5
@@ -690,13 +704,15 @@ theorem example4 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     convert key using 5
   · have key : γ * cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
           (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) * cf (deleteArc (q17 a b c) 6)
-          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) =
+          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ))
+            (quartetTree a c b d (distinct4_acbd h)) =
         (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * x₂) := by
       rw [s₃, u₂]; ring
     convert key using 5
   · have key : γ * cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
           (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) * cf (deleteArc (q17 a b c) 6)
-          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) =
+          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ))
+            (quartetTree a d b c (distinct4_adbc h)) =
         (1 - γ) * (1 / 3 * x₁) + γ * (1 - 2 / 3 * x₂) := by
       rw [s₁, u₃]; ring
     convert key using 5
@@ -795,7 +811,8 @@ theorem example5 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
   rw [hcf, hL, hL, hL, hinh, p₁, p₂, hK, hK, hK, hA, hB, ite_eq_left m₁, ite_eq_right m₂,
     ite_eq_right m₃]
   refine Prod.ext ?_ (Prod.ext ?_ ?_)
-  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7)
+      (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
           (quartetTree a b c d h) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
           (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a b c d h) +
         (1 - x₁) * (2 * γ * (1 - γ)) * 1 + x₁ * (γ * (1 - γ)) *
@@ -805,9 +822,11 @@ theorem example5 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 - 2 / 3 * (x₁ * x₄)) := by
       rw [s₁, u₁, a₂, b₂]; ring
     convert key using 8
-  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7)
+      (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
           (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
-          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) +
+          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ))
+            (quartetTree a c b d (distinct4_acbd h)) +
         (1 - x₁) * (2 * γ * (1 - γ)) * 0 + x₁ * (γ * (1 - γ)) *
           (cf (qDisj a b c) (qDisjMetric len) (quartetTree a c b d (distinct4_acbd h)) +
             cf (qDisj b a c) (qDisjMetric len) (quartetTree a c b d (distinct4_acbd h))) =
@@ -815,9 +834,11 @@ theorem example5 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 / 3 * (x₁ * x₄)) := by
       rw [s₂, u₂, a₃, b₁]; ring
     convert key using 8
-  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7) (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
+  · have key : γ ^ 2 * cf (deleteArc (q18 a b c) 7)
+      (deleteArcMetric (q18 a b c) 7 (q18Metric len γ))
           (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) ^ 2 * cf (deleteArc (q18 a b c) 6)
-          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) +
+          (deleteArcMetric (q18 a b c) 6 (q18Metric len γ))
+            (quartetTree a d b c (distinct4_adbc h)) +
         (1 - x₁) * (2 * γ * (1 - γ)) * 0 + x₁ * (γ * (1 - γ)) *
           (cf (qDisj a b c) (qDisjMetric len) (quartetTree a d b c (distinct4_adbc h)) +
             cf (qDisj b a c) (qDisjMetric len) (quartetTree a d b c (distinct4_adbc h))) =
@@ -841,11 +862,12 @@ theorem example6 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
   rw [e, Real.exp_log (by norm_num), Real.exp_log (by norm_num), Real.exp_log (by norm_num)]
   norm_num
 
-/-- **Example 7** (`ex::cpbc4`): the 4-cycle of Figure 17 with `γ = 1/2` and `t₁ = t₂ = -log(48/49)` has
-the concordance factors of Example 6, up to the labels of the taxa: by equation (8) its concordance
-factors are `(33/98, 32/98, 33/98)`, and with `b` and `c` exchanged, `(32/98, 33/98, 33/98)`. The paper
-prints `CF_{AB|CD} = 32/98, CF_{AC|BD} = 33/98, CF_{AD|BC} = 33/98` for the labels of Figure 17, which
-are the values for the exchanged labels. -/
+/-- **Example 7** (`ex::cpbc4`): the 4-cycle of Figure 17 with `γ = 1/2` and `t₁ = t₂ = -log(48/49)`
+has the concordance factors of Example 6, up to the labels of the taxa: by equation (8) its
+concordance factors are `(33/98, 32/98, 33/98)`, and with `b` and `c` exchanged,
+`(32/98, 33/98, 33/98)`. The paper prints
+`CF_{AB|CD} = 32/98, CF_{AC|BD} = 33/98, CF_{AD|BC} = 33/98` for the labels of Figure 17, which are
+the values for the exchanged labels. -/
 theorem example7 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (len : Fin 8 → ℝ) (h₁ : len 4 = -Real.log (48 / 49))
     (h₂ : len 5 = -Real.log (48 / 49))

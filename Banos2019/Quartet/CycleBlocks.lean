@@ -13,8 +13,8 @@ of `C`, the taxa joined to `u` by a walk avoiding `C`: the block `nodeBlock N.gr
 * `disjoint_nodeBlock_of_ne`, `exists_mem_nodeBlock`: the blocks of distinct nodes are disjoint, and
   every taxon is in a block.
 * `nodeBlock_hybrid`: the block of the hybrid node `v` is the set of taxa below `v`.
-* `nodeBlock_nonempty`: in an LSA network, the block of every node of `C` but the root holds a taxon;
-  `nodeBlock_root`: the root, when on `C`, has an empty block.
+* `nodeBlock_nonempty`: in an LSA network, the block of every node of `C` but the root holds a
+  taxon; `nodeBlock_root`: the root, when on `C`, has an empty block.
 * `add_le_of_inducesCycleType`: a cycle with `n` nodes other than the root and `k` taxa below its
   hybrid node has `k + n ≤ |X| + 1`, `1 ≤ k` and `2 ≤ n`.
 -/
@@ -71,8 +71,8 @@ section Blocks
 
 variable {N : RootedNetwork V E X} {C : Set E}
 
-/-- **The blocks of two distinct nodes of a cycle are disjoint** (level-1: two nodes of `C` joined by
-a walk avoiding `C` are equal). -/
+/-- **The blocks of two distinct nodes of a cycle are disjoint** (level-1: two nodes of `C` joined
+by a walk avoiding `C` are equal). -/
 theorem disjoint_nodeBlock_of_ne (h1 : IsLevelOne N.graph) (hC : IsCycle N.graph C) {u w : V}
     (hu : u ∈ cycleNodes N.graph C) (hw : w ∈ cycleNodes N.graph C) (hne : u ≠ w) :
     Disjoint (nodeBlock N.graph N.leaf C u) (nodeBlock N.graph N.leaf C w) :=
@@ -109,14 +109,15 @@ theorem nodeBlock_hybrid :
   refine ⟨reaches_of_walks_compl_hybrid hN h1 hC hv h2, fun hx => ?_⟩
   refine walks_of_reaches_of_forall hx fun f hf _ hfC => ?_
   have hs : N.graph.source f = v :=
-    eq_of_reaches_of_reaches hN.1.acyclic (reaches_hybrid hN h1 hC hv h2 _ (source_mem_cycleNodes hfC))
+    eq_of_reaches_of_reaches hN.1.acyclic (reaches_hybrid hN h1 hC hv h2 _
+      (source_mem_cycleNodes hfC))
       hf
   exact notMem_of_source_eq_hybrid hN h1 hC hv h2 hs hfC
 
 omit hv h2 in
-/-- An arc leaving a node `u` of `C` off `C` gives `u` a taxon in its block: a path from its target to
-a taxon cannot meet `C`, for its first node on `C` would be joined to `u` avoiding `C`, hence be `u`,
-and the network would have a cycle. -/
+/-- An arc leaving a node `u` of `C` off `C` gives `u` a taxon in its block: a path from its target
+to a taxon cannot meet `C`, for its first node on `C` would be joined to `u` avoiding `C`, hence be
+`u`, and the network would have a cycle. -/
 theorem nodeBlock_nonempty_of_exit {u : V} (hu : u ∈ cycleNodes N.graph C) {g : E}
     (hg : N.graph.source g = u) (hgC : g ∉ C) : (nodeBlock N.graph N.leaf C u).Nonempty := by
   obtain ⟨x, hx⟩ := exists_reaches_leaf hN.1 (N.graph.target g)
@@ -128,8 +129,8 @@ theorem nodeBlock_nonempty_of_exit {u : V} (hu : u ∈ cycleNodes N.graph C) {g 
     rw [← hcu] at h
     exact absurd (Relation.TransGen.head' ⟨g, hg, rfl⟩ (reaches_of_adjOff h)) (hN.1.acyclic u)
 
-/-- **A node of `C` other than its hybrid node and its top leaves an arc off `C`**: it has one parent,
-along `C`, and two children, and only two of its arcs are edges of `C`. -/
+/-- **A node of `C` other than its hybrid node and its top leaves an arc off `C`**: it has one
+parent, along `C`, and two children, and only two of its arcs are edges of `C`. -/
 theorem exists_exit_of_mem {t : V} (hK : IsContractible N C t) {u : V}
     (hu : u ∈ cycleNodes N.graph C) (huv : u ≠ v) (hut : u ≠ t) :
     ∃ g, N.graph.source g = u ∧ g ∉ C := by
@@ -169,9 +170,9 @@ theorem exists_exit_of_mem {t : V} (hK : IsContractible N C t) {u : V}
 omit hv h2 in
 /-- **In an LSA network, the block of the top `t ≠ root` of `C` holds a taxon.** Below `t` the
 vertices are entered only from below `t` (`reaches_source_of_below`: an edge of a cycle through `t`
-entering `t` would put that cycle on `C`, against `IsContractible.top_entry`), so if every taxon were
-below `t`, `t` would be a stable ancestor of the taxa, below the root. A taxon not below `t` is joined
-to `t` by going up from `t` to the root and down to the taxon, avoiding `C`. -/
+entering `t` would put that cycle on `C`, against `IsContractible.top_entry`), so if every taxon
+were below `t`, `t` would be a stable ancestor of the taxa, below the root. A taxon not below `t` is
+joined to `t` by going up from `t` to the root and down to the taxon, avoiding `C`. -/
 theorem nodeBlock_top_nonempty {t : V} (hK : IsContractible N C t) (htr : t ≠ N.root)
     (hlsa : N.IsLSANetwork) : (nodeBlock N.graph N.leaf C t).Nonempty := by
   have := hN.1.finite_arcs
@@ -326,8 +327,8 @@ theorem sum_ncard_nodeBlock_le (h1 : IsLevelOne N.graph) {C : Set E} (hC : IsCyc
     (mem_cycleNodesOffRoot.1 hw).1 hne
 
 /-- **The size of a cycle and the number of taxa below its hybrid node** (the argument of Lemma 5):
-a cycle of an LSA network inducing an `n_k`-cycle has `n` nodes other than the root, whose blocks are
-pairwise disjoint and nonempty, and the block of the hybrid node has `k` taxa; so
+a cycle of an LSA network inducing an `n_k`-cycle has `n` nodes other than the root, whose blocks
+are pairwise disjoint and nonempty, and the block of the hybrid node has `k` taxa; so
 `k + (n - 1) ≤ |X|`. Moreover `1 ≤ k`, and `2 ≤ n`: the two arcs out of the root have distinct
 targets. -/
 theorem add_le_of_inducesCycleType (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
@@ -346,7 +347,8 @@ theorem add_le_of_inducesCycleType (hN : IsBinaryRootedNetwork N) (h1 : IsLevelO
   have hpos : ∀ u ∈ (cycleNodesOffRoot N C).erase v, 1 ≤ (nodeBlock N.graph N.leaf C u).ncard :=
     fun u hu => by
       have hu' := mem_cycleNodesOffRoot.1 (mem_of_mem_erase hu)
-      exact (Set.ncard_pos (Set.toFinite _)).2 (nodeBlock_nonempty hN h1 hcyc hv h2 hlsa hu'.1 hu'.2)
+      exact (Set.ncard_pos (Set.toFinite _)).2
+        (nodeBlock_nonempty hN h1 hcyc hv h2 hlsa hu'.1 hu'.2)
   have hrest := card_nsmul_le_sum _ _ 1 hpos
   rw [smul_eq_mul, mul_one, card_erase_of_mem hvS, hS] at hrest
   have hk1 : 1 ≤ k := by
@@ -394,7 +396,8 @@ omit [Fintype V] [Fintype X] in
 /-- Two distinct cycles of a level-1 network have no common edge. -/
 theorem disjoint_of_isCycle_of_ne (h1 : IsLevelOne N.graph) {C₁ C₂ : Set E}
     (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hne : C₁ ≠ C₂) : Disjoint C₁ C₂ :=
-  Set.disjoint_iff_inter_eq_empty.2 (Set.not_nonempty_iff_eq_empty.1 fun h => hne (h1 _ _ hC₁ hC₂ h))
+  Set.disjoint_iff_inter_eq_empty.2 (Set.not_nonempty_iff_eq_empty.1 fun h => hne
+    (h1 _ _ hC₁ hC₂ h))
 
 omit [Fintype V] [Fintype X] in
 /-- **The node of `C₁` toward another cycle `C₂`** is unique: two nodes of `C₁` joined avoiding `C₁`
@@ -473,9 +476,9 @@ theorem one_le_ncard_nodeBlock (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N
     (mem_cycleNodesOffRoot.1 hu).1 (mem_cycleNodesOffRoot.1 hu).2)
 
 /-- **Several cycles** (proof of Lemma 5): for a family of distinct cycles `C i`, and for each `i` a
-set `U i` of nodes of `C i` containing a node toward each other cycle, the blocks of the nodes of the
-cycles other than the root and outside the sets `U i` are pairwise disjoint and nonempty, so there are
-at most as many as taxa. -/
+set `U i` of nodes of `C i` containing a node toward each other cycle, the blocks of the nodes of
+the cycles other than the root and outside the sets `U i` are pairwise disjoint and nonempty, so
+there are at most as many as taxa. -/
 theorem sum_card_sdiff_le {ι : Type*} [Fintype ι] (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (C : ι → Set E)
     (hC : ∀ i, IsCycle N.graph (C i)) (hinj : Function.Injective C) (U : ι → Finset V)
@@ -506,9 +509,9 @@ theorem sum_card_sdiff_le {ι : Type*} [Fintype ι] (hN : IsBinaryRootedNetwork 
   omega
 
 omit [Fintype V] [Fintype X] in
-/-- **Three cycles** (proof of Lemma 5): if the nodes of `C₁` toward `C₂` and toward `C₃` differ, `C₂`
-and `C₃` lie on different sides of `C₁`, and the nodes of `C₂` toward `C₁` and toward `C₃` are the
-same: a walk from `C₂` to `C₃` avoiding `C₂` meets `C₁`. -/
+/-- **Three cycles** (proof of Lemma 5): if the nodes of `C₁` toward `C₂` and toward `C₃` differ,
+`C₂` and `C₃` lie on different sides of `C₁`, and the nodes of `C₂` toward `C₁` and toward `C₃` are
+the same: a walk from `C₂` to `C₃` avoiding `C₂` meets `C₁`. -/
 theorem eq_of_ne_of_cycles (h1 : IsLevelOne N.graph) {C₁ C₂ C₃ : Set E}
     (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hC₃ : IsCycle N.graph C₃)
     (h12 : C₁ ≠ C₂) (h13 : C₁ ≠ C₃) {u₁₂ u₁₃ c₂ c₃ : V} (hu₁₂ : u₁₂ ∈ cycleNodes N.graph C₁)
@@ -551,9 +554,9 @@ theorem card_add_card_le_of_cycles (hN : IsBinaryRootedNetwork N) (h1 : IsLevelO
   rw [card_singleton] at k₁ k₂
   omega
 
-/-- **Three distinct cycles of an LSA network** (proof of Lemma 5): `n₁ + n₂ + n₃ - 4 ≤ |X|`. At most
-one of the three cycles has different nodes toward the two others (`eq_of_ne_of_cycles`), so at most
-four nodes lose their blocks. -/
+/-- **Three distinct cycles of an LSA network** (proof of Lemma 5): `n₁ + n₂ + n₃ - 4 ≤ |X|`. At
+most one of the three cycles has different nodes toward the two others (`eq_of_ne_of_cycles`), so at
+most four nodes lose their blocks. -/
 theorem card_add_card_add_card_le_of_cycles (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) {C₁ C₂ C₃ : Set E}
     (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hC₃ : IsCycle N.graph C₃)
@@ -632,10 +635,10 @@ theorem nodeBlock_subset_of_cycles (hN : N.IsPhylogenetic) (h1 : IsLevelOne N.gr
   · exact absurd hx (Set.disjoint_left.1 (disjoint_nodeBlock_of_cycles h1 hC₁ hC₂ hne hu₁ ha hc₂
       hw₁ hau hu₂ hb hc₁ hw₂ hbu) hxa)
 
-/-- For a cycle `C` inducing a `3₂`-cycle and another cycle `C'` with at least three nodes other than
-the root, on four taxa, the node of `C` toward `C'` is the hybrid node of `C` (proof of Lemma 6): its
-block holds the blocks of two nodes of `C'`, at least two taxa, and the blocks of the other nodes of
-`C` hold one taxon each. -/
+/-- For a cycle `C` inducing a `3₂`-cycle and another cycle `C'` with at least three nodes other
+than the root, on four taxa, the node of `C` toward `C'` is the hybrid node of `C` (proof of Lemma
+6): its block holds the blocks of two nodes of `C'`, at least two taxa, and the blocks of the other
+nodes of `C` hold one taxon each. -/
 theorem eq_hybrid_of_walks_compl_of_three_two (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C : Set E}
     {v : V} (hC : InducesCycleType N C v 3 2) {C' : Set E} (hC' : IsCycle N.graph C')
@@ -653,8 +656,10 @@ theorem eq_hybrid_of_walks_compl_of_three_two (hN : IsBinaryRootedNetwork N)
   have hsub : nodeBlock N.graph N.leaf C' b₁ ∪ nodeBlock N.graph N.leaf C' b₂ ⊆
       nodeBlock N.graph N.leaf C u :=
     Set.union_subset
-      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₁'.1 hc hw' (ne_of_mem_erase hb₁))
-      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₂'.1 hc hw' (ne_of_mem_erase hb₂))
+      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₁'.1 hc hw'
+        (ne_of_mem_erase hb₁))
+      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₂'.1 hc hw'
+        (ne_of_mem_erase hb₂))
   have hu2 : 2 ≤ (nodeBlock N.graph N.leaf C u).ncard := by
     refine le_trans ?_ (Set.ncard_le_ncard hsub (Set.toFinite _))
     rw [Set.ncard_union_eq (disjoint_nodeBlock_of_ne h1 hC' hb₁'.1 hb₂'.1 hb₁₂) (Set.toFinite _)
@@ -683,9 +688,9 @@ theorem eq_hybrid_of_walks_compl_of_three_two (hN : IsBinaryRootedNetwork N)
   rw [smul_eq_mul, mul_one, card_erase_of_mem huS', card_erase_of_mem hvS, hS] at hrest
   omega
 
-/-- **Two cycles inducing `3₂`-cycles are the same** (Lemma 6, on four taxa): the node of each toward
-the other is its hybrid node (`eq_hybrid_of_walks_compl_of_three_two`), and then each hybrid node is
-below the other. -/
+/-- **Two cycles inducing `3₂`-cycles are the same** (Lemma 6, on four taxa): the node of each
+toward the other is its hybrid node (`eq_hybrid_of_walks_compl_of_three_two`), and then each hybrid
+node is below the other. -/
 theorem eq_of_inducesCycleType_three_two_of_card (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C C' : Set E}
     {v v' : V} (hC : InducesCycleType N C v 3 2) (hC' : InducesCycleType N C' v' 3 2) : C = C' := by
@@ -705,8 +710,8 @@ theorem eq_of_inducesCycleType_three_two_of_card (hN : IsBinaryRootedNetwork N)
   have heq := eq_of_reaches_of_reaches hN.1.acyclic r₁ r₂
   exact hne ((lemma3 hN h1 hC.1).2.2 C' hC'.1 ⟨u, hC.2.1, heq ▸ hC'.2.1⟩)
 
-/-- **No `2₂`-cycle with a `4`-cycle** (Lemma 6, on four taxa): the four nodes of the `4`-cycle have a
-taxon each in their blocks, so the block of its node toward the `2₂`-cycle has at most one, and it
+/-- **No `2₂`-cycle with a `4`-cycle** (Lemma 6, on four taxa): the four nodes of the `4`-cycle have
+a taxon each in their blocks, so the block of its node toward the `2₂`-cycle has at most one, and it
 holds the block of a node of the `2₂`-cycle, of two taxa. -/
 theorem not_inducesCycleType_two_two_of_four (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C C' : Set E}

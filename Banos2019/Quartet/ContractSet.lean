@@ -6,18 +6,19 @@ public import Banos2019.Quartet.CutSplits
 /-!
 # Contracting several cycles (`Q₀⊕`, `Q̃⊕`, and the tree of Proposition 6)
 
-`contractRooted Q P` contracts the cycles of `Q` satisfying `P`. In a binary level-1 network distinct
-cycles have no common node (Lemma 3), so each node of the contracted network is a single node of `Q`
-off these cycles or the nodes of one of them, represented by its top (`contractSetRep`).
+`contractRooted Q P` contracts the cycles of `Q` satisfying `P`. In a binary level-1 network
+distinct cycles have no common node (Lemma 3), so each node of the contracted network is a single
+node of `Q` off these cycles or the nodes of one of them, represented by its top (`contractSetRep`).
 
 * `contractSet_mk_eq_mk_iff`, `contractSetRep`: the nodes of the contracted network.
 * `contractSet_isPhylogenetic`, `contractSet_isMetric`, `contractSet_indegree`,
-  `contractSet_outdegree_of_not`, `contractSet_outdegree_of_mem`: it is a metric phylogenetic network;
-  the node of a cycle `C` has indegree one (or zero, for the root) and outdegree `|C| - 1`.
-* `contractSet_isCycle_image`, `contractSet_exists_isCycle`, `contractSet_exists_inducesCycleType_iff`:
-  its cycles are the cycles of `Q` not satisfying `P`, with their types. A cycle of the contracted
-  network gives a closed walk of `Q` through the contracted cycles it passes; it closes a cycle of `Q`
-  through any of its edges, which meets no contracted cycle (level-1).
+  `contractSet_outdegree_of_not`, `contractSet_outdegree_of_mem`: it is a metric phylogenetic
+  network; the node of a cycle `C` has indegree one (or zero, for the root) and outdegree `|C| - 1`.
+* `contractSet_isCycle_image`, `contractSet_exists_isCycle`,
+  `contractSet_exists_inducesCycleType_iff`: its cycles are the cycles of `Q` not satisfying `P`,
+  with their types. A cycle of the contracted network gives a closed walk of `Q` through the
+  contracted cycles it passes; it closes a cycle of `Q` through any of its edges, which meets no
+  contracted cycle (level-1).
 * `contractSet_hasCutSplit_iff`: it has the cut edges of `Q`: a cut edge is on no cycle, and every
   cycle is on one side of it.
 * `isReducible_contractSet`: when every contracted cycle induces a 2-cycle, it satisfies
@@ -442,7 +443,8 @@ theorem walks_of_contractSet_walks {F : Set {e // ∀ C, IsCycle Q.graph C → P
     {W W' : Quot (RootedContractRel Q P)} (h : (contractRooted Q P).graph.Walks F W W') :
     Q.graph.Walks (Subtype.val '' F ∪ {e | ∃ C, IsCycle Q.graph C ∧ P C ∧ e ∈ C})
       (contractSetRep hQ h1 W) (contractSetRep hQ h1 W') := by
-  have hstep : ∀ f ∈ F, Q.graph.Walks (Subtype.val '' F ∪ {e | ∃ C, IsCycle Q.graph C ∧ P C ∧ e ∈ C})
+  have hstep : ∀ f ∈ F, Q.graph.Walks (Subtype.val '' F ∪
+    {e | ∃ C, IsCycle Q.graph C ∧ P C ∧ e ∈ C})
       (contractSetRep hQ h1 ((contractRooted Q P).graph.source f))
       (contractSetRep hQ h1 ((contractRooted Q P).graph.target f)) := by
     intro f hf
@@ -470,7 +472,8 @@ theorem contractSet_exists_isCycle {D : Set E} (hD : IsCycle Q.graph D) (hP : ¬
       contractSetRep hQ h1 (Quot.mk (RootedContractRel Q P) w) = w := fun w hw =>
     contractSetRep_mk_of_not hQ h1 (not_inPCycle_of_mem hQ h1 hD hP hw)
   refine ⟨_, hD.preimage (G' := (contractRooted Q P).graph) (contractSetRep hQ h1) Subtype.val
-    (contractSetRep_injective hQ h1) Subtype.val_injective hDψ (fun w hw => ⟨Quot.mk _ w, hrep w hw⟩)
+    (contractSetRep_injective hQ h1) Subtype.val_injective hDψ
+    (fun w hw => ⟨Quot.mk _ w, hrep w hw⟩)
     (fun e he => (hrep _ (source_mem_cycleNodes he)).symm)
     (fun e he => (hrep _ (target_mem_cycleNodes he)).symm), Set.image_preimage_eq_of_subset hDψ⟩
 
@@ -582,8 +585,8 @@ theorem contractSet_exists_inducesCycleType_iff (n k : ℕ) (Dx : Set X) :
     obtain ⟨D', hD', rfl⟩ := contractSet_exists_isCycle hQ h1 hD.1 hP
     have hrep := contractSetRep_mk_of_not hQ h1 (P := P)
       (not_inPCycle_of_mem hQ h1 hD.1 hP hD.2.1)
-    refine ⟨D', Quot.mk _ w, (contractSet_inducesCycleType_iff hQ h1 hD').2 (by rw [hrep]; exact hD),
-      ?_⟩
+    refine ⟨D', Quot.mk _ w, (contractSet_inducesCycleType_iff hQ h1 hD').2
+      (by rw [hrep]; exact hD), ?_⟩
     rw [hbelow, hrep]
 
 /-- The cycles of the contracted network are as many as the cycles of `Q` not contracted. -/

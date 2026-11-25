@@ -8,32 +8,32 @@ public import Phylogenetics.NMSC.SpeciesTree
 /-!
 # Networks without hybrid edges are species trees (Baños 2019, Sections 4 and 5)
 
-The paper applies the results of Allman, Degnan and Rhodes 2011 on species trees to the rooted networks
-without hybrid edges that its reductions produce: the quartet trees, and the networks `Q₁⊕`, `Q₂⊕`,
-`Q₀⊕` of Section 5 once every cycle is gone, which may have nodes of indegree one and outdegree one and a
-root of outdegree one. This file identifies the network multispecies coalescent on such a network with
-the multispecies coalescent on a species tree.
+The paper applies the results of Allman, Degnan and Rhodes 2011 on species trees to the rooted
+networks without hybrid edges that its reductions produce: the quartet trees, and the networks
+`Q₁⊕`, `Q₂⊕`, `Q₀⊕` of Section 5 once every cycle is gone, which may have nodes of indegree one and
+outdegree one and a root of outdegree one. This file identifies the network multispecies coalescent
+on such a network with the multispecies coalescent on a species tree.
 
 For a phylogenetic network `N` with no hybrid arc, valid parameters `θ` and at least two taxa:
 
-* `treeCluster N v`: the taxa below the vertex `v`; `treeClusters N`, the clusters of all vertices, form
-  a hierarchy (`isHierarchy_treeClusters`).
-* `treeLength N θ A`: the sum of the lengths of the arcs into the vertices with cluster `A`, the length of
-  the edge above `A` once the nodes of indegree one and outdegree one are suppressed.
+* `treeCluster N v`: the taxa below the vertex `v`; `treeClusters N`, the clusters of all vertices,
+  form a hierarchy (`isHierarchy_treeClusters`).
+* `treeLength N θ A`: the sum of the lengths of the arcs into the vertices with cluster `A`, the
+  length of the edge above `A` once the nodes of indegree one and outdegree one are suppressed.
 * `treeSpeciesTree`: the species tree with these clusters and lengths;
-  `treeSpeciesTree_unrootedLength`: the length of a split of its unrooted tree is the total length of
-  the arcs that induce the split.
+  `treeSpeciesTree_unrootedLength`: the length of a split of its unrooted tree is the total length
+  of the arcs that induce the split.
 * `geneTreeDist_eq_rootedDist`: the network multispecies coalescent on `N`, for any inheritance
-  correlation `ρ ≥ 0`, is the multispecies coalescent on `treeSpeciesTree`; `nmscCF_eq_quartetProb`: the
-  concordance factors of `N` are the quartet probabilities of `treeSpeciesTree`.
+  correlation `ρ ≥ 0`, is the multispecies coalescent on `treeSpeciesTree`; `nmscCF_eq_quartetProb`:
+  the concordance factors of `N` are the quartet probabilities of `treeSpeciesTree`.
 
-The proof suppresses the nodes of indegree one and outdegree one (`NMSC.geneTreeDist_suppress`), which
-leaves a tree in which distinct vertices have distinct clusters, except for a root of outdegree one and
-its child. That tree is the network of its hierarchy (`hierarchyNetwork`), up to the names of the
-vertices and arcs (`NMSC.rootDist_congr`), or, with a root of outdegree one, the network of its
-hierarchy below one arc from the root (`NMSC.IsGlued.rootDist_eq_unit`), and the population on that arc
-does not change the gene tree (`kingmanTransition_mul_kingmanAbsorption`). On the network of a hierarchy
-the two coalescents agree (`forestDist_univ_eq_geneTreeDist`).
+The proof suppresses the nodes of indegree one and outdegree one (`NMSC.geneTreeDist_suppress`),
+which leaves a tree in which distinct vertices have distinct clusters, except for a root of
+outdegree one and its child. That tree is the network of its hierarchy (`hierarchyNetwork`), up to
+the names of the vertices and arcs (`NMSC.rootDist_congr`), or, with a root of outdegree one, the
+network of its hierarchy below one arc from the root (`NMSC.IsGlued.rootDist_eq_unit`), and the
+population on that arc does not change the gene tree (`kingmanTransition_mul_kingmanAbsorption`). On
+the network of a hierarchy the two coalescents agree (`forestDist_univ_eq_geneTreeDist`).
 -/
 
 @[expose] public noncomputable section
@@ -84,8 +84,8 @@ theorem arc_eq_of_target_eq (ht : ∀ e, ¬ N.IsHybridArc e) {e f : E}
   rw [(hg e).1 h, (hg f).1 rfl]
 
 omit [Fintype V] [Fintype X] [DecidableEq X] in
-/-- Without hybrid arcs, a vertex that reaches the target of an arc and is not that target reaches its
-source. -/
+/-- Without hybrid arcs, a vertex that reaches the target of an arc and is not that target reaches
+its source. -/
 theorem reaches_source_of_reaches_target (ht : ∀ e, ¬ N.IsHybridArc e) {e : E} {a : V}
     (h : N.graph.Reaches a (N.graph.target e)) (hne : a ≠ N.graph.target e) :
     N.graph.Reaches a (N.graph.source e) := by
@@ -192,8 +192,8 @@ theorem isHierarchy_treeClusters (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHyb
     obtain ⟨v, rfl⟩ := mem_treeClusters.1 hB
     exact treeCluster_laminar ht u v
 
-/-- The length of the edge above the cluster `A`: the sum of the lengths of the arcs into the vertices
-with cluster `A`, which form a chain of nodes of indegree one and outdegree one. -/
+/-- The length of the edge above the cluster `A`: the sum of the lengths of the arcs into the
+vertices with cluster `A`, which form a chain of nodes of indegree one and outdegree one. -/
 def treeLength (N : RootedNetwork V E X) (θ : MetricData E) (A : Finset X) : ℝ :=
   ∑ e with treeCluster N (N.graph.target e) = A, θ.length e
 
@@ -206,8 +206,9 @@ theorem treeLength_pos (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
   refine Finset.sum_pos' (fun f _ => (hθ.1 f (isTreeArc_of_forall ht f)).le)
     ⟨e, mem_filter.2 ⟨mem_univ _, by rw [he]⟩, hθ.1 e (isTreeArc_of_forall ht e)⟩
 
-/-- **The species tree of a network without hybrid arcs**: its clusters are those of the vertices, and
-the edge above a cluster has the length of the chain of arcs into the vertices with that cluster. -/
+/-- **The species tree of a network without hybrid arcs**: its clusters are those of the vertices,
+and the edge above a cluster has the length of the chain of arcs into the vertices with that
+cluster. -/
 def treeSpeciesTree (N : RootedNetwork V E X) (hN : N.IsPhylogenetic)
     (ht : ∀ e, ¬ N.IsHybridArc e) {θ : MetricData E} (hθ : N.IsMetric θ) : SpeciesTree X where
   clusters := treeClusters N
@@ -422,7 +423,8 @@ omit [Fintype V] [DecidableEq X] in
 clusters, except a root of outdegree one and its child. -/
 theorem treeCluster_injOn (hK : K.IsPhylogenetic) (ht : ∀ e, ¬ K.IsHybridArc e)
     (hc : ∀ v, ¬ K.IsChainVertex v) {u v : V}
-    (hu : u ≠ K.root ∨ 2 ≤ K.graph.outdegree K.root) (hv : v ≠ K.root ∨ 2 ≤ K.graph.outdegree K.root)
+    (hu : u ≠ K.root ∨ 2 ≤ K.graph.outdegree K.root)
+    (hv : v ≠ K.root ∨ 2 ≤ K.graph.outdegree K.root)
     (h : treeCluster K u = treeCluster K v) : u = v := by
   have key : ∀ u v : V, (u ≠ K.root ∨ 2 ≤ K.graph.outdegree K.root) →
       treeCluster K u = treeCluster K v → K.graph.Reaches u v → u = v := by
@@ -486,8 +488,8 @@ theorem taxaInj_congr {V' E' : Type*} [Fintype V'] [Fintype E'] {K' : RootedNetw
   rw [hleaf x, hf.eq_iff]
 
 /-- **A tree without nodes of indegree one and outdegree one, whose root has outdegree at least two,
-is the network of its hierarchy** (up to the names of the vertices and arcs), so the two have the same
-gene tree distribution. -/
+is the network of its hierarchy** (up to the names of the vertices and arcs), so the two have the
+same gene tree distribution. -/
 theorem geneTreeDist_eq_hierarchyNetwork_of_two_le (hK : K.IsPhylogenetic)
     (ht : ∀ e, ¬ K.IsHybridArc e) (hc : ∀ v, ¬ K.IsChainVertex v) {θ : MetricData E}
     (hinh : ∀ e, θ.inheritance e = 1) (hX : 2 ≤ Fintype.card X)
@@ -590,8 +592,8 @@ theorem isForest_of_rootDist_ne_zero {V' E' : Type*} [Fintype V'] [Fintype E']
   exact (NMSC.good_arriving_root hK' hinj (left_ne_zero_of_mul htop)).1.1
 
 /-- **A tree without nodes of indegree one and outdegree one, whose root has outdegree one, is the
-network of its hierarchy below one arc from the root**, and the population on that arc does not change
-the gene tree. -/
+network of its hierarchy below one arc from the root**, and the population on that arc does not
+change the gene tree. -/
 theorem geneTreeDist_eq_hierarchyNetwork_of_eq_one (hK : K.IsPhylogenetic)
     (ht : ∀ e, ¬ K.IsHybridArc e) (hc : ∀ v, ¬ K.IsChainVertex v) {θ : MetricData E}
     (hinh : ∀ e, θ.inheritance e = 1) (hX : 2 ≤ Fintype.card X)
@@ -608,7 +610,8 @@ theorem geneTreeDist_eq_hierarchyNetwork_of_eq_one (hK : K.IsPhylogenetic)
   -- the child of the root has all the taxa below it
   have hcp : treeCluster K (K.graph.target p) = univ := by
     refine eq_univ_of_forall fun x => mem_treeCluster.2 ?_
-    rcases Relation.ReflTransGen.cases_head (hK.root_reaches (K.leaf x)) with h | ⟨c, ⟨f, hf, rfl⟩, hcx⟩
+    rcases Relation.ReflTransGen.cases_head
+      (hK.root_reaches (K.leaf x)) with h | ⟨c, ⟨f, hf, rfl⟩, hcx⟩
     · exact absurd h.symm (leaf_ne_root hK x)
     · rwa [(hp f).1 hf] at hcx
   have hmem : ∀ v, treeCluster K v ∈ H := fun v => mem_treeClusters.2 ⟨v, rfl⟩
@@ -748,7 +751,8 @@ theorem geneTreeDist_eq_hierarchyNetwork_of_eq_one (hK : K.IsPhylogenetic)
     rw [hψv _ (leaf_ne_root hK x)]
     congr 2
     exact treeCluster_leaf hK x
-  have hlow : NMSC.lowerInj fV (NMSC.taxaInj K univ) = NMSC.taxaInj (hierarchyNetwork H hH) univ := by
+  have hlow : NMSC.lowerInj fV (NMSC.taxaInj K univ) =
+    NMSC.taxaInj (hierarchyNetwork H hH) univ := by
     funext v
     exact taxaInj_congr (f := fun v => fV (.inr v)) (fV.injective.comp Sum.inr_injective) hleaf v
   have hup : ∀ t : Finset (Finset X),
@@ -763,8 +767,8 @@ theorem geneTreeDist_eq_hierarchyNetwork_of_eq_one (hK : K.IsPhylogenetic)
   have h1 : θ.inheritance (fE (.inr (.inl ()))) = 1 := hinh _
   rw [NMSC.geneTreeDist_eq_injDist hK, NMSC.geneTreeDist_eq_injDist hHN,
     NMSC.injDist_eq_sum_rootDist, NMSC.injDist_eq_sum_rootDist]
-  simp only [hg.rootDist_eq_unit hρ h1, rootDist_pointNetwork, hup, hlow, mul_ite, mul_one, mul_zero,
-    sum_ite_eq', mem_univ, ite_true]
+  simp only [hg.rootDist_eq_unit hρ h1, rootDist_pointNetwork, hup, hlow, mul_ite, mul_one,
+    mul_zero, sum_ite_eq', mem_univ, ite_true]
   simp only [sum_mul, mul_assoc]
   rw [sum_comm]
   refine sum_congr rfl fun F₁ _ => ?_
@@ -798,9 +802,9 @@ section Main
 variable {N : RootedNetwork V E X}
 
 /-- **The network multispecies coalescent on a network without hybrid arcs is the multispecies
-coalescent on its species tree**, for every inheritance correlation `ρ ≥ 0`: nodes of indegree one and
-outdegree one (`NMSC.geneTreeDist_suppress`), a root of outdegree one, and the names of the vertices
-and arcs do not matter. -/
+coalescent on its species tree**, for every inheritance correlation `ρ ≥ 0`: nodes of indegree one
+and outdegree one (`NMSC.geneTreeDist_suppress`), a root of outdegree one, and the names of the
+vertices and arcs do not matter. -/
 theorem geneTreeDist_eq_rootedDist (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
     {θ : MetricData E} (hθ : N.IsMetric θ) (hX : 2 ≤ Fintype.card X) {ρ : ℝ} (hρ : 0 ≤ ρ)
     (G : Finset (Finset X)) :
@@ -815,12 +819,13 @@ theorem geneTreeDist_eq_rootedDist (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsH
 
 /-- **The concordance factors of a network without hybrid arcs are the quartet probabilities of its
 species tree** (Allman, Degnan, Rhodes 2011), for every inheritance correlation `ρ ≥ 0`; Baños 2019
-uses `ρ = 0`. With the nodes of indegree one and outdegree one allowed, this covers the quartet trees
-of Section 4 and the networks `Q₁⊕`, `Q₂⊕`, `Q₀⊕` of Section 5 without cycles. -/
+uses `ρ = 0`. With the nodes of indegree one and outdegree one allowed, this covers the quartet
+trees of Section 4 and the networks `Q₁⊕`, `Q₂⊕`, `Q₀⊕` of Section 5 without cycles. -/
 theorem nmscCF_eq_quartetProb (hN : N.IsPhylogenetic) (ht : ∀ e, ¬ N.IsHybridArc e)
     {θ : MetricData E} (hθ : N.IsMetric θ) (hX : 2 ≤ Fintype.card X) {ρ : ℝ} (hρ : 0 ≤ ρ)
     (q : QuartetTree X) :
-    nmscCF N θ ρ q = External.AllmanDegnanRhodes2011.quartetProb (treeSpeciesTree N hN ht hθ) q := by
+    nmscCF N θ ρ q = External.AllmanDegnanRhodes2011.quartetProb
+      (treeSpeciesTree N hN ht hθ) q := by
   unfold nmscCF External.AllmanDegnanRhodes2011.quartetProb SpeciesTree.unrootedDist
   simp only [geneTreeDist_eq_rootedDist hN ht hθ hX hρ]
   set σ := treeSpeciesTree N hN ht hθ

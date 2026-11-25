@@ -8,10 +8,10 @@ public import Banos2019.Quartet.ContractSet
 /-!
 # The unrooted metric tree of a tree, read off its unrooted network (base case of Proposition 5)
 
-An edge `e` *cuts* the taxa `A` (`CutAt`) when it is the only edge crossing a set of nodes whose taxa
-are `A`. The cuts of `N⁻` are those of `N` (`cutAt_unrooted_iff`): the two arcs at the root of `N`
-cut the same sets (`cutAt_root_iff`), and `N⁻` merges them. An isomorphism of semidirected networks
-keeps the cuts (`SDIso.cutAt_iff`).
+An edge `e` *cuts* the taxa `A` (`CutAt`) when it is the only edge crossing a set of nodes whose
+taxa are `A`. The cuts of `N⁻` are those of `N` (`cutAt_unrooted_iff`): the two arcs at the root of
+`N` cut the same sets (`cutAt_root_iff`), and `N⁻` merges them. An isomorphism of semidirected
+networks keeps the cuts (`SDIso.cutAt_iff`).
 
 For a binary tree `N` whose root is the LSA of its taxa, the arc into a node cuts the cluster of the
 node and its complement, and nothing else (`cutAt_iff_of_tree`). So the splits of the unrooted
@@ -118,7 +118,8 @@ theorem cutAt_root_iff (hM : M.IsPhylogenetic) {e₁ e₂ : E} (hne : e₁ ≠ e
 variable (hM : IsBinaryRootedNetwork M) (hl : M.IsLSANetwork) (hX : Nontrivial X)
 include hl
 
-/-- **The cuts of `N⁻` are those of `N`**: an edge of `N⁻` cuts the taxa that its arc of `N` cuts. -/
+/-- **The cuts of `N⁻` are those of `N`**: an edge of `N⁻` cuts the taxa that its arc of `N` cuts.
+-/
 theorem cutAt_unrooted_iff (g : SemidirectedArc hM.1 hM.2 hX) (A : Set X) :
     CutAt (unrooted M hM hX).graph (unrooted M hM hX).leaf g A ↔
       CutAt M.graph M.leaf (sdArc hM.1 hM.2 hX g) A := by
@@ -449,8 +450,8 @@ theorem unrootedLength_eq_cutLength [Fintype V] [Fintype E] [Fintype X] {M : Roo
     · exact fun h => absurd (mem_univ g₁) h
   rw [hbij, sum_congr rfl fun g _ => hsplit g, sum_add_distrib, hK, add_comm]
 
-/-- **Base case of Proposition 5**: two binary trees whose roots are the LSAs of their taxa and whose
-metric unrooted networks are isomorphic have the same unrooted metric species tree. -/
+/-- **Base case of Proposition 5**: two binary trees whose roots are the LSAs of their taxa and
+whose metric unrooted networks are isomorphic have the same unrooted metric species tree. -/
 theorem sameUnrootedMetricTree_of_iso [Fintype V] [Fintype E] [Fintype X] {V' E' : Type*}
     [Fintype V'] [Fintype E'] {M : RootedNetwork V E X} {M' : RootedNetwork V' E' X}
     (hM : IsBinaryRootedNetwork M) (hl : M.IsLSANetwork) (hM' : IsBinaryRootedNetwork M')
@@ -463,7 +464,8 @@ theorem sameUnrootedMetricTree_of_iso [Fintype V] [Fintype E] [Fintype X] {V' E'
   refine ⟨?_, fun A _ _ _ => ?_⟩
   · ext A
     simp only [treeSpeciesTree_clusters]
-    rw [mem_unroot_treeClusters_iff_exists_cutAt hM ht, mem_unroot_treeClusters_iff_exists_cutAt hM' ht',
+    rw [mem_unroot_treeClusters_iff_exists_cutAt hM ht,
+      mem_unroot_treeClusters_iff_exists_cutAt hM' ht',
       exists_cutAt_iff_exists_unrooted hM hl hX, exists_cutAt_iff_exists_unrooted hM' hl' hX]
     constructor
     · rintro ⟨g, hg⟩

@@ -25,8 +25,8 @@ variable {V E X : Type*} {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
   (hchain : ∀ D, IsCycle M.graph D → ∀ w ∈ cycleNodes M.graph D, ¬ M.IsChainVertex w)
 include hM hchain
 
-/-- **A cycle of the suppressed network is a cycle of `M`, on the same arcs**: the chains of its arcs
-form a cycle of `M` (`isCycle_cycleChainArcs`), which passes through no chain node. -/
+/-- **A cycle of the suppressed network is a cycle of `M`, on the same arcs**: the chains of its
+arcs form a cycle of `M` (`isCycle_cycleChainArcs`), which passes through no chain node. -/
 theorem suppress_isCycle_image {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
     (hD : IsCycle (M.suppress hM).graph D) :
     IsCycle M.graph (Subtype.val '' D) ∧ cycleChainArcs M D = Subtype.val '' D := by
@@ -69,7 +69,8 @@ theorem suppress_cycleNodes_image {D : Set {e // ¬ M.IsChainVertex (M.graph.sou
     (fun _ he => (suppress_target_of_isCycle hM hchain hD he).symm)
 
 /-- **The cycles of the suppressed network have the types of the cycles of `M`.** -/
-theorem suppress_inducesCycleType_iff [Fintype V] [Fintype E] [Fintype X] {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
+theorem suppress_inducesCycleType_iff [Fintype V] [Fintype E] [Fintype X]
+    {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
     {v : {v // ¬ M.IsChainVertex v}} {n k : ℕ} :
     InducesCycleType (M.suppress hM) D v n k ↔ InducesCycleType M (Subtype.val '' D) v.1 n k := by
   have hcyc : IsCycle (M.suppress hM).graph D ↔ IsCycle M.graph (Subtype.val '' D) := by
