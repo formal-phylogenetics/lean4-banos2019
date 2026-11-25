@@ -248,7 +248,7 @@ gives:
 
 The printed values are those of Figure 17 with the taxa `b` and `c` exchanged. The point of the example stands: up to
 the names of the taxa, the 4-cycle has the concordance factors `(32, 33, 33)/98` of the `3₂`-cycle of Example 6
-([`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L849), and `Banos2019Challenge.example7` on the Challenge's definitions; Example 6 is
+([`Banos2019.example7`](../../Banos2019/Quartet/Examples.lean#L849), and [`Banos2019Challenge.example7`](../../palomar/Banos2019/Challenge.lean#L640) on the Challenge's definitions; Example 6 is
 [`Banos2019.example6`](../../Banos2019/Quartet/Examples.lean#L832)).
 
 ### E11. Lemma 12: the statement, and the correspondence of cycles
@@ -291,8 +291,8 @@ construction of the paper does (Definitions 5, 10 and 13, and the gluing step of
 in N2 with s2 in N1 and suppressing that node"), and as Figure 23's `Ñ` shows. arXiv v1 says "suppressing all 2- and
 3-cycles", where suppressing a cycle means contracting it (TeX l. 331). Allman, Baños, Garrote-López and Rhodes 2024
 restate the theorem (their Theorem 2, "Baños 2019, Theorem 4") with "suppressing degree-2 nodes", and for `|X| ≥ 4`. The
-formalization's `Ñ` suppresses them ([`Banos2019.Model.SDNetwork.tilde`](../../palomar/Banos2019/Challenge.lean#L342), [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L216)), and the Challenge's
-`Banos2019Challenge.fig17_fig18_tilde` checks that `Ñ` still tells a 4-cycle from a `3₂`-cycle.
+formalization's `Ñ` suppresses them ([`Banos2019.Model.SDNetwork.tilde`](../../palomar/Banos2019/Challenge.lean#L343), [`Banos2019.theorem4`](../../Banos2019/Identifiability.lean#L216)), and the Challenge's
+[`Banos2019Challenge.fig17_fig18_tilde`](../../palomar/Banos2019/Challenge.lean#L660) checks that `Ñ` still tells a 4-cycle from a `3₂`-cycle.
 
 ### E15. Theorem 4: the base case
 
@@ -426,7 +426,7 @@ construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos20
 
 - **Networks.** A rooted network is a finite directed multigraph with named edges, so that two edges may join the same
   two nodes and 2-cycles exist, as Definition 1 allows. Definition 1's connectedness and the bijectivity of its
-  labelling follow from its other clauses (`Banos2019Challenge.root_reaches`, [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L43)).
+  labelling follow from its other clauses ([`Banos2019Challenge.root_reaches`](../../palomar/Banos2019/Challenge.lean#L607), [`Banos2019.isBinaryRootedNetwork_iff`](../../Banos2019/Network/Rooted.lean#L43)).
   The library works on the rooted and semidirected networks of lean4-phylogenetics; the Challenge restates them in
   Mathlib's vocabulary ([`Banos2019/Defs.lean`](../../Banos2019/Defs.lean)), and [`Banos2019/Bridge/`](../../Banos2019/Bridge) proves that the two agree.
 - **Metric.** Every edge has a positive length, a tree edge has inheritance probability one, and the two hybrid edges
@@ -439,7 +439,7 @@ construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos20
 - **"For generic parameters".** The metrics that violate the property form a Lebesgue-null set, in the coordinates given
   by the edge lengths and, at each hybrid node, the inheritance probability of one of its two hybrid edges (any
   choice). The paper's space `(0,∞)^m × [0,1]^h` (Proposition 10) has the same null sets.
-  `Banos2019Challenge.not_forGenericParams_false` checks that the metrics do not form a null set.
+  [`Banos2019Challenge.not_forGenericParams_false`](../../palomar/Banos2019/Challenge.lean#L614) checks that the metrics do not form a null set.
 - **"Can be determined from S", "identifies".** Lemmas 14–16 give a function of `S`, or of the orderings, alone, the same
   for every network, that returns the blocks, the size, the hybrid block or the adjacencies at generic parameters.
   Theorem 4: there is a property `G` of the parameters of each network, holding for generic parameters, such that two

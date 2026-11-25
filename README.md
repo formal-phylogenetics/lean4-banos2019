@@ -46,15 +46,15 @@ library, through the bridges of [`Banos2019/Bridge/`](Banos2019/Bridge). They ke
 
 | Paper | Lean | Statement |
 | --- | --- | --- |
-| Theorem 3 | `Banos2019Challenge.theorem3` | for generic parameters, four taxa have the Big Cycle property (three different concordance factors) exactly when their induced unrooted network has a 4-cycle |
-| Theorem 4 | `Banos2019Challenge.theorem4` | for generic parameters, two binary level-1 networks on the same taxa with the same orderings of quartet concordance factors have isomorphic networks `Ñ` |
-| Proposition 5 | `Banos2019Challenge.proposition5` | two LSA quartet networks with isomorphic metric unrooted networks have the same concordance factors |
-| Equation (1) | `Banos2019Challenge.equation1_balanced` | check: the concordance factors of a balanced rooted quartet tree |
-| Definition 4 | `Banos2019Challenge.lsa_isLSA` | check: a binary network has a lowest stable ancestor of its taxa |
-| Definition 1 | `Banos2019Challenge.root_reaches` | check: the root reaches every node |
-| "Generic" | `Banos2019Challenge.not_forGenericParams_false` | check: the metrics of a binary network are not a null set |
-| Examples 6, 7 | `Banos2019Challenge.example6`, `Banos2019Challenge.example7` | check: the concordance factors `(32, 33, 33)/98` of Figures 18 and 17 |
-| Figures 17, 18 | `Banos2019Challenge.fig17_fig18_unrooted`, `Banos2019Challenge.fig17_fig18_tilde` | check: `N⁻` of Figure 17 has a 4-cycle and that of Figure 18 none; their networks `Ñ` are not isomorphic |
+| Theorem 3 | [`Banos2019Challenge.theorem3`](palomar/Banos2019/Challenge.lean#L548) | for generic parameters, four taxa have the Big Cycle property (three different concordance factors) exactly when their induced unrooted network has a 4-cycle |
+| Theorem 4 | [`Banos2019Challenge.theorem4`](palomar/Banos2019/Challenge.lean#L562) | for generic parameters, two binary level-1 networks on the same taxa with the same orderings of quartet concordance factors have isomorphic networks `Ñ` |
+| Proposition 5 | [`Banos2019Challenge.proposition5`](palomar/Banos2019/Challenge.lean#L575) | two LSA quartet networks with isomorphic metric unrooted networks have the same concordance factors |
+| Equation (1) | [`Banos2019Challenge.equation1_balanced`](palomar/Banos2019/Challenge.lean#L589) | check: the concordance factors of a balanced rooted quartet tree |
+| Definition 4 | [`Banos2019Challenge.lsa_isLSA`](palomar/Banos2019/Challenge.lean#L601) | check: a binary network has a lowest stable ancestor of its taxa |
+| Definition 1 | [`Banos2019Challenge.root_reaches`](palomar/Banos2019/Challenge.lean#L607) | check: the root reaches every node |
+| "Generic" | [`Banos2019Challenge.not_forGenericParams_false`](palomar/Banos2019/Challenge.lean#L614) | check: the metrics of a binary network are not a null set |
+| Examples 6, 7 | [`Banos2019Challenge.example6`](palomar/Banos2019/Challenge.lean#L622), [`Banos2019Challenge.example7`](palomar/Banos2019/Challenge.lean#L640) | check: the concordance factors `(32, 33, 33)/98` of Figures 18 and 17 |
+| Figures 17, 18 | [`Banos2019Challenge.fig17_fig18_unrooted`](palomar/Banos2019/Challenge.lean#L652), [`Banos2019Challenge.fig17_fig18_tilde`](palomar/Banos2019/Challenge.lean#L660) | check: `N⁻` of Figure 17 has a 4-cycle and that of Figure 18 none; their networks `Ñ` are not isomorphic |
 
 The rows marked "check" test the Challenge's definitions against known facts. Theorem 4 is stated as identifiability:
 a property of the parameters, holding for generic parameters of every binary level-1 network, under which the orderings
