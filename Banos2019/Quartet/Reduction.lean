@@ -4,6 +4,7 @@ public import Banos2019.Quartet.Defs
 public import Phylogenetics.Tree.Splice
 public import Phylogenetics.NMSC.Induced
 public import Banos2019.Quartet.SemidirectedCycles
+public import Banos2019.Quartet.HybridGlue
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -20,7 +21,7 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
 
 @[expose] public noncomputable section
 
-open Phylogenetics Phylogenetics.RootedNetwork Finset
+open Phylogenetics Phylogenetics.RootedNetwork Phylogenetics.NMSC Finset
 open scoped Classical
 
 namespace Banos2019
@@ -861,6 +862,399 @@ change the concordance factors: `CF(Q⊕) = CF(Q̃⊕)`. -/
 theorem corollary2 (hQ : IsLSAQuartet Q θ) :
     cf Q θ = cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
   sorry
+
+/-- The law at the top of an arc does not depend on the inheritance probabilities of arcs not below
+it. -/
+theorem arcLaw_withPair {N : RootedNetwork V E X} {r : V} (hc : IsCut N r) {h₁ h₂ : E}
+    (hh₁ : ¬ N.graph.Reaches r (N.graph.target h₁)) (hh₂ : ¬ N.graph.Reaches r (N.graph.target h₂))
+    (θ : MetricData E) (γ' : ℝ) (c : E) (inj : V → Finset (Finset X)) (t : Finset (Finset X)) :
+    arcLaw N r hc (θ.withPair h₁ h₂ γ') 0 c inj t = arcLaw N r hc θ 0 c inj t := by
+  have hm : cutLowerMetric N r (θ.withPair h₁ h₂ γ') = cutLowerMetric N r θ := by
+    simp only [cutLowerMetric, MetricData.mk.injEq, withPair_length, true_and]
+    funext e
+    exact withPair_inheritance_of_ne (fun h => hh₁ (by rw [← h]; exact e.2.1))
+      (fun h => hh₂ (by rw [← h]; exact e.2.1)) γ'
+  unfold arcLaw
+  rw [hm, withPair_length]
+
+/-- Lifting a forest to a vertex `v` whose only child arc is `c` injects it at `v`, with nothing below
+`v`. -/
+theorem liftInj_eq_cutInj {N : RootedNetwork V E X} (hN : N.IsPhylogenetic) {v : V} {c : E}
+    (hc : N.graph.source c = v) (hcu : ∀ g, N.graph.source g = v → g = c)
+    (inj : V → Finset (Finset X)) (hinj : inj v = ∅) (t : Finset (Finset X)) :
+    liftInj N c inj t = cutInj N v inj t := by
+  funext w
+  unfold liftInj cutInj
+  by_cases hvw : N.graph.Reaches v w
+  · rw [if_pos hvw]
+    rcases eq_or_reaches_of_unique_child hcu hvw with rfl | h
+    · have hnot : w ∉ belowSet N c := hc ▸ source_notMem_belowSet hN c
+      rw [if_neg hnot, hinj, empty_union, if_pos hc.symm, if_pos rfl]
+    · have hmem : w ∈ belowSet N c := mem_belowSet.2 h
+      have hne : w ≠ N.graph.source c := fun h' => source_notMem_belowSet hN c (h' ▸ hmem)
+      have hne' : w ≠ v := fun h' => hne (h'.trans hc.symm)
+      rw [if_pos hmem, if_neg hne, if_neg hne', empty_union]
+  · rw [if_neg hvw]
+    have hnot : w ∉ belowSet N c := fun h =>
+      hvw (Relation.ReflTransGen.head ⟨c, hc, rfl⟩ (mem_belowSet.1 h))
+    have hne : w ≠ N.graph.source c := fun h => hvw (by rw [h, hc]; exact .refl)
+    rw [if_neg hnot, if_neg hne, union_empty]
+
+/-- **The split of the two lineages at the hybrid node of a cycle inducing a `2₂`-cycle**, the
+common part of the two cases of Lemma 9. With `K` the lineages at the top of the child edge `c` of
+`v` (`cherryMass_eq_sum_arc`), the forest `G` at `v` splits between the hybrid edges
+(`cherryMass_cutInj_hybrid`): both lineages, or the single one, on `h₁` (probability `γ²`, or `γ`),
+on `h₂`, or one on each. The first two cases are the processes of `Q₁⊕` and `Q₂⊕`, which are those of
+`Q⊕` with inheritance `1` and `0` on `h₁` (`cf_deleteArc`); it remains that one lineage on each
+hybrid edge gives the concordance factors of `Q₀⊕` given `G` (the hypothesis `HZ`). -/
+theorem cf_eq_of_two_two_of_split (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2)
+    {h₁ h₂ : E} (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v)
+    {c : E} (hc : Q.graph.source c = v) (hcu : ∀ g, Q.graph.source g = v → g = c)
+    (hcut : IsCut Q (Q.graph.target c)) (huniq : ∀ g, Q.graph.target g = Q.graph.target c → g = c)
+    (c₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'}) (hc₀ : c₀.1 = c)
+    (hcut₀ : IsCut (contractRooted Q (· = C)) (Quot.mk _ (Q.graph.target c)))
+    (huniq₀ : ∀ g, (contractRooted Q (· = C)).graph.target g = Quot.mk _ (Q.graph.target c) →
+      g = c₀)
+    (hlaw : ∀ t, arcLaw (contractRooted Q (· = C)) _ hcut₀ (contractMetric Q (· = C) θ) 0 c₀
+      (taxaInj (contractRooted Q (· = C)) univ) t = arcLaw Q _ hcut θ 0 c (taxaInj Q univ) t)
+    (q : QuartetTree X)
+    (HZ : ∀ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G ≠ 0 →
+      (#(roots G) = 1 →
+        cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) G ∅) q =
+          cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+            (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q ∧
+        cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) ∅ G) q =
+          cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+            (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q) ∧
+      ∀ R₁ R₂, R₁ ≠ R₂ → roots G = {R₁, R₂} →
+        cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) (forestBelow G {R₁})
+            (forestBelow G {R₂})) q =
+          cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+            (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q) :
+    cf Q θ q =
+      θ.inheritance h₁ ^ 2 * cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q +
+        (1 - θ.inheritance h₁) ^ 2 * cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q +
+        2 * θ.inheritance h₁ * (1 - θ.inheritance h₁) *
+          cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) q := by
+  obtain ⟨hcyc, hv, h2, -, hk⟩ := hC
+  have hN := hQ.binary.1
+  have hθ := hQ.metric.1
+  have := hN.finite_arcs
+  have hpar := mem_pair_of_target_of_indegree_eq_two h2 hne hh₁ hh₂
+  have hsum1 := inheritance_add_eq_one hθ h2 hne hh₁ hh₂
+  set γ := θ.inheritance h₁ with hγ
+  have hγ₂ : θ.inheritance h₂ = 1 - γ := by linarith
+  have hvr : v ≠ Q.root := fun h => by
+    have := hN.root_indegree
+    rw [← h, h2] at this
+    exact absurd this (by norm_num)
+  have hcv : IsCut Q v := ⟨fun h => hvr (eq_of_reaches_of_reaches hN.acyclic h (hN.root_reaches v)),
+    fun e he hne' => reaches_source_of_below_hybrid hQ.binary hQ.levelOne h2 he hne'⟩
+  have hcr : Q.graph.target c ≠ v := fun h => hN.acyclic v (.single ⟨c, hc, h⟩)
+  have hnr : ∀ h, Q.graph.target h = v → ¬ Q.graph.Reaches (Q.graph.target c) (Q.graph.target h) :=
+    fun h hh hr => hN.acyclic v (Relation.TransGen.head' ⟨c, hc, rfl⟩ (hh ▸ hr))
+  have hθc : θ.inheritance c = 1 := hθ.2.2.1 c (isTreeArc_of_unique rfl huniq)
+  have hc₁ : c ≠ h₁ := fun h => hcr (h ▸ hh₁)
+  have hc₂ : c ≠ h₂ := fun h => hcr (h ▸ hh₂)
+  have hnorm : ∀ γ', Q.IsNormalized (θ.withPair h₁ h₂ γ') := fun γ' =>
+    isNormalized_withPair hθ.isNormalized hne (hh₂.trans hh₁.symm) (fun f hf hf₁ hf₂ =>
+      absurd (hpar f (hf.trans hh₁)) (by tauto)) γ'
+  have hX := hQ.card_taxa
+  have htaxa := taxa_eq_univ hX q
+  have hinjv : taxaInj Q univ v = ∅ := by
+    refine eq_empty_of_forall_notMem fun A hA => ?_
+    obtain ⟨x, hx, -⟩ := mem_image.1 hA
+    exact leaf_ne_source hN x c ((mem_filter.1 hx).2.2.trans hc.symm)
+  -- the polynomial in the inheritance `γ'` of `h₁`
+  let W : Finset (Finset X) → Finset (Finset X) → ℝ := fun t₁ t₂ =>
+    cherryMass Q θ 0 (hybInj Q v h₁ h₂ (taxaInj Q univ) t₁ t₂) q
+  have hΦ : ∀ γ', cf Q (θ.withPair h₁ h₂ γ') q = ∑ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G *
+      hybridPoly G (θ.length h₁) (θ.length h₂) W γ' := by
+    intro γ'
+    have h1' : (θ.withPair h₁ h₂ γ').inheritance c = 1 := by
+      rw [withPair_inheritance_of_ne hc₁ hc₂]
+      exact hθc
+    rw [cf, nmscCF_eq_cherryMass_weak hN (hnorm γ') le_rfl, htaxa,
+      cherryMass_eq_sum_arc hN hcut rfl huniq h1']
+    refine sum_congr rfl fun G _ => ?_
+    rw [arcLaw_withPair hcut (hnr h₁ hh₁) (hnr h₂ hh₂), liftInj_eq_cutInj hN hc hcu _ hinjv,
+      cherryMass_cutInj_hybrid hN hcv hne hh₁ hh₂ hpar (withPair_inheritance_left h₁ h₂ γ')
+        (withPair_inheritance_right hne γ')]
+    unfold hybridPoly
+    simp only [withPair_length, W, cherryMass_hybInj_withPair hN hcv hne hh₁ hh₂ hpar rfl hγ₂]
+  -- the three networks of the formula
+  have hQθ : cf Q θ q = cf Q (θ.withPair h₁ h₂ γ) q := by
+    rw [withPair_eq_self rfl fun _ => hγ₂]
+  have hQ₁ : cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q = cf Q (θ.withPair h₁ h₂ 1) q :=
+    cf_deleteArc hN θ (hh₁.trans hh₂.symm) (fun f hf => hpar f (hf.trans hh₂)) hne q
+  have hQ₂ : cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q = cf Q (θ.withPair h₁ h₂ 0) q := by
+    rw [cf_deleteArc hN θ (hh₂.trans hh₁.symm) (fun f hf => (hpar f (hf.trans hh₁)).symm)
+      hne.symm q]
+    have hswap : θ.withPair h₂ h₁ 1 = θ.withPair h₁ h₂ 0 := by
+      simp only [RootedNetwork.MetricData.withPair, RootedNetwork.MetricData.mk.injEq, true_and]
+      funext f
+      by_cases hf₂ : f = h₂
+      · simp [hf₂, hne.symm]
+      · by_cases hf₁ : f = h₁
+        · simp [hf₁, hne]
+        · simp [hf₁, hf₂]
+    rw [hswap]
+  -- `Q₀⊕`
+  obtain ⟨t, hK⟩ := isContractible_of_cycle hQ.binary hQ.levelOne hcyc hv h2
+  have hN₀ := hK.isPhylogenetic hN
+  have hθ₀ := hK.isMetric hθ
+  have hQ₀ : cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) q =
+      ∑ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G *
+        cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+          (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q := by
+    have h1₀ : (contractMetric Q (· = C) θ).inheritance c₀ = 1 := by
+      change θ.inheritance c₀.1 = 1
+      rw [hc₀]
+      exact hθc
+    have hcr₀ : (contractRooted Q (· = C)).graph.target c₀ = Quot.mk _ (Q.graph.target c) := by
+      change Quot.mk _ (Q.graph.target c₀.1) = _
+      rw [hc₀]
+    rw [cf_eq_cherryMass hN₀ hθ₀ hX, cherryMass_eq_sum_arc hN₀ hcut₀ hcr₀ huniq₀ h1₀]
+    exact sum_congr rfl fun G _ => by rw [hlaw]
+  -- the polynomial, forest by forest
+  have hpoint : ∀ G, arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G *
+      hybridPoly G (θ.length h₁) (θ.length h₂) W γ =
+      arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G *
+        (γ ^ 2 * hybridPoly G (θ.length h₁) (θ.length h₂) W 1 +
+          (1 - γ) ^ 2 * hybridPoly G (θ.length h₁) (θ.length h₂) W 0 +
+          2 * γ * (1 - γ) * cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+            (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q) := by
+    intro G
+    by_cases hG : arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G = 0
+    · rw [hG, zero_mul, zero_mul]
+    congr 1
+    obtain ⟨hgood, hlin⟩ := good_of_arcLaw_ne_zero hN hcut (validInj_taxaInj univ) hG
+    -- the lineages of `G` are the two taxa below `v`
+    have hlin' : ∀ x, x ∈ lineages G ↔ Q.graph.Reaches v (Q.leaf x) := fun x => by
+      rw [hlin, reaches_leaf_iff_of_hybrid hQ.binary h2 hc hcu]
+      constructor
+      · rintro ⟨u, hu, hx⟩
+        obtain ⟨-, rfl⟩ := mem_lineages_taxaInj.1 hx
+        exact hu
+      · exact fun h => ⟨_, h, mem_lineages_taxaInj.2 ⟨mem_univ _, rfl⟩⟩
+    have hcard : #(lineages G) = 2 := by
+      rw [← hk, ← Set.ncard_coe_finset]
+      congr 1
+      ext x
+      simp [hlin']
+    have h2r : #(roots G) ≤ 2 := hcard ▸ hgood.1.card_roots_le_card_lineages
+    obtain ⟨HZ1, HZ2⟩ := HZ G hG
+    refine hybridPoly_eq hgood h2r _ _ W _ (fun h0 => ?_) HZ1 HZ2 γ
+    rw [h0] at hcard
+    simp [lineages] at hcard
+  rw [hQθ, hQ₁, hQ₂, hQ₀, hΦ, hΦ, hΦ, sum_congr rfl fun G _ => hpoint G]
+  simp only [mul_add, sum_add_distrib, mul_sum]
+  refine congr (congrArg HAdd.hAdd (congrArg₂ _ ?_ ?_)) ?_ <;>
+    refine sum_congr rfl fun G _ => ?_ <;> ring
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- **A cycle with two edges, off the root**: its top `t` is the source of both edges, has a single
+parent arc `p`, and is a cut vertex below which lie only `t` and the part below the hybrid node. -/
+theorem top_of_two_cycle (hQ : IsBinaryRootedNetwork Q) (h1 : IsLevelOne Q.graph)
+    (hcyc : IsCycle Q.graph C) (hv : v ∈ cycleNodes Q.graph C) (h2 : Q.graph.indegree v = 2)
+    (hroot : Q.root ∉ cycleNodes Q.graph C) (hcard : C.ncard = 2) {a b : E} (hab : a ≠ b)
+    (ha : Q.graph.target a = v) (hb : Q.graph.target b = v) {t : V} (hK : IsContractible Q C t) :
+    Q.graph.source a = t ∧ Q.graph.source b = t ∧ t ≠ v ∧
+      (∃ p, Q.graph.target p = t ∧ ∀ g, Q.graph.target g = t → g = p) ∧
+      (∀ w, Q.graph.Reaches t w → w = t ∨ Q.graph.Reaches v w) ∧ IsCut Q t := by
+  have hN := hQ.1
+  have : Finite E := hN.finite_arcs
+  have : Finite V := hN.finite_vertices
+  have haC := mem_of_target_eq_hybrid hQ h1 hcyc hv h2 ha
+  have hbC := mem_of_target_eq_hybrid hQ h1 hcyc hv h2 hb
+  have htv : t ≠ v := fun h => hK.top_entry a (ha.trans h.symm) haC
+  have hS : cycleNodes Q.graph C = {t, v} := by
+    refine (Set.eq_of_subset_of_ncard_le (Set.insert_subset hK.top_mem
+      (Set.singleton_subset_iff.2 hv)) ?_ (Set.toFinite _)).symm
+    rw [ncard_cycleNodes hcyc, hcard, Set.ncard_pair htv]
+  have hsrc : ∀ e ∈ C, Q.graph.target e = v → Q.graph.source e = t := by
+    intro e he het
+    have hs := source_mem_cycleNodes (G := Q.graph) he
+    rw [hS] at hs
+    rcases hs with hs | hs
+    · exact hs
+    · exact absurd ((Set.mem_singleton_iff.1 hs).trans het.symm) (source_ne_target_of_binary hQ e)
+  have hat := hsrc a haC ha
+  have hbt := hsrc b hbC hb
+  have htr : t ≠ Q.root := fun h => hroot (h ▸ hK.top_mem)
+  obtain ⟨p, hp⟩ := (Q.graph.one_le_indegree_iff t).1 (hN.nonroot_indegree t htr)
+  have hind1 : Q.graph.indegree t ≤ 1 :=
+    indegree_le_one_of_mem hQ h1 hcyc hv h2 hK.top_mem htv
+  have huniq : ∀ g, Q.graph.target g = t → g = p := fun g hg => by
+    by_contra hne
+    have := two_le_indegree_of_two_targets hQ hne hg hp
+    omega
+  have hout : Q.graph.outdegree t = 2 := by
+    have h3 := hQ.2.2 t htr (fun h0 => (Q.graph.outdegree_eq_zero_iff _).1 h0 a hat)
+    have h1' : Q.graph.indegree t = 1 := le_antisymm hind1 (hN.nonroot_indegree t htr)
+    omega
+  have hchild : ∀ w, Q.graph.Reaches t w → w = t ∨ Q.graph.Reaches v w := by
+    intro w hw
+    rcases Relation.ReflTransGen.cases_head hw with h | ⟨x, ⟨g, hg, rfl⟩, hx⟩
+    · exact Or.inl h.symm
+    · rcases mem_pair_of_source_of_outdegree_eq_two hout hab hat hbt g hg with rfl | rfl
+      · exact Or.inr (ha ▸ hx)
+      · exact Or.inr (hb ▸ hx)
+  have htvr : Q.graph.Reaches t v := .single ⟨a, hat, ha⟩
+  refine ⟨hat, hbt, htv, ⟨p, hp, huniq⟩, hchild, fun hr => ?_, fun e he hne => ?_⟩
+  · obtain ⟨g, -, hg⟩ := exists_arc_enter (p := fun w => w = Q.root) hr htr rfl
+    exact (Q.graph.indegree_eq_zero_iff _ |>.1 hN.root_indegree) g hg
+  · rcases hchild _ he with h | h
+    · exact absurd h hne
+    · by_cases hev : Q.graph.target e = v
+      · rcases mem_pair_of_target_of_indegree_eq_two h2 hab ha hb e hev with rfl | rfl
+        · rw [hat]
+          exact .refl
+        · rw [hbt]
+          exact .refl
+      · exact htvr.trans (reaches_source_of_below_hybrid hQ h1 h2 h hev)
+
+/-- Lemma 9 when the root is not on the cycle: `C` is two edges from its top `t` to `v`, and one
+lineage on each of them puts both lineages at `t`, as in `Q₀⊕`, where the contracted node is `t`:
+both processes are read from the part above `t` (`cherryMass_cutInj_eq_upperLaw`,
+`IsContractible.upperLaw_contract`). -/
+theorem lemma9_of_root_notMem (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 2 2)
+    (hroot : Q.root ∉ cycleNodes Q.graph C) {h₁ h₂ : E} (hne : h₁ ≠ h₂)
+    (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) (q : QuartetTree X) :
+    cf Q θ q =
+      θ.inheritance h₁ ^ 2 * cf (deleteArc Q h₂) (deleteArcMetric Q h₂ θ) q +
+        (1 - θ.inheritance h₁) ^ 2 * cf (deleteArc Q h₁) (deleteArcMetric Q h₁ θ) q +
+        2 * θ.inheritance h₁ * (1 - θ.inheritance h₁) *
+          cf (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) q := by
+  obtain ⟨hcyc, hv, h2, hn, hk⟩ := hC
+  have hN := hQ.binary.1
+  have hθ := hQ.metric.1
+  have hcard : C.ncard = 2 := by
+    rw [ite_eq_right hroot] at hn
+    omega
+  obtain ⟨t, hK⟩ := isContractible_of_cycle hQ.binary hQ.levelOne hcyc hv h2
+  obtain ⟨hat, hbt, htv, ⟨p, hp, huniqt⟩, hchild, hct⟩ :=
+    top_of_two_cycle hQ.binary hQ.levelOne hcyc hv h2 hroot hcard hne hh₁ hh₂ hK
+  obtain ⟨c, hc, hcu⟩ := existsUnique_child_of_hybrid hQ.binary h2
+  obtain ⟨hcut, huniq⟩ := isCut_child_of_hybrid hQ.binary hQ.levelOne h2 hc hcu
+  have hS : ∀ w, Q.graph.Reaches (Q.graph.target c) w → w ∉ cycleNodes Q.graph C := fun w hw hwC =>
+    hN.acyclic v (Relation.TransGen.head' ⟨c, hc, rfl⟩
+      (hw.trans (reaches_hybrid hQ.binary hQ.levelOne hcyc hv h2 w hwC)))
+  have hcC : c ∉ C := notMem_of_source_eq_hybrid hQ.binary hQ.levelOne hcyc hv h2 hc
+  let c₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'} := ⟨c, fun C' _ hC' => hC' ▸ hcC⟩
+  have hcut₀ := isCut_contract hcyc hcut hS
+  have huniq₀ : ∀ g, (contractRooted Q (· = C)).graph.target g =
+      Quot.mk _ (Q.graph.target c) → g = c₀ := fun g hg =>
+    Subtype.ext (huniq g.1 ((mk_eq_mk_iff_of_notMem' hcyc (hS _ .refl)).1 hg))
+  have hlaw : ∀ G, arcLaw (contractRooted Q (· = C)) _ hcut₀ (contractMetric Q (· = C) θ) 0 c₀
+      (taxaInj (contractRooted Q (· = C)) univ) G = arcLaw Q _ hcut θ 0 c (taxaInj Q univ) G := by
+    intro G
+    unfold arcLaw
+    refine sum_congr rfl fun F₁ _ => ?_
+    rw [rootDist_cutLower_contract hcyc hcut hS θ 0 F₁]
+    rfl
+  refine cf_eq_of_two_two_of_split hQ ⟨hcyc, hv, h2, hn, hk⟩ hne hh₁ hh₂ hc hcu hcut huniq c₀ rfl
+    hcut₀ huniq₀ hlaw q fun G hG => ?_
+  -- the process above `t`, in `Q⊕` and in `Q₀⊕`
+  have hθp : θ.inheritance p = 1 := hθ.2.2.1 p (isTreeArc_of_unique hp huniqt)
+  have hinjt : taxaInj Q univ t = ∅ := by
+    refine eq_empty_of_forall_notMem fun A hA => ?_
+    obtain ⟨x, hx, -⟩ := mem_image.1 hA
+    exact leaf_ne_source hN x h₁ ((mem_filter.1 hx).2.2.trans hat.symm)
+  have hW : ∀ t₁ t₂, hybInj Q v h₁ h₂ (taxaInj Q univ) t₁ t₂ =
+      cutInj Q t (taxaInj Q univ) (t₁ ∪ t₂) := by
+    intro t₁ t₂
+    funext w
+    unfold hybInj cutInj
+    by_cases hvw : Q.graph.Reaches v w
+    · have htw : Q.graph.Reaches t w := (Relation.ReflTransGen.single ⟨h₁, hat, hh₁⟩).trans hvw
+      have hwt : w ≠ t := fun h => hN.acyclic t (Relation.TransGen.head' ⟨h₁, hat, hh₁⟩ (h ▸ hvw))
+      rw [if_pos hvw, if_pos htw, if_neg hwt]
+    · rw [if_neg hvw]
+      by_cases htw : Q.graph.Reaches t w
+      · have hwt : w = t := (hchild w htw).resolve_right hvw
+        subst hwt
+        rw [if_pos htw, if_pos rfl, hinjt, empty_union, if_pos hat.symm, if_pos hbt.symm]
+      · have hwt : w ≠ t := fun h => htw (h ▸ .refl)
+        rw [if_neg htw, if_neg (hat ▸ hwt), if_neg (hbt ▸ hwt), union_empty, union_empty]
+  obtain ⟨hgood, -⟩ := good_of_arcLaw_ne_zero hN hcut (validInj_taxaInj univ) hG
+  -- `Q₀⊕`: the contracted node is the top
+  obtain ⟨t', -⟩ := (⟨t, hK⟩ : ∃ t, IsContractible Q C t)
+  have hN₀ := hK.isPhylogenetic hN
+  have hθ₀ := hK.isMetric hθ
+  have hc₀t : (contractRooted Q (· = C)).graph.source c₀ = Quot.mk _ t := by
+    change Quot.mk _ (Q.graph.source c) = _
+    rw [hc]
+    exact (mk_eq_mk_iff hcyc).2 (Or.inr ⟨hv, hK.top_mem⟩)
+  have hcu₀ : ∀ g, (contractRooted Q (· = C)).graph.source g = Quot.mk _ t → g = c₀ := by
+    intro g hg
+    have hgC : g.1 ∉ C := g.2 C hcyc rfl
+    have hs : Q.graph.source g.1 = t ∨ Q.graph.source g.1 = v := by
+      rcases (mk_eq_mk_iff hcyc).1 hg with h | ⟨h, -⟩
+      · exact Or.inl h
+      · have hS2 : cycleNodes Q.graph C = {t, v} := by
+          refine (Set.eq_of_subset_of_ncard_le (Set.insert_subset hK.top_mem
+            (Set.singleton_subset_iff.2 hv)) ?_ (Set.toFinite _)).symm
+          rw [ncard_cycleNodes hcyc, hcard, Set.ncard_pair htv]
+        rw [hS2] at h
+        exact h
+    rcases hs with hs | hs
+    · have hout : Q.graph.outdegree t = 2 := by
+        have := hQ.binary.2.2 t (fun h => hroot (h ▸ hK.top_mem)) (fun h0 =>
+          (Q.graph.outdegree_eq_zero_iff _).1 h0 h₁ hat)
+        have h1' : Q.graph.indegree t = 1 :=
+          (Q.graph.indegree_eq_one_iff t).2 ⟨p, fun f => ⟨huniqt f, fun h => h ▸ hp⟩⟩
+        omega
+      rcases mem_pair_of_source_of_outdegree_eq_two hout hne hat hbt g.1 hs with h | h
+      · exact absurd (h ▸ mem_of_target_eq_hybrid hQ.binary hQ.levelOne hcyc hv h2 hh₁) hgC
+      · exact absurd (h ▸ mem_of_target_eq_hybrid hQ.binary hQ.levelOne hcyc hv h2 hh₂) hgC
+    · exact Subtype.ext (hcu g.1 hs)
+  have hinj₀ : taxaInj (contractRooted Q (· = C)) univ (Quot.mk _ t) = ∅ := by
+    refine eq_empty_of_forall_notMem fun A hA => ?_
+    obtain ⟨x, hx, -⟩ := mem_image.1 hA
+    exact leaf_ne_source hN₀ x c₀ ((mem_filter.1 hx).2.2.trans hc₀t.symm)
+  have hc₀ := hK.isCut_top hct
+  let p₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'} :=
+    ⟨p, fun C' _ hC' => hC' ▸ hK.top_entry p hp⟩
+  have hpt₀ : (contractRooted Q (· = C)).graph.target p₀ = Quot.mk _ t := by
+    change Quot.mk _ (Q.graph.target p) = _
+    rw [hp]
+  have huniqp₀ : ∀ g, (contractRooted Q (· = C)).graph.target g = Quot.mk _ t → g = p₀ := by
+    intro g hg
+    have hgt : Q.graph.target g.1 = t := by
+      rcases (mk_eq_mk_iff hcyc).1 hg with h | ⟨h, -⟩
+      · exact h
+      · exact hK.entry g.1 (g.2 C hcyc rfl) h
+    exact Subtype.ext (huniqt g.1 hgt)
+  have hθp₀ : (contractMetric Q (· = C) θ).inheritance p₀ = 1 := hθp
+  have hZ : cherryMass (contractRooted Q (· = C)) (contractMetric Q (· = C) θ) 0
+      (liftInj (contractRooted Q (· = C)) c₀ (taxaInj (contractRooted Q (· = C)) univ) G) q =
+      cherryMass Q θ 0 (cutInj Q t (taxaInj Q univ) G) q := by
+    rw [liftInj_eq_cutInj hN₀ hc₀t hcu₀ _ hinj₀,
+      cherryMass_cutInj_eq_upperLaw hN₀ hc₀ hpt₀ huniqp₀ hθp₀,
+      cherryMass_cutInj_eq_upperLaw hN hct hp huniqt hθp]
+    refine sum_congr rfl fun t'' _ => ?_
+    congr 2
+    funext F
+    exact hK.upperLaw_contract hN hct hp huniqt hN₀ rfl hpt₀ huniqp₀ θ t'' F
+  refine ⟨fun _ => ⟨?_, ?_⟩, fun R₁ R₂ hR hroots => ?_⟩
+  · rw [hW, union_empty, hZ]
+  · rw [hW, empty_union, hZ]
+  · rw [hW, hZ]
+    have hR₁ : R₁ ∈ roots G := hroots ▸ mem_insert_self _ _
+    have hU := (forestBelow_union hgood (singleton_subset_iff.2 hR₁)).1
+    have hd : roots G \ {R₁} = {R₂} := by
+      rw [hroots]
+      ext x
+      simp only [mem_sdiff, mem_insert, mem_singleton]
+      constructor
+      · rintro ⟨rfl | rfl, h'⟩
+        · exact absurd rfl h'
+        · rfl
+      · rintro rfl
+        exact ⟨Or.inr rfl, fun h' => hR h'.symm⟩
+    rw [hd] at hU
+    rw [hU]
 
 /-- **Lemma 9** (`lem::formula2:2`): for a cycle inducing a `2₂`-cycle, with hybrid edges `h₁`, `h₂` of
 its hybrid node `v` and `γ = γ(h₁)`,

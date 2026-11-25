@@ -416,4 +416,51 @@ theorem hybridPoly_eq {G : Finset (Finset X)} (hG : IsGoodForest G) (h2 : #(root
 
 end Poly
 
+section Upper
+
+/-- **A forest injected at a cut vertex `r` with the only arc `p` into it**: it goes up `p`, and the
+process above is that of the part above `r` (`upperLaw`). -/
+theorem cherryMass_cutInj_eq_upperLaw {N : RootedNetwork V E X} {r : V} {p : E}
+    (hN : N.IsPhylogenetic) (hc : IsCut N r) (hpr : N.graph.target p = r)
+    (huniq : ∀ g, N.graph.target g = r → g = p) {θ : MetricData E} (h1 : θ.inheritance p = 1)
+    (G : Finset (Finset X)) (q : QuartetTree X) :
+    cherryMass N θ 0 (cutInj N r (taxaInj N univ) G) q =
+      ∑ t, kingmanTransition (θ.length p) G t * cherryOf q (upperLaw N hN hc hpr huniq θ t) := by
+  rw [cherryMass_eq_sum_arc hN hc hpr huniq h1]
+  refine sum_congr rfl fun t _ => ?_
+  have hlow : lowerInj (cutVertices N r) (cutInj N r (taxaInj N univ) G) =
+      atRoot (cutLower N r hc) G := by
+    funext w
+    unfold lowerInj atRoot
+    by_cases hw : w = (cutLower N r hc).root
+    · rw [ite_eq_left hw, hw]
+      exact cutInj_self N r _ G
+    · rw [ite_eq_right hw]
+      exact cutInj_of_reaches_of_ne N r _ G w.2 fun h => hw (Subtype.ext h)
+  have hlaw : arcLaw N r hc θ 0 p (cutInj N r (taxaInj N univ) G) t =
+      kingmanTransition (θ.length p) G t := by
+    unfold arcLaw
+    rw [hlow, Finset.sum_eq_single G]
+    · rw [rootDist_atRoot (cutLower_acyclic N r hN hc) (fun e h => e.2.2 (congrArg Subtype.val h)),
+        ite_eq_left rfl, one_mul]
+    · intro F' _ hF'
+      rw [rootDist_atRoot (cutLower_acyclic N r hN hc) (fun e h => e.2.2 (congrArg Subtype.val h)),
+        ite_eq_right hF', zero_mul]
+    · simp
+  have hR : ∀ F₀, rootDist N θ 0 (liftInj N p (cutInj N r (taxaInj N univ) G) t) F₀ =
+      upperLaw N hN hc hpr huniq θ t F₀ := by
+    intro F₀
+    have := sum_rootDist_liftInj hN hc hpr huniq h1 le_rfl (cutInj N r (taxaInj N univ) G) t
+      (fun F => if F = F₀ then 1 else 0)
+    simp only [mul_ite, mul_one, mul_zero, sum_ite_eq', mem_univ, ite_true] at this
+    rw [this]
+    unfold upperLaw
+    congr 1
+    funext w
+    unfold upperInj
+    rw [cutVertices_inl, cutInj_of_not_reaches N r _ G w.2]
+  rw [hlaw, cherryMass_eq_cherryOf, funext hR]
+
+end Upper
+
 end Banos2019
