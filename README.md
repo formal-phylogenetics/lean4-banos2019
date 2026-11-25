@@ -1,7 +1,9 @@
 # Baños 2019: identifying species network features from gene tree quartets, in Lean
 
-A Lean 4 formalization of H. Baños, *Identifying species network features from gene tree quartets under the
-coalescent model*, [Bull. Math. Biol. 81 (2019), 494–534](https://doi.org/10.1007/s11538-018-0485-4). Under the network
+[![CI](https://github.com/vltanh/lean4-banos2019/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/vltanh/lean4-banos2019/actions/workflows/lean_action_ci.yml)
+
+A Lean 4 formalization of Hector Baños (2019), "Identifying species network features from gene tree quartets under the
+coalescent model", [Bull. Math. Biol. 81 (2019), 494-534](https://doi.org/10.1007/s11538-018-0485-4). Under the network
 multispecies coalescent, gene trees form inside a species network with hybridization. The paper asks what the
 concordance factors of quartets (the probabilities of the three unrooted gene trees on four taxa) identify of a
 level-1 network. Its main result, Theorem 4, says that for generic numerical parameters the orderings of these
@@ -16,8 +18,8 @@ literature is assumed. Three statements are proved in corrected forms: Theorem 4
 the contraction leaves in `Ñ` suppressed; Proposition 7, off the vertices of the simplex; and Proposition 13, which is false as printed and
 whose refutation is proved too. No person has reviewed the proofs.
 
-It is a paper of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), in the collection of
-formalizations rooted at [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
+This paper is one of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), on phylogenetic
+network estimation, in the collection rooted at [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
 
 ## Status
 
@@ -89,7 +91,7 @@ determine `Ñ` up to isomorphism.
 | Lemma 1 needs a nonempty set of taxa; misprints in the proofs of Lemmas 9, 14, 17 and Propositions 6, 7, 10 | E1, E20 |
 
 [Section 3 of the report](docs/Banos2019/REPORT.md#3-errors-and-gaps-in-the-paper) gives each finding with the paper's
-sentence and the repair; 20 findings in all. The proofs follow the paper's arguments, except seven departures, each
+sentence and the repair. The proofs follow the paper's arguments, except the departures, each
 forced by an error or a gap in the paper's step or by the representation, listed in
 [Section 7 of the report](docs/Banos2019/REPORT.md#7-departures-from-the-papers-proofs) with what the paper does, what
 Lean does and why.
@@ -104,9 +106,9 @@ Lean does and why.
 - [`scripts/route_check.py`](scripts/route_check.py) compares those routes with the paper's, in [`docs/Banos2019/paper_routes.tsv`](docs/Banos2019/paper_routes.tsv);
   [`docs/Banos2019/route_differences.tsv`](docs/Banos2019/route_differences.tsv) records every difference, with its reason.
 - [`palomar/Banos2019/comparator.json`](palomar/Banos2019/comparator.json) configures Comparator, which checks that the Solution proves exactly the
-  Challenge's statements. [`scripts/check_kernels.sh`](scripts/check_kernels.sh) runs it and checks the eleven theorems under the three kernels
+  Challenge's statements. [`scripts/check_kernels.sh`](scripts/check_kernels.sh) runs it and checks the theorems under the three kernels
   that Palomar uses: Lean's kernel and NanoDa (through Comparator) and con-ron; all three accept them.
-- **No person has reviewed the proofs.** Independent agents reviewed the statements and the Challenge against the
+- No person has reviewed the proofs. Independent agents reviewed the statements and the Challenge against the
   paper, compared the proofs with the paper's, and checked the findings and the literature.
 
 ## Dependencies
@@ -123,7 +125,7 @@ Pinned by commit in [`lakefile.toml`](lakefile.toml) and [`lake-manifest.json`](
 ## Palomar
 
 [`palomar/Banos2019/`](palomar/Banos2019) has the files of an entry: the Challenge, which imports only Mathlib, the
-Solution, [`palomar/Banos2019/comparator.json`](palomar/Banos2019/comparator.json), which names them and the eleven theorems, and
+Solution, [`palomar/Banos2019/comparator.json`](palomar/Banos2019/comparator.json), which names them and the theorems, and
 [`palomar/Banos2019/formalization.yaml`](palomar/Banos2019/formalization.yaml), the entry's metadata. CI checks that the Challenge's copy of the definitions is
 the block of [`Banos2019/Defs.lean`](Banos2019/Defs.lean) (`python3 scripts/sync_challenge_defs.py --check`).
 
@@ -180,12 +182,14 @@ says what the formalization holds for reuse.
 
 ## Credits
 
-- Requested and supervised by The-Anh Vu-Le, who chose the paper and decided the layout and the libraries, and agreed to
-  the correction of Proposition 13. **No person has reviewed the proofs.**
-- Statements, proofs, audit and documents by Claude (Opus 5.5) in Claude Code, with sub-agents, following the
-  [formalize-math-paper](https://github.com/vltanh/formalize-math-paper) procedure, on 2026-11-24 and 2026-11-25.
-  [`docs/Banos2019/CREDITS.md`](docs/Banos2019/CREDITS.md) has the details.
+- Maintainer: The-Anh Vu-Le, who requested and supervised the formalization, chose the paper, decided the layout and
+  the libraries, and agreed to the correction of Proposition 13.
+- Formalization: Claude (Opus 5.5) in Claude Code, with sub-agents, wrote the statements, proofs, audit and documents on
+  2026-11-24 and 2026-11-25, following the [formalize-math-paper](https://github.com/vltanh/formalize-math-paper)
+  procedure. [`docs/Banos2019/CREDITS.md`](docs/Banos2019/CREDITS.md) has the details.
+- Review: no person has reviewed the proofs; Lean's kernel checks them. Independent agents reviewed the statements and
+  the Challenge against the paper, compared the proofs with the paper's, and checked the findings and the literature.
 
 ## License
 
-[Apache-2.0](LICENSE).
+Apache-2.0: [LICENSE](LICENSE).
