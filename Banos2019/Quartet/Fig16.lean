@@ -9,7 +9,8 @@ The `3₁`-cycle of Figure 16 is the unrooted network of the LSA quartet network
 `0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`; `5`, `6` and the hybrid node
 `7` above `d` are the nodes of the cycle, `c` at `6`; the root `8` has the hybrid edge `8 → 7` and the
 tree edge `8 → 5`, which the unrooted network merges into the hybrid edge `5 → 7` of Figure 16.
-Example 3 (`example3`) shows that the unrooted network of `q16 a b c` is Figure 16.
+`inducesNetwork_q16`, with the figures in `Banos2019.Quartet.Examples`, shows that the unrooted network
+of `q16 a b c` is Figure 16.
 
 * `isLSAQuartet_q16`, `inducesCycleType_q16`: `q16 a b c` with the parameters `q16Metric len γ` is an
   LSA quartet network with a `3₁`-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.

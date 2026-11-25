@@ -9,7 +9,8 @@ The `2₂`-cycle of Figure 15 is the unrooted network of the LSA quartet network
 `0, 1, 2, 3` are the leaves `a, b, c, d`; `4` is the parent of `a` and `b`, `7` that of `c` and `d`; `5`
 and the hybrid node `6` above `7` are the nodes of the cycle; the root `8` has the hybrid edge `8 → 6`
 and the tree edge `8 → 5`, which the unrooted network merges into the hybrid edge `5 → 6` of Figure 15.
-Example 2 (`example2`) shows that the unrooted network of `q15 a b c` is Figure 15.
+`inducesNetwork_q15`, with the figures in `Banos2019.Quartet.Examples`, shows that the unrooted network
+of `q15 a b c` is Figure 15.
 
 * `isLSAQuartet_q15`, `inducesCycleType_q15`: `q15 a b c` with the parameters `q15Metric len γ` is an
   LSA quartet network with a `2₂`-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.

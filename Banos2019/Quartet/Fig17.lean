@@ -8,8 +8,8 @@ public import Banos2019.Quartet.Concrete
 The 4-cycle of Figure 17 is the unrooted network of the LSA quartet network `q17 a b c`: the nodes
 `0, 1, 2, 3` are the leaves `a, b, c, d`; `4, 5, 6, 7` the nodes of the cycle with `a, b, c, d`, `6` the
 hybrid node; the root `8` has the hybrid edge `8 → 6` and the tree edge `8 → 7`, which the unrooted
-network merges into the hybrid edge `7 → 6` of Figure 17. Example 4 (`example4`) shows that the
-unrooted network of `q17 a b c` is Figure 17.
+network merges into the hybrid edge `7 → 6` of Figure 17. `inducesNetwork_q17`, with the figures in
+`Banos2019.Quartet.Examples`, shows that the unrooted network of `q17 a b c` is Figure 17.
 
 * `isLSAQuartet_q17`, `inducesCycleType_q17`: `q17 a b c` with the parameters `q17Metric len γ` is an
   LSA quartet network with a 4-cycle, whose hybrid edges are `6` (inheritance `γ`) and `7`.
