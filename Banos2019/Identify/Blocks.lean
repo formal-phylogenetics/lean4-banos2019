@@ -40,7 +40,7 @@ theorem blockNode_spec {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) (x 
     blockNode (unrooted N hN hX) C x ∈ cycleNodes (unrooted N hN hX).graph C ∧
       x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C
         (blockNode (unrooted N hN hX) C x) := by
-  obtain ⟨u, hu, hux⟩ := exists_walks_compl_of_isConnected (isConnected_unrooted_graph hN hX) hC
+  obtain ⟨u, hu, hux⟩ := exists_walks_compl_of_isConnected (unrooted_isConnected hN hX) hC
     ((unrooted N hN hX).leaf x)
   exact Classical.epsilon_spec (p := fun u => u ∈ cycleNodes (unrooted N hN hX).graph C ∧
     x ∈ nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u) ⟨u, hu, hux⟩

@@ -172,7 +172,7 @@ theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOn
     have hne := hcyc.ne_of_joins (by omega) hj
     refine ⟨fun h => hne ((sameBlock_iff_blockNode_eq h1 hC x y).1 h), fun z z' hcard hsep => ?_⟩
     obtain ⟨hinj, -⟩ := (separatesQuartet_iff h1 hC hv _).1 hsep
-    have hd := distinct4_of_card_eq_four hcard
+    have hd := distinct4_of_card_insert_eq hcard
     have hxz : blockNode (unrooted N hN hX) C x ≠ blockNode (unrooted N hN hX) C z := fun h =>
       hd.2.1 (hinj (by simp) (by simp) h)
     have hxz' : blockNode (unrooted N hN hX) C x ≠ blockNode (unrooted N hN hX) C z' := fun h =>

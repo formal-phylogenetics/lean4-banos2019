@@ -69,13 +69,13 @@ theorem lemma14 (hX : Nontrivial X) :
               (bigCycleEdges (unrooted N hN hX)) x y) := by
   refine ⟨fun S x y => y ∉ complementBlock S x, ?_⟩
   intro V E _ _ N hN h1
-  refine (lemma12 hN h1 hX).imp fun θ h12 hθ x y => ?_
+  refine (lemma12 hN h1 hX).mono fun θ h12 hθ x y => ?_
   have h12 := h12 hθ
   constructor
   · -- a taxon outside the 4-network block of `x` is in `Y_x`
     intro hy
     by_contra hnb
-    obtain ⟨C, ⟨hC, hC4⟩, hCxy⟩ := lemma4 (unrooted N hN hX).leaf (isConnected_unrooted_graph hN hX)
+    obtain ⟨C, ⟨hC, hC4⟩, hCxy⟩ := lemma4 (unrooted N hN hX).leaf (unrooted_isConnected hN hX)
       (unrooted_isLevelOne hN h1 hX)
       (fun C (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) => hC.1) hnb
     obtain ⟨v, hv⟩ := exists_isHybridNodeOf h1 hC
@@ -271,7 +271,7 @@ theorem lemma15 (hX : Nontrivial X) :
               (5 ≤ C.ncard → H (bcSets N θ) s = {x | DescendsFrom (unrooted N hN hX) w x}) := by
   refine ⟨blockRelation, blockCount, hybridBlock, ?_⟩
   intro V E _ _ N hN h1
-  refine (lemma12 hN h1 hX).imp fun θ h12 hθ s hs C w hC hw hdet => ?_
+  refine (lemma12 hN h1 hX).mono fun θ h12 hθ s hs C w hC hw hdet => ?_
   have hS : ∀ s : Finset X, #s = 4 → (s ∈ bcSets N θ ↔
       ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s) :=
     fun s h4 => ⟨fun h => (h12 hθ s h4).1 h.2, fun h => ⟨h4, (h12 hθ s h4).2 h⟩⟩
@@ -556,7 +556,7 @@ theorem not_isBCQuartet_iff_joinedAvoiding (hN : IsBinaryRootedNetwork N) (h1 : 
     ext m
     simp only [mem_insert, mem_singleton]
     tauto
-  have h4 : #({x, z, y, z'} : Finset X) = 4 := card_eq_four_of_distinct4 hD
+  have h4 : #({x, z, y, z'} : Finset X) = 4 := Distinct4.card_insert_eq hD
   have hsep' : SeparatesQuartet (unrooted N hN hX) C w {x, z, y, z'} := by
     rw [heq]
     exact hsep
@@ -615,7 +615,7 @@ theorem lemma16 (hX : Nontrivial X) :
         z ∈ H (bcSetsOf R) s ∨ z' ∈ H (bcSetsOf R) s) →
       ¬ IsBCQuartetOf R {x, z, y, z'} (quartetTree x y z z' h), ?_⟩
   intro V E _ _ N hN h1
-  refine ((h15 V E N hN h1).and (lemma12 hN h1 hX)).imp fun θ h => ?_
+  refine ((h15 V E N hN h1).and (lemma12 hN h1 hX)).mono fun θ h => ?_
   rintro hθ s hs C w hC hw hdet x y
   obtain ⟨h15θ, h12⟩ := h
   obtain ⟨hB, hK, hH⟩ := h15θ hθ s hs C w hC hw hdet
@@ -651,7 +651,7 @@ theorem lemma16 (hX : Nontrivial X) :
           · rintro _ ⟨m, -, rfl⟩
             exact blockNode_mem hC m
           · rw [ncard_cycleNodes hC, h4, hinj.ncard_image, Set.ncard_coe_finset,
-              card_eq_four_of_distinct4 h]
+              Distinct4.card_insert_eq h]
         obtain ⟨m, hm, hmw⟩ := hnodes ▸ hw.mem_cycleNodes
         exact ⟨hinj, m, hm, hmw⟩
       · refine ⟨⟨fun e => h.2.1 (hinj (by simp) (by simp) e), fun e => h.2.2.1 (hinj (by simp)
@@ -695,12 +695,12 @@ theorem lemma16 (hX : Nontrivial X) :
     not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep'
   constructor
   · intro hL h4' hsep'
-    have h := distinct4_of_card_eq_four h4'
+    have h := distinct4_of_card_insert_eq h4'
     obtain ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩ := (hsepiff h).2 hsep'
     exact (hcore h hsep').1 (hL h hxz hxz' hyz hyz' hzz' hhyb)
   · intro hR h hxz hxz' hyz hyz' hzz' hhyb
     have hsep' := (hsepiff h).1 ⟨⟨hxz, hxz', hyz, hyz', hzz'⟩, hhyb⟩
-    exact (hcore h hsep').2 (hR (card_eq_four_of_distinct4 h) hsep')
+    exact (hcore h hsep').2 (hR (Distinct4.card_insert_eq h) hsep')
 
 /-- **Theorem 4** (`thm::main`): under the network multispecies coalescent, for generic parameters, the
 orderings of the quartet concordance factors identify the semidirected topological network `Ñ` obtained
@@ -745,7 +745,7 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       ∃ C v, IsCycle (unrooted N hN hX).graph C ∧ C.ncard = 3 ∧
         IsHybridNodeOf (unrooted N hN hX) C v ∧
         2 ≤ {x | DescendsFrom (unrooted N hN hX) v x}.ncard := by
-  refine ((corollary4 hN h1 hs).and (lemma12 hN h1 hX)).imp ?_
+  refine ((corollary4 hN h1 hs).and (lemma12 hN h1 hX)).mono ?_
   rintro θ ⟨h4, h12⟩ hθ hcp hbc hno
   -- the `3₂`-cycle of `Q⁻_s` and the cycle `C_v` of `N⁻` it comes from
   obtain ⟨C, v, hC, hv, p, hp, q, hq, r, hr, t, ht, hpq, hdp, hdq, hpr, hpt, hrt⟩ :=
@@ -824,8 +824,8 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
           OnlyCycleSeparatingThree (unrooted N hN hX) C {i, j, k, e} →
           CyclePropertyOn (cf N θ) {i, j, k, e} →
           ¬ BigCycleOn (cf N θ) {i, j, k, e} → DescendsFrom (unrooted N hN hX) v e := by
-  refine ((ForGenericParams.forall (ι := {s : Finset X // #s = 4})
-    fun s => corollary4 hN h1 s.2).and (lemma12 hN h1 hX)).imp ?_
+  refine ((forGenericParams_iInter (ι := {s : Finset X // #s = 4})
+    fun s => corollary4 hN h1 s.2).and (lemma12 hN h1 hX)).mono ?_
   rintro θ ⟨h4, h12⟩ hθ i hi j hj k hk hij hik hjk e he4 honly hcp hbc
   set β := blockNode (unrooted N hN hX) C
   have hβ : ∀ x ∈ ({a, b, c, d} : Finset X), ∀ y ∈ ({a, b, c, d} : Finset X), x ≠ y → β x ≠ β y :=
