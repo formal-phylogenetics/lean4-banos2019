@@ -420,7 +420,7 @@ construction of case 5 (i) handles it ([`Banos2019.trek_mainStep`](../../Banos20
 
 | Result | Hypothesis that is not needed | Lean |
 | --- | --- | --- |
-| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters and every inheritance correlation in `[0, 1]` | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) keeps the paper's hypotheses |
+| Theorem 2 | The level-1 condition: the library's theorem, [`Phylogenetics.NMSC.nmscCF_inducedNetwork`](https://github.com/vltanh/lean4-phylogenetics/blob/3fcabfd7d191990dda268b0b3968d945b65eb59a/Phylogenetics/NMSC/Induced.lean#L76), holds for every phylogenetic network with valid parameters | [`Banos2019.theorem2`](../../Banos2019/Quartet/Reduction.lean#L243) keeps the paper's hypotheses |
 | Proposition 11 | The Big Cycle property: with a 4-cycle, the quartet tree that pairs the taxa of non-adjacent blocks always has the strictly smallest concordance factor (equation (8)) | [`Banos2019.proposition11`](../../Banos2019/CycleProperty.lean#L959) keeps the hypothesis |
 
 ## 6. How the formalization reads the paper
