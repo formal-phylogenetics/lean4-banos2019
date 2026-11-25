@@ -10,19 +10,34 @@ public import Phylogenetics.NMSC.Witness
 # Conditioning on the lineages at a vertex (Baños 2019, Section 5)
 
 The proofs of Lemmas 7–11 condition on the number of lineages at a node of a quartet network. This
-module gives the network multispecies coalescent the corresponding decomposition.
+module gives the network multispecies coalescent the corresponding decomposition, for any network.
 
-A vertex `r` other than the root is a *cut vertex* (`IsCut`) when the vertices below it are entered
-only at `r`. The network is then glued (`NMSC.IsGlued`) from its part `cutUpper` not below `r` and its
-part `cutLower` below `r`, rooted at `r`, along the arcs into `r` (`isGlued_cut`). So:
+A vertex `r` is a *cut vertex* (`IsCut`) when it is not above the root and the vertices below it are
+entered only at `r`. The network is then glued (`NMSC.IsGlued`) from its part `cutUpper` not below `r`
+and its part `cutLower` below `r`, rooted at `r`, along the arcs into `r` (`isGlued_cut`).
 
-* `rootDist_eq_sum_cut`, `cherryMass_eq_sum_cut`: the *Markov property at `r`*. The process is the
-  mixture, over the law of the forest `F` arriving at `r` (the law at the root of `cutLower`), of the
-  process in which `F` is injected at `r` and nothing below `r` (`cutInj`).
-* `rootDist_atRoot`: a network in which only the root receives a forest keeps it there.
+* `isGlued_sum_mul_eq`: gluing, with a function of the forests at the tops of the joining arcs.
+* `rootDist_eq_sum_cut`, `cherryMass_eq_sum_cut`: the *Markov property at a cut vertex*: the process is
+  the mixture, over the law of the forest `F` arriving at `r` (the law at the root of `cutLower`), of
+  the process with `F` injected at `r` and nothing else below `r` (`cutInj`).
+* `sum_mul_arc`, `rootDist_eq_sum_arc`: the *Markov property at the arc `c`* into a cut vertex: the
+  law `arcLaw` of the forest at the top of `c`, and the process with that forest at the source of `c`
+  (`NMSC.liftInj`), which is the process of `cutUpper` (`sum_rootDist_liftInj`).
+* `good_of_rootDist_cutLower_ne_zero`, `good_of_arcLaw_ne_zero`, `sum_rootDist_cutLower`,
+  `rootDist_cutLower_of_one`: the support and the mass of these laws.
+* `cf_eq_sum_jointCF`, `jointCF_eq_sum_arc`, `probLineages_eq_sum_arc`: for the number `K` of lineages
+  at the top of `c`, `CF = ∑ₖ P(K = k) CF(· | K = k)` (`jointCF`), and `P(K = k)` and
+  `P(K = k) CF(· | K = k)` from `arcLaw`.
+* Four taxa: `cf_eq_cherryMass`; `cherryMass_eq_quartetValue`, `cherryMass_liftInj`,
+  `jointCF_eq_sum_quartetValue`: three lineages in a forest at a vertex and the fourth taxon elsewhere
+  give `NMSC.quartetValue` (a cluster of two lineages decides the quartet tree, otherwise `1/3` by
+  exchangeability); `cf_eq_of_one_below`: one taxon below a cut vertex.
+* `geneTreeDist_deleteArc`, `cf_deleteArc`: deleting an arc of inheritance `0` (`Q₁⊕`, `Q₂⊕`);
+  `cf_eq_mixture`: with a single taxon below a hybrid node, `CF = γ CF(Q₁⊕) + (1 - γ) CF(Q₂⊕)`.
 
-The law of the forest arriving at `r` depends only on `cutLower`, so two networks with isomorphic
-parts below cut vertices have the same law there (`NMSC.rootDist_congr`).
+The law at the root of `cutLower` depends only on the part below `r`, so two networks with isomorphic
+parts below cut vertices have the same law there (`NMSC.rootDist_congr`;
+`Banos2019.Quartet.Contract` for `Q₀⊕` and `Q₁⊕`).
 -/
 
 @[expose] public noncomputable section

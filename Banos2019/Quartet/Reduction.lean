@@ -110,10 +110,11 @@ multispecies coalescent on a level-1 rooted metric network are those of the LSA 
 
 This is `Phylogenetics.NMSC.nmscCF_inducedNetwork`, whose argument is the paper's: by the Markov
 property at the LSA of `s` (`NMSC.sum_sum_mul_injDist_atInj`), the process is a mixture over the forest
-of the four lineages arriving there; a forest with a cluster of two lineages decides the quartet tree,
-and with four lineages there the three quartet trees are equally likely by exchangeability
-(`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library proves it for every network and
-every correlation; the level-1 hypothesis is not needed. -/
+of the four lineages arriving there; a forest with a cluster of two lineages decides the quartet tree
+(Observation 1, as `NMSC.cherryMass_of_mem`), and with four lineages there the three quartet trees are
+equally likely by exchangeability (`NMSC.cherryMass_atInj`), whatever lies above the LSA. The library
+proves it for every phylogenetic network with valid parameters and every inheritance correlation in
+`[0, 1]`; the level-1 hypothesis is not needed. -/
 theorem theorem2 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
     {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X} (hs : #s = 4)
     (q : QuartetTree (s : Set X)) :

@@ -7,14 +7,20 @@ public import Banos2019.Network.CycleFacts
 # Contracting one cycle (Baños 2019, Section 5)
 
 `Q₀⊕ = contractRooted Q (· = C)` identifies the nodes of the cycle `C` and removes its edges. This
-module describes it for a single cycle:
+module describes it for a single cycle, and `Q₁⊕ = deleteArc Q h`:
 
 * `mk_eq_mk_iff`: two nodes are identified exactly when they are equal or both nodes of `C`.
-* `reaches_contract_iff`: below a vertex `z` none of whose descendants is a node of `C`, the paths of
-  `Q₀⊕` are those of `Q⊕`, so `Q₀⊕` and `Q⊕` have isomorphic parts below `z`
-  (`isCut_contract`, `rootDist_cutLower_contract`): the law of the forest arriving at `z` is the same.
-* The same for `deleteArc` (`isCut_deleteArc`, `rootDist_cutLower_deleteArc`), when the deleted arc
-  does not enter a vertex below `z`.
+* `IsContractible`, `isContractible_of_cycle`: every cycle of a binary level-1 network has a top `t`
+  above its nodes that receives every arc entering `C` off `C`; then `Q₀⊕` is a metric phylogenetic
+  network (`IsContractible.isPhylogenetic`, `IsContractible.isMetric`).
+* `reaches_contract_iff`, `isCut_contract`, `rootDist_cutLower_contract`: below a vertex `z` none of
+  whose descendants is a node of `C`, `Q₀⊕` and `Q⊕` have isomorphic parts, so the forest arriving at
+  `z` has the same law.
+* `IsContractible.reaches_top_iff`, `IsContractible.isCut_top`, `IsContractible.upperLaw_contract`:
+  above the top, `Q₀⊕` and `Q⊕` have isomorphic parts.
+* `isCut_child_of_hybrid`: the child of a hybrid node is a cut vertex.
+* `isCut_deleteArc`, `rootDist_cutLower_deleteArc`, `isPhylogenetic_deleteArc`, `isMetric_deleteArc`,
+  `upperLaw_deleteArc_of_parallel`: the same for the network without a hybrid arc.
 -/
 
 @[expose] public noncomputable section
