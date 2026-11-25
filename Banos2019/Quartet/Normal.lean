@@ -79,7 +79,7 @@ are those of the cut edges of `Q⊕`: a cut edge is on no cycle and every cycle 
 (`hasCutSplit_iff_mem_unroot_treeClusters`).
 
 The species tree has an internal edge, which the proof of Proposition 6 uses without argument when it
-calls `Q'` a quartet tree (TeX 917–921): a lowest node with at least two taxa below it has one child
+calls `Q'` a quartet tree (TeX l. 917): a lowest node with at least two taxa below it has one child
 per taxon below it, and a node of the contracted network has at most two children, the root at most
 three, so that node has exactly two taxa below it (`exists_card_two_mem_treeClusters`). -/
 theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : MetricData E}

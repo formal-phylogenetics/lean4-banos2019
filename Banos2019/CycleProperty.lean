@@ -3,7 +3,7 @@ module
 public import Banos2019.Quartet.Correspondence
 public import Banos2019.Quartet.Fig18
 public import Banos2019.Quartet.Remove
-public import Banos2019.Quartet.Generic
+public import Banos2019.Quartet.GenericChain
 
 /-!
 # The Cycle property and the Big Cycle property (Baños 2019, Sections 6 and 7)
@@ -18,8 +18,9 @@ public import Banos2019.Quartet.Generic
 
 The inductions of the proofs of Propositions 6 and 7 are `orderedAsQuartetTree_of_onlyTwoTwoThreeOne`
 and `onSegmentOfI_of_threeTwo`; `cf_eq_fig17` is the reduction of the proofs of Propositions 10 and 11
-to equation (8), and `hasFourCycle_of_bigCycleOn` the direction of Theorem 3 that holds for all
-parameters.
+to equation (8); `fig17Nu`, `fig17Eta`, `fig17F` are the maps `ν_s`, `η`, `f` of the proof of
+Proposition 10, and `volume_fig17_eq_null` its null set of parameters of Figure 17;
+`hasFourCycle_of_bigCycleOn` is the direction of Theorem 3 that holds for all parameters.
 -/
 
 @[expose] public noncomputable section
@@ -144,7 +145,10 @@ theorem orderedAsQuartetTree_of_onlyTwoTwoThreeOne (n : ℕ) :
     · exact absurd ⟨C, v, 1, hCt⟩ hK.2.1
 
 /-- **Proposition 6** (`prop:Cfspreserv`): if `Q⁻` has no `3₂`-cycle, the ordering of `CF(Q)` is that of
-`CF(Q')`, where `Q'` is obtained by contracting all 2-cycles and all `3₁`-cycles. -/
+`CF(Q')`, where `Q'` is obtained by contracting all 2-cycles and all `3₁`-cycles.
+
+The paper's proof uses that `Q'`, without a 4-cycle, is a quartet tree with an internal edge, without
+arguing that it has one (TeX l. 917); `exists_speciesTree_contractRooted` proves it. -/
 theorem proposition6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2) :
     SameOrdering (cf Q θ)
@@ -520,7 +524,11 @@ theorem onSegmentOfI_of_threeTwo (n : ℕ) :
 /-- **Proposition 7** (`prop:3c2`): if `Q⁻` has a `3₂`-cycle, `CF(Q)` lies in `I`; and every point of `I`
 off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim for every
 point of `I`. Its proof shows that the image is the union of the three open segments, which do not
-contain the vertices `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)` of `I`: concordance factors are positive. -/
+contain the vertices `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)` of `I`: concordance factors are positive.
+
+The published proof cites the concordance factors of Figure 18 as equations (7), for equation (9)
+(TeX l. 957), and minimizes `CF_{AD|BC}` by letting `t₃ → ∞`, for `t₁ → ∞` (TeX l. 960). The proof
+follows the corrected reading. -/
 theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
     (habcd : Distinct4 a b c d) :
     (∀ {Q : RootedNetwork V E X} {θ : MetricData E}, IsLSAQuartet Q θ →
@@ -726,8 +734,63 @@ theorem fig17_order {γ L₁ L₂ : ℝ} {t : ℝ × ℝ × ℝ} (hγ₀ : 0 < �
   refine ⟨by dsimp only; nlinarith, by dsimp only; nlinarith,
     ⟨fun h => by dsimp only at h; linarith, fun h => by dsimp only; linarith⟩⟩
 
+/-- The map `ν_s` of the proof of Proposition 10, on the parameters of `Q⊕_s`: the lengths `t₁`, `t₂`
+of the edges of Figure 17 joining the node of `a` to those of `d` and `b`, totals of the lengths of the
+chains of edges `A` and `B`, and the inheritance probability `γ` of the hybrid edge `h`. -/
+def fig17Nu {E : Type*} (A B : Finset E) (h : E) (θ : MetricData E) : Fin 3 → ℝ :=
+  ![∑ e ∈ A, θ.length e, ∑ e ∈ B, θ.length e, θ.inheritance h]
+
+/-- The map `η` of the proof of Proposition 10: `(t₁, t₂, γ) ↦ (e^{-t₁}, e^{-t₂}, γ)`. -/
+def fig17Eta (p : Fin 3 → ℝ) : Fin 3 → ℝ := ![Real.exp (-p 0), Real.exp (-p 1), p 2]
+
+/-- The map `f` of the proof of Proposition 10: the concordance factors of Figure 17 (equation (8)) in
+`x₁ = e^{-t₁}`, `x₂ = e^{-t₂}` and `γ`. -/
+def fig17F (p : Fin 3 → ℝ) : ℝ × ℝ × ℝ :=
+  ((1 - p 2) * (1 - 2 / 3 * p 0) + p 2 * (1 / 3 * p 1),
+    (1 - p 2) * (1 / 3 * p 0) + p 2 * (1 / 3 * p 1),
+    (1 - p 2) * (1 / 3 * p 0) + p 2 * (1 - 2 / 3 * p 1))
+
+/-- **The parameters of Figure 17 where `CF_{AB|CD} = CF_{AD|BC}` form a null set** (proof of
+Proposition 10): the zero set of `(f ∘ η)₁ - (f ∘ η)₃`, analytic in `(t₁, t₂, γ)` and equal to
+`1 - e⁻¹ ≠ 0` at `(1, 0, 0)`, is null (`AnalyticOnNhd.volume_setOf_eq_zero`). The paper argues on `f`:
+a polynomial map whose image is not in the variety `V` of the points failing the Big Cycle property,
+so that `f⁻¹(V)` lies in a proper subvariety, null, and so is its preimage under the biholomorphic
+`η`. The analytic zero-set lemma applied to `f ∘ η` takes the place of these two steps, a difference
+of mechanics only. On `V`, only this component matters: `CF_{AC|BD}` is strictly the smallest
+(`fig17_order`). -/
+theorem volume_fig17_eq_null : MeasureTheory.volume
+    {p : Fin 3 → ℝ | (fig17F (fig17Eta p)).1 = (fig17F (fig17Eta p)).2.2} = 0 := by
+  have hset : {p : Fin 3 → ℝ | (fig17F (fig17Eta p)).1 = (fig17F (fig17Eta p)).2.2} =
+      {p | (1 - p 2) * (1 - 2 / 3 * Real.exp (-p 0)) + p 2 * (1 / 3 * Real.exp (-p 1)) -
+        ((1 - p 2) * (1 / 3 * Real.exp (-p 0)) + p 2 * (1 - 2 / 3 * Real.exp (-p 1))) = 0} := by
+    ext p
+    exact sub_eq_zero.symm
+  rw [hset]
+  refine AnalyticOnNhd.volume_setOf_eq_zero (fun p _ => ?_) ⟨![1, 0, 0], ?_⟩
+  · have hc : ∀ i : Fin 3, AnalyticAt ℝ (fun p : Fin 3 → ℝ => p i) p := fun i =>
+      (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin 3 => ℝ) i).analyticAt p
+    have hx : ∀ i : Fin 3, AnalyticAt ℝ (fun p : Fin 3 → ℝ => Real.exp (-p i)) p := fun i =>
+      (hc i).neg.rexp
+    exact (((analyticAt_const.sub (hc 2)).mul
+      (analyticAt_const.sub (analyticAt_const.mul (hx 0)))).add
+        ((hc 2).mul (analyticAt_const.mul (hx 1)))).sub
+      (((analyticAt_const.sub (hc 2)).mul (analyticAt_const.mul (hx 0))).add
+        ((hc 2).mul (analyticAt_const.sub (analyticAt_const.mul (hx 1)))))
+  have h₁ : Real.exp (-1) < 1 := Real.exp_lt_one_iff.2 (by norm_num)
+  norm_num
+  linarith
+
 /-- **Proposition 10** (`prop:BCgenerically`): if `Q⁻_s` has a 4-cycle, `s` satisfies the Cycle property,
-and for generic numerical parameters it satisfies the Big Cycle property. -/
+and for generic numerical parameters it satisfies the Big Cycle property.
+
+The proof is the paper's. The taxa are named so that `c` is in the hybrid block, adjacent to the blocks
+of `b` and `d`, as in the published proof (TeX l. 1032 has the blocks of `a` and `b`). By Corollary 2
+and equation (8), which the published proof cites as equations (6) (TeX l. 1032),
+`CF(Q⁻_s) = f(η(ν_s(θ)))` (`cf_eq_fig17`, `fig17F`, `fig17Eta`, `fig17Nu`), and equation (8) gives the
+Cycle property (`fig17_order`). The parameters of Figure 17 where `f ∘ η` fails the Big Cycle property
+form a null set (`volume_fig17_eq_null`), and its preimage under `ν_s`, an affine map onto `ℝ³`, is
+null (`isGenericNull_preimage_chainSum`): in the parameters of `Q⊕_s`, and then in those of `N`, which
+`Q⊕_s` inherits (`isGenericNull_inducedMetric`). -/
 theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) (h4 : HasFourCycle N hN s hs) :
     (∀ θ, IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s) ∧
@@ -774,35 +837,11 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩) <;> linarith
     rw [cf_quartetLSA hN h1 hθ hs] at hcp
     convert hcp
-  · -- for generic parameters of `Q⊕_s`, `CF_{AB|CD} ≠ CF_{AD|BC}`: the zero set of an analytic
-    -- function that is not identically zero, at the parameters with lengths `(|B| + 1)/|A|` on `A`
-    have hnull : (quartetLSA N hN.1 s hs).IsGenericNull {θ' | (quartetLSA N hN.1 s hs).IsMetric θ' ∧
-        nmscCF (quartetLSA N hN.1 s hs) θ' 0 (quartetTree a b c d habcd) =
-          nmscCF (quartetLSA N hN.1 s hs) θ' 0 (quartetTree a d b c (distinct4_adbc habcd))} := by
-      set ℓ : _ → ℝ := fun e => if e ∈ A then ((#B : ℝ) + 1) / #A else 1 with hℓdef
-      have hApos : (0 : ℝ) < #A := by exact_mod_cast hA.card_pos
-      have hℓ : ∀ e, 0 < ℓ e := fun e => by
-        simp only [hℓdef]
-        split_ifs
-        · positivity
-        · exact one_pos
-      have hθw := isMetricNetwork_halfInheritanceMetric hQb hℓ
-      refine isGenericNull_nmscCF_eq hθw.1 fun heq => ?_
-      have hγ : (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).inheritance h = 1 / 2 := by
-        simp [halfInheritanceMetric, hh]
-      have hLA : ∑ e ∈ A, (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B + 1 := by
-        simp only [halfInheritanceMetric, hℓdef]
-        rw [Finset.sum_congr rfl fun e he => ite_eq_left he, Finset.sum_const, nsmul_eq_mul]
-        field_simp
-      have hLB : ∑ e ∈ B, (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).length e = #B := by
-        simp only [halfInheritanceMetric, hℓdef]
-        rw [Finset.sum_congr rfl fun e he => ite_eq_right (Finset.disjoint_right.1 hAB he),
-          Finset.sum_const, nsmul_eq_mul, mul_one]
-      have := ((horder _ hθw).2.2.1 heq)
-      rw [hγ, hLA, hLB] at this
-      have hlt : Real.exp (-((#B : ℝ) + 1)) < Real.exp (-(#B : ℝ)) := Real.exp_lt_exp.2 (by linarith)
-      linarith
-    -- the parameters of `N` are null where those of `Q⊕_s` are (the map `ν`)
+  · -- the parameters of Figure 17 where `f ∘ η` fails the Big Cycle property: a null set
+    have hZ := volume_fig17_eq_null
+    -- its preimage under `ν_s` in the parameters of `Q⊕_s`
+    have hnull := isGenericNull_preimage_chainSum (N := quartetLSA N hN.1 s hs) hA hB hAB hh hZ
+    -- and in those of `N`
     refine isGenericNull_mono (isGenericNull_inducedMetric hN.1 _ hnull) fun θ hθ => ?_
     simp only [Set.mem_ofPred_eq, not_imp] at hθ
     obtain ⟨hθm, hnbc⟩ := hθ
@@ -813,8 +852,13 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       rw [cf_quartetLSA hN h1 hθm hs]
       convert (bigCycleOn_comp_map_iff s (cf N θ)).not.2 hnbc
     rw [← huniv, bigCycleOn_iff_triple _ habcd] at hnbc'
+    -- `CF(Q⊕_s) = f (η (ν_s θ))`: the Big Cycle property fails at `ν_s θ`
+    have hf := hCF _ hθs
     by_contra hne
-    exact hnbc' ⟨hy₁.ne', hne, hy₂.ne⟩
+    refine hnbc' ⟨hy₁.ne', fun heq => hne ?_, hy₂.ne⟩
+    show (fig17F (fig17Eta (fig17Nu A B h (quartetLSAMetric N hN s hs θ)))).1 =
+      (fig17F (fig17Eta (fig17Nu A B h (quartetLSAMetric N hN s hs θ)))).2.2
+    exact (congrArg Prod.fst hf).symm.trans (heq.trans (congrArg (fun t => t.2.2) hf))
 
 /-- **Theorem 3** (`thm::twocor`): for generic numerical parameters, `s` satisfies the Big Cycle property
 if and only if `Q⁻_s` has a 4-cycle. -/
