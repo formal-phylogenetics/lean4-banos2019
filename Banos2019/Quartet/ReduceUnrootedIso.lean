@@ -12,6 +12,9 @@ For a binary level-1 network `Q` whose root is the LSA of its taxa, the unrooted
 networks that Lemmas 7–11 produce are built from `Q⁻` alone, so isomorphic `Q⁻` and `Q̃⁻` give
 isomorphic unrooted networks (proof of Proposition 5).
 
+* `nonempty_sdMetricIso_unrootAt_swap`: merging either of two tree arcs at a root of outdegree two
+  gives isomorphic metric networks; `nonempty_sdMetricIso_unrootAt_keepRootSD`: with a root of
+  outdegree one, `unrootAt M hP e₀` is `keepRootSD M hP`.
 * Without a hybrid edge `h` (`Q₁⊕`, `Q₂⊕`): the unrooted network of `reduceNet (deleteArc Q h)` is
   `deleteHybridEdge Q⁻ h` with its nodes of degree two suppressed
   (`nonempty_sdMetricIso_suppress_deleteHybridEdge`). `deleteHybridEdge Q⁻ h` is `unrootAt` of
@@ -33,6 +36,28 @@ open scoped Classical
 namespace Banos2019
 
 variable {V E X : Type*}
+
+section Swap
+
+variable {M : RootedNetwork V E X} (hP : M.IsPhylogenetic) (θ : MetricData E)
+
+/-- **Merging either tree arc at a root of outdegree two** gives isomorphic metric networks: the
+merged edge joins the same two nodes, in the other order. -/
+theorem nonempty_sdMetricIso_unrootAt_swap {e₀ e₁ : E} (h₀ : M.graph.source e₀ = M.root)
+    (h₁ : M.graph.source e₁ = M.root) (h2 : M.graph.outdegree M.root = 2)
+    (ht₀ : ¬ M.IsHybridArc e₀) (ht₁ : ¬ M.IsHybridArc e₁) :
+    Nonempty (SDMetricIso (unrootAt M hP e₀) (unrootAtMetric M e₀ θ) (unrootAt M hP e₁)
+      (unrootAtMetric M e₁ θ)) := by
+  sorry
+
+/-- **With a root of outdegree one, suppressing the root removes it with its arc.** -/
+theorem nonempty_sdMetricIso_unrootAt_keepRootSD {e₀ : E} (h₀ : M.graph.source e₀ = M.root)
+    (h1 : M.graph.outdegree M.root = 1) :
+    Nonempty (SDMetricIso (unrootAt M hP e₀) (unrootAtMetric M e₀ θ) (keepRootSD M hP)
+      (restrictMetric θ _)) := by
+  sorry
+
+end Swap
 
 section Delete
 

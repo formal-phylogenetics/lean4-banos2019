@@ -12,11 +12,6 @@ the root and its arc. Its *top* node, the root or its child, has degree two. For
 one, has a child that is not a chain node, the unrooted network of `reduceNet M` is `keepRootSD M hP`
 with its nodes of degree two suppressed (`nonempty_sdMetricIso_suppress_keepRootSD`): the top node and
 the chain nodes.
-
-* `nonempty_sdMetricIso_unrootAt_swap`: merging either of two tree arcs at a root of outdegree two
-  gives isomorphic metric networks.
-* `nonempty_sdMetricIso_unrootAt_keepRootSD`: with a root of outdegree one, `unrootAt M hP e₀` is
-  `keepRootSD M hP`.
 -/
 
 @[expose] public noncomputable section
@@ -38,28 +33,6 @@ def keepRootSD (M : RootedNetwork V E X) (hP : M.IsPhylogenetic) :
       target := fun e => ⟨M.graph.target e.1, fun h => hP.target_ne_root e.1 h.1⟩ }
   IsDirected e := M.IsHybridArc e.1
   leaf x := ⟨M.leaf x, fun h => M.leaf_ne_root hP x h.1⟩
-
-section Swap
-
-variable {M : RootedNetwork V E X} (hP : M.IsPhylogenetic) (θ : MetricData E)
-
-/-- **Merging either tree arc at a root of outdegree two** gives isomorphic metric networks: the
-merged edge joins the same two nodes, in the other order. -/
-theorem nonempty_sdMetricIso_unrootAt_swap {e₀ e₁ : E} (h₀ : M.graph.source e₀ = M.root)
-    (h₁ : M.graph.source e₁ = M.root) (h2 : M.graph.outdegree M.root = 2)
-    (ht₀ : ¬ M.IsHybridArc e₀) (ht₁ : ¬ M.IsHybridArc e₁) :
-    Nonempty (SDMetricIso (unrootAt M hP e₀) (unrootAtMetric M e₀ θ) (unrootAt M hP e₁)
-      (unrootAtMetric M e₁ θ)) := by
-  sorry
-
-/-- **With a root of outdegree one, suppressing the root removes it with its arc.** -/
-theorem nonempty_sdMetricIso_unrootAt_keepRootSD {e₀ : E} (h₀ : M.graph.source e₀ = M.root)
-    (h1 : M.graph.outdegree M.root = 1) :
-    Nonempty (SDMetricIso (unrootAt M hP e₀) (unrootAtMetric M e₀ θ) (keepRootSD M hP)
-      (restrictMetric θ _)) := by
-  sorry
-
-end Swap
 
 section Keep
 
