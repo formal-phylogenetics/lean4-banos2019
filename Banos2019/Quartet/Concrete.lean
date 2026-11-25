@@ -237,6 +237,33 @@ theorem cf_eq_of_forall_not_isHybridArc {N : RootedNetwork V E X} (hN : N.IsPhyl
   rw [hcf, hcf, hcf, h₁, h₂ _ m₁, h₂ _ m₂, hlen]
   exact ⟨rfl, rfl, rfl⟩
 
+/-- **The concordance factors of a network without hybrid edges from explicit clusters**
+(equation (1)): the taxa below the target of each edge `e` are those at the nodes `cl e` of an explicit
+labelling `leaf'` of the taxa by the nodes `L`; the node `v` has the taxa `a, b` or `c, d` below it; and
+`K` is the set of the edges into the nodes with these taxa below them, those whose `cl e` has the leaves
+`S` (the taxa `a, b`) or `Sc` (the taxa `c, d`). -/
+theorem cf_eq_of_treeCluster_eq_leafSet {N : RootedNetwork V E X} (hN : N.IsPhylogenetic)
+    (ht : ∀ e, ¬ N.IsHybridArc e) {θ : MetricData E} (hθ : N.IsMetric θ) (hX : Fintype.card X = 4)
+    (h : Distinct4 a b c d) {W : Type*} [DecidableEq W] {leaf' : X → W} {L S Sc : Finset W}
+    (hleaf : ∀ x, leaf' x ∈ L) (hsurj : ∀ i ∈ L, ∃ x, leaf' x = i)
+    (hS : leafSet leaf' S = {a, b}) (hSc : leafSet leaf' Sc = {a, b}ᶜ) (cl : E → Finset W)
+    (hcl : ∀ e, treeCluster N (N.graph.target e) = leafSet leaf' (cl e)) {v : V}
+    (hv : treeCluster N v = {a, b} ∨ treeCluster N v = {a, b}ᶜ) (K : Finset E)
+    (hK : ∀ e, e ∈ K ↔ (cl e ∩ L ≠ L ∧ (cl e ∩ L = S ∩ L ∨ cl e ∩ L = Sc ∩ L))) :
+    cf N θ (quartetTree a b c d h) = 1 - 2 / 3 * Real.exp (-∑ e ∈ K, θ.length e) ∧
+      cf N θ (quartetTree a c b d (distinct4_acbd h)) =
+        1 / 3 * Real.exp (-∑ e ∈ K, θ.length e) ∧
+      cf N θ (quartetTree a d b c (distinct4_adbc h)) =
+        1 / 3 * Real.exp (-∑ e ∈ K, θ.length e) := by
+  have huniv : (univ : Finset X) = leafSet leaf' L := by
+    ext x
+    simp [leafSet, hleaf x]
+  have hiff := leafSet_eq_leafSet_iff hleaf hsurj
+  refine cf_eq_of_forall_not_isHybridArc hN ht hθ hX h hv ?_
+  refine Finset.sum_congr (Finset.ext fun e => ?_) fun _ _ => rfl
+  rw [mem_filter, hK, hcl, huniv, ← hSc, ← hS, ne_eq, hiff, hiff, hiff, inter_self]
+  simp
+
 /-- **The concordance factors of an explicit network without hybrid edges** (equation (1)), from the
 descendants `D u` of its nodes: the taxa are at the nodes `L`; the node `v` has the leaves `S` (the
 taxa `a, b`) or `Sc` (the taxa `c, d`) below it; and `K` is the set of the edges into the nodes with
@@ -257,15 +284,10 @@ theorem cf_eq_of_desc {N : RootedNetwork V E X} [DecidableEq V] (hN : N.IsPhylog
   have hcl : ∀ u, treeCluster N u = leafSet N.leaf (D u) := fun u => by
     ext x
     simp [treeCluster, leafSet, hD]
-  have huniv : (univ : Finset X) = leafSet N.leaf L := by
-    ext x
-    simp [leafSet, hleaf x]
   have hiff := leafSet_eq_leafSet_iff hleaf hsurj
-  refine cf_eq_of_forall_not_isHybridArc hN ht hθ hX h (v := v) ?_ ?_
-  · rw [hcl, ← hSc, ← hS, hiff, hiff]
-    exact hv
-  · refine Finset.sum_congr (Finset.ext fun e => ?_) fun _ _ => rfl
-    rw [mem_filter, hK, hcl, huniv, ← hSc, ← hS, ne_eq, hiff, hiff, hiff, inter_self]
-    simp
+  refine cf_eq_of_treeCluster_eq_leafSet hN ht hθ hX h hleaf hsurj hS hSc
+    (fun e => D (N.graph.target e)) (fun e => hcl _) (v := v) ?_ K hK
+  rw [hcl, ← hSc, ← hS, hiff, hiff]
+  exact hv
 
 end Banos2019

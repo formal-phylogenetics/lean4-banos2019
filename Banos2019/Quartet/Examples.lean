@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Reduction
+public import Banos2019.Quartet.Fig15
 public import Banos2019.Quartet.Fig16
 public import Banos2019.Quartet.Fig17
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
@@ -17,9 +18,9 @@ network whose metric unrooted network is isomorphic to the figure.
 
 * `InducesNetwork.len_pos`, `InducesNetwork.inheritance_mem_Ioo`: the parameters of such a figure are
   those of a metric network.
-* `inducesNetwork_of_rooting`, `inducesNetwork_q16`, `inducesNetwork_q17`: the rootings `q16`, `q17`
-  of Figures 16 and 17 induce them. Examples 3 and 4 apply Lemma 10 to these rootings, after
-  Proposition 5, and equation (1) to the two trees it gives.
+* `inducesNetwork_of_rooting`, `inducesNetwork_q15`, `inducesNetwork_q16`, `inducesNetwork_q17`: the
+  rootings `q15`, `q16`, `q17` of Figures 15, 16 and 17 induce them. Examples 2, 3 and 4 apply Lemma 9
+  or 10 to these rootings, after Proposition 5, and equation (1) to the trees they give.
 -/
 
 @[expose] public noncomputable section
@@ -264,6 +265,14 @@ theorem inducesNetwork_q17 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
     (by simp [q17Metric]) (by intro j hj; fin_cases j <;> first | exact absurd rfl hj | rfl)
     (by intro j; fin_cases j <;> simp [figMetric, q17Metric])
 
+/-- **The metric unrooted network of `q15` is Figure 15.** -/
+theorem inducesNetwork_q15 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q15 a b c) (q15Metric len γ)) :
+    InducesNetwork hQ (fig15 a b c) (figMetric len γ) :=
+  inducesNetwork_of_rooting hQ q15_isHybridArc_iff (by decide) (by decide) (by decide) (by decide)
+    (by simp [q15Metric]) (by intro j hj; fin_cases j <;> first | exact absurd rfl hj | rfl)
+    (by intro j; fin_cases j <;> simp [figMetric, q15Metric])
+
 /-- **The metric unrooted network of `q16` is Figure 16.** -/
 theorem inducesNetwork_q16 {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
     (hQ : IsLSAQuartet (q16 a b c) (q16Metric len γ)) :
@@ -287,7 +296,54 @@ theorem example2 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
           γ ^ 2 * (1 / 3 * (x₁ * x₂ * x₄)),
         (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂ * x₃)) + 2 * γ * (1 - γ) * (1 / 3 * (x₁ * x₂)) +
           γ ^ 2 * (1 / 3 * (x₁ * x₂ * x₄))) := by
-  sorry
+  intro x₁ x₂ x₃ x₄
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  -- the rooting `q15` of Figure 15, with the same concordance factors (Proposition 5)
+  have hX := hQ.card_taxa
+  have hlen := hiso.len_pos
+  obtain ⟨hγ₀, hγ₁⟩ := hiso.inheritance_mem_Ioo
+  have hQ' := isLSAQuartet_q15 hX h hlen hγ₀ hγ₁
+  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q15 hQ').some.symm⟩
+  -- Lemma 9 at the `2₂`-cycle of `q15`, with the hybrid edges `6` (`γ`) and `7`
+  have hL := fun q => lemma9 hQ' (inducesCycleType_q15 hX h) (h₁ := 6) (h₂ := 7) (by decide) rfl rfl q
+  -- the three trees `Q₁⊕`, `Q₂⊕`, `Q₀⊕` (equation (1))
+  obtain ⟨s₁, s₂, s₃⟩ := cf_deleteArc_q15_seven hX h hlen hγ₀ hγ₁
+  obtain ⟨u₁, u₂, u₃⟩ := cf_deleteArc_q15_six hX h hlen hγ₀ hγ₁
+  obtain ⟨w₁, w₂, w₃⟩ := cf_contractRooted_q15 hX h hlen hγ₀ hγ₁
+  have hinh : (q15Metric len γ).inheritance 6 = γ := rfl
+  show (cf Q θ _, cf Q θ _, cf Q θ _) = _
+  rw [hcf, hL, hL, hL, hinh]
+  refine Prod.ext ?_ (Prod.ext ?_ ?_)
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+          (quartetTree a b c d h) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
+          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a b c d h) +
+        2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
+          (contractMetric (q15 a b c) (· = ↑q15Cycle) (q15Metric len γ)) (quartetTree a b c d h) =
+        (1 - γ) ^ 2 * (1 - 2 / 3 * (x₁ * x₂ * x₃)) + 2 * γ * (1 - γ) * (1 - 2 / 3 * (x₁ * x₂)) +
+          γ ^ 2 * (1 - 2 / 3 * (x₁ * x₂ * x₄)) := by
+      rw [s₁, u₁, w₁]; ring
+    convert key using 5
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+          (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
+          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) +
+        2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
+          (contractMetric (q15 a b c) (· = ↑q15Cycle) (q15Metric len γ))
+          (quartetTree a c b d (distinct4_acbd h)) =
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂ * x₃)) + 2 * γ * (1 - γ) * (1 / 3 * (x₁ * x₂)) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₂ * x₄)) := by
+      rw [s₂, u₂, w₂]; ring
+    convert key using 5
+  · have key : γ ^ 2 * cf (deleteArc (q15 a b c) 7) (deleteArcMetric (q15 a b c) 7 (q15Metric len γ))
+          (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) ^ 2 * cf (deleteArc (q15 a b c) 6)
+          (deleteArcMetric (q15 a b c) 6 (q15Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) +
+        2 * γ * (1 - γ) * cf (contractRooted (q15 a b c) (· = ↑q15Cycle))
+          (contractMetric (q15 a b c) (· = ↑q15Cycle) (q15Metric len γ))
+          (quartetTree a d b c (distinct4_adbc h)) =
+        (1 - γ) ^ 2 * (1 / 3 * (x₁ * x₂ * x₃)) + 2 * γ * (1 - γ) * (1 / 3 * (x₁ * x₂)) +
+          γ ^ 2 * (1 / 3 * (x₁ * x₂ * x₄)) := by
+      rw [s₃, u₃, w₃]; ring
+    convert key using 5
 
 /-- **Example 3** (`ex:3_1`): the concordance factors of the `3₁`-cycle of Figure 16:
 `CF_{AB|CD} = (1-γ)(1 - ⅔x₁) + γ(1 - ⅔x₁x₂)`, `CF_{AC|BD} = CF_{AD|BC} = (1-γ)(⅓x₁) + γ(⅓x₁x₂)`. -/
