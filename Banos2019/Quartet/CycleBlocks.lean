@@ -386,4 +386,382 @@ theorem add_le_of_inducesCycleType (hN : IsBinaryRootedNetwork N) (h1 : IsLevelO
 
 end Count
 
+section Several
+
+variable {N : RootedNetwork V E X} [Fintype V] [Fintype X]
+
+omit [Fintype V] [Fintype X] in
+/-- Two distinct cycles of a level-1 network have no common edge. -/
+theorem disjoint_of_isCycle_of_ne (h1 : IsLevelOne N.graph) {C₁ C₂ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hne : C₁ ≠ C₂) : Disjoint C₁ C₂ :=
+  Set.disjoint_iff_inter_eq_empty.2 (Set.not_nonempty_iff_eq_empty.1 fun h => hne (h1 _ _ hC₁ hC₂ h))
+
+omit [Fintype V] [Fintype X] in
+/-- **The node of `C₁` toward another cycle `C₂`** is unique: two nodes of `C₁` joined avoiding `C₁`
+to nodes of `C₂` are joined to each other through `C₂`. -/
+theorem eq_of_walks_compl_of_cycles (h1 : IsLevelOne N.graph) {C₁ C₂ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hne : C₁ ≠ C₂) {u u' c c' : V}
+    (hu : u ∈ cycleNodes N.graph C₁) (hu' : u' ∈ cycleNodes N.graph C₁)
+    (hc : c ∈ cycleNodes N.graph C₂) (hc' : c' ∈ cycleNodes N.graph C₂)
+    (h : N.graph.Walks C₁ᶜ u c) (h' : N.graph.Walks C₁ᶜ u' c') : u = u' := by
+  have hsub : C₂ ⊆ C₁ᶜ := fun f hf hf₁ =>
+    Set.disjoint_left.1 (disjoint_of_isCycle_of_ne h1 hC₁ hC₂ hne) hf₁ hf
+  exact h1.eq_of_walks_compl hC₁ hu hu'
+    ((h.trans (walks_mono hsub (hC₂.walks_of_mem hc hc'))).trans (N.graph.walks_symm h'))
+
+omit [Fintype V] [Fintype X] in
+/-- A cycle `C₁` has a node toward every other cycle `C₂`. -/
+theorem exists_walks_compl_of_cycles (hN : N.IsPhylogenetic) {C₁ C₂ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) :
+    ∃ u ∈ cycleNodes N.graph C₁, ∃ c ∈ cycleNodes N.graph C₂, N.graph.Walks C₁ᶜ u c := by
+  obtain ⟨c, hc⟩ := hC₂.nonempty_cycleNodes
+  obtain ⟨u, hu, h⟩ := exists_walks_compl_cycleNodes (N.graph_connected hN) hC₁ c
+  exact ⟨u, hu, c, hc, h⟩
+
+omit [Fintype V] [Fintype X] in
+/-- **The blocks of two cycles away from each other are disjoint** (proof of Lemma 5): the block of
+a node `a` of `C₁` not toward `C₂` and that of a node `b` of `C₂` not toward `C₁`. A walk from `b`
+to a taxon avoiding `C₂` either avoids `C₁`, and then `a` is joined to the node of `C₁` toward `C₂`
+avoiding `C₁`, or meets `C₁`, and then `b` is joined to the node of `C₂` toward `C₁` avoiding
+`C₂`. -/
+theorem disjoint_nodeBlock_of_cycles (h1 : IsLevelOne N.graph) {C₁ C₂ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hne : C₁ ≠ C₂) {u₁ a c₂ : V}
+    (hu₁ : u₁ ∈ cycleNodes N.graph C₁) (ha : a ∈ cycleNodes N.graph C₁)
+    (hc₂ : c₂ ∈ cycleNodes N.graph C₂) (hw₁ : N.graph.Walks C₁ᶜ u₁ c₂) (hau : a ≠ u₁)
+    {u₂ b c₁ : V} (hu₂ : u₂ ∈ cycleNodes N.graph C₂) (hb : b ∈ cycleNodes N.graph C₂)
+    (hc₁ : c₁ ∈ cycleNodes N.graph C₁) (hw₂ : N.graph.Walks C₂ᶜ u₂ c₁) (hbu : b ≠ u₂) :
+    Disjoint (nodeBlock N.graph N.leaf C₁ a) (nodeBlock N.graph N.leaf C₂ b) := by
+  have hd := disjoint_of_isCycle_of_ne h1 hC₁ hC₂ hne
+  have hsub₂ : C₂ ⊆ C₁ᶜ := fun f hf hf₁ => Set.disjoint_left.1 hd hf₁ hf
+  have hsub₁ : C₁ ⊆ C₂ᶜ := fun f hf hf₂ => Set.disjoint_left.1 hd hf hf₂
+  refine Set.disjoint_left.2 fun x hxa hxb => ?_
+  have hxa' : N.graph.Walks C₁ᶜ a (N.leaf x) := hxa
+  have hxb' : N.graph.Walks C₂ᶜ b (N.leaf x) := hxb
+  rcases walks_inter_compl_or_exists_cycleNodes (C := C₁) hxb' with h | ⟨c, hc, h⟩
+  · refine hau (h1.eq_of_walks_compl hC₁ hu₁ ha ?_).symm
+    exact ((hw₁.trans (walks_mono hsub₂ (hC₂.walks_of_mem hc₂ hb))).trans
+      (walks_mono Set.inter_subset_right h)).trans (N.graph.walks_symm hxa')
+  · refine hbu (h1.eq_of_walks_compl hC₂ hu₂ hb ?_).symm
+    exact (hw₂.trans (walks_mono hsub₁ (hC₁.walks_of_mem hc₁ hc))).trans
+      (N.graph.walks_symm (walks_mono Set.inter_subset_left h))
+
+/-- **The blocks of a cycle partition the taxa**: they are pairwise disjoint, every taxon is in one,
+and the root, when on the cycle, has none. -/
+theorem sum_ncard_nodeBlock_eq (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) {C : Set E}
+    (hC : IsCycle N.graph C) :
+    ∑ u ∈ cycleNodesOffRoot N C, (nodeBlock N.graph N.leaf C u).ncard = Fintype.card X := by
+  refine le_antisymm (sum_ncard_nodeBlock_le h1 hC) ?_
+  have hdisj : ((cycleNodesOffRoot N C : Finset V) : Set V).PairwiseDisjoint
+      (nodeBlock N.graph N.leaf C) := fun u hu w hw hne =>
+    disjoint_nodeBlock_of_ne h1 hC (mem_cycleNodesOffRoot.1 hu).1 (mem_cycleNodesOffRoot.1 hw).1 hne
+  rw [← finsum_mem_coe_finset, ← Set.Finite.ncard_biUnion (Finset.finite_toSet _)
+    (fun _ _ => Set.toFinite _) hdisj, ← Nat.card_eq_fintype_card, ← Set.ncard_univ]
+  refine Set.ncard_le_ncard (fun x _ => ?_) (Set.toFinite _)
+  obtain ⟨u, hu, hx⟩ := exists_mem_nodeBlock hN.1 hC x
+  have hur : u ≠ N.root := fun h => by
+    rw [h, nodeBlock_root hN hC (h ▸ hu)] at hx
+    exact hx
+  exact Set.mem_biUnion (mem_coe.2 (mem_cycleNodesOffRoot.2 ⟨hu, hur⟩)) hx
+
+/-- The block of a node of a cycle other than the root holds a taxon. -/
+theorem one_le_ncard_nodeBlock (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hlsa : N.IsLSANetwork) {C : Set E} (hC : IsCycle N.graph C) {u : V}
+    (hu : u ∈ cycleNodesOffRoot N C) : 1 ≤ (nodeBlock N.graph N.leaf C u).ncard := by
+  have := hN.1.finite_arcs
+  obtain ⟨⟨v, ⟨hv, h2⟩, -⟩, -, -⟩ := lemma3 hN h1 hC
+  exact (Set.ncard_pos (Set.toFinite _)).2 (nodeBlock_nonempty hN h1 hC hv h2 hlsa
+    (mem_cycleNodesOffRoot.1 hu).1 (mem_cycleNodesOffRoot.1 hu).2)
+
+/-- **Several cycles** (proof of Lemma 5): for a family of distinct cycles `C i`, and for each `i` a
+set `U i` of nodes of `C i` containing a node toward each other cycle, the blocks of the nodes of the
+cycles other than the root and outside the sets `U i` are pairwise disjoint and nonempty, so there are
+at most as many as taxa. -/
+theorem sum_card_sdiff_le {ι : Type*} [Fintype ι] (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (C : ι → Set E)
+    (hC : ∀ i, IsCycle N.graph (C i)) (hinj : Function.Injective C) (U : ι → Finset V)
+    (hU : ∀ i j, i ≠ j → ∃ u ∈ U i, u ∈ cycleNodes N.graph (C i) ∧
+      ∃ c ∈ cycleNodes N.graph (C j), N.graph.Walks (C i)ᶜ u c) :
+    ∑ i, #(cycleNodesOffRoot N (C i) \ U i) ≤ Fintype.card X := by
+  let I : Finset (Σ _ : ι, V) := univ.sigma fun i => cycleNodesOffRoot N (C i) \ U i
+  let B : (Σ _ : ι, V) → Set X := fun p => nodeBlock N.graph N.leaf (C p.1) p.2
+  have hdisj : (I : Set (Σ _ : ι, V)).PairwiseDisjoint B := by
+    rintro ⟨i, a⟩ ha ⟨j, b⟩ hb hne
+    simp only [I, mem_coe, mem_sigma, mem_univ, true_and, mem_sdiff, mem_cycleNodesOffRoot] at ha hb
+    change Disjoint (nodeBlock N.graph N.leaf (C i) a) (nodeBlock N.graph N.leaf (C j) b)
+    by_cases hij : i = j
+    · subst hij
+      exact disjoint_nodeBlock_of_ne h1 (hC i) ha.1.1 hb.1.1 fun h => hne (by rw [h])
+    · obtain ⟨u, huU, hu, c, hc, hw⟩ := hU i j hij
+      obtain ⟨u', hu'U, hu', c', hc', hw'⟩ := hU j i (Ne.symm hij)
+      exact disjoint_nodeBlock_of_cycles h1 (hC i) (hC j) (fun h => hij (hinj h)) hu ha.1.1 hc hw
+        (fun h => ha.2 (h ▸ huU)) hu' hb.1.1 hc' hw' fun h => hb.2 (h ▸ hu'U)
+  have hsum := sum_ncard_le_of_pairwiseDisjoint I hdisj
+  rw [Nat.card_eq_fintype_card] at hsum
+  have hle : #I ≤ ∑ p ∈ I, (B p).ncard := by
+    rw [card_eq_sum_ones]
+    refine sum_le_sum fun p hp => ?_
+    simp only [I, mem_sigma, mem_univ, true_and, mem_sdiff] at hp
+    exact one_le_ncard_nodeBlock hN h1 hlsa (hC p.1) hp.1
+  rw [card_sigma] at hle
+  omega
+
+omit [Fintype V] [Fintype X] in
+/-- **Three cycles** (proof of Lemma 5): if the nodes of `C₁` toward `C₂` and toward `C₃` differ, `C₂`
+and `C₃` lie on different sides of `C₁`, and the nodes of `C₂` toward `C₁` and toward `C₃` are the
+same: a walk from `C₂` to `C₃` avoiding `C₂` meets `C₁`. -/
+theorem eq_of_ne_of_cycles (h1 : IsLevelOne N.graph) {C₁ C₂ C₃ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hC₃ : IsCycle N.graph C₃)
+    (h12 : C₁ ≠ C₂) (h13 : C₁ ≠ C₃) {u₁₂ u₁₃ c₂ c₃ : V} (hu₁₂ : u₁₂ ∈ cycleNodes N.graph C₁)
+    (hu₁₃ : u₁₃ ∈ cycleNodes N.graph C₁) (hc₂ : c₂ ∈ cycleNodes N.graph C₂)
+    (hc₃ : c₃ ∈ cycleNodes N.graph C₃) (hw₁₂ : N.graph.Walks C₁ᶜ u₁₂ c₂)
+    (hw₁₃ : N.graph.Walks C₁ᶜ u₁₃ c₃) (hne : u₁₂ ≠ u₁₃) {u₂₁ u₂₃ c₁ c₃' : V}
+    (hu₂₁ : u₂₁ ∈ cycleNodes N.graph C₂) (hu₂₃ : u₂₃ ∈ cycleNodes N.graph C₂)
+    (hc₁ : c₁ ∈ cycleNodes N.graph C₁) (hc₃' : c₃' ∈ cycleNodes N.graph C₃)
+    (hw₂₁ : N.graph.Walks C₂ᶜ u₂₁ c₁) (hw₂₃ : N.graph.Walks C₂ᶜ u₂₃ c₃') : u₂₁ = u₂₃ := by
+  have hsub₂ : C₂ ⊆ C₁ᶜ := fun f hf hf₁ =>
+    Set.disjoint_left.1 (disjoint_of_isCycle_of_ne h1 hC₁ hC₂ h12) hf₁ hf
+  rcases walks_inter_compl_or_exists_cycleNodes (C := C₁) hw₂₃ with h | ⟨c, hc, h⟩
+  · refine absurd (eq_of_walks_compl_of_cycles h1 hC₁ hC₃ h13 hu₁₂ hu₁₃ hc₃' hc₃ ?_ hw₁₃) hne
+    exact (hw₁₂.trans (walks_mono hsub₂ (hC₂.walks_of_mem hc₂ hu₂₃))).trans
+      (walks_mono Set.inter_subset_right h)
+  · exact eq_of_walks_compl_of_cycles h1 hC₂ hC₁ (Ne.symm h12) hu₂₁ hu₂₃ hc₁ hc
+      hw₂₁ (walks_mono Set.inter_subset_left h)
+
+/-- **Two distinct cycles of an LSA network** (proof of Lemma 5): each but its node toward the other
+keeps its blocks, so `n₁ + n₂ - 2 ≤ |X|` for their numbers `n₁`, `n₂` of nodes other than the
+root. -/
+theorem card_add_card_le_of_cycles (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)
+    (hlsa : N.IsLSANetwork) {C₁ C₂ : Set E} (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂)
+    (hne : C₁ ≠ C₂) :
+    #(cycleNodesOffRoot N C₁) + #(cycleNodesOffRoot N C₂) ≤ Fintype.card X + 2 := by
+  obtain ⟨u₁, hu₁, c₂, hc₂, hw₁⟩ := exists_walks_compl_of_cycles hN.1 hC₁ hC₂
+  obtain ⟨u₂, hu₂, c₁, hc₁, hw₂⟩ := exists_walks_compl_of_cycles hN.1 hC₂ hC₁
+  have h := sum_card_sdiff_le (ι := Bool) hN h1 hlsa (fun b => if b then C₁ else C₂)
+    (fun b => by cases b <;> assumption)
+    (fun a b hab => by cases a <;> cases b <;> simp_all [eq_comm])
+    (fun b : Bool => if b then {u₁} else {u₂}) (fun i j hij => by
+      cases i <;> cases j
+      · exact absurd rfl hij
+      · exact ⟨u₂, by simp, hu₂, c₁, hc₁, hw₂⟩
+      · exact ⟨u₁, by simp, hu₁, c₂, hc₂, hw₁⟩
+      · exact absurd rfl hij)
+  simp only [Fintype.sum_bool, ite_true, Bool.false_eq_true, ite_false] at h
+  have k₁ := le_card_sdiff {u₁} (cycleNodesOffRoot N C₁)
+  have k₂ := le_card_sdiff {u₂} (cycleNodesOffRoot N C₂)
+  rw [card_singleton] at k₁ k₂
+  omega
+
+/-- **Three distinct cycles of an LSA network** (proof of Lemma 5): `n₁ + n₂ + n₃ - 4 ≤ |X|`. At most
+one of the three cycles has different nodes toward the two others (`eq_of_ne_of_cycles`), so at most
+four nodes lose their blocks. -/
+theorem card_add_card_add_card_le_of_cycles (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) {C₁ C₂ C₃ : Set E}
+    (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hC₃ : IsCycle N.graph C₃)
+    (h12 : C₁ ≠ C₂) (h13 : C₁ ≠ C₃) (h23 : C₂ ≠ C₃) :
+    #(cycleNodesOffRoot N C₁) + #(cycleNodesOffRoot N C₂) + #(cycleNodesOffRoot N C₃) ≤
+      Fintype.card X + 4 := by
+  obtain ⟨u12, hu12, c12, hc12, hw12⟩ := exists_walks_compl_of_cycles hN.1 hC₁ hC₂
+  obtain ⟨u13, hu13, c13, hc13, hw13⟩ := exists_walks_compl_of_cycles hN.1 hC₁ hC₃
+  obtain ⟨u21, hu21, c21, hc21, hw21⟩ := exists_walks_compl_of_cycles hN.1 hC₂ hC₁
+  obtain ⟨u23, hu23, c23, hc23, hw23⟩ := exists_walks_compl_of_cycles hN.1 hC₂ hC₃
+  obtain ⟨u31, hu31, c31, hc31, hw31⟩ := exists_walks_compl_of_cycles hN.1 hC₃ hC₁
+  obtain ⟨u32, hu32, c32, hc32, hw32⟩ := exists_walks_compl_of_cycles hN.1 hC₃ hC₂
+  have t1 : u12 ≠ u13 → u21 = u23 ∧ u31 = u32 := fun hne =>
+    ⟨eq_of_ne_of_cycles h1 hC₁ hC₂ hC₃ h12 h13 hu12 hu13 hc12 hc13 hw12 hw13 hne hu21 hu23 hc21
+      hc23 hw21 hw23,
+     eq_of_ne_of_cycles h1 hC₁ hC₃ hC₂ h13 h12 hu13 hu12 hc13 hc12 hw13 hw12 (Ne.symm hne) hu31
+      hu32 hc31 hc32 hw31 hw32⟩
+  have t2 : u21 ≠ u23 → u31 = u32 := fun hne =>
+    (eq_of_ne_of_cycles h1 hC₂ hC₃ hC₁ h23 (Ne.symm h12) hu23 hu21 hc23 hc21 hw23 hw21
+      (Ne.symm hne) hu32 hu31 hc32 hc31 hw32 hw31).symm
+  let C : Fin 3 → Set E := ![C₁, C₂, C₃]
+  let U : Fin 3 → Finset V := ![{u12, u13}, {u21, u23}, {u31, u32}]
+  have hinj : Function.Injective C := by
+    intro i j hij
+    fin_cases i <;> fin_cases j <;> simp_all [C, eq_comm]
+  have h := sum_card_sdiff_le hN h1 hlsa C (fun i => by fin_cases i <;> assumption) hinj U
+    (fun i j hij => by
+      fin_cases i <;> fin_cases j
+      · exact absurd rfl hij
+      · exact ⟨u12, by simp [U], hu12, c12, hc12, hw12⟩
+      · exact ⟨u13, by simp [U], hu13, c13, hc13, hw13⟩
+      · exact ⟨u21, by simp [U], hu21, c21, hc21, hw21⟩
+      · exact absurd rfl hij
+      · exact ⟨u23, by simp [U], hu23, c23, hc23, hw23⟩
+      · exact ⟨u31, by simp [U], hu31, c31, hc31, hw31⟩
+      · exact ⟨u32, by simp [U], hu32, c32, hc32, hw32⟩
+      · exact absurd rfl hij)
+  rw [Fin.sum_univ_three] at h
+  simp only [C, U, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
+    Matrix.head_cons, Matrix.tail_cons] at h
+  have k₁ := le_card_sdiff {u12, u13} (cycleNodesOffRoot N C₁)
+  have k₂ := le_card_sdiff {u21, u23} (cycleNodesOffRoot N C₂)
+  have k₃ := le_card_sdiff {u31, u32} (cycleNodesOffRoot N C₃)
+  have p₁ := card_le_two (a := u12) (b := u13)
+  have p₂ := card_le_two (a := u21) (b := u23)
+  have p₃ := card_le_two (a := u31) (b := u32)
+  have hone : ∀ a b : V, a = b → #({a, b} : Finset V) = 1 := by
+    rintro a b rfl
+    simp
+  by_cases e1 : u12 = u13
+  · rw [hone _ _ e1] at k₁
+    by_cases e2 : u21 = u23
+    · rw [hone _ _ e2] at k₂
+      omega
+    · rw [hone _ _ (t2 e2)] at k₃
+      omega
+  · obtain ⟨e2, e3⟩ := t1 e1
+    rw [hone _ _ e2] at k₂
+    rw [hone _ _ e3] at k₃
+    omega
+
+omit [Fintype V] [Fintype X] in
+/-- **The blocks of the nodes of `C₂` away from `C₁` lie in the block of the node of `C₁` toward
+`C₂`**: every taxon is in a block of `C₁`, and the others are disjoint from them. -/
+theorem nodeBlock_subset_of_cycles (hN : N.IsPhylogenetic) (h1 : IsLevelOne N.graph)
+    {C₁ C₂ : Set E} (hC₁ : IsCycle N.graph C₁) (hC₂ : IsCycle N.graph C₂) (hne : C₁ ≠ C₂)
+    {u₁ c₂ : V} (hu₁ : u₁ ∈ cycleNodes N.graph C₁) (hc₂ : c₂ ∈ cycleNodes N.graph C₂)
+    (hw₁ : N.graph.Walks C₁ᶜ u₁ c₂) {u₂ b c₁ : V} (hu₂ : u₂ ∈ cycleNodes N.graph C₂)
+    (hb : b ∈ cycleNodes N.graph C₂) (hc₁ : c₁ ∈ cycleNodes N.graph C₁)
+    (hw₂ : N.graph.Walks C₂ᶜ u₂ c₁) (hbu : b ≠ u₂) :
+    nodeBlock N.graph N.leaf C₂ b ⊆ nodeBlock N.graph N.leaf C₁ u₁ := by
+  intro x hx
+  obtain ⟨a, ha, hxa⟩ := exists_mem_nodeBlock hN hC₁ x
+  by_cases hau : a = u₁
+  · rwa [hau] at hxa
+  · exact absurd hx (Set.disjoint_left.1 (disjoint_nodeBlock_of_cycles h1 hC₁ hC₂ hne hu₁ ha hc₂
+      hw₁ hau hu₂ hb hc₁ hw₂ hbu) hxa)
+
+/-- For a cycle `C` inducing a `3₂`-cycle and another cycle `C'` with at least three nodes other than
+the root, on four taxa, the node of `C` toward `C'` is the hybrid node of `C` (proof of Lemma 6): its
+block holds the blocks of two nodes of `C'`, at least two taxa, and the blocks of the other nodes of
+`C` hold one taxon each. -/
+theorem eq_hybrid_of_walks_compl_of_three_two (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C : Set E}
+    {v : V} (hC : InducesCycleType N C v 3 2) {C' : Set E} (hC' : IsCycle N.graph C')
+    (hn' : 3 ≤ #(cycleNodesOffRoot N C')) (hne : C ≠ C') {u c' : V}
+    (hu : u ∈ cycleNodes N.graph C) (hc' : c' ∈ cycleNodes N.graph C')
+    (hw : N.graph.Walks Cᶜ u c') : u = v := by
+  obtain ⟨hcyc, hv, h2, hn, hk⟩ := hC
+  obtain ⟨u', hu', c, hc, hw'⟩ := exists_walks_compl_of_cycles hN.1 hC' hcyc
+  -- the block of `u` has at least two taxa
+  obtain ⟨b₁, hb₁, b₂, hb₂, hb₁₂⟩ := one_lt_card.1 (show 1 < #((cycleNodesOffRoot N C').erase u') by
+    have := pred_card_le_card_erase (s := cycleNodesOffRoot N C') (a := u')
+    omega)
+  have hb₁' := mem_cycleNodesOffRoot.1 (mem_of_mem_erase hb₁)
+  have hb₂' := mem_cycleNodesOffRoot.1 (mem_of_mem_erase hb₂)
+  have hsub : nodeBlock N.graph N.leaf C' b₁ ∪ nodeBlock N.graph N.leaf C' b₂ ⊆
+      nodeBlock N.graph N.leaf C u :=
+    Set.union_subset
+      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₁'.1 hc hw' (ne_of_mem_erase hb₁))
+      (nodeBlock_subset_of_cycles hN.1 h1 hcyc hC' hne hu hc' hw hu' hb₂'.1 hc hw' (ne_of_mem_erase hb₂))
+  have hu2 : 2 ≤ (nodeBlock N.graph N.leaf C u).ncard := by
+    refine le_trans ?_ (Set.ncard_le_ncard hsub (Set.toFinite _))
+    rw [Set.ncard_union_eq (disjoint_nodeBlock_of_ne h1 hC' hb₁'.1 hb₂'.1 hb₁₂) (Set.toFinite _)
+      (Set.toFinite _)]
+    have := one_le_ncard_nodeBlock hN h1 hlsa hC' (mem_of_mem_erase hb₁)
+    have := one_le_ncard_nodeBlock hN h1 hlsa hC' (mem_of_mem_erase hb₂)
+    omega
+  -- `u` is not the root, whose block is empty
+  have hur : u ≠ N.root := fun h => by
+    rw [h, nodeBlock_root hN hcyc (h ▸ hu), Set.ncard_empty] at hu2
+    omega
+  have huS : u ∈ cycleNodesOffRoot N C := mem_cycleNodesOffRoot.2 ⟨hu, hur⟩
+  have hvr : v ≠ N.root := fun h => by
+    have := hN.1.root_indegree
+    rw [← h, h2] at this
+    exact absurd this (by norm_num)
+  have hvS : v ∈ cycleNodesOffRoot N C := mem_cycleNodesOffRoot.2 ⟨hv, hvr⟩
+  by_contra huv
+  have hsum := sum_ncard_nodeBlock_eq hN h1 hcyc
+  have hS : #(cycleNodesOffRoot N C) = 3 := (card_cycleNodesOffRoot hcyc).trans hn
+  have huS' : u ∈ (cycleNodesOffRoot N C).erase v := mem_erase.2 ⟨huv, huS⟩
+  rw [← add_sum_erase _ _ hvS, ← add_sum_erase _ _ huS', nodeBlock_hybrid hN h1 hcyc hv h2, hk,
+    hX] at hsum
+  have hrest := card_nsmul_le_sum (((cycleNodesOffRoot N C).erase v).erase u) _ 1 fun w hw =>
+    one_le_ncard_nodeBlock hN h1 hlsa hcyc (mem_of_mem_erase (mem_of_mem_erase hw))
+  rw [smul_eq_mul, mul_one, card_erase_of_mem huS', card_erase_of_mem hvS, hS] at hrest
+  omega
+
+/-- **Two cycles inducing `3₂`-cycles are the same** (Lemma 6, on four taxa): the node of each toward
+the other is its hybrid node (`eq_hybrid_of_walks_compl_of_three_two`), and then each hybrid node is
+below the other. -/
+theorem eq_of_inducesCycleType_three_two_of_card (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C C' : Set E}
+    {v v' : V} (hC : InducesCycleType N C v 3 2) (hC' : InducesCycleType N C' v' 3 2) : C = C' := by
+  have := hN.1.finite_arcs
+  by_contra hne
+  obtain ⟨u, hu, c', hc', hw⟩ := exists_walks_compl_of_cycles hN.1 hC.1 hC'.1
+  obtain ⟨u', hu', c, hc, hw'⟩ := exists_walks_compl_of_cycles hN.1 hC'.1 hC.1
+  have huv := eq_hybrid_of_walks_compl_of_three_two hN h1 hlsa hX hC hC'.1
+    (by rw [card_cycleNodesOffRoot hC'.1, hC'.2.2.2.1]) hne hu hc' hw
+  have hu'v' := eq_hybrid_of_walks_compl_of_three_two hN h1 hlsa hX hC' hC.1
+    (by rw [card_cycleNodesOffRoot hC.1, hC.2.2.2.1]) (Ne.symm hne) hu' hc hw'
+  subst huv hu'v'
+  have r₁ := (reaches_of_walks_compl_hybrid hN h1 hC.1 hC.2.1 hC.2.2.1 hw).trans
+    (reaches_hybrid hN h1 hC'.1 hC'.2.1 hC'.2.2.1 c' hc')
+  have r₂ := (reaches_of_walks_compl_hybrid hN h1 hC'.1 hC'.2.1 hC'.2.2.1 hw').trans
+    (reaches_hybrid hN h1 hC.1 hC.2.1 hC.2.2.1 c hc)
+  have heq := eq_of_reaches_of_reaches hN.1.acyclic r₁ r₂
+  exact hne ((lemma3 hN h1 hC.1).2.2 C' hC'.1 ⟨u, hC.2.1, heq ▸ hC'.2.1⟩)
+
+/-- **No `2₂`-cycle with a `4`-cycle** (Lemma 6, on four taxa): the four nodes of the `4`-cycle have a
+taxon each in their blocks, so the block of its node toward the `2₂`-cycle has at most one, and it
+holds the block of a node of the `2₂`-cycle, of two taxa. -/
+theorem not_inducesCycleType_two_two_of_four (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hlsa : N.IsLSANetwork) (hX : Fintype.card X = 4) {C C' : Set E}
+    {v v' : V} {k' : ℕ} (hC : InducesCycleType N C v 2 2) (hC' : InducesCycleType N C' v' 4 k') :
+    False := by
+  have hne : C ≠ C' := by
+    rintro rfl
+    have := hC.2.2.2.1
+    have := hC'.2.2.2.1
+    omega
+  obtain ⟨hcyc, hv, h2, hn, hk⟩ := hC
+  obtain ⟨u, hu, c', hc', hw⟩ := exists_walks_compl_of_cycles hN.1 hcyc hC'.1
+  obtain ⟨u', hu', c, hc, hw'⟩ := exists_walks_compl_of_cycles hN.1 hC'.1 hcyc
+  -- the block of `u'` has at most one taxon
+  have hsum' := sum_ncard_nodeBlock_eq hN h1 hC'.1
+  have hS' : #(cycleNodesOffRoot N C') = 4 := (card_cycleNodesOffRoot hC'.1).trans hC'.2.2.2.1
+  have hu'1 : (nodeBlock N.graph N.leaf C' u').ncard ≤ 1 := by
+    by_cases hu'S : u' ∈ cycleNodesOffRoot N C'
+    · rw [← add_sum_erase _ _ hu'S, hX] at hsum'
+      have hrest := card_nsmul_le_sum ((cycleNodesOffRoot N C').erase u') _ 1 fun w hw =>
+        one_le_ncard_nodeBlock hN h1 hlsa hC'.1 (mem_of_mem_erase hw)
+      rw [smul_eq_mul, mul_one, card_erase_of_mem hu'S, hS'] at hrest
+      omega
+    · have hr : u' = N.root := by
+        by_contra h
+        exact hu'S (mem_cycleNodesOffRoot.2 ⟨hu', h⟩)
+      rw [hr, nodeBlock_root hN hC'.1 (hr ▸ hu'), Set.ncard_empty]
+      omega
+  -- a node `b` of `C` other than its node toward `C'`
+  have hS : #(cycleNodesOffRoot N C) = 2 := (card_cycleNodesOffRoot hcyc).trans hn
+  obtain ⟨b, hb⟩ : ((cycleNodesOffRoot N C).erase u).Nonempty := by
+    rw [← card_pos]
+    have := pred_card_le_card_erase (s := cycleNodesOffRoot N C) (a := u)
+    omega
+  have hb' := mem_cycleNodesOffRoot.1 (mem_of_mem_erase hb)
+  have hb1 : (nodeBlock N.graph N.leaf C b).ncard ≤ 1 :=
+    (Set.ncard_le_ncard (nodeBlock_subset_of_cycles hN.1 h1 hC'.1 hcyc (Ne.symm hne) hu' hc hw' hu
+      hb'.1 hc' hw (ne_of_mem_erase hb)) (Set.toFinite _)).trans hu'1
+  have hvr : v ≠ N.root := fun h => by
+    have := hN.1.root_indegree
+    rw [← h, h2] at this
+    exact absurd this (by norm_num)
+  have hvS : v ∈ cycleNodesOffRoot N C := mem_cycleNodesOffRoot.2 ⟨hv, hvr⟩
+  have hbv : b ≠ v := by
+    rintro rfl
+    rw [nodeBlock_hybrid hN h1 hcyc hv h2, hk] at hb1
+    omega
+  -- the blocks of `v` and `b` hold the four taxa
+  have hpair : cycleNodesOffRoot N C = {v, b} :=
+    (eq_of_subset_of_card_le (insert_subset hvS (singleton_subset_iff.2 (mem_of_mem_erase hb)))
+      (by rw [hS, card_pair (Ne.symm hbv)])).symm
+  have hsum := sum_ncard_nodeBlock_eq hN h1 hcyc
+  rw [hpair, sum_pair (Ne.symm hbv), nodeBlock_hybrid hN h1 hcyc hv h2, hk, hX] at hsum
+  omega
+
+end Several
+
 end Banos2019
