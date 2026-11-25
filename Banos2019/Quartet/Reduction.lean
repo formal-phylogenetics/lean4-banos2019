@@ -12,6 +12,7 @@ public import Banos2019.Quartet.QuartetLSA
 public import Banos2019.Quartet.UnrootedIso
 public import Banos2019.Quartet.ThreeTwoCherry
 public import Banos2019.Quartet.DisjointTree
+public import Banos2019.Quartet.RootedIsoUnrooted
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -2850,7 +2851,17 @@ theorem exists_isLSAQuartet_type (hQ : IsLSAQuartet Q θ) :
       (θ₀ : MetricData E₀) (hQ₀ : IsLSAQuartet Q₀ θ₀), cf Q₀ θ₀ = cf Q θ ∧
       Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ)
         hQ₀.unrooted (unrootedMetric Q₀ hQ₀.binary hQ₀.nontrivial θ₀)) := by
-  sorry
+  set φ := finCopyIso Q
+  have hlen : ∀ e, (finCopyMetric θ).length (φ.arc e) = θ.length e := fun e => by
+    simp [finCopyMetric, φ, finCopyIso]
+  have hinh : ∀ e, (finCopyMetric θ).inheritance (φ.arc e) = θ.inheritance e := fun e => by
+    simp [finCopyMetric, φ, finCopyIso]
+  have hQ₀ : IsLSAQuartet (finCopy Q) (finCopyMetric θ) :=
+    ⟨φ.isBinaryRootedNetwork hQ.binary, φ.isLevelOne hQ.levelOne, φ.isLSANetwork hQ.isLSA,
+      hQ.card_taxa, φ.isMetricNetwork hlen hinh hQ.metric⟩
+  exact ⟨_, _, inferInstance, inferInstance, finCopy Q, finCopyMetric θ, hQ₀,
+    φ.cf_eq hQ.binary.1 hlen hinh, φ.nonempty_sdMetricIso hQ.binary hQ₀.binary hQ.isLSA hQ₀.isLSA
+      hQ.nontrivial hlen hinh⟩
 
 end Proposition5
 
