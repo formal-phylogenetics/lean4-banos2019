@@ -7,7 +7,7 @@ public import Banos2019.Identify.UnrootedCycles
 
 Removing the edges of a cycle `C` of `N⁻` leaves one component through each node of `C`.
 
-* `nodeBlock_nonempty`: the component of every node of `C` holds a taxon.
+* `nodeBlock_nonempty_unrooted`: the component of every node of `C` holds a taxon.
 * `mem_nodeBlock_iff_descendsFrom`: the taxa of the component of the hybrid node are those descending
   from it.
 
@@ -645,7 +645,7 @@ variable {N : RootedNetwork V E X} [Finite E] {hN : IsBinaryRootedNetwork N} {hX
 
 /-- **Every node of a cycle of `N⁻` has a taxon in its block**: what hangs from the node, off the
 cycle, ends at taxa. -/
-theorem nodeBlock_nonempty (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
+theorem nodeBlock_nonempty_unrooted (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
     (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) :
     (nodeBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C u).Nonempty := by
   obtain ⟨v, hv⟩ := exists_isHybridNodeOf h1 hC

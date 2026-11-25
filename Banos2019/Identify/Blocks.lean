@@ -74,7 +74,7 @@ theorem sameBlock_iff_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : I
 /-- **Every node of a cycle is the node of the block of a taxon.** -/
 theorem exists_blockNode_eq (h1 : IsLevelOne N.graph) {C : Set _} (hC : IsCycle (unrooted N hN hX).graph C) {u}
     (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) : ∃ x, blockNode (unrooted N hN hX) C x = u := by
-  obtain ⟨x, hx⟩ := nodeBlock_nonempty h1 hC hu
+  obtain ⟨x, hx⟩ := nodeBlock_nonempty_unrooted h1 hC hu
   exact ⟨x, (eq_blockNode h1 hC hu hx).symm⟩
 
 /-- **A taxon is in the block of the hybrid node exactly when it descends from it.** -/
