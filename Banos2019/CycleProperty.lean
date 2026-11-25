@@ -1,6 +1,6 @@
 module
 
-public import Banos2019.Quartet.Normal
+public import Banos2019.Quartet.Correspondence
 public import Banos2019.Quartet.Generic
 
 /-!
@@ -109,6 +109,15 @@ def HasFourCycle (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : F
 def HasThreeTwoCycle (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
     (hs : #s = 4) : Prop :=
   ∃ C v, InducesCycleType (quartetLSA N hN.1 s hs) C v 3 2
+
+/-- The Big Cycle property gives `Q⁻_s` a 4-cycle, for all metric parameters (Proposition 9). -/
+theorem hasFourCycle_of_bigCycleOn {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
+    (hs : #s = 4) (hbc : BigCycleOn (cf N θ) s) : HasFourCycle N hN s hs := by
+  have hbc' : BigCycleOn (cf (quartetLSA N hN.1 s hs) (quartetLSAMetric N hN s hs θ)) univ := by
+    rw [cf_quartetLSA hN h1 hθ hs, bigCycleOn_comp_map_iff]
+    exact hbc
+  exact proposition9 (isLSAQuartet_quartetLSA hN h1 hθ hs) (by convert hbc')
 
 /-- **Corollary 2 and equation (8)**: if `Q⁻` has a 4-cycle `C`, then, with the taxa `a, b, c, d`
 named around `C` (`c` in the hybrid block), the concordance factors of `Q⊕` for every metric are
@@ -449,7 +458,21 @@ theorem lemma12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h1 : I
     ForGenericParams N fun θ => IsMetricNetwork N θ → ∀ s : Finset X, #s = 4 →
       (BigCycleOn (cf N θ) s ↔
         ∃ C v, 4 ≤ C.ncard ∧ SeparatesQuartet (unrooted N hN hX) C v s) := by
-  sorry
+  -- Theorem 3, for the finitely many sets of four taxa at once
+  refine (forGenericParams_iInter (ι := {s : Finset X // #s = 4}) fun s => theorem3 hN h1 s.2).mono
+    fun θ h hθ s hs => ?_
+  rw [h ⟨s, hs⟩ hθ]
+  constructor
+  · -- a 4-cycle of `Q⁻_s` comes from a cycle of `N⁻` of size at least four separating `s`
+    rintro ⟨C₀, v₀, k, hC₀⟩
+    obtain ⟨C, hC, hC4, w, hw, -⟩ :=
+      (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+    obtain ⟨C', w', h4, hC', hw', hblk, hdesc, -⟩ :=
+      exists_separates_of_fourCycle hN h1 hX hs hC hC4 hw
+    exact ⟨C', w', h4, hC', hw', hblk, hdesc⟩
+  · -- such a cycle of `N⁻` induces a 4-cycle of `Q⁻_s`
+    rintro ⟨C, v, h4, hC, hv, hblk, hdesc⟩
+    exact exists_fourCycle_of_separates hN h1 hX hs h4 hC hv hblk hdesc
 
 /-- The node of `N` underlying a node of `Q⁻_s`. -/
 def quartetNode {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {s : Finset X} (hs : #s = 4)
@@ -471,6 +494,86 @@ theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
     (h₁ : #({a, b, c, d} : Finset X) = 4) (h₂ : #({a, b, c, e} : Finset X) = 4)
     (hbc₁ : BigCycleOn (cf N θ) {a, b, c, d}) (hbc₂ : BigCycleOn (cf N θ) {a, b, c, e}) (v : V) :
     Determines hN {a, b, c, d} h₁ v ↔ Determines hN {a, b, c, e} h₂ v := by
-  sorry
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  have hd₁ := distinct4_of_card_eq h₁
+  have hX : Nontrivial X := ⟨⟨a, b, hd₁.1⟩⟩
+  -- a set of four taxa with the Big Cycle property determines a hybrid node (Proposition 9)
+  have hex : ∀ {s : Finset X} (hs : #s = 4), BigCycleOn (cf N θ) s → ∃ u, Determines hN s hs u := by
+    intro s hs hbc
+    obtain ⟨C₀, v₀, k, hC₀⟩ := hasFourCycle_of_bigCycleOn hN h1 hθ hs hbc
+    obtain ⟨C, hC, hC4, w, hw, -⟩ :=
+      (inducesCycleType_iff (isLSAQuartet_quartetLSA hN h1 hθ hs) 4 k).1 ⟨C₀, v₀, hC₀⟩
+    exact ⟨_, C, w, hC, hC4, hw, rfl⟩
+  -- two sets containing `a, b, c` determine the same hybrid node
+  have huniq : ∀ {s₁ s₂ : Finset X} (hs₁ : #s₁ = 4) (hs₂ : #s₂ = 4) {u₁ u₂ : V},
+      a ∈ s₁ → b ∈ s₁ → c ∈ s₁ → a ∈ s₂ → b ∈ s₂ → c ∈ s₂ →
+      Determines hN s₁ hs₁ u₁ → Determines hN s₂ hs₂ u₂ → u₁ = u₂ := by
+    intro s₁ s₂ hs₁ hs₂ u₁ u₂ ha₁ hb₁ hc₁ ha₂ hb₂ hc₂ hu₁ hu₂
+    obtain ⟨C₁, w₁, hC₁, hC₁4, hw₁, rfl⟩ := hu₁
+    obtain ⟨C₂, w₂, hC₂, hC₂4, hw₂, rfl⟩ := hu₂
+    -- by Lemma 12, the cycles `C_v`, `C_u` of `N⁻` separate the two sets
+    obtain ⟨Cv, v', -, hCv, hv', hblk₁, -, hv'w⟩ :=
+      exists_separates_of_fourCycle hN h1 hX hs₁ hC₁ hC₁4 hw₁
+    obtain ⟨Cu, u', -, hCu, hu', hblk₂, -, hu'w⟩ :=
+      exists_separates_of_fourCycle hN h1 hX hs₂ hC₂ hC₂4 hw₂
+    by_contra hne
+    set G := unrooted N hN hX
+    have hmem : ∀ {C : Set _} {x}, IsHybridNodeOf G C x → x ∈ cycleNodes G.graph C := by
+      rintro C x ⟨h, hh, -, -, -, -, -, ht, -⟩
+      exact ⟨h, hh, Or.inr ht⟩
+    -- `C_u ≠ C_v`: a cycle has one hybrid node
+    have hCuv : Cv ≠ Cu := by
+      rintro rfl
+      obtain ⟨⟨x, -, huq⟩, -, -⟩ := lemma3_unrooted hN h1 hX hCv
+      have hval : ∀ {y}, IsHybridNodeOf G Cv y → y = x := by
+        rintro y ⟨h, hh, h', hh', hne', hd, hd', ht, ht'⟩
+        exact huq y ⟨hmem ⟨h, hh, h', hh', hne', hd, hd', ht, ht'⟩, h, h', hne', hd, hd', ht, ht'⟩
+      refine hne ?_
+      show w₁.1.1.1.1 = w₂.1.1.1.1
+      rw [← hv'w, ← hu'w, hval hv', hval hu']
+    -- so they have no common node (Lemma 3), and no common edge
+    have hdisj : ∀ z, z ∈ cycleNodes G.graph Cv → z ∉ cycleNodes G.graph Cu := fun z hzv hzu =>
+      hCuv ((lemma3_unrooted hN h1 hX hCv).2.2 Cu hCu ⟨z, hzv, hzu⟩)
+    have hedge : ∀ f ∈ Cu, f ∉ Cv := fun f hfu hfv =>
+      hdisj _ ⟨f, hfv, Or.inl rfl⟩ ⟨f, hfu, Or.inl rfl⟩
+    -- `C_u` lies in one component `K` of `N⁻ ∖ E(C_v)`, that of its node `u'`
+    have hz₀ := hmem hu'
+    have hK : ∀ f ∈ Cu, G.graph.Walks Cvᶜ (G.graph.source f) u' := fun f hf =>
+      DirectedMultigraph.walks_mono (fun g hg => hedge g hg)
+        (walks_of_mem_cycleNodes G.graph hCu ⟨f, hf, Or.inl rfl⟩ hz₀)
+    -- at most one of `a, b, c` is in `K`: they are in distinct `v`-blocks
+    have hone : ∀ x ∈ s₁, ∀ y ∈ s₁, x ≠ y → G.graph.Walks Cvᶜ (G.leaf x) u' →
+        G.graph.Walks Cvᶜ (G.leaf y) u' → False := fun x hx y hy hxy h₁ h₂ =>
+      hblk₁ x hx y hy hxy (h₁.trans (G.graph.walks_symm h₂))
+    -- the taxa outside `K` are in one `u`-block: they reach `C_v` avoiding `C_u`
+    have hout : ∀ x ∈ s₂, ∀ y ∈ s₂, x ≠ y → ¬ G.graph.Walks Cvᶜ (G.leaf x) u' →
+        ¬ G.graph.Walks Cvᶜ (G.leaf y) u' → False := by
+      intro x hx y hy hxy h₁ h₂
+      have hconn := unrooted_isConnected hN hX
+      obtain ⟨zx, hzx, hwx⟩ := exists_walks_cycleNodes_of_not_walks G.graph hconn hK h₁
+      obtain ⟨zy, hzy, hwy⟩ := exists_walks_cycleNodes_of_not_walks G.graph hconn hK h₂
+      have hCv' : Cv ⊆ Cuᶜ := fun f hfv hfu => hedge f hfu hfv
+      refine hblk₂ x hx y hy hxy ?_
+      exact ((DirectedMultigraph.walks_mono Set.inter_subset_right hwx).trans
+        (DirectedMultigraph.walks_mono hCv' (walks_of_mem_cycleNodes G.graph hCv hzx hzy))).trans
+        (G.graph.walks_symm (DirectedMultigraph.walks_mono Set.inter_subset_right hwy))
+    obtain ⟨hab, hac, -, hbc, -, -⟩ := hd₁
+    by_cases hA : G.graph.Walks Cvᶜ (G.leaf a) u' <;> by_cases hB : G.graph.Walks Cvᶜ (G.leaf b) u'
+    · exact hone a ha₁ b hb₁ hab hA hB
+    · by_cases hC : G.graph.Walks Cvᶜ (G.leaf c) u'
+      · exact hone a ha₁ c hc₁ hac hA hC
+      · exact hout b hb₂ c hc₂ hbc hB hC
+    · by_cases hC : G.graph.Walks Cvᶜ (G.leaf c) u'
+      · exact hone b hb₁ c hc₁ hbc hB hC
+      · exact hout a ha₂ c hc₂ hac hA hC
+    · exact hout a ha₂ b hb₂ hab hA hB
+  constructor
+  · intro hv
+    obtain ⟨u, hu⟩ := hex h₂ hbc₂
+    rwa [huniq h₁ h₂ (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) hv hu]
+  · intro hv
+    obtain ⟨u, hu⟩ := hex h₁ hbc₁
+    rwa [huniq h₂ h₁ (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) hv hu]
 
 end Banos2019
