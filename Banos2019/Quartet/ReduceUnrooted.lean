@@ -8,8 +8,20 @@ public import Banos2019.Network.SuppressIso
 # The unrooted network of a reduced network
 
 `unrootAt M hP e₀` is `M` with its root suppressed, the arc `e₀` at the root merged into the other
-one, its tree arcs undirected; its nodes of degree two are the chain nodes of `M`. The chain of an arc
-of `M` is a chain of it (`isUTrail_unrootAt_chainFrom`).
+one, its tree arcs undirected (`unrootAtMetric`: the merged edge has the lengths of the two arcs).
+When the root of `M` has outdegree two, the nodes of degree two of `unrootAt M hP e₀` are the chain
+nodes of `M` (`isBranch_unrootAt_iff`), and the chain of `M` from a node is a trail of it
+(`isUTrail_unrootAt_chainFrom`).
+
+For `M` satisfying `IsReducible`, whose root has outdegree two, and `N = reduceNet M` an LSA
+network, the unrooted network `N⁻` is `unrootAt M hP e₀` with its nodes of degree two suppressed
+(`nonempty_sdMetricIso_suppress_unrootAt`), for `e₀ = reduceRootArc`, the first arc of the chain of
+the arc that `N⁻` merges. The nodes of `N⁻` are the nodes of `M` other than the root and the chain
+nodes (`reduceVert`); an edge of `N⁻` is the chain of `M` of its arc (`reduceArc`, `reduceChainOf`),
+with the chain of `e₀` for the merged edge, a chain of `unrootAt M hP e₀` between the nodes of its ends
+(`exists_isUTrail_reduceChainOf`); it is hybrid when the last arc of the chain is
+(`eq_lastArc_of_mem_reduceChainOf`), and has the total length of the chain
+(`length_eq_finsum_reduceChainOf`).
 -/
 
 @[expose] public noncomputable section
@@ -739,6 +751,80 @@ theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ) (g : Semi
   rw [hset, finprod_mem_singleton, semidirectedMetric_inheritance,
     reduceMetric_inheritance _ hθ]
   rfl
+
+include h2 hl in
+/-- **The unrooted network of `reduceNet M` is `unrootAt M` with its nodes of degree two
+suppressed**, when the root of `M` has outdegree two, for `e₀ = reduceRootArc`: the edges of the
+unrooted network are the chains of `M` through its chain nodes, the two chains at the root merged. -/
+theorem nonempty_sdMetricIso_suppress_unrootAt (hθ : M.IsNormalized θ) :
+    Nonempty (SDMetricIso (suppress (unrootAt M hM.phylo (reduceRootArc hM hb hX)))
+      (suppressMetric (unrootAt M hM.phylo (reduceRootArc hM hb hX))
+        (unrootAtMetric M (reduceRootArc hM hb hX) θ))
+      (unrooted (reduceNet M hM.phylo) hb hX)
+      (unrootedMetric (reduceNet M hM.phylo) hb hX (reduceMetric M hM.phylo θ))) := by
+  have hP := hM.phylo
+  have := hP.finite_arcs
+  set e₀ := reduceRootArc hM hb hX
+  have he₀ : M.graph.source e₀ = M.root := source_reduceRootArc hM hb hX h2 hl
+  set G := unrootAt M hP e₀
+  set R := unrooted (reduceNet M hP) hb hX
+  have hbr : ∀ u, IsBranch G ∅ u ↔ ¬ M.IsChainVertex u.1 :=
+    isBranch_unrootAt_iff hP he₀ h2 hM.deg
+  -- the nodes
+  let fv : SemidirectedVertex hb.1 hX → {u // IsBranch G ∅ u} := fun w =>
+    ⟨⟨reduceVert hM hb hX w, (reduceVert_spec hM hb hX h2 hl w).1⟩,
+      (hbr _).2 (reduceVert_spec hM hb hX h2 hl w).2⟩
+  have hfv : Function.Bijective fv := by
+    refine ⟨fun w w' h => reduceVert_injective hM hb hX (congrArg (fun u => u.1.1) h), ?_⟩
+    rintro ⟨u, hu⟩
+    obtain ⟨w, hw⟩ := exists_reduceVert_eq hM hb hX h2 hl u.2 ((hbr u).1 hu)
+    exact ⟨w, Subtype.ext (Subtype.ext hw)⟩
+  set φ := (Equiv.ofBijective fv hfv).symm
+  have hφ : ∀ w, (φ.symm w).1.1 = reduceVert hM hb hX w := fun _ => rfl
+  -- the chains
+  choose ψ hψ using exists_mem_reduceChainOf hM hb hX h2 hl
+  have hne' : ∀ g, (reduceChainOf hM hb hX g).Nonempty := fun g =>
+    ⟨⟨reduceArc hM hb hX g, reduceArc_ne_reduceRootArc hM hb hX g⟩, Or.inl (Or.inl rfl)⟩
+  have htrail : ∀ g, ∃ (u w : {v // v ≠ M.root}) (S : Set {v // v ≠ M.root}),
+      IsUTrail G.graph u w S (reduceChainOf hM hb hX g) ∧ IsBranch G ∅ u ∧ IsBranch G ∅ w ∧
+      (∀ s ∈ S, s ≠ u → s ≠ w → ¬ IsBranch G ∅ s) ∧ u = (φ.symm (R.graph.source g)).1 ∧
+      w = (φ.symm (R.graph.target g)).1 := by
+    intro g
+    obtain ⟨u, w, S, hS, hu, hw, hin⟩ := exists_isUTrail_reduceChainOf hM hb hX h2 hl g
+    refine ⟨u, w, S, hS, (hbr u).2 (by rw [hu]; exact (reduceVert_spec hM hb hX h2 hl _).2),
+      (hbr w).2 (by rw [hw]; exact (reduceVert_spec hM hb hX h2 hl _).2),
+      fun s hs h₁ h₂ hb' => (hbr s).1 hb' (hin s hs h₁ h₂), Subtype.ext hu, Subtype.ext hw⟩
+  have hhyb : ∀ g, R.IsDirected g ↔
+      M.IsHybridArc (NMSC.lastArc hP (reduceArc hM hb hX g)) := fun g => by
+    rw [semidirected_isDirected_iff]
+    exact isHybridArc_reduceNet_iff hP hM.two _
+  refine nonempty_sdMetricIso_suppress (unrootAtMetric M e₀ θ)
+    (unrootedMetric (reduceNet M hP) hb hX (reduceMetric M hP θ)) φ (reduceChainOf hM hb hX)
+    (fun g => ?_) ψ hψ (fun g f hf => eq_of_mem_reduceChainOf hM hb hX h2 hl (hψ f) hf)
+    (fun g => ?_) (fun g h => ?_) (fun g => ?_) (fun g f hf hd => ?_) (fun x => ?_)
+    (length_eq_finsum_reduceChainOf hM hb hX h2 hl)
+    (fun g hd => inheritance_eq_finprod_reduceChainOf hM hb hX h2 hl hθ g hd)
+  · obtain ⟨u, w, S, hS, hu, hw, hin, -, -⟩ := htrail g
+    exact hS.isChain (hne' g) hu hw hin
+  · obtain ⟨u, w, S, hS, hu, hw, hin, hu', hw'⟩ := htrail g
+    rw [hS.chainEnds_eq (hne' g) hu hw hin, hu', hw']
+  · exact (semidirected_graph_isAcyclic hb.1 hb.2 hX) _ (.single ⟨g, h, rfl⟩)
+  · rw [hhyb]
+    constructor
+    · intro h
+      exact ⟨⟨_, lastArc_reduceArc_ne hM hb hX h2 hl g⟩,
+        Or.inl (NMSC.isOnChain_lastArc hP _), h⟩
+    · rintro ⟨f, hf, hd⟩
+      have hd' : M.IsHybridArc f.1 := hd
+      rw [← eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hd']
+      exact hd'
+  · have hd' : M.IsHybridArc f.1 := hd
+    apply Subtype.ext
+    show M.graph.target f.1 = reduceVert hM hb hX (R.graph.target g)
+    rw [eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hd', NMSC.target_lastArc,
+      reduceVert_target]
+  · rw [Equiv.eq_symm_apply]
+    exact Subtype.ext (Subtype.ext (reduceVert_leaf hM hb hX x))
 
 end Reduce
 

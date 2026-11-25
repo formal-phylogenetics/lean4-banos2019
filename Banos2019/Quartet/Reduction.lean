@@ -14,6 +14,7 @@ public import Banos2019.Quartet.ThreeTwoCherry
 public import Banos2019.Quartet.DisjointTree
 public import Banos2019.Quartet.RootedIsoUnrooted
 public import Banos2019.Quartet.TreeUnrooted
+public import Banos2019.Quartet.ReduceUnrooted
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
