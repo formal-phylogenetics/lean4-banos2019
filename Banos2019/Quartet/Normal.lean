@@ -186,6 +186,7 @@ theorem exists_fig17 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
                 len 4 = ∑ e ∈ A, θ'.length e ∧ len 5 = ∑ e ∈ B, θ'.length e := by
   sorry
 
+omit [Fintype V] [Fintype X] in
 /-- In `N⁻` of a binary level-1 network, two nodes of a cycle `C` are in different components of what
 is left after removing the edges of `C`: a walk between them avoiding `C` would close, with a part of
 `C`, a second cycle sharing edges with `C`. -/
@@ -194,6 +195,10 @@ theorem eq_of_walks_compl_of_mem_cycleNodes {N : RootedNetwork V E X} (hN : IsBi
     (hC : IsCycle (unrooted N hN hX).graph C) {u w : _}
     (hu : u ∈ cycleNodes (unrooted N hN hX).graph C) (hw : w ∈ cycleNodes (unrooted N hN hX).graph C)
     (huw : (unrooted N hN hX).graph.Walks Cᶜ u w) : u = w := by
-  sorry
+  -- `N⁻` is level-1: two cycles sharing an edge share a node, so they are equal (Lemma 3)
+  have h1' : IsLevelOne (unrooted N hN hX).graph := by
+    rintro D D' hD hD' ⟨f, hf, hf'⟩
+    exact (lemma3_unrooted hN h1 hX hD).2.2 D' hD' ⟨_, ⟨f, hf, Or.inl rfl⟩, ⟨f, hf', Or.inl rfl⟩⟩
+  exact h1'.eq_of_walks_compl hC hu hw huw
 
 end Banos2019
