@@ -373,7 +373,11 @@ meta def paperResults : List (String × Name) :=
    ("Prop 12", ``Banos2019.proposition12),
    ("Prop 13 (corrected)", ``Banos2019.proposition13),
    ("Prop 13 as printed is false", ``Banos2019.proposition13_asPrinted_false),
-   ("Lemma 17", ``Banos2019.lemma17)]
+   ("Lemma 17", ``Banos2019.lemma17),
+   ("Allman, Degnan, Rhodes 2011, equation (1)", ``External.AllmanDegnanRhodes2011.equation1),
+   ("Allman, Degnan, Rhodes 2011, Proposition 3", ``External.AllmanDegnanRhodes2011.proposition3),
+   ("Allman, Degnan, Rhodes 2011, Proposition 11 (Prop 4)", ``External.AllmanDegnanRhodes2011.proposition4),
+   ("Allman, Degnan, Rhodes 2011, root placement", ``External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree)]
 
 /-- The theorems that Palomar's comparator checks (`theorem_names` of
 `palomar/Banos2019/comparator.json`), as the Solution restates them. -/
