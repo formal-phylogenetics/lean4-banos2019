@@ -101,6 +101,12 @@ theorem reverse (h : IsUTrail G u w S P) : IsUTrail G w u S P := by
     rwa [Set.union_insert, Set.union_singleton,
       Set.insert_eq_of_mem (Set.mem_insert_of_mem _ h.start_mem), Set.union_singleton] at this
 
+/-- A trail from a node to itself has no edge. -/
+theorem edges_eq_empty_of_self {P : Set E} {S : Set V} (h : IsUTrail G u u S P) : P = ∅ := by
+  cases h with
+  | nil => rfl
+  | cons _ ha h' => exact absurd h'.end_mem ha
+
 /-- A trail as nodes and edges in order. -/
 theorem exists_fin (h : IsUTrail G u w S P) :
     ∃ (k : ℕ) (p : Fin (k + 1) → V) (e : Fin k → E),

@@ -519,6 +519,49 @@ theorem chainEndZ_ne {f f' : E} (hf : f ∈ N.ancestralArcs Z) (hf' : f' ∈ N.a
   unfold DirectedMultigraph.indegree at hin
   omega
 
+/-- A chain has one first arc. -/
+theorem eq_of_mem_chainArcs {f f' a : E} (h : a ∈ chainArcs hN hZ f) (h' : a ∈ chainArcs hN hZ f')
+    (hs : ¬ ChainZ hN hZ (N.graph.source f)) (hs' : ¬ ChainZ hN hZ (N.graph.source f')) : f = f' := by
+  obtain ⟨hf, ha, hon⟩ := h
+  obtain ⟨hf', ha', hon'⟩ := h'
+  exact congrArg Subtype.val (hon.unique hon'
+    (fun (hc : (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source ⟨f, hf⟩)) =>
+        hs ⟨N.source_mem_ancestralVertices hf, hc⟩)
+    fun (hc : (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source ⟨f', hf'⟩)) =>
+        hs' ⟨N.source_mem_ancestralVertices hf', hc⟩)
+
+/-- The arcs of a chain leave nodes below its first node. -/
+theorem reaches_source_of_mem_chainArcs {f a : E} (h : a ∈ chainArcs hN hZ f) :
+    N.graph.Reaches (N.graph.source f) (N.graph.source a) := by
+  obtain ⟨hf, ha, h | ⟨-, hr⟩⟩ := h
+  · rw [show a = f from congrArg Subtype.val h]
+    exact .refl
+  · exact (Relation.ReflTransGen.single ⟨f, rfl, rfl⟩).trans
+      ((N.ancestralGraph_reaches_iff Z _ _).mp hr.reaches)
+
+/-- A chain node has one parent. -/
+theorem indegree_of_chainZ {v : V} (hv : ChainZ hN hZ v) : N.graph.indegree v = 1 := by
+  obtain ⟨h, h₁, -⟩ := hv
+  exact (N.ancestralGraph_indegree Z ⟨v, h⟩).symm.trans h₁
+
+/-- The last arc of a chain enters its end. -/
+theorem exists_last_mem_chainArcs {f : E} (hf : f ∈ N.ancestralArcs Z) :
+    ∃ a ∈ chainArcs hN hZ f, N.graph.target a = chainEndZ hN hZ (N.graph.target f) := by
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  refine ⟨(chainLast hM ⟨f, hf⟩).1, ⟨hf, (chainLast hM ⟨f, hf⟩).2, isOnChain_chainLast hM _⟩, ?_⟩
+  rw [chainEndZ_of_mem hN hZ hf]
+  exact congrArg Subtype.val (target_chainLast hM ⟨f, hf⟩)
+
+/-- **Every arc of the ancestral network is on a chain** starting at a node that is not a chain
+node. -/
+theorem exists_mem_chainArcs {a : E} (ha : a ∈ N.ancestralArcs Z) :
+    ∃ f, ¬ ChainZ hN hZ (N.graph.source f) ∧ a ∈ chainArcs hN hZ f := by
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  refine ⟨(chainHead hM ⟨a, ha⟩).1.1, fun ⟨_, hc⟩ => (chainHead hM ⟨a, ha⟩).2 hc,
+    (chainHead hM ⟨a, ha⟩).1.2, ha, isOnChain_chainHead hM ⟨a, ha⟩⟩
+
 end Anc
 
 end Banos2019

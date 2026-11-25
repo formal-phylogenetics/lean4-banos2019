@@ -1065,6 +1065,225 @@ theorem exists_chainTrail_of_eq (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
         · exact not_isBranch_trekNet_lsa hN hX hZ h17 s hs
         · exact hinner s (Or.inr hs) hs₁ hs₂
 
+include h17 hK in
+theorem exists_chainTrail (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    ∃ u w S, IsChainTrail hN hX hZ hC ι κ g u w S := by
+  by_cases hg : N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty
+  · exact exists_chainTrail_of_eq hN hX hZ h17 hC ι κ hK g hg
+  · exact exists_chainTrail_of_ne hN hX hZ h17 hC ι κ hK g hg
+
+include h17 hK in
+/-- **The chain of `K` of an edge of `(N⁺_Z)⁻` is a chain.** -/
+theorem chainOfR_isChain (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    IsChain (trekNet hN hX Z) ∅ (chainOfR hN hX hZ hC κ g) := by
+  obtain ⟨u, w, S, hT, -, -, hne, hu, hw, hin⟩ := exists_chainTrail hN hX hZ h17 hC ι κ hK g
+  exact hT.isChain hne hu hw hin
+
+include hK in
+theorem valRE_injective : Function.Injective (valRE hN hZ hC κ) := fun _ _ h =>
+  sdArc_injective hC.1 hC.2 hZ.coe_sort (valCE_injective hN hZ ι κ hK h)
+
+omit hC in
+/-- The first arc of a chain whose arcs leave nodes below `LSA(Z)` leaves a node below `LSA(Z)`. -/
+theorem reaches_source_of_mem_chainArcs_lsa {f a : E} (h : a ∈ chainArcs hN.1 hZ.nonempty f)
+    (ha : a ∈ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z) :
+    N.graph.Reaches (lsa hN.1 Z hZ.nonempty) (N.graph.source f) := by
+  have hst := (lsa_spec hN.1 Z hZ.nonempty).1
+  set m := lsa hN.1 Z hZ.nonempty
+  obtain ⟨hf, ha', hon⟩ := h
+  rcases hon with h | ⟨hc, hr⟩
+  · rw [← show a = f from congrArg Subtype.val h]
+    exact ha.1
+  · -- going up the chain, every node is strictly below `LSA(Z)`
+    have key : ∀ x y : N.AncestralVertex Z,
+        (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).ChainReach x y →
+        (N.graph.Reaches m y.1 ∧ y.1 ≠ m) → N.graph.Reaches m x.1 ∧ x.1 ≠ m := by
+      intro x y hxy hy
+      induction hxy using Relation.ReflTransGen.head_induction_on with
+      | refl => exact hy
+      | @head x x' hstep _ ih =>
+        obtain ⟨hmx', hx'm⟩ := ih
+        obtain ⟨hcx, ⟨e, hes, het⟩⟩ := hstep
+        have hxm : x.1 ≠ m := fun h => not_chainZ_lsa hN.1 hN.2 hZ (by
+          have hx : ChainZ hN.1 hZ.nonempty x.1 := ⟨x.2, hcx⟩
+          rwa [h] at hx)
+        obtain ⟨z, hz, hz'⟩ := x'.2
+        refine ⟨?_, hxm⟩
+        have := hst.reaches_source hN.1 hz (f := e.1) (by
+          rw [show N.graph.target e.1 = x'.1 from congrArg Subtype.val het]; exact hz') (fun h => by
+            rw [show N.graph.target e.1 = x'.1 from congrArg Subtype.val het] at h
+            exact hx'm (eq_of_reaches_of_reaches hN.1.acyclic h hmx'))
+        rwa [show N.graph.source e.1 = x.1 from congrArg Subtype.val hes] at this
+    have hsa : N.graph.source a ≠ m := fun h => not_chainZ_lsa hN.1 hN.2 hZ (by
+      have hx : ChainZ hN.1 hZ.nonempty (N.graph.source a) := ⟨_, hc⟩
+      rwa [h] at hx)
+    obtain ⟨hmt, htm⟩ := key _ _ hr ⟨ha.1, hsa⟩
+    obtain ⟨z, hz, hz'⟩ := hf
+    exact hst.reaches_source hN.1 hz hz' fun h => htm (eq_of_reaches_of_reaches hN.1.acyclic h hmt)
+
+include hK in
+/-- **Every arc below `LSA(Z)` above a taxon of `Z` is on the chain of an edge of `(N⁺_Z)⁻`.** -/
+theorem exists_mem_edgeArcsR {a : E} (ha : a ∈ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z) :
+    ∃ g, a ∈ edgeArcsR hN hZ hC κ g := by
+  obtain ⟨f, hfs, hfa⟩ := exists_mem_chainArcs hN.1 hZ.nonempty ha.2
+  have hmf := reaches_source_of_mem_chainArcs_lsa hN hZ hfa ha
+  have hf : f ∈ N.ancestralArcs Z := hfa.1
+  obtain ⟨hf₁s, -, hf₁a⟩ := rootArcR_spec hN hZ hC ι κ hK
+  by_cases hff₁ : f = rootArcR hN hZ hC κ
+  · obtain ⟨f₂, hf₂s, hf₂, hf₂a, -⟩ := exists_other_arc_lsa hN hZ hf₁s
+    obtain ⟨g, hg⟩ := (mem_range_valRE hN hZ hC ι κ hK f₂).mpr
+      ⟨hf₂a, hf₂s ▸ not_chainZ_lsa hN.1 hN.2 hZ, hf₂s ▸ .refl, hf₂⟩
+    exact ⟨g, Or.inr ⟨hg ▸ hf₂s, hff₁ ▸ hfa⟩⟩
+  · obtain ⟨g, hg⟩ := (mem_range_valRE hN hZ hC ι κ hK f).mpr ⟨hf, hfs, hmf, hff₁⟩
+    exact ⟨g, Or.inl (hg ▸ hfa)⟩
+
+include hK in
+/-- **The chains of distinct edges of `(N⁺_Z)⁻` are disjoint.** -/
+theorem eq_of_mem_edgeArcsR {a : E} {g g' : SemidirectedArc hC.1 hC.2 hZ.coe_sort}
+    (h : a ∈ edgeArcsR hN hZ hC κ g) (h' : a ∈ edgeArcsR hN hZ hC κ g') : g = g' := by
+  obtain ⟨hf₁s, -, -⟩ := rootArcR_spec hN hZ hC ι κ hK
+  have hnc₁ : ¬ ChainZ hN.1 hZ.nonempty (N.graph.source (rootArcR hN hZ hC κ)) :=
+    hf₁s ▸ not_chainZ_lsa hN.1 hN.2 hZ
+  have hq := fun g => (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  rcases h with h | ⟨hs, h⟩ <;> rcases h' with h' | ⟨hs', h'⟩
+  · exact valRE_injective hN hZ hC ι κ hK
+      (eq_of_mem_chainArcs hN.1 hZ.nonempty h h' (hq g).2.1 (hq g').2.1)
+  · exact absurd (eq_of_mem_chainArcs hN.1 hZ.nonempty h h' (hq g).2.1 hnc₁) (hq g).2.2.2
+  · exact absurd (eq_of_mem_chainArcs hN.1 hZ.nonempty h' h (hq g').2.1 hnc₁) (hq g').2.2.2
+  · obtain ⟨f₂, -, -, -, hf₂u⟩ := exists_other_arc_lsa hN hZ hf₁s
+    exact valRE_injective hN hZ hC ι κ hK ((hf₂u _ hs (hq g).2.2.2).trans
+      (hf₂u _ hs' (hq g').2.2.2).symm)
+
+/-- The edge of `(N⁺_Z)⁻` whose chain contains an edge of `K`. -/
+def psiR (e : trekEdges (semidirected hN.1 hN.2 hX) Z) : SemidirectedArc hC.1 hC.2 hZ.coe_sort :=
+  Classical.choose (exists_mem_edgeArcsR hN hZ hC ι κ hK (valK_mem_belowArcs hN hX hZ h17 e))
+
+theorem mem_chainOfR_psiR (e : trekEdges (semidirected hN.1 hN.2 hX) Z) :
+    e ∈ chainOfR hN hX hZ hC κ (psiR hN hX hZ h17 hC ι κ hK e) :=
+  Classical.choose_spec (exists_mem_edgeArcsR hN hZ hC ι κ hK (valK_mem_belowArcs hN hX hZ h17 e))
+
+theorem psiR_eq {e : trekEdges (semidirected hN.1 hN.2 hX) Z}
+    {g : SemidirectedArc hC.1 hC.2 hZ.coe_sort} (he : e ∈ chainOfR hN hX hZ hC κ g) :
+    psiR hN hX hZ h17 hC ι κ hK e = g :=
+  eq_of_mem_edgeArcsR hN hZ hC ι κ hK (mem_chainOfR_psiR hN hX hZ h17 hC ι κ hK e) he
+
+/-- The nodes of `(N⁺_Z)⁻`, as nodes of `N`. -/
+def rVertEquiv : SemidirectedVertex hC.1 hZ.coe_sort ≃
+    {v : V // v ∈ N.ancestralVertices Z ∧ ¬ ChainZ hN.1 hZ.nonempty v ∧
+      N.graph.Reaches (lsa hN.1 Z hZ.nonempty) v ∧ v ≠ lsa hN.1 Z hZ.nonempty} :=
+  equivOfInjective (valR hN hZ hC ι) (fun _ _ h => sdVert_injective hC.1 hZ.coe_sort
+    (valC_injective hN hZ ι κ hK h)) _ fun v => (mem_range_valR hN hZ hC ι κ hK v).symm
+
+/-- The bijection of the nodes of `(N⁻)_Z` and `(N⁺_Z)⁻`: both are nodes of `N`. -/
+def vertEquivR : {u // IsBranch (trekNet hN hX Z) ∅ u} ≃ SemidirectedVertex hC.1 hZ.coe_sort :=
+  (lVertEquiv hN hX hZ h17).trans (rVertEquiv hN hZ hC ι κ hK).symm
+
+theorem valH_vertEquivR_symm (x : SemidirectedVertex hC.1 hZ.coe_sort) :
+    valH hN hX ((vertEquivR hN hX hZ h17 hC ι κ hK).symm x).1 = valR hN hZ hC ι x := by
+  unfold vertEquivR
+  rw [Equiv.symm_trans_apply, Equiv.symm_symm]
+  exact equivOfInjective_symm_apply (fun u : {u // IsBranch (trekNet hN hX Z) ∅ u} => valH hN hX u.1)
+    _ _ _ _
+
+include h17 hK in
+theorem chainEnds_chainOfR (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    chainEnds (trekNet hN hX Z) ∅ (chainOfR hN hX hZ hC κ g) =
+      {((vertEquivR hN hX hZ h17 hC ι κ hK).symm
+          ((semidirected hC.1 hC.2 hZ.coe_sort).graph.source g)).1,
+        ((vertEquivR hN hX hZ h17 hC ι κ hK).symm
+          ((semidirected hC.1 hC.2 hZ.coe_sort).graph.target g)).1} := by
+  obtain ⟨u, w, S, hT, hu, hw, hne, hbu, hbw, hin⟩ := exists_chainTrail hN hX hZ h17 hC ι κ hK g
+  rw [hT.chainEnds_eq hne hbu hbw hin]
+  congr 1
+  · exact valH_injective hN hX (hu.trans (valH_vertEquivR_symm hN hX hZ h17 hC ι κ hK _).symm)
+  · rw [valH_injective hN hX (hw.trans (valH_vertEquivR_symm hN hX hZ h17 hC ι κ hK _).symm)]
+
+include hX h17 hK in
+theorem semidirectedR_source_ne_target (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    (semidirected hC.1 hC.2 hZ.coe_sort).graph.source g ≠
+      (semidirected hC.1 hC.2 hZ.coe_sort).graph.target g := by
+  intro h
+  obtain ⟨u, w, S, hT, hu, hw, hne, -, -, -⟩ := exists_chainTrail hN hX hZ h17 hC ι κ hK g
+  have huw : u = w := valH_injective hN hX (by rw [hu, hw, h])
+  subst huw
+  rw [hT.edges_eq_empty_of_self] at hne
+  exact Set.not_nonempty_empty hne
+
+include h17 hK in
+theorem semidirectedR_isDirected_iff_chain (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    (semidirected hC.1 hC.2 hZ.coe_sort).IsDirected g ↔
+      ∃ e ∈ chainOfR hN hX hZ hC κ g, (trekNet hN hX Z).IsDirected e := by
+  have := hN.1.finite_arcs
+  obtain ⟨hf, hnc, hmf, hff₁⟩ := (mem_range_valRE hN hZ hC ι κ hK (valRE hN hZ hC κ g)).mp ⟨g, rfl⟩
+  obtain ⟨hf₁s, hf₁in, hf₁a⟩ := rootArcR_spec hN hZ hC ι κ hK
+  rw [semidirectedR_isDirected_iff hN hZ hC ι κ hK]
+  constructor
+  · intro h2
+    obtain ⟨a, ha, hat⟩ := exists_last_mem_chainArcs hN.1 hZ.nonempty hf
+    have hab : a ∈ N.belowArcs (lsa hN.1 Z hZ.nonempty) Z :=
+      ⟨hmf.trans (reaches_source_of_mem_chainArcs hN.1 hZ.nonempty ha), ha.2.1⟩
+    obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 hab fun h => by
+      have h1 := (sdRootArc_spec hN.1 hN.2 hX).2
+      unfold IsTreeArc at h1
+      rw [← h, hat] at h1
+      omega
+    refine ⟨e, Or.inl (he ▸ ha), (trekNet_isDirected_iff hN hX e).mpr ?_⟩
+    rw [he, hat]
+    exact h2
+  · rintro ⟨e, he, hd⟩
+    rw [trekNet_isDirected_iff] at hd
+    have hnc' : ¬ ChainZ hN.1 hZ.nonempty (N.graph.target (valK hN hX e)) := fun h => by
+      rw [indegree_of_chainZ hN.1 hZ.nonempty h] at hd
+      omega
+    rcases he with he | ⟨-, he⟩
+    · rw [← target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc']
+      exact hd
+    · rw [target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc', hf₁in] at hd
+      omega
+
+include h17 hK in
+theorem target_of_mem_chainOfR (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
+    (e : trekEdges (semidirected hN.1 hN.2 hX) Z) (he : e ∈ chainOfR hN hX hZ hC κ g)
+    (hd : (trekNet hN hX Z).IsDirected e) :
+    (trekNet hN hX Z).graph.target e = ((vertEquivR hN hX hZ h17 hC ι κ hK).symm
+      ((semidirected hC.1 hC.2 hZ.coe_sort).graph.target g)).1 := by
+  obtain ⟨hf₁s, hf₁in, hf₁a⟩ := rootArcR_spec hN hZ hC ι κ hK
+  refine valH_injective hN hX ?_
+  rw [valH_vertEquivR_symm, valR_target hN hZ hC ι κ hK, valH_target]
+  rw [trekNet_isDirected_iff] at hd
+  have hnc' : ¬ ChainZ hN.1 hZ.nonempty (N.graph.target (valK hN hX e)) := fun h => by
+    rw [indegree_of_chainZ hN.1 hZ.nonempty h] at hd
+    omega
+  rcases he with he | ⟨-, he⟩
+  · exact target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc'
+  · rw [target_eq_chainEndZ_of_mem_chainArcs hN.1 hZ.nonempty he hnc', hf₁in] at hd
+    omega
+
+theorem vertEquivR_leaf (z : Z) :
+    (semidirected hC.1 hC.2 hZ.coe_sort).leaf z =
+      vertEquivR hN hX hZ h17 hC ι κ hK ⟨(trekNet hN hX Z).leaf z, Or.inr (Or.inl ⟨z, rfl⟩)⟩ := by
+  refine (rVertEquiv hN hZ hC ι κ hK).injective (Subtype.ext ?_)
+  unfold vertEquivR
+  rw [Equiv.trans_apply, Equiv.apply_symm_apply]
+  change valR hN hZ hC ι _ = valH hN hX ((trekNet hN hX Z).leaf z)
+  rw [valR_leaf hN hZ hC ι κ hK, valH_leaf]
+
+include h17 hK in
+/-- **Proposition 1, for a contraction `C` of the suppressed ancestral network**: suppressing the
+nodes of degree two of `K` gives `(N⁺_Z)⁻`, the semidirected network of `C`. -/
+theorem nonempty_sdIso_trekNet :
+    Nonempty (SDIso (suppress (trekNet hN hX Z)) (semidirected hC.1 hC.2 hZ.coe_sort)) := by
+  have := hN.1.finite_arcs
+  obtain ⟨ι', -⟩ := exists_sdIso_suppressExcept (vertEquivR hN hX hZ h17 hC ι κ hK)
+    (chainOfR hN hX hZ hC κ) (chainOfR_isChain hN hX hZ h17 hC ι κ hK) (psiR hN hX hZ h17 hC ι κ hK)
+    (mem_chainOfR_psiR hN hX hZ h17 hC ι κ hK) (fun _ _ he => psiR_eq hN hX hZ h17 hC ι κ hK he)
+    (chainEnds_chainOfR hN hX hZ h17 hC ι κ hK)
+    (semidirectedR_source_ne_target hN hX hZ h17 hC ι κ hK)
+    (semidirectedR_isDirected_iff_chain hN hX hZ h17 hC ι κ hK)
+    (target_of_mem_chainOfR hN hX hZ h17 hC ι κ hK)
+    (vertEquivR_leaf hN hX hZ h17 hC ι κ hK)
+  exact ⟨ι'⟩
+
 end Chains
 
 end Banos2019
