@@ -663,6 +663,87 @@ theorem sum_rootDist_eq_one (hN : N.IsPhylogenetic) {θ : MetricData E} (hθ : N
   rw [h]
   exact sum_sum_injWeight hN hθ hρ hinj
 
+/-- The law of the forest arriving at a cut vertex is a probability distribution. -/
+theorem sum_rootDist_cutLower (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : MetricData E}
+    (hθ : N.IsMetric θ) {ρ : ℝ} (hρ : 0 ≤ ρ ∧ ρ ≤ 1) {inj : V → Finset (Finset X)}
+    (hinj : ValidInj inj) :
+    ∑ F₁, rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ (lowerInj (cutVertices N r) inj) F₁ = 1 := by
+  have h := congrArg (fun f => ∑ F, f F) (funext (rootDist_eq_sum_cut hN hc θ ρ inj))
+  simp only at h
+  rw [sum_rootDist_eq_one hN hθ hρ hinj, sum_comm] at h
+  rw [h]
+  refine sum_congr rfl fun F₁ _ => ?_
+  rw [← mul_sum]
+  by_cases h0 : rootDist (cutLower N r hc) (cutLowerMetric N r θ) ρ
+      (lowerInj (cutVertices N r) inj) F₁ = 0
+  · rw [h0, zero_mul]
+  · obtain ⟨hg, hl⟩ := good_of_rootDist_cutLower_ne_zero hN hc hinj h0
+    have hv : ValidInj (cutInj N r inj F₁) := by
+      refine ⟨fun w => ?_, fun u w huw => ?_⟩
+      · unfold cutInj
+        split_ifs
+        · exact hg
+        · exact isGoodForest_empty
+        · exact hinj.good w
+      · refine disjoint_left.2 fun x hxu hxw => ?_
+        have key : ∀ a, x ∈ lineages (cutInj N r inj F₁ a) →
+            (a = r ∧ ∃ u', N.graph.Reaches r u' ∧ x ∈ lineages (inj u')) ∨
+              (¬ N.graph.Reaches r a ∧ x ∈ lineages (inj a)) := by
+          intro a ha
+          unfold cutInj at ha
+          split_ifs at ha with h₁ h₂
+          · exact Or.inl ⟨h₂, (hl x).1 ha⟩
+          · simp at ha
+          · exact Or.inr ⟨h₁, ha⟩
+        rcases key u hxu with ⟨rfl, u', hu', hx'⟩ | ⟨hu, hx⟩ <;>
+          rcases key w hxw with ⟨rfl, w', hw', hy'⟩ | ⟨hw, hy⟩
+        · exact huw rfl
+        · exact hw (hu'.trans (by
+            by_contra hne
+            exact disjoint_left.1 (hinj.disj u' w (fun h => hw (h ▸ hu'))) hx' hy))
+        · exact hu (hw'.trans (by
+            by_contra hne
+            exact disjoint_left.1 (hinj.disj w' u (fun h => hu (h ▸ hw'))) hy' hx))
+        · exact disjoint_left.1 (hinj.disj u w huw) hx hy
+    rw [sum_rootDist_eq_one hN hθ hρ hv, mul_one]
+
+/-- **One taxon below a cut vertex**: the forest arriving there is its single lineage. -/
+theorem rootDist_cutLower_of_one (hN : N.IsPhylogenetic) (hc : IsCut N r) {θ : MetricData E}
+    (hθ : N.IsMetric θ) {d : X} (hd : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = d)
+    (F₁ : Finset (Finset X)) :
+    rootDist (cutLower N r hc) (cutLowerMetric N r θ) 0
+      (lowerInj (cutVertices N r) (taxaInj N univ)) F₁ = if F₁ = {{d}} then 1 else 0 := by
+  have hsupp : ∀ F, rootDist (cutLower N r hc) (cutLowerMetric N r θ) 0
+      (lowerInj (cutVertices N r) (taxaInj N univ)) F ≠ 0 → F = {{d}} := by
+    intro F hF
+    obtain ⟨hg, hl⟩ := good_of_rootDist_cutLower_ne_zero hN hc (validInj_taxaInj univ) hF
+    have hlin : ∀ x, x ∈ lineages F ↔ x = d := fun x => by
+      rw [hl x]
+      constructor
+      · rintro ⟨u, hu, hxu⟩
+        obtain ⟨-, rfl⟩ := mem_lineages_taxaInj.1 hxu
+        exact (hd x).1 hu
+      · intro hx
+        exact ⟨N.leaf x, (hd x).2 hx, mem_lineages_taxaInj.2 ⟨mem_univ _, rfl⟩⟩
+    ext A
+    rw [mem_singleton]
+    constructor
+    · intro hA
+      obtain ⟨x, hx⟩ := hg.1.1 A hA
+      have hxd := (hlin x).1 (mem_lineages.2 ⟨A, hA, hx⟩)
+      rw [hxd] at hx
+      exact Subset.antisymm (fun y hy => mem_singleton.2 ((hlin y).1 (mem_lineages.2 ⟨A, hA, hy⟩)))
+        (singleton_subset_iff.2 hx)
+    · rintro rfl
+      obtain ⟨A, hA, hdA⟩ := mem_lineages.1 ((hlin d).2 rfl)
+      exact hg.singleton_mem hA hdA
+  have hsum := sum_rootDist_cutLower hN hc hθ ⟨le_rfl, zero_le_one⟩ (validInj_taxaInj (N := N) univ)
+  rw [Finset.sum_eq_single {{d}} (fun F _ hF => by_contra fun h => hF (hsupp F h)) (by simp)] at hsum
+  split_ifs with h
+  · rw [h, hsum]
+  · by_contra h'
+    exact h (hsupp F₁ h')
+
 /-! ### The number of lineages at the top of an arc -/
 
 /-- **The concordance factors as a sum over the number `K` of lineages at the top of `c`**:
@@ -907,6 +988,45 @@ theorem jointCF_eq_sum_quartetValue (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ
     · simp [ht]
     · rw [sum_displays_injDist hX,
         cherryMass_liftInj hN hθ ⟨le_rfl, zero_le_one⟩ hX hc hcr hd hbelow ht]
+  · rfl
+
+variable (N) in
+/-- The law at the root of the part above a cut vertex `r` with the only arc `p` into `r`, when the
+forest `t` is at the top of `p`. -/
+def upperLaw (hN : N.IsPhylogenetic) {r : V} (hc : IsCut N r) {p : E} (hpr : N.graph.target p = r)
+    (huniq : ∀ g, N.graph.target g = r → g = p) (θ : MetricData E) (t F : Finset (Finset X)) : ℝ :=
+  rootDist (cutUpper N r hc) (cutUpperMetric N r θ) 0
+    (upperInj (cutVertices N r) (cutSource N r hN (unitArc hpr huniq)) (taxaInj N univ) fun _ => t) F
+
+/-- **One taxon `d` below a cut vertex `r` with the only arc `p` into it**: the concordance factors
+are those of the part above `r`, with the single lineage of `d` at the top of `p` after the
+coalescent along `p`. -/
+theorem cf_eq_of_one_below (hN : N.IsPhylogenetic) (hθ : N.IsMetric θ) (hX : Fintype.card X = 4)
+    {r : V} (hc : IsCut N r) {p : E} (hpr : N.graph.target p = r)
+    (huniq : ∀ g, N.graph.target g = r → g = p) {d : X}
+    (hd : ∀ x, N.graph.Reaches r (N.leaf x) ↔ x = d) (q : QuartetTree X) :
+    cf N θ q = ∑ H, if ∃ B ∈ q.val, B ∈ H then ∑ F, (∑ t, kingmanTransition (θ.length p) {{d}} t *
+      upperLaw N hN hc hpr huniq θ t F) * kingmanAbsorption F H else 0 := by
+  have h1 : θ.inheritance p = 1 := hθ.2.2.1 p (isTreeArc_of_unique hpr huniq)
+  rw [cf_eq_cherryMass hN hθ hX]
+  unfold cherryMass
+  refine sum_congr rfl fun H _ => ?_
+  split_ifs
+  · rw [injDist_eq_sum_rootDist]
+    refine sum_congr rfl fun F _ => ?_
+    congr 1
+    rw [rootDist_eq_sum_arc hN hc hpr huniq h1 le_rfl]
+    refine sum_congr rfl fun t _ => ?_
+    have hlaw : arcLaw N r hc θ 0 p (taxaInj N univ) t = kingmanTransition (θ.length p) {{d}} t := by
+      unfold arcLaw
+      simp only [rootDist_cutLower_of_one hN hc hθ hd, ite_mul, one_mul, zero_mul, sum_ite_eq',
+        mem_univ, ite_true]
+    rw [hlaw]
+    congr 1
+    have := sum_rootDist_liftInj hN hc hpr huniq h1 le_rfl (taxaInj N univ) t
+      fun F' => if F' = F then 1 else 0
+    simp only [mul_ite, mul_one, mul_zero, sum_ite_eq', mem_univ, ite_true] at this
+    exact this
   · rfl
 
 end FourTaxa

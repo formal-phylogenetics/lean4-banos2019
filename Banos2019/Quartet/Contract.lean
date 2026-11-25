@@ -433,6 +433,113 @@ theorem isMetric {θ : MetricData E} (hθ : Q.IsMetric θ) :
     exact ⟨⟨e, fun C' _ hC' => hC' ▸ hne⟩,
       mem_filter.2 ⟨mem_univ _, (hK.target_eq_iff _ W).2 (mem_filter.1 he).2⟩, rfl⟩
 
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- **The paths of `Q₀⊕` from the node of `C`** go down from the top `t` in `Q⊕`. -/
+theorem reaches_top_iff (W : Quot (RootedContractRel Q (· = C))) :
+    (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ t) W ↔ Q.graph.Reaches t (hK.rep W) := by
+  constructor
+  · intro h
+    induction h with
+    | refl =>
+      rw [hK.rep_mk_of_mem hK.top_mem]
+      exact .refl
+    | tail _ hab ih => exact ih.trans (hK.transGen_rep_of_adj hab).to_reflTransGen
+  · intro h
+    rw [← hK.mk_rep W]
+    exact hK.reaches_contract h
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- A top that is a cut vertex of `Q⊕` gives a cut vertex of `Q₀⊕`. -/
+theorem isCut_top (hc : IsCut Q t) : IsCut (contractRooted Q (· = C)) (Quot.mk _ t) := by
+  have hr : Q.root ∉ cycleNodes Q.graph C := fun h => hc.not_reaches_root (hK.top_reaches _ h)
+  refine ⟨fun h => ?_, fun e he hne => ?_⟩
+  · rw [hK.reaches_top_iff] at h
+    change Q.graph.Reaches t (hK.rep (Quot.mk _ Q.root)) at h
+    rw [hK.rep_mk_of_notMem hr] at h
+    exact hc.not_reaches_root h
+  · rw [hK.reaches_top_iff, hK.rep_target] at he
+    have hne' : Q.graph.target e.1 ≠ t := fun h => hne (by
+      change Quot.mk _ (Q.graph.target e.1) = Quot.mk _ t
+      rw [h])
+    exact hK.reaches_contract (hc.entry e.1 he hne')
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem notMem_of_not_reaches_top {w : V} (hw : ¬ Q.graph.Reaches t w) :
+    w ∉ cycleNodes Q.graph C := fun h => hw (hK.top_reaches w h)
+
+/-- The vertices not below the top in `Q⊕` and not below the node of `C` in `Q₀⊕`. -/
+def upperEquiv : {w // ¬ Q.graph.Reaches t w} ≃
+    {W // ¬ (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ t) W} :=
+  Equiv.ofBijective (fun w => ⟨Quot.mk _ w.1, by
+      rw [hK.reaches_top_iff, hK.rep_mk_of_notMem (hK.notMem_of_not_reaches_top w.2)]
+      exact w.2⟩) (by
+    constructor
+    · intro a b h
+      exact Subtype.ext ((mk_eq_mk_iff_of_notMem hK.cycle (hK.notMem_of_not_reaches_top a.2)).1
+        (congrArg Subtype.val h))
+    · rintro ⟨W, hW⟩
+      rw [hK.reaches_top_iff] at hW
+      exact ⟨⟨hK.rep W, hW⟩, Subtype.ext (hK.mk_rep W)⟩)
+
+/-- The arcs into vertices not below the top, in `Q⊕` and in `Q₀⊕`. -/
+def upperArcsEquiv : {e // ¬ Q.graph.Reaches t (Q.graph.target e)} ≃
+    {e // ¬ (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ t)
+      ((contractRooted Q (· = C)).graph.target e)} :=
+  Equiv.ofBijective (fun e => ⟨⟨e.1, fun C' _ hC' he =>
+      hK.notMem_of_not_reaches_top e.2 (hC' ▸ target_mem_cycleNodes he)⟩, by
+      rw [hK.reaches_top_iff, hK.rep_target]
+      exact e.2⟩) (by
+    constructor
+    · intro a b h
+      exact Subtype.ext (congrArg (fun e => e.1.1) h)
+    · rintro ⟨e, he⟩
+      rw [hK.reaches_top_iff, hK.rep_target] at he
+      exact ⟨⟨e.1, he⟩, rfl⟩)
+
+/-- **The part above the top is the same in `Q⊕` and in `Q₀⊕`.** -/
+theorem rootDist_cutUpper (hc : IsCut Q t) (θ : MetricData E) (ρ : ℝ)
+    (inj : {W // ¬ (contractRooted Q (· = C)).graph.Reaches (Quot.mk _ t) W} → Finset (Finset X))
+    (F : Finset (Finset X)) :
+    rootDist (cutUpper (contractRooted Q (· = C)) (Quot.mk _ t) (hK.isCut_top hc))
+        (cutUpperMetric (contractRooted Q (· = C)) (Quot.mk _ t) (contractMetric Q (· = C) θ)) ρ
+        inj F =
+      rootDist (cutUpper Q t hc) (cutUpperMetric Q t θ) ρ (fun w => inj (hK.upperEquiv w)) F :=
+  rootDist_congr (N := cutUpper Q t hc) (N' := cutUpper (contractRooted Q (· = C)) (Quot.mk _ t)
+    (hK.isCut_top hc)) hK.upperEquiv hK.upperArcsEquiv (fun _ => rfl) (fun _ => rfl) rfl
+    (fun _ => rfl) (fun _ => rfl) inj F
+
+/-- **The law above the top is the same in `Q⊕` and in `Q₀⊕`.** -/
+theorem upperLaw_contract (hN : Q.IsPhylogenetic) (hc : IsCut Q t) {p : E}
+    (hpt : Q.graph.target p = t) (huniq : ∀ g, Q.graph.target g = t → g = p)
+    (hN₀ : (contractRooted Q (· = C)).IsPhylogenetic)
+    {p₀ : {e // ∀ C', IsCycle Q.graph C' → C' = C → e ∉ C'}} (hp₀ : p₀.1 = p)
+    (hpt₀ : (contractRooted Q (· = C)).graph.target p₀ = Quot.mk _ t)
+    (huniq₀ : ∀ g, (contractRooted Q (· = C)).graph.target g = Quot.mk _ t → g = p₀)
+    (θ : MetricData E) (t' F : Finset (Finset X)) :
+    upperLaw (contractRooted Q (· = C)) hN₀ (hK.isCut_top hc) hpt₀ huniq₀
+        (contractMetric Q (· = C) θ) t' F = upperLaw Q hN hc hpt huniq θ t' F := by
+  unfold upperLaw
+  rw [hK.rootDist_cutUpper hc θ 0]
+  congr 1
+  funext w
+  unfold upperInj
+  have hw := hK.notMem_of_not_reaches_top w.2
+  congr 1
+  · unfold taxaInj
+    congr 1
+    ext x
+    simp only [mem_filter, mem_univ, true_and, cutVertices_inl]
+    change Quot.mk _ (Q.leaf x) = Quot.mk _ w.1 ↔ Q.leaf x = w.1
+    exact mk_eq_mk_iff_of_notMem' hK.cycle hw
+  · congr 1
+    ext u
+    simp only [mem_filter, mem_univ, true_and]
+    change (⟨Quot.mk _ (Q.graph.source p₀.1), _⟩ : {W // _}) = hK.upperEquiv w ↔
+      (⟨Q.graph.source p, _⟩ : {w // _}) = w
+    rw [Subtype.ext_iff, Subtype.ext_iff]
+    change Quot.mk _ (Q.graph.source p₀.1) = Quot.mk _ w.1 ↔ _
+    rw [mk_eq_mk_iff_of_notMem' hK.cycle hw, hp₀]
+
 end IsContractible
 
 omit [Fintype X] in
@@ -586,6 +693,223 @@ theorem rootDist_cutLower_deleteArc (hc : IsCut Q z)
     (Equiv.subtypeEquivRight fun w => (reaches_deleteArc_iff hS w).symm)
     (belowArcsDeleteEquiv hc hS) (fun _ => rfl) (fun _ => rfl) rfl (fun _ => rfl) hinh]
   rfl
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- Deleting an arc with a parallel arc does not change the paths. -/
+theorem reaches_deleteArc_of_parallel {h' : E} (hne : h' ≠ h)
+    (hs : Q.graph.source h' = Q.graph.source h) (ht : Q.graph.target h' = Q.graph.target h)
+    (a b : V) : (deleteArc Q h).graph.Reaches a b ↔ Q.graph.Reaches a b := by
+  constructor
+  · intro hr
+    induction hr with
+    | refl => exact .refl
+    | tail _ hab ih =>
+      obtain ⟨e, rfl, rfl⟩ := hab
+      exact ih.tail ⟨e.1, rfl, rfl⟩
+  · intro hr
+    induction hr with
+    | refl => exact .refl
+    | tail _ hab ih =>
+      obtain ⟨e, rfl, rfl⟩ := hab
+      by_cases heh : e = h
+      · subst heh
+        exact ih.tail ⟨⟨h', hne⟩, hs, ht⟩
+      · exact ih.tail ⟨⟨e, heh⟩, rfl, rfl⟩
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+theorem isCut_deleteArc_of_parallel {h' : E} (hne : h' ≠ h)
+    (hs : Q.graph.source h' = Q.graph.source h) (ht : Q.graph.target h' = Q.graph.target h)
+    (hc : IsCut Q z) : IsCut (deleteArc Q h) z := by
+  refine ⟨fun hr => hc.not_reaches_root ((reaches_deleteArc_of_parallel hne hs ht _ _).1 hr),
+    fun e he hne' => ?_⟩
+  exact (reaches_deleteArc_of_parallel hne hs ht _ _).2
+    (hc.entry e.1 ((reaches_deleteArc_of_parallel hne hs ht _ _).1 he) hne')
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- **Deleting a hybrid arc keeps a phylogenetic network**, when its target keeps another parent and
+its source another child. -/
+theorem isPhylogenetic_deleteArc (hQ : Q.IsPhylogenetic) {h' g : E} (hne : h' ≠ h)
+    (ht : Q.graph.target h' = Q.graph.target h) (hg : g ≠ h)
+    (hgs : Q.graph.source g = Q.graph.source h) : (deleteArc Q h).IsPhylogenetic := by
+  have : Finite E := hQ.finite_arcs
+  have : Finite V := hQ.finite_vertices
+  have : Finite X := hQ.finite_taxa
+  have hlift : ∀ a b, (deleteArc Q h).graph.Reaches a b → Q.graph.Reaches a b := by
+    intro a b hr
+    induction hr with
+    | refl => exact .refl
+    | tail _ hab ih =>
+      obtain ⟨e, rfl, rfl⟩ := hab
+      exact ih.tail ⟨e.1, rfl, rfl⟩
+  -- the paths from the root avoid `h` up to the other parent `h'`
+  have hroot : ∀ w, (deleteArc Q h).graph.Reaches Q.root w := by
+    have := hQ.finite_vertices
+    let rel : V → V → Prop := fun a c => Relation.TransGen Q.graph.Adj a c
+    have : IsTrans V rel := ⟨fun _ _ _ h₁ h₂ => h₁.trans h₂⟩
+    have : Std.Irrefl rel := ⟨fun a ha => hQ.acyclic a ha⟩
+    have hwf : WellFounded rel := Finite.wellFounded_of_trans_of_irrefl rel
+    intro w
+    induction w using hwf.induction with
+    | _ w ih =>
+      by_cases hw : w = Q.root
+      · rw [hw]
+        exact .refl
+      · obtain ⟨e, he⟩ := (Q.graph.one_le_indegree_iff w).1 (hQ.nonroot_indegree w hw)
+        by_cases heh : e = h
+        · subst heh
+          have hs := ih (Q.graph.source h') (.single ⟨h', rfl, ht.trans he⟩)
+          exact hs.tail ⟨⟨h', hne⟩, rfl, ht.trans he⟩
+        · exact (ih _ (.single ⟨e, rfl, he⟩)).tail ⟨⟨e, heh⟩, rfl, he⟩
+  have hleafne : ∀ x, Q.leaf x ≠ Q.graph.target h := fun x hx => by
+    have h1 := hQ.leaf_indegree x
+    have := (Q.graph.indegree_eq_one_iff _).1 h1
+    obtain ⟨e₀, he₀⟩ := this
+    have a := (he₀ h).1 hx.symm
+    have b := (he₀ h').1 (ht.trans hx.symm)
+    exact hne (b.trans a.symm)
+  refine
+    { finite_vertices := inferInstance
+      finite_arcs := inferInstance
+      finite_taxa := inferInstance
+      acyclic := fun w hw => ?_
+      root_reaches := hroot
+      root_indegree := ?_
+      nonroot_indegree := fun w hw => ?_
+      leaf_injective := hQ.leaf_injective
+      leaf_indegree := fun x => ?_
+      leaves := fun w => ?_ }
+  · have hl : ∀ a b, Relation.TransGen (deleteArc Q h).graph.Adj a b →
+        Relation.TransGen Q.graph.Adj a b := by
+      intro a b hab
+      induction hab with
+      | single hh =>
+        obtain ⟨e, rfl, rfl⟩ := hh
+        exact .single ⟨e.1, rfl, rfl⟩
+      | tail _ hh ih =>
+        obtain ⟨e, rfl, rfl⟩ := hh
+        exact ih.tail ⟨e.1, rfl, rfl⟩
+    exact hQ.acyclic w (hl w w hw)
+  · exact ((deleteArc Q h).graph.indegree_eq_zero_iff _).2 fun e he =>
+      (Q.graph.indegree_eq_zero_iff _).1 hQ.root_indegree e.1 he
+  · obtain ⟨e, he⟩ := (Q.graph.one_le_indegree_iff w).1 (hQ.nonroot_indegree w hw)
+    refine ((deleteArc Q h).graph.one_le_indegree_iff w).2 ?_
+    by_cases heh : e = h
+    · exact ⟨⟨h', hne⟩, ht.trans (heh ▸ he)⟩
+    · exact ⟨⟨e, heh⟩, he⟩
+  · obtain ⟨e₀, he₀⟩ := (Q.graph.indegree_eq_one_iff _).1 (hQ.leaf_indegree x)
+    have he₀h : e₀ ≠ h := fun heq => hleafne x ((he₀ e₀).2 rfl ▸ heq ▸ rfl)
+    refine ((deleteArc Q h).graph.indegree_eq_one_iff _).2 ⟨⟨e₀, he₀h⟩, fun f => ?_⟩
+    rw [Subtype.ext_iff]
+    exact he₀ f.1
+  · change _ ↔ ∃ x, Q.leaf x = w
+    rw [← hQ.leaves, (deleteArc Q h).graph.outdegree_eq_zero_iff, Q.graph.outdegree_eq_zero_iff]
+    constructor
+    · intro h0 e he
+      by_cases heh : e = h
+      · exact h0 ⟨g, hg⟩ (hgs.trans (heh ▸ he))
+      · exact h0 ⟨e, heh⟩ he
+    · intro h0 e he
+      exact h0 e.1 he
+
+omit [Fintype V] [Fintype X] in
+/-- **The parameters without a hybrid arc are valid**, for positive lengths, when its target has two
+parents. -/
+theorem isMetric_deleteArc (hQ : Q.IsPhylogenetic) {θ : MetricData E} (hθ : Q.IsMetric θ)
+    (hpos : ∀ e, 0 < θ.length e) {h' : E} (hne : h' ≠ h)
+    (ht : Q.graph.target h' = Q.graph.target h) (h2 : Q.graph.indegree (Q.graph.target h) = 2) :
+    (deleteArc Q h).IsMetric (deleteArcMetric Q h θ) := by
+  have : Finite E := hQ.finite_arcs
+  have hpar : ∀ f, Q.graph.target f = Q.graph.target h → f = h ∨ f = h' := fun f hf =>
+    eq_or_eq_of_indegree_eq_two h2 (Ne.symm hne) rfl ht f hf
+  have hind : ∀ w, (deleteArc Q h).graph.indegree w =
+      if w = Q.graph.target h then 1 else Q.graph.indegree w := by
+    intro w
+    split_ifs with hw
+    · refine ((deleteArc Q h).graph.indegree_eq_one_iff _).2 ⟨⟨h', hne⟩, fun f => ?_⟩
+      constructor
+      · intro hf
+        rcases hpar f.1 (hf.trans hw) with h1 | h1
+        · exact absurd h1 f.2
+        · exact Subtype.ext h1
+      · rintro rfl
+        exact ht.trans hw.symm
+    · unfold DirectedMultigraph.indegree
+      refine Set.ncard_congr (fun e _ => e.1) (fun e he => he) (fun a b _ _ hab => Subtype.ext hab)
+        fun e he => ⟨⟨e, fun heh => hw (heh ▸ he).symm⟩, he, rfl⟩
+  have htree : ∀ e : {e // e ≠ h}, (deleteArc Q h).IsTreeArc e ↔
+      (Q.graph.target e.1 = Q.graph.target h ∨ Q.IsTreeArc e.1) := by
+    intro e
+    unfold RootedNetwork.IsTreeArc
+    change (deleteArc Q h).graph.indegree (Q.graph.target e.1) = 1 ↔ _
+    rw [hind]
+    split_ifs with hw <;> simp [hw]
+  refine ⟨fun e _ => hpos e.1, fun e _ => (hpos e.1).le, fun e he => ?_, fun e he => ?_,
+    fun w hw => ?_⟩
+  · simp only [deleteArcMetric]
+    split_ifs with hw
+    · rfl
+    · exact hθ.2.2.1 e.1 (((htree e).1 he).resolve_left hw)
+  · unfold RootedNetwork.IsHybridArc at he
+    change 2 ≤ (deleteArc Q h).graph.indegree (Q.graph.target e.1) at he
+    rw [hind] at he
+    split_ifs at he with hw
+    · omega
+    · simp only [deleteArcMetric, hw, ite_false]
+      exact hθ.2.2.2.1 e.1 he
+  · rw [hind] at hw
+    split_ifs at hw with hwt
+    · omega
+    · rw [← hθ.2.2.2.2 w hw]
+      rw [← sum_filter, ← sum_filter]
+      refine sum_bij (fun e _ => e.1) (fun e he => mem_filter.2 ⟨mem_univ _, (mem_filter.1 he).2⟩)
+        (fun a _ b _ hab => Subtype.ext hab) (fun e he => ?_) fun e he => ?_
+      · have hew : Q.graph.target e = w := (mem_filter.1 he).2
+        exact ⟨⟨e, fun heh => hwt (heh ▸ hew).symm⟩, mem_filter.2 ⟨mem_univ _, hew⟩, rfl⟩
+      · have hew : Q.graph.target e.1 = w := (mem_filter.1 he).2
+        simp only [deleteArcMetric, hew, hwt, ite_false]
+
+/-- **The law above a cut vertex is the same without an arc parallel to another below it.** -/
+theorem upperLaw_deleteArc_of_parallel (hN : Q.IsPhylogenetic) {r : V} (hc : IsCut Q r) {h' : E}
+    (hne : h' ≠ h) (hs : Q.graph.source h' = Q.graph.source h)
+    (ht : Q.graph.target h' = Q.graph.target h) (hhr : Q.graph.Reaches r (Q.graph.target h))
+    {p : E} (hpr : Q.graph.target p = r) (huniq : ∀ g, Q.graph.target g = r → g = p)
+    (hN' : (deleteArc Q h).IsPhylogenetic) {p' : {e // e ≠ h}} (hp' : p'.1 = p)
+    (hpr' : (deleteArc Q h).graph.target p' = r)
+    (huniq' : ∀ g, (deleteArc Q h).graph.target g = r → g = p') (θ : MetricData E)
+    (t F : Finset (Finset X)) :
+    upperLaw (deleteArc Q h) hN' (isCut_deleteArc_of_parallel hne hs ht hc) hpr' huniq'
+        (deleteArcMetric Q h θ) t F = upperLaw Q hN hc hpr huniq θ t F := by
+  have hR := reaches_deleteArc_of_parallel hne hs ht (Q := Q) r
+  let fV : {w // ¬ Q.graph.Reaches r w} ≃ {w // ¬ (deleteArc Q h).graph.Reaches r w} :=
+    Equiv.subtypeEquivRight fun w => not_congr (hR w).symm
+  let fE : {e // ¬ Q.graph.Reaches r (Q.graph.target e)} ≃
+      {e // ¬ (deleteArc Q h).graph.Reaches r ((deleteArc Q h).graph.target e)} :=
+    { toFun := fun e => ⟨⟨e.1, fun heh => e.2 (heh ▸ hhr)⟩, fun hh => e.2 ((hR _).1 hh)⟩
+      invFun := fun e => ⟨e.1.1, fun hh => e.2 ((hR _).2 hh)⟩
+      left_inv := fun _ => rfl
+      right_inv := fun _ => rfl }
+  have hinh : ∀ e, (cutUpperMetric (deleteArc Q h) r (deleteArcMetric Q h θ)).inheritance (fE e) =
+      (cutUpperMetric Q r θ).inheritance e := by
+    intro e
+    change (if Q.graph.target e.1 = Q.graph.target h then 1 else θ.inheritance e.1) =
+      θ.inheritance e.1
+    exact ite_eq_right fun (heq : Q.graph.target e.1 = Q.graph.target h) => e.2 (heq ▸ hhr)
+  unfold upperLaw
+  rw [rootDist_congr (N := cutUpper Q r hc)
+    (N' := cutUpper (deleteArc Q h) r (isCut_deleteArc_of_parallel hne hs ht hc))
+    (θ := cutUpperMetric Q r θ) (θ' := cutUpperMetric (deleteArc Q h) r (deleteArcMetric Q h θ))
+    fV fE (fun _ => rfl) (fun _ => rfl) rfl (fun _ => rfl) hinh]
+  congr 1
+  funext w
+  unfold upperInj
+  congr 1
+  congr 1
+  ext u
+  simp only [mem_filter, mem_univ, true_and]
+  change (⟨Q.graph.source p'.1, _⟩ : {w // _}) = fV w ↔ (⟨Q.graph.source p, _⟩ : {w // _}) = w
+  rw [Subtype.ext_iff, Subtype.ext_iff]
+  change Q.graph.source p'.1 = w.1 ↔ Q.graph.source p = w.1
+  rw [hp']
 
 end Delete
 
