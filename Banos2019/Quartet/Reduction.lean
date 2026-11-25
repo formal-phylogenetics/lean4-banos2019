@@ -15,6 +15,7 @@ public import Banos2019.Quartet.DisjointTree
 public import Banos2019.Quartet.RootedIsoUnrooted
 public import Banos2019.Quartet.TreeUnrooted
 public import Banos2019.Quartet.ReduceUnrooted
+public import Banos2019.Quartet.ReduceUnrootedIso
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -2413,7 +2414,11 @@ theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [F
       (unrooted _ hb' hQ'.nontrivial)
       (unrootedMetric _ hb' hQ'.nontrivial (reduceMetric _ hP'
         (deleteArcMetric Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h)) θ')))) := by
-  sorry
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_suppress_deleteHybridEdge hQ.binary hQ.nontrivial hQ.levelOne
+    hQ.isLSA hQ.metric hh hP hb
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_suppress_deleteHybridEdge hQ'.binary hQ'.nontrivial
+    hQ'.levelOne hQ'.isLSA hQ'.metric ((φ.isDirected_iff h).2 hh) hP' hb'
+  exact ⟨ι.symm.trans ((φ.deleteHybridEdge hh).suppress.trans ι')⟩
 
 /-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
 2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
@@ -2435,7 +2440,14 @@ theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E
       (unrooted _ hb' hQ'.nontrivial)
       (unrootedMetric _ hb' hQ'.nontrivial (contractNetMetric Q' hQ'.binary hQ'.levelOne
         (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ'))) := by
-  sorry
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_suppress_contractCycles hQ.binary hQ.levelOne hQ.nontrivial
+    hQ.isLSA hQ.card_taxa hQ.metric hD hD2 hb
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_suppress_contractCycles hQ'.binary hQ'.levelOne
+    hQ'.nontrivial hQ'.isLSA hQ'.card_taxa hQ'.metric (φ.isCycle_image hD)
+    ((φ.ncard_image D).trans hD2) hb'
+  have hcyc : ∀ C, IsCycle hQ.unrooted.graph C → (φ.edge '' C = φ.edge '' D ↔ C = D) :=
+    fun C _ => φ.edge.injective.image_injective.eq_iff
+  exact ⟨ι.symm.trans ((φ.contractCycles hcyc).suppress.trans ι')⟩
 
 /-- **`Q_a⊕` as an LSA quartet network**: when the only cycle `C` of `Q⊕` induces a `3₂`-cycle with
 the taxa `a`, `b` below its hybrid node `v`, `Q_a⊕` is an LSA quartet network without cycles. -/
@@ -2486,7 +2498,15 @@ theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E
         (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
         (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₁))
         (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₂)) θ'))) := by
-  sorry
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ.binary hQ.levelOne hQ.nontrivial
+    (lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA) θ hne hd₁ hd₂ ht₁ ht₂ hab hb hl
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ'.binary hQ'.levelOne hQ'.nontrivial
+    (lsa_univ_eq_root hQ'.binary.1 hQ'.nontrivial hQ'.isLSA) θ' (φ.edge.injective.ne hne)
+    ((φ.isDirected_iff h₁).2 hd₁) ((φ.isDirected_iff h₂).2 hd₂)
+    ((φ.directed h₁ hd₁).2.trans (congrArg φ.vert ht₁))
+    ((φ.directed h₂ hd₂).2.trans (congrArg φ.vert ht₂)) hab hb' hl'
+  obtain ⟨κ⟩ := φ.nonempty_cutSD w h₁ h₂ a b
+  exact ⟨ι.trans (κ.trans ι'.symm)⟩
 
 /-- **`P(K = k)` and `CF(Q₀⊕ | K = 1)` are read from the unrooted network** (proof of Proposition 5,
 Lemma 11): when the only cycle of `Q⊕` induces a `3₂`-cycle `D` of `Q⁻`, the child `u` of its hybrid
