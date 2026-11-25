@@ -341,9 +341,9 @@ meta def paperResults : List (String × Name) :=
 /-- The theorems that Palomar's comparator checks (`theorem_names` of
 `palomar/Banos2019/comparator.json`), as the Solution restates them. -/
 meta def solutionResults : List Name :=
-  [``Banos2019Challenge.theorem3, ``Banos2019Challenge.theorem4,
-   ``Banos2019Challenge.proposition5, ``Banos2019Challenge.equation1_balanced,
-   ``Banos2019Challenge.lsa_isLSA, ``Banos2019Challenge.root_reaches]
+  [``Banos2019Challenge.theorem3, ``Banos2019Challenge.theorem4, ``Banos2019Challenge.proposition5,
+   ``Banos2019Challenge.equation1_balanced, ``Banos2019Challenge.lsa_isLSA,
+   ``Banos2019Challenge.root_reaches]
 
 /-- Lean's standard axioms. -/
 meta def standardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
