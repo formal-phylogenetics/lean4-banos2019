@@ -1092,7 +1092,7 @@ theorem contract_mk_eq_iff {a b : V} :
     · exact Quot.sound ⟨C, hC, hP C hC, h₁, h₂⟩
 
 /-- A node on no cycle keeps its degree in the contraction. -/
-theorem contract_degree_of_notMem [Finite E] {v : V}
+theorem contract_degree_of_notMem {v : V}
     (hv : ∀ C, IsCycle G.graph C → v ∉ cycleNodes G.graph C) :
     degree (contractCycles G P).graph (Quot.mk _ v) = degree G.graph v := by
   have hcls : ∀ w, (Quot.mk _ w : Quot (ContractRel G.graph P)) = Quot.mk _ v ↔ w = v := fun w => by

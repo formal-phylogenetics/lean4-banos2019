@@ -97,6 +97,7 @@ theorem mem_nodeBlock_blockNode_iff {N : RootedNetwork V E X} {hN : IsBinaryRoot
     rw [h]
     exact (blockNode_spec hC z).2
 
+omit [Fintype V] in
 /-- **The piece on `Pᶜ ∪ {s₂}` has at most one cycle of size at least four** when every cycle of size
 at least four of `N⁻` other than `C` has the taxa outside `P` in one of its blocks: only `C` can
 separate four of its taxa. -/
@@ -117,6 +118,7 @@ theorem bigCycleCount_inducedLSA_insert_compl_le_one {N : RootedNetwork V E X}
     (fun x hx y hy => hleaf C' hC' hne x y hx hy) ?_ hsep
   simpa only [coe_insert, coe_compl] using hsY
 
+omit [Fintype X] [Fintype V] in
 /-- **The piece on `P ∪ {s₁}` has fewer cycles of size at least four than `N⁻`** when the taxa of `P`
 are in one block of the cycle `C` of size at least four: `C` separates no four of its taxa. -/
 theorem bigCycleCount_inducedLSA_insert_lt {N : RootedNetwork V E X}
@@ -156,7 +158,7 @@ theorem nonempty_sdIso_tilde_inducedLSA {k : ℕ} (hk : TildeDetermined k) {V' E
     (inducedLSA_isLevelOne hN₂ h1₂ hY) _ _ (inducedLSA_isMetricNetwork hN₁ hθ₁ hY)
     (inducedLSA_isMetricNetwork hN₂ hθ₂ hY) (goodParams_inducedLSA hN₁ h1₁ hX hθ₁ hG₁ hY)
     (goodParams_inducedLSA hN₂ h1₂ hX hθ₂ hG₂ hY)
-    (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hY) hcount
+    (sameOrdering_inducedLSA hN₁ hN₂ hθ₁ hθ₂ hord hY) hcount
 
 /-- **Gluing the pieces**: for nodes `u₁`, `u₂` of cycles of `N₁⁻` and `N₂⁻` with the same block `P`,
 if the networks `Ñ` of the networks induced on `Pᶜ ∪ {s₂}` and on `P ∪ {s₁}` are isomorphic, so are
@@ -286,6 +288,7 @@ def nontrivialBlocks {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : 
     Set (Set X') :=
   {B | (∃ x, B = {y | SameBlock G.graph G.leaf C x y}) ∧ B.Nontrivial}
 
+omit [Fintype V] in
 /-- **The network induced on `Pᶜ ∪ {x}` has fewer blocks with at least two taxa**: let `C` be the
 only cycle of size at least four of `N⁻`, `P` the block of `x`, with at least two taxa, and
 `Y = Pᶜ ∪ {x}`. A cycle `C'` of size at least four of `(N⊕_Y)⁻` comes from a cycle of `N⁻` with the
@@ -440,7 +443,7 @@ theorem tilde_sdIso_one_of_sameCycleData {j : ℕ} (ih : ∀ i < j, TildeDetermi
         (inducedLSA_isLevelOne hN₂ h1₂ hZ₁) _ _ (inducedLSA_isMetricNetwork hN₁ hθ₁ hZ₁)
         (inducedLSA_isMetricNetwork hN₂ hθ₂ hZ₁) (goodParams_inducedLSA hN₁ h1₁ hX hθ₁ hG₁ hZ₁)
         (goodParams_inducedLSA hN₂ h1₂ hX hθ₂ hG₂ hZ₁)
-        (sameOrdering_inducedLSA hN₁ h1₁ hN₂ h1₂ hθ₁ hθ₂ hord hZ₁) h1 C' hC'm rfl
+        (sameOrdering_inducedLSA hN₁ hN₂ hθ₁ hθ₂ hord hZ₁) h1 C' hC'm rfl
   · -- the network induced on `P ∪ {q}`: no cycle of size at least four, the tree of `P` read with
     -- the outgroup `q`
     have hlt := bigCycleCount_inducedLSA_insert_lt hN₁ h1₁ hX hC₁ hPP q hZ₂

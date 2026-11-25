@@ -521,7 +521,7 @@ structure IsUnrootedLevelOne (G : SemidirectedNetwork V E X) : Prop where
     (G.graph.source e = w ∨ G.graph.target e = w) → ∃ x, G.leaf x ∈ cutSide G.graph e w
 
 /-- **`N⁻` has the properties of `IsUnrootedLevelOne`** for a binary level-1 network `N`. -/
-theorem isUnrootedLevelOne_unrooted [Finite V] [Finite E] {N : RootedNetwork V E X}
+theorem isUnrootedLevelOne_unrooted [Finite E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hX : Nontrivial X) :
     IsUnrootedLevelOne (unrooted N hN hX) where
   connected := unrooted_isConnected hN hX
@@ -2378,7 +2378,7 @@ theorem exists_isCycle_halfNet_iff (Pn : ℕ → Prop)
 omit hG in
 /-- **The contracted network of a half is the side of the contracted network**, with the pendant
 edge at the class of `y`. -/
-theorem nonempty_sdIso_tildeContracted_halfNet [Finite E] (hG : IsUnrootedLevelOne G) :
+theorem nonempty_sdIso_tildeContracted_halfNet (hG : IsUnrootedLevelOne G) :
     Nonempty (SDIso (tildeContracted (halfNet G f y ι))
       (pendantSide (tildeContracted G) (contractSide G f y)
         ⟨Quot.mk _ y, ⟨y, Relation.ReflTransGen.refl, rfl⟩⟩ ι)) := by
@@ -3218,6 +3218,7 @@ theorem nonempty_sdIso_inducedUnrooted_unrooted_inducedLSA {Z : Set X} (hZ : Z.N
   obtain ⟨p₂⟩ := nonempty_sdIso_unrooted_inducedRooted hN hZ
   exact ⟨p₁.trans p₂⟩
 
+omit [Finite V] in
 include h1 in
 /-- `(N⁻)_Z` has the properties of `IsUnrootedLevelOne`, being isomorphic to `(N⊕_Z)⁻`. -/
 theorem isUnrootedLevelOne_inducedUnrooted {Z : Set X} (hZ : Z.Nontrivial) :
@@ -3228,6 +3229,7 @@ theorem isUnrootedLevelOne_inducedUnrooted {Z : Set X} (hZ : Z.Nontrivial) :
   exact (isUnrootedLevelOne_unrooted (inducedLSA_isBinaryRootedNetwork hN hZ) h1M
     hZ.coe_sort).of_sdIso ι.symm
 
+omit [Finite V] in
 include h1 in
 /-- **The edges of `N⁻` at the side of `y` lie on simple treks between taxa of `Z`**, when `Z` is
 the set of taxa on the side of `y` of an edge `f` on no cycle, and one taxon `z₀` on the other side.
@@ -3388,6 +3390,7 @@ theorem mem_trekEdges_of_side {f : SemidirectedArc hN.1 hN.2 hX}
       rw [← hty] at hgA
       exact hb (G.graph.walks_symm (Relation.ReflTransGen.trans hgA hw'))
 
+omit [Finite V] in
 include h1 in
 /-- **The side of `y` of `N⁻` is a side of `(N⁻)_Z`** when `Z` is the set of taxa on the side of `y`
 of an edge `f` on no cycle, and one taxon `z₀` on the other side: the edges of `N⁻` at the nodes on

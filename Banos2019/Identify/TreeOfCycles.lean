@@ -1506,6 +1506,7 @@ theorem exists_arisesFrom_of_isLeafNode_unrooted
     exists_arisesFrom_of_isLeafNode (isUnrootedLevelOne_unrooted hN h1 hX) hw
   exact ⟨C, ⟨hC, h4⟩, hwC⟩
 
+omit [Finite V] in
 /-- **A node of `T` arises from each cycle of `N⁻` of size at least four**: the class of a node of
 the suppressed core of `Ñ` coming from a node of the cycle (`exists_isCycle_tilde_of_big`). -/
 theorem exists_arisesFrom_unrooted {C : Set _}

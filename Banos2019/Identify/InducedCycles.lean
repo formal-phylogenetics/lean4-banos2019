@@ -765,11 +765,13 @@ end TreesOn
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
   {N : RootedNetwork V E X}
 
+omit [Fintype X] [DecidableEq X] [Fintype V] [Fintype E] in
 /-- **The induced network of a level-1 network is level-1.** -/
 theorem inducedLSA_isLevelOne (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) {Y : Set X}
     (hY : Y.Nontrivial) : IsLevelOne (inducedLSA N hN.1 Y hY).graph :=
   isLevelOne_inducedLSA_graph hN.1 h1 hY
 
+omit [Fintype X] [DecidableEq X] [Fintype V] in
 /-- The induced parameters are a metric. -/
 theorem inducedLSA_isMetricNetwork (hN : IsBinaryRootedNetwork N) {θ : MetricData E}
     (hθ : IsMetricNetwork N θ) {Y : Set X} (hY : Y.Nontrivial) :
@@ -780,8 +782,7 @@ theorem inducedLSA_isMetricNetwork (hN : IsBinaryRootedNetwork N) {θ : MetricDa
     ⟨e.1, Finset.mem_filter.mpr ⟨@Finset.mem_univ _ (Fintype.ofFinite _) _, Or.inl rfl⟩⟩
 
 /-- **The concordance factors of the induced network are those of `N`** (Theorem 2). -/
-theorem cf_inducedLSA (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) {θ : MetricData E}
-    (hθ : IsMetricNetwork N θ) {Y : Set X} (hY : Y.Nontrivial) (q : QuartetTree Y) :
+theorem cf_inducedLSA (hN : IsBinaryRootedNetwork N) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {Y : Set X} (hY : Y.Nontrivial) (q : QuartetTree Y) :
     cf (inducedLSA N hN.1 Y hY) (inducedMetric hN.1 Y hY.nonempty θ) q =
       cf N θ (q.map Subtype.val_injective) := by
   have hL := lsaNetwork_isPhylogenetic hN.1 hY
@@ -809,7 +810,7 @@ theorem goodParams_inducedLSA (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.
   intro _ _
   obtain ⟨hG₁, hG₂⟩ := hG hθ hN
   have hcf : cf (inducedLSA N hN.1 Y hY) (inducedMetric hN.1 Y hY.nonempty θ) =
-      fun q => cf N θ (q.map Subtype.val_injective) := funext (cf_inducedLSA hN h1 hθ hY)
+      fun q => cf N θ (q.map Subtype.val_injective) := funext (cf_inducedLSA hN hθ hY)
   refine ⟨fun s hs => ?_, fun s hs => ?_⟩
   · rw [hcf, bigCycleOn_comp_map_subtype_iff, hG₁ _ (by rw [card_map, hs])]
     exact (exists_separatesQuartet_induced_iff hN h1 hX hY s hs).symm
@@ -822,17 +823,18 @@ theorem goodParams_inducedLSA (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.
 
 /-- **The same orderings on `X` give the same orderings on `Y`.** -/
 theorem sameOrdering_inducedLSA {V' E' : Type} [Fintype V'] [Fintype E'] {N' : RootedNetwork V' E' X}
-    (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (hN' : IsBinaryRootedNetwork N')
-    (h1' : IsLevelOne N'.graph) {θ : MetricData E} {θ' : MetricData E'} (hθ : IsMetricNetwork N θ)
-    (hθ' : IsMetricNetwork N' θ') (h : SameOrdering (cf N θ) (cf N' θ')) {Y : Set X}
+    (hN : IsBinaryRootedNetwork N) (hN' : IsBinaryRootedNetwork N') {θ : MetricData E}
+    {θ' : MetricData E'} (hθ : IsMetricNetwork N θ) (hθ' : IsMetricNetwork N' θ')
+    (h : SameOrdering (cf N θ) (cf N' θ')) {Y : Set X}
     (hY : Y.Nontrivial) :
     SameOrdering (cf (inducedLSA N hN.1 Y hY) (inducedMetric hN.1 Y hY.nonempty θ))
       (cf (inducedLSA N' hN'.1 Y hY) (inducedMetric hN'.1 Y hY.nonempty θ')) := by
   intro q r hqr
-  rw [cf_inducedLSA hN h1 hθ hY, cf_inducedLSA hN h1 hθ hY, cf_inducedLSA hN' h1' hθ' hY,
-    cf_inducedLSA hN' h1' hθ' hY]
+  rw [cf_inducedLSA hN hθ hY, cf_inducedLSA hN hθ hY, cf_inducedLSA hN' hθ' hY,
+    cf_inducedLSA hN' hθ' hY]
   exact h _ _ (by rw [QuartetTree.map_taxa, QuartetTree.map_taxa, hqr])
 
+omit [Fintype X] [Fintype V] in
 /-- **The cycles of size at least four of the induced network** come from distinct cycles of size at
 least four of `N⁻` that separate a set of four taxa of `Y`. -/
 theorem bigCycleCount_inducedLSA_le (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph)

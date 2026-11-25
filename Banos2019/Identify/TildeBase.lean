@@ -67,7 +67,7 @@ theorem reaches_lsa_source [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhyl
   exact hasPathAvoiding_trans (hasPathAvoiding_trans h₁ h₂) h₃
 
 /-- The vertices of `N` below the LSA, other than the LSA, keep their degrees in `𝒩⊕`. -/
-theorem lsaPlus_degree [Finite E] [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhylogenetic)
+theorem lsaPlus_degree [Nonempty X] {N : RootedNetwork V E X} (hP : N.IsPhylogenetic)
     (hX : Nontrivial X) (w : N.belowVertices (lsa hP Set.univ Set.univ_nonempty) Set.univ)
     (hw : w.1 ≠ lsa hP Set.univ Set.univ_nonempty) :
     degree (lsaPlus hP hX).graph w = degree N.graph w.1 := by
@@ -323,7 +323,7 @@ theorem unrooted_walks_of_avoidingReach_lsa (g : SemidirectedArc hN.1 hN.2 hX) {
 
 /-- **A bridge of `N⁻` is a cut arc of `N`**: its arc dominates the taxa on the side of its target
 and is above none of the others. -/
-theorem unrooted_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
+theorem unrooted_separates (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : ¬ (unrooted N hN hX).graph.Walks {g}ᶜ ((unrooted N hN hX).graph.source g)
       ((unrooted N hN hX).graph.target g)) :
     N.Separates g.1.1
@@ -363,7 +363,7 @@ theorem unrooted_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
     exact hx hw'
 
 /-- **A bridge of `N⁻` is a cut arc of `N`**, for the side of either of its ends. -/
-theorem unrooted_side_separates [Finite E] (g : SemidirectedArc hN.1 hN.2 hX)
+theorem unrooted_side_separates (g : SemidirectedArc hN.1 hN.2 hX)
     (hg : ¬ (unrooted N hN hX).graph.Walks {g}ᶜ ((unrooted N hN hX).graph.source g)
       ((unrooted N hN hX).graph.target g)) {a : SemidirectedVertex hN.1 hX}
     (ha : a = (unrooted N hN hX).graph.source g ∨ a = (unrooted N hN hX).graph.target g) :

@@ -25,7 +25,6 @@ displays is strictly the most probable (`nmscCF_choiceMetric_alternative_lt`).
 * `nmscCF_choiceMetric_alternative_lt`: in the parameters of a parent choice, with positive lengths,
   a quartet tree displayed by the tree of the choice has a larger concordance factor than its
   alternatives.
-* `forGenericParams_nonDegenerateCF_of_isBinary`: the first condition, on every binary network.
 -/
 
 @[expose] public noncomputable section
@@ -158,7 +157,7 @@ every binary network. For each set `s` of four taxa, the tree of a parent choice
 tree `r` on `s`; in the parameters of the choice with lengths `1`, the concordance factor of `r`
 exceeds that of an alternative `r'`, so that the analytic function `CF(r) - CF(r')` of the
 coordinates vanishes only on a null set. -/
-theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
+theorem forGenericParams_nonDegenerateCF {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → NonDegenerateCF (cf N θ) := by
   -- a parent choice, and lengths `1`
@@ -190,19 +189,12 @@ theorem forGenericParams_nonDegenerateCF_of_isBinary {N : RootedNetwork V E X}
   by_contra hne
   exact hθ fun _ => ⟨r, hr, r', hr'', hne⟩
 
-set_option linter.unusedVariables false in
-/-- **For generic parameters, the concordance factors on a set of four taxa are not all equal.** -/
-theorem forGenericParams_nonDegenerateCF {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    (h1 : IsLevelOne N.graph) :
-    ForGenericParams N fun θ => IsMetricNetwork N θ → NonDegenerateCF (cf N θ) :=
-  forGenericParams_nonDegenerateCF_of_isBinary hN
-
 /-- **The conditions of Theorem 4 hold for generic parameters** (Lemma 12 and
 `forGenericParams_nonDegenerateCF`). -/
 theorem forGenericParams_goodParams {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) : ForGenericParams N (GoodParams hX N) := by
   obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
-  exact ((lemma12 hN h1 hX).and (forGenericParams_nonDegenerateCF hN h1)).mono
+  exact ((lemma12 hN h1 hX).and (forGenericParams_nonDegenerateCF hN)).mono
     fun θ h hθ _ => ⟨h.1 hθ, h.2 hθ⟩
 
 end Banos2019
