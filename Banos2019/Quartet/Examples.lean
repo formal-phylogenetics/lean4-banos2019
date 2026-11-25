@@ -827,7 +827,8 @@ theorem example5 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     convert key using 8
 
 /-- **Example 6** (`ex::cpbc`): the `3₂`-cycle of Figure 18 with `γ = 1/2`, `t₁ = t₂ = -log(6/7)`,
-`t₃ = -log(1/14)`, `t₄ = -log(13/14)` has `CF = (32/98, 33/98, 33/98)`: it is not treelike. -/
+`t₃ = -log(1/14)`, `t₄ = -log(13/14)` has `CF = (32/98, 33/98, 33/98)`. Its two smallest concordance
+factors differ, so it is not treelike. -/
 theorem example6 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (len : Fin 8 → ℝ) (h₁ : len 4 = -Real.log (6 / 7))
     (h₂ : len 7 = -Real.log (6 / 7)) (h₃ : len 5 = -Real.log (1 / 14))

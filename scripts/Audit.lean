@@ -192,6 +192,7 @@ import all Banos2019.Basic.Data.Set.Card
 import all Banos2019.Basic.Logic.EquivOfInjective
 import all Banos2019.Basic.Logic.RelationAvoid
 import all Banos2019.Basic.Logic.RelationSymm
+import all Banos2019.Basic.MeasureTheory.SumCoordsNull
 import all Banos2019.Basic.Order.FiniteTotal
 import all Banos2019.Bridge.Examples
 import all Banos2019.Bridge.Generic
@@ -269,6 +270,7 @@ import all Banos2019.Quartet.Fig17
 import all Banos2019.Quartet.Fig18
 import all Banos2019.Quartet.FourCycleNet
 import all Banos2019.Quartet.Generic
+import all Banos2019.Quartet.GenericChain
 import all Banos2019.Quartet.GraphMaps
 import all Banos2019.Quartet.HybridGlue
 import all Banos2019.Quartet.LSARoot

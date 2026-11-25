@@ -289,7 +289,9 @@ they are arcs of the LSA network of `s` (the edges of `N⁻` on simple treks bet
 `mem_trekEdges_iff`), and their chains form a cycle of `Q⊕_s` with hybrid node `v`. Each taxon of `s` is
 in the block of a node of this cycle other than the root, and then in the block of that node in `N⁻`;
 the four taxa being in distinct `v`-blocks, the cycle has four nodes other than the root, and no more
-since `Q⊕_s` has four taxa. The size of `C_v` follows from the other hypotheses. -/
+since `Q⊕_s` has four taxa. The size of `C_v` follows from the other hypotheses.
+
+The paper asserts this step without argument (TeX l. 1102); this proof fills it. -/
 theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {v : _}
     (hC4 : 4 ≤ C.ncard) (hC : IsCycle (unrooted N hN hX).graph C)
@@ -494,7 +496,9 @@ arcs form a cycle of `N` below `LSA(X)`, the cycle of `N` of a cycle `C'` of `N�
 edges. The block in `Q⊕_s` of each of the four nodes holds a taxon of `s`, joined to the node by a walk
 of `Q⊕_s` avoiding the cycle, and the chains of the arcs of that walk give a walk of `N⁻` avoiding
 `C'`. So the four nodes, distinct nodes of `C'`, have taxa of `s` in their `w'`-blocks, which are
-disjoint: two taxa in distinct blocks of `Q⁻_s` are in distinct blocks of `N⁻`. -/
+disjoint: two taxa in distinct blocks of `Q⁻_s` are in distinct blocks of `N⁻`.
+
+The paper asserts this step without argument (TeX l. 1103); this proof fills it. -/
 theorem exists_separates_of_fourCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {w : _}
     (hC : IsCycle (quartetUnrooted N hN s hs).graph C) (hC4 : C.ncard = 4)
