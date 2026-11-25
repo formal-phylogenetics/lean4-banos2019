@@ -161,6 +161,54 @@ theorem IsCycleOf.isPathOf {G : DirectedMultigraph V E} {n : ℕ} {v : Fin (n + 
     rwa [hr] at this
   injective := hC.injective_node
 
+/-- **A path closed by an edge** joining its last node to its first is a cycle. -/
+theorem IsPathOf.isCycle_insert {G : DirectedMultigraph V E} {F : Set E} {n : ℕ}
+    {p : Fin (n + 1) → V} {q : Fin n → E} (hP : IsPathOf G F n p q) {f : E}
+    (hf : f ∉ Set.range q) (hj : Joins G f (p (Fin.last n)) (p 0)) :
+    IsCycle G (insert f (Set.range q)) := by
+  refine ⟨n + 1, p, Fin.snoc (α := fun _ => E) q f, ⟨Nat.succ_pos n, fun i => ?_, hP.injective,
+    Fin.snoc_injective_of_injective hP.injective_edge hf⟩, Fin.range_snoc q f⟩
+  induction i using Fin.lastCases with
+  | cast j =>
+    have hr : finRotate (n + 1) j.castSucc = j.succ := by
+      ext
+      rw [coe_finRotate_of_ne_last (Fin.castSucc_lt_last j).ne]
+      simp
+    rw [Fin.snoc_castSucc, hr]
+    exact hP.link j
+  | last =>
+    rw [Fin.snoc_last, finRotate_last]
+    exact hj
+
+/-- **A path closed through a new node** `z`, by an edge from its last node to `z` and one from `z`
+to its first node, is a cycle. -/
+theorem IsPathOf.isCycle_insert_insert {G : DirectedMultigraph V E} {F : Set E} {n : ℕ}
+    {p : Fin (n + 1) → V} {q : Fin n → E} (hP : IsPathOf G F n p q) {z : V}
+    (hz : z ∉ Set.range p) {f g : E} (hg : g ∉ Set.range q) (hfg : f ≠ g)
+    (hjf : Joins G f (p (Fin.last n)) z) (hjg : Joins G g z (p 0)) :
+    IsCycle G (insert f (insert g (Set.range q))) := by
+  have hP' : IsPathOf G Set.univ n p q := ⟨fun _ => trivial, hP.link, hP.injective⟩
+  have hQ := hP'.snoc hz (Set.mem_univ f) hjf
+  have h0 : Fin.snoc (α := fun _ => V) p z 0 = p 0 := Fin.snoc_castSucc (α := fun _ => V) (i := 0) ..
+  have := hQ.isCycle_insert (f := g) (by
+    rw [Fin.range_snoc]
+    rintro (h | h)
+    · exact hfg h.symm
+    · exact hg h) (by rw [Fin.snoc_last, h0]; exact hjg)
+  rwa [Fin.range_snoc, Set.insert_comm] at this
+
+/-- A cycle read from another node is a cycle. -/
+theorem IsCycleOf.rotate {G : DirectedMultigraph V E} {n : ℕ} {v : Fin (n + 1) → V}
+    {e : Fin (n + 1) → E} (hC : IsCycleOf G (n + 1) v e) (c : Fin (n + 1)) :
+    IsCycleOf G (n + 1) (fun i => v (i + c)) (fun i => e (i + c)) where
+  pos := hC.pos
+  joins i := by
+    have := hC.joins (i + c)
+    simp only [finRotate_apply] at this ⊢
+    rwa [add_right_comm] at this
+  injective_node := hC.injective_node.comp (add_left_injective c)
+  injective_edge := hC.injective_edge.comp (add_left_injective c)
+
 /-- **In a level-1 graph, two nodes of a cycle `C` joined by a walk avoiding the edges of `C` are
 equal.** Otherwise the walk and an arc of `C` would close a cycle through an edge of `C` that misses
 another edge of `C`. -/

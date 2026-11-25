@@ -13,6 +13,7 @@ nodes and edges in order.
 * `IsPathOf G F n p q`: a path `p 0, q 0, p 1, …, q (n - 1), p n` through distinct nodes, with its
   edges in `F`.
 * `exists_isPathOf_of_walks`: a walk contains a path with the same ends.
+* `IsPathOf.snoc`: a path extended by a new node.
 * `IsPathOf.walks_of_le`: the part of a path between two of its nodes is a walk on its edges there.
 * `IsPathOf.injective_edge`: the edges of a path are distinct.
 -/
@@ -88,6 +89,25 @@ theorem walks_mono {G : DirectedMultigraph V E} {F F' : Set E} (hF : F ⊆ F') {
   Relation.ReflTransGen.mono (fun _ _ ⟨f, hf, hl⟩ => ⟨f, hF hf, hl⟩) _ _ h
 
 variable {G : DirectedMultigraph V E} {F : Set E} {n : ℕ} {p : Fin (n + 1) → V} {q : Fin n → E}
+
+/-- **A path extended by a new node** `z` and an edge from its last node to `z` is a path. -/
+theorem IsPathOf.snoc (hP : IsPathOf G F n p q) {z : V} (hz : z ∉ Set.range p) {f : E} (hf : f ∈ F)
+    (hj : (G.source f = p (Fin.last n) ∧ G.target f = z) ∨
+      (G.source f = z ∧ G.target f = p (Fin.last n))) :
+    IsPathOf G F (n + 1) (Fin.snoc (α := fun _ => V) p z) (Fin.snoc (α := fun _ => E) q f) where
+  mem i := by
+    induction i using Fin.lastCases with
+    | cast j => rw [Fin.snoc_castSucc]; exact hP.mem j
+    | last => rw [Fin.snoc_last]; exact hf
+  link i := by
+    induction i using Fin.lastCases with
+    | cast j =>
+      rw [Fin.snoc_castSucc, Fin.snoc_castSucc, Fin.succ_castSucc, Fin.snoc_castSucc]
+      exact hP.link j
+    | last =>
+      rw [Fin.snoc_last, Fin.snoc_castSucc, Fin.succ_last, Fin.snoc_last]
+      exact hj
+  injective := Fin.snoc_injective_of_injective hP.injective fun ⟨i, hi⟩ => hz ⟨i, hi⟩
 
 /-- The edge `q i` of a path joins `p i` and `p (i + 1)` as an edge of the walks. -/
 theorem IsPathOf.adjOn (hP : IsPathOf G F n p q) (i : Fin n) {F' : Set E} (hi : q i ∈ F') :
