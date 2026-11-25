@@ -49,6 +49,20 @@ left by the contraction suppressed.
 * `proposition5` (Proposition 5): two binary level-1 metric LSA quartet networks (on four taxa, rooted
   at the LSA of the taxa) that induce isomorphic metric unrooted networks have the same concordance
   factors.
+
+Further theorems check the definitions against known facts:
+
+* `equation1_balanced`: on the balanced rooted quartet tree `((0,1),(2,3))` with root edges of lengths
+  `t₁`, `t₂`, whose unrooted internal edge has length `t₁ + t₂`, the concordance factors are those of
+  equation (1) (Allman, Degnan and Rhodes 2011): `1 - ⅔ e^{-(t₁+t₂)}` for `01|23` and `⅓ e^{-(t₁+t₂)}`
+  for the two other quartet trees.
+* `lsa_isLSA`: in a binary rooted network, `lsa` is the lowest stable ancestor of the taxa.
+* `root_reaches`: in a binary rooted network, the root reaches every node.
+* `not_forGenericParams_false`: the metric parameters of a binary network do not form a null set, so
+  "for generic parameters" in Theorems 3 and 4 is not satisfied vacuously.
+* `example6`, `example7` (Examples 6 and 7): the networks of Figures 18 (a `3₂`-cycle) and 17 (a
+  4-cycle), with the parameters of the paper, have the concordance factors `32/98, 33/98, 33/98` in
+  some order.
 -/
 
 -- BEGIN SHARED DEFINITIONS
@@ -524,6 +538,82 @@ theorem proposition5 {V E V' E' X : Type*} [Fintype V] [Fintype E] [Fintype V'] 
     (hr' : Q'.IsLSA Set.univ Q'.root) (hθ : Q.IsMetric θ) (hθ' : Q'.IsMetric θ')
     (hiso : Nonempty (SDMetricIso Q.unrooted (Q.unrootedParams θ) Q'.unrooted (Q'.unrootedParams θ'))) :
     Q.cf θ = Q'.cf θ' := by
+  sorry
+
+/-- **Equation (1) on a quartet tree** (a check of the definitions): the balanced rooted quartet tree
+`((0,1),(2,3))`, whose root `0` has the children `1` and `2`, with the leaves `3, 4` of the taxa `0, 1`
+below `1` and the leaves `5, 6` of the taxa `2, 3` below `2`, with root edges of lengths `t₁`, `t₂` and
+pendant edges of length one, is a binary metric network, and its concordance factors are
+`1 - ⅔ e^{-(t₁+t₂)}` for the quartet tree `01|23` and `⅓ e^{-(t₁+t₂)}` for `02|13` and `03|12`. -/
+theorem equation1_balanced (t₁ t₂ : ℝ) (h₁ : 0 < t₁) (h₂ : 0 < t₂) :
+    let N : Network (Fin 7) (Fin 6) (Fin 4) := ⟨⟨![0, 0, 1, 1, 2, 2], ![1, 2, 3, 4, 5, 6]⟩, 0, ![3, 4, 5, 6]⟩
+    let θ : Params (Fin 6) := ⟨![t₁, t₂, 1, 1, 1, 1], fun _ => 1⟩
+    N.IsBinaryNetwork ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 1 - 2 / 3 * Real.exp (-(t₁ + t₂))) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 1 / 3 * Real.exp (-(t₁ + t₂))) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 1 / 3 * Real.exp (-(t₁ + t₂))) := by
+  sorry
+
+/-- **The lowest stable ancestor exists** (a check of the definitions): in a binary rooted network,
+`lsa` is the LSA of all the taxa (Definition 4). -/
+theorem lsa_isLSA {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) :
+    N.IsLSA Set.univ N.lsa := by
+  sorry
+
+/-- **The root reaches every node** of a binary rooted network (a check of the definitions):
+Definition 1's connectedness follows from its other clauses. -/
+theorem root_reaches {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) (v : V) :
+    N.graph.Reaches N.root v := by
+  sorry
+
+/-- **"For generic parameters" is not vacuous** (a check of the definitions): the metric parameters
+of a binary rooted network do not form a null set, so no binary network satisfies a false property for
+generic parameters. -/
+theorem not_forGenericParams_false {V E X : Type*} [Fintype E] (N : Network V E X)
+    (hN : N.IsBinaryNetwork) : ¬ N.ForGenericParams fun _ => False := by
+  sorry
+
+/-- **Example 6** (a check of the definitions): the network of Figure 18, with a `3₂`-cycle, rooted on
+one of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`; the node `4` of `0, 1`
+is below the hybrid node `5` (edge of length `t₁ = -log(6/7)`); the node `7` of `3` joins the node `6`
+of `2` (length `t₃ = -log(1/14)`); the hybrid edges into `5` come from `6` (length `t₂ = -log(6/7)`)
+and from `7` (length `t₄ = -log(13/14)`, which the root `8` halves), each of inheritance probability
+`1/2`; the pendant edges have length one. It is a binary level-1 metric network rooted at the LSA of its
+taxa, and its concordance factors are `32/98` for `01|23` and `33/98` for `02|13` and `03|12`: the Cycle
+property holds and the Big Cycle property does not. -/
+theorem example6 :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (6 / 7), -Real.log (1 / 14), -Real.log (13 / 14) / 2,
+          -Real.log (6 / 7), -Real.log (13 / 14) / 2], ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+  sorry
+
+/-- **Example 7** (a check of the definitions): the network of Figure 17, with a 4-cycle, rooted on one
+of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`, below the nodes `4, 5, 6, 7`
+of the cycle; `7` joins `4` (length `t₁ = -log(48/49)`), `4` joins `5` (length `t₂ = -log(48/49)`), and the
+hybrid edges into `6` come from `5` and from `7` (the latter halved by the root `8`), each of length one
+and inheritance probability `1/2`; the pendant edges have length one. It is a binary level-1 metric
+network rooted at the LSA of its taxa, and its concordance factors are `33/98` for `01|23` and `03|12`
+and `32/98` for `02|13`. The paper prints `32/98` for `AB|CD` and `33/98` for `AC|BD` and `AD|BC`: those
+are the values with the taxa `1` and `2` exchanged. -/
+theorem example7 :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (48 / 49), -Real.log (48 / 49), 1, 1 / 2, 1 / 2],
+        ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
   sorry
 
 end Banos2019Challenge

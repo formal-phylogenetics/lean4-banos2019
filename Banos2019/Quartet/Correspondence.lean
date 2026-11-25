@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Normal
+public import Banos2019.Basic.Logic.RelationAvoid
 public import Phylogenetics.Graph.Tree
 
 /-!
@@ -11,14 +12,21 @@ A set `s` of four taxa induces a quartet network `Q⁻_s` with a 4-cycle exactly
 hybrid block. The hybrid node of the 4-cycle of `Q⁻_s` is then that of `C_v`.
 
 * `exists_fourCycle_of_separates`, `exists_separates_of_fourCycle`: the two directions, as the proof
-  of Lemma 12 states them.
+  of Lemma 12 states them. The two cycles correspond through a cycle of `N`: the arcs of the edges of
+  `C_v` (`liftEdges`), and the chains of the arcs of the cycle of `Q⊕_s` (`cycleChainArcs`).
 * `unrooted_isConnected`: `N⁻` is connected.
 * `walks_cycle_of_mem_cycleNodes`: two nodes of a cycle are joined along it.
 * `exists_walks_cycleNodes_of_not_walks`: in a connected graph, a node not joined to a node `z₀` of a
   cycle `C'` by a walk avoiding a cycle `C`, disjoint from `C'`, reaches a node of `C` by a walk
   avoiding both (the argument of Lemma 13).
+* `isCycle_suppress_preimage`: the chains of a cycle of a level-1 network are a cycle of the
+  suppressed network; `walks_suppress_chainEnd_of_walks`: a walk of the network gives a walk of the
+  suppressed network.
+* `sdNode`, `walks_semidirected_of_walks`, `isCycle_semidirected_preimage`: the node of `N⁻` of a node
+  of `N` below `LSA(X)`; a walk, and a cycle, of `N` below `LSA(X)` give a walk, and a cycle, of `N⁻`.
+* `exists_walks_unrooted_quartetLSA`: the taxa of `s` in the blocks of the nodes of a cycle of `Q⊕_s`
+  are in the blocks of those nodes in `N⁻`, for the cycle of `N⁻` of its chains.
 -/
-
 @[expose] public noncomputable section
 
 open Phylogenetics Phylogenetics.RootedNetwork Finset
@@ -99,6 +107,19 @@ theorem exists_walks_cycleNodes_of_not_walks (hG : G.IsConnected) {C K : Set E'}
 
 end Walks
 
+/-- A path along the arcs of `C` is a walk on the arcs of `C` between its ends. -/
+theorem walks_of_reflTransGen_mem {G : DirectedMultigraph V E} {C F : Set E} {a b : V}
+    (h : Relation.ReflTransGen (fun x y => ∃ f ∈ C, G.source f = x ∧ G.target f = y) a b)
+    (hF : ∀ f ∈ C, G.Reaches a (G.source f) → G.Reaches (G.target f) b → f ∈ F) :
+    G.Walks F a b := by
+  induction h with
+  | refl => exact .refl
+  | @tail y z hay hyz ih =>
+    obtain ⟨f, hfC, hfs, hft⟩ := hyz
+    have hr : G.Reaches a y := Relation.ReflTransGen.mono (fun _ _ ⟨g, _, hg⟩ => ⟨g, hg⟩) _ _ hay
+    refine (ih fun f' hf' h₁ h₂ => hF f' hf' h₁ (h₂.tail ⟨f, hfs, hft⟩)).tail
+      ⟨f, hF f hfC (hfs ▸ hr) (hft ▸ .refl), Or.inl ⟨hfs, hft⟩⟩
+
 /-! ### `N⁻` is connected -/
 
 /-- **`N⁻` is connected**: every node is joined to the child of the edge of the root that suppression
@@ -140,12 +161,427 @@ theorem unrooted_isConnected {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwo
   intro u w
   exact ((unrooted N hN hX).graph.walks_symm (key u.1 u.2)).trans (key w.1 w.2)
 
+/-! ### Maps of graphs -/
+
+section Hom
+
+variable {V₁ E₁ V₂ E₂ : Type*} {G₁ : DirectedMultigraph V₁ E₁} {G₂ : DirectedMultigraph V₂ E₂}
+  {φ : V₁ → V₂} {ψ : E₁ → E₂} (hφ : Function.Injective φ) (hψ : Function.Injective ψ)
+  (hs : ∀ e, G₂.source (ψ e) = φ (G₁.source e)) (ht : ∀ e, G₂.target (ψ e) = φ (G₁.target e))
+include hφ hψ hs ht
+
+/-- The image of a cycle under an injective map of graphs is a cycle. -/
+theorem IsCycle.image_of_hom {C : Set E₁} (hC : IsCycle G₁ C) : IsCycle G₂ (ψ '' C) := by
+  obtain ⟨k, v, e, hc, rfl⟩ := hC
+  refine ⟨k, φ ∘ v, ψ ∘ e, ⟨hc.pos, fun i => ?_, hφ.comp hc.injective_node,
+    hψ.comp hc.injective_edge⟩, Set.range_comp ..⟩
+  rcases hc.joins i with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+  · exact Or.inl ⟨by simp [hs, h₁], by simp [ht, h₂]⟩
+  · exact Or.inr ⟨by simp [hs, h₁], by simp [ht, h₂]⟩
+
+/-- A cycle of `G₂` whose edges are images of edges of `G₁` under an injective map of graphs is the
+image of a cycle of `G₁`. -/
+theorem IsCycle.preimage_of_hom {C : Set E₂} (hC : IsCycle G₂ C) (hCψ : C ⊆ Set.range ψ) :
+    IsCycle G₁ (ψ ⁻¹' C) := by
+  obtain ⟨k, v, e, hc, rfl⟩ := hC
+  choose e' he' using fun i => hCψ ⟨i, rfl⟩
+  have hv : ∀ i, ∃ u, φ u = v i := fun i => by
+    rcases hc.joins i with ⟨h₁, -⟩ | ⟨-, h₂⟩
+    · exact ⟨G₁.source (e' i), by rw [← hs, he' i, h₁]⟩
+    · exact ⟨G₁.target (e' i), by rw [← ht, he' i, h₂]⟩
+  choose v' hv' using hv
+  refine ⟨k, v', e', ⟨hc.pos, fun i => ?_, fun i j h => hc.injective_node (by rw [← hv', ← hv', h]),
+    fun i j h => hc.injective_edge (by rw [← he', ← he', h])⟩, ?_⟩
+  · rcases hc.joins i with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨hφ (by rw [← hs, he', h₁, hv']), hφ (by rw [← ht, he', h₂, hv'])⟩
+    · exact Or.inr ⟨hφ (by rw [← hs, he', h₁, hv']), hφ (by rw [← ht, he', h₂, hv'])⟩
+  · ext f
+    constructor
+    · rintro ⟨i, rfl⟩
+      exact ⟨i, (he' i).symm⟩
+    · rintro ⟨i, hi⟩
+      exact ⟨i, hψ (by rw [he', hi])⟩
+
+omit hφ hψ hs ht in
+/-- A walk of `G₁` maps to a walk of `G₂`. -/
+theorem walks_image_of_hom (hs : ∀ e, G₂.source (ψ e) = φ (G₁.source e))
+    (ht : ∀ e, G₂.target (ψ e) = φ (G₁.target e)) {F : Set E₁} {a b : V₁}
+    (h : G₁.Walks F a b) : G₂.Walks (ψ '' F) (φ a) (φ b) := by
+  induction h with
+  | refl => exact .refl
+  | @tail b c _ hbc ih =>
+    obtain ⟨f, hf, hj⟩ := hbc
+    refine ih.tail ⟨ψ f, ⟨f, hf, rfl⟩, ?_⟩
+    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨by rw [hs, h₁], by rw [ht, h₂]⟩
+    · exact Or.inr ⟨by rw [hs, h₁], by rw [ht, h₂]⟩
+
+end Hom
+
+/-! ### Cycles of a suppressed network from cycles of the network -/
+
+section SuppressCycles
+
+variable {M : RootedNetwork V E X} (hM : M.IsPhylogenetic)
+
+/-- **A walk of the network gives a walk of the suppressed network** between the ends of the chains
+of its ends, along the arcs of the walk that leave nodes that are not chain nodes. -/
+theorem walks_suppress_chainEnd_of_walks {A : Set E}
+    {F : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
+    (hA : ∀ f ∈ A, ∀ hf : ¬ M.IsChainVertex (M.graph.source f), (⟨f, hf⟩ : {e // ¬ M.IsChainVertex (M.graph.source e)}) ∈ F)
+    {a b : V} (h : M.graph.Walks A a b) :
+    (M.suppress hM).graph.Walks F ⟨chainEnd hM a, not_isChainVertex_chainEnd hM a⟩
+      ⟨chainEnd hM b, not_isChainVertex_chainEnd hM b⟩ := by
+  induction h with
+  | refl => exact .refl
+  | @tail b c _ hbc ih =>
+    obtain ⟨g, hg, hj⟩ := hbc
+    have key : (M.suppress hM).graph.Walks F
+        ⟨chainEnd hM (M.graph.source g), not_isChainVertex_chainEnd hM _⟩
+        ⟨chainEnd hM (M.graph.target g), not_isChainVertex_chainEnd hM _⟩ := by
+      by_cases hgs : M.IsChainVertex (M.graph.source g)
+      · have : (⟨chainEnd hM (M.graph.source g), not_isChainVertex_chainEnd hM _⟩ :
+            {v // ¬ M.IsChainVertex v}) =
+            ⟨chainEnd hM (M.graph.target g), not_isChainVertex_chainEnd hM _⟩ :=
+          Subtype.ext (chainEnd_eq_of_adj hM hgs ⟨g, rfl, rfl⟩)
+        rw [this]
+        exact .refl
+      · exact .single ⟨⟨g, hgs⟩, hA g hg hgs,
+          Or.inl ⟨Subtype.ext (chainEnd_eq_self hM hgs).symm, rfl⟩⟩
+    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · subst h₁ h₂
+      exact ih.trans key
+    · subst h₁ h₂
+      exact ih.trans ((M.suppress hM).graph.walks_symm key)
+
+/-- **A cycle of a level-1 network gives a cycle of the suppressed network**: the arcs of the
+suppressed network whose first arc is on the cycle form a cycle, whose chains are the arcs of the
+cycle. An arc out of the top of the cycle leaves a node that is not a chain node; the rest of the cycle
+is a walk between its ends, which gives a walk of the suppressed network, closing a cycle through
+it; the chains of that cycle are a cycle of the network sharing that arc, so they are the cycle. -/
+theorem isCycle_suppress_preimage (h1 : IsLevelOne M.graph) {D : Set E} (hD : IsCycle M.graph D) :
+    IsCycle (M.suppress hM).graph {g | g.1 ∈ D} ∧ cycleChainArcs M {g | g.1 ∈ D} = D := by
+  have := hM.finite_arcs
+  have hloop := source_ne_target_of_isPhylogenetic hM
+  -- an arc of `D` out of the top of `D`, a node of outdegree at least two
+  obtain ⟨t, htD, -, hin, -, -⟩ := h1.exists_top hM hD
+  obtain ⟨f₁, hf₁, f₂, hf₂, hne, h₁, h₂⟩ := hD.exists_ne_of_mem (fun f _ => hloop f) htD
+  have hs₁ : M.graph.source f₁ = t := h₁.resolve_right (hin f₁ hf₁)
+  have hs₂ : M.graph.source f₂ = t := h₂.resolve_right (hin f₂ hf₂)
+  have hg₀ : ¬ M.IsChainVertex (M.graph.source f₁) := by
+    rintro ⟨-, hout⟩
+    have h2 : 2 ≤ M.graph.outdegree (M.graph.source f₁) := by
+      unfold DirectedMultigraph.outdegree
+      rw [← Set.ncard_pair hne]
+      exact Set.ncard_le_ncard (by
+        rintro f (rfl | hf)
+        · rfl
+        · rw [Set.mem_singleton_iff.1 hf]
+          exact hs₂.trans hs₁.symm) (Set.toFinite _)
+    omega
+  set g₀ : {e // ¬ M.IsChainVertex (M.graph.source e)} := ⟨f₁, hg₀⟩
+  set F : Set {e // ¬ M.IsChainVertex (M.graph.source e)} := {g | g.1 ∈ D} \ {g₀}
+  have hW := walks_suppress_chainEnd_of_walks hM (F := F) (A := D \ {f₁})
+    (fun f hf hfc => ⟨hf.1, fun h => hf.2 (congrArg Subtype.val (Set.mem_singleton_iff.1 h))⟩)
+    (hD.walks_sdiff_singleton hf₁ (target_mem_cycleNodes hf₁) (source_mem_cycleNodes hf₁))
+  have hend : (⟨chainEnd hM (M.graph.source f₁), not_isChainVertex_chainEnd hM _⟩ :
+      {v // ¬ M.IsChainVertex v}) = (M.suppress hM).graph.source g₀ :=
+    Subtype.ext (chainEnd_eq_self hM hg₀)
+  rw [hend] at hW
+  obtain ⟨D', hD', hg₀D', hsub⟩ := exists_isCycle_of_walks (G := (M.suppress hM).graph)
+    (e := g₀) (F := F) (fun h => h.2 rfl) hW
+  have hsub' : D' ⊆ {g | g.1 ∈ D} := fun g hg => by
+    rcases hsub hg with rfl | h
+    · exact hf₁
+    · exact h.1
+  -- the chains of `D'` are `D`
+  have hE : cycleChainArcs M D' = D :=
+    h1 _ _ (isCycle_cycleChainArcs hM hD') hD ⟨f₁, ⟨g₀, hg₀D', Or.inl rfl⟩, hf₁⟩
+  have hDD' : {g | g.1 ∈ D} = D' := Set.Subset.antisymm
+    (fun g hg => val_mem_cycleChainArcs_iff.1 (hE.symm ▸ hg : g.1 ∈ cycleChainArcs M D')) hsub'
+  rw [hDD']
+  exact ⟨hD', hE⟩
+
+/-- A node of a cycle of the suppressed network is a node of the cycle of the network formed by its
+chains. -/
+theorem val_mem_cycleNodes_cycleChainArcs {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
+    {u : {v // ¬ M.IsChainVertex v}} (hu : u ∈ cycleNodes (M.suppress hM).graph D) :
+    u.1 ∈ cycleNodes M.graph (cycleChainArcs M D) := by
+  obtain ⟨g, hg, hu | hu⟩ := hu
+  · exact ⟨g.1, ⟨g, hg, Or.inl rfl⟩, Or.inl (congrArg Subtype.val hu)⟩
+  · obtain ⟨l, hl, hlt⟩ := NMSC.exists_lastArc hM g.1
+    exact ⟨l, ⟨g, hg, hl⟩, Or.inr (hlt.trans (congrArg Subtype.val hu))⟩
+
+/-- A node of the network that is not a chain node, on the chains of a set of arcs of the suppressed
+network, is a node of that set. -/
+theorem mem_cycleNodes_suppress_of_val {D : Set {e // ¬ M.IsChainVertex (M.graph.source e)}}
+    {u : {v // ¬ M.IsChainVertex v}} (hu : u.1 ∈ cycleNodes M.graph (cycleChainArcs M D)) :
+    u ∈ cycleNodes (M.suppress hM).graph D := by
+  obtain ⟨f, ⟨g, hg, hon⟩, hfu | hfu⟩ := hu
+  · have hfg : f = g.1 := eq_of_isOnChain_of_not_isChainVertex hon (by rw [hfu]; exact u.2)
+    subst hfg
+    exact ⟨g, hg, Or.inl (Subtype.ext hfu)⟩
+  · refine ⟨g, hg, Or.inr (Subtype.ext ?_)⟩
+    show chainEnd hM (M.graph.target g.1) = u.1
+    rw [chainEnd_eq_of_chainReach_left hM (NMSC.IsOnChain.chainReach_target hon), hfu,
+      chainEnd_eq_self hM u.2]
+
+end SuppressCycles
+
+/-! ### Walks and cycles of `N⁻` from those of `N` -/
+
+section Semidirected
+
+variable {M : RootedNetwork V E X} (hM : M.IsPhylogenetic) (hB : M.IsBinary) (hX : Nontrivial X)
+
+/-- The node of `N⁻` of a node of `M` below the LSA of all the taxa: itself, and for the LSA, which
+`N⁻` suppresses, the child of the arc `sdRootArc` merged into the other arc out of the LSA. -/
+def sdNode (u : V) : SemidirectedVertex hM hX :=
+  if h : M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) u ∧
+      u ≠ lsa hM Set.univ Set.univ_nonempty then
+    ⟨⟨u, h.1, mem_ancestralVertices_univ hM u⟩, fun h' => h.2 (congrArg Subtype.val h')⟩
+  else ⟨(lsaPlus hM hX).graph.target (rootTreeArc hM hB hX),
+    (lsaPlus_isPhylogenetic hM hX).target_ne_root _⟩
+
+theorem sdVert_sdNode {u : V} (h : M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) u)
+    (hne : u ≠ lsa hM Set.univ Set.univ_nonempty) : sdVert hM hX (sdNode hM hB hX u) = u := by
+  simp only [sdNode, h, ne_eq, hne, not_false_eq_true, and_self, ↓reduceDIte]
+  rfl
+
+theorem sdVert_sdNode_lsa :
+    sdVert hM hX (sdNode hM hB hX (lsa hM Set.univ Set.univ_nonempty)) =
+      M.graph.target (sdRootArc hM hB hX) := by
+  simp only [sdNode, ne_eq, not_true_eq_false, and_false, dite_false]
+  rfl
+
+theorem sdNode_sdVert (w : SemidirectedVertex hM hX) : sdNode hM hB hX (sdVert hM hX w) = w :=
+  sdVert_injective hM hX (sdVert_sdNode hM hB hX ((mem_range_sdVert hM hX _).1 ⟨w, rfl⟩).1
+    ((mem_range_sdVert hM hX _).1 ⟨w, rfl⟩).2)
+
+theorem sdNode_leaf (x : X) : sdNode hM hB hX (M.leaf x) = (semidirected hM hB hX).leaf x :=
+  sdNode_sdVert hM hB hX ((semidirected hM hB hX).leaf x)
+
+/-- The ends of an edge of `N⁻` are the nodes of `N⁻` of the ends of its arc. -/
+theorem sdNode_source (g : SemidirectedArc hM hB hX) :
+    (semidirected hM hB hX).graph.source g = sdNode hM hB hX (M.graph.source (sdArc hM hB hX g)) := by
+  apply sdVert_injective hM hX
+  rcases sdVert_source_cases hM hB hX g with ⟨hne, h⟩ | ⟨hm, h⟩
+  · rw [h, sdVert_sdNode hM hB hX ((mem_range_sdArc hM hB hX _).1 ⟨g, rfl⟩).1 hne]
+  · rw [h, hm, sdVert_sdNode_lsa]
+
+theorem sdNode_target (g : SemidirectedArc hM hB hX) :
+    (semidirected hM hB hX).graph.target g = sdNode hM hB hX (M.graph.target (sdArc hM hB hX g)) := by
+  rw [← sdVert_target]
+  exact (sdNode_sdVert hM hB hX _).symm
+
+/-- **A walk of `M` below the LSA gives a walk of `N⁻`** between the nodes of `N⁻` of its ends: an arc
+is an edge of `N⁻`, but for `sdRootArc`, whose two ends have the same node of `N⁻`. -/
+theorem walks_semidirected_of_walks {A : Set E} {F : Set (SemidirectedArc hM hB hX)}
+    (hA : ∀ f ∈ A, M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (M.graph.source f))
+    (hF : ∀ g, sdArc hM hB hX g ∈ A → g ∈ F) {a b : V} (h : M.graph.Walks A a b) :
+    (semidirected hM hB hX).graph.Walks F (sdNode hM hB hX a) (sdNode hM hB hX b) := by
+  have key : ∀ f ∈ A, (semidirected hM hB hX).graph.Walks F (sdNode hM hB hX (M.graph.source f))
+      (sdNode hM hB hX (M.graph.target f)) := by
+    intro f hf
+    by_cases hf₀ : f = sdRootArc hM hB hX
+    · have h₁ : sdNode hM hB hX (M.graph.source f) = sdNode hM hB hX (M.graph.target f) := by
+        apply sdVert_injective hM hX
+        have hm : M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (M.graph.target f) :=
+          (hA f hf).tail ⟨f, rfl, rfl⟩
+        rw [hf₀, (sdRootArc_spec hM hB hX).1, sdVert_sdNode_lsa,
+          sdVert_sdNode hM hB hX (hf₀ ▸ hm) (fun h => not_reaches_target_source_of_isAcyclic
+            hM.acyclic (sdRootArc hM hB hX) (by rw [h, (sdRootArc_spec hM hB hX).1]; exact .refl))]
+      rw [h₁]
+      exact .refl
+    · obtain ⟨g, rfl⟩ := (mem_range_sdArc hM hB hX f).2 ⟨hA f hf, hf₀⟩
+      rw [← sdNode_source, ← sdNode_target]
+      exact .single ⟨g, hF g hf, Or.inl ⟨rfl, rfl⟩⟩
+  induction h with
+  | refl => exact .refl
+  | @tail b c _ hbc ih =>
+    obtain ⟨f, hf, hj⟩ := hbc
+    rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · subst h₁ h₂
+      exact ih.trans (key f hf)
+    · subst h₁ h₂
+      exact ih.trans ((semidirected hM hB hX).graph.walks_symm (key f hf))
+
+/-- **A cycle of a level-1 network below the LSA of all the taxa is the cycle of `M` of a cycle of
+`N⁻`**: the edges of `N⁻` whose arcs are on the cycle. An edge `g₀` of it is closed into a cycle of
+`N⁻` by the rest of the cycle (`walks_semidirected_of_walks`); the cycle of `M` of that cycle shares
+an arc with the cycle, so it is the cycle. -/
+theorem isCycle_semidirected_preimage (hbin : IsBinaryRootedNetwork M) (h1 : IsLevelOne M.graph)
+    {D : Set E} (hD : IsCycle M.graph D)
+    (hbelow : ∀ f ∈ D, M.graph.Reaches (lsa hM Set.univ Set.univ_nonempty) (M.graph.source f)) :
+    IsCycle (semidirected hM hB hX).graph {g | sdArc hM hB hX g ∈ D} ∧
+      liftEdges hM hB hX {g | sdArc hM hB hX g ∈ D} = D := by
+  have := hM.finite_arcs
+  set G := semidirected hM hB hX
+  -- an edge of `N⁻` on the cycle: the cycle has two arcs
+  obtain ⟨f₀, hf₀D, hf₀⟩ : ∃ f ∈ D, f ≠ sdRootArc hM hB hX := by
+    obtain ⟨k, v, e, hc, rfl⟩ := hD
+    have hk := hc.two_le (source_ne_target_of_binary hbin)
+    by_cases h0 : e ⟨0, by omega⟩ = sdRootArc hM hB hX
+    · refine ⟨e ⟨1, by omega⟩, ⟨_, rfl⟩, fun h => ?_⟩
+      have := hc.injective_edge (h.trans h0.symm)
+      simp at this
+    · exact ⟨_, ⟨_, rfl⟩, h0⟩
+  obtain ⟨g₀, rfl⟩ := (mem_range_sdArc hM hB hX f₀).2 ⟨hbelow _ hf₀D, hf₀⟩
+  set F : Set (SemidirectedArc hM hB hX) := {g | sdArc hM hB hX g ∈ D} \ {g₀}
+  have hW := walks_semidirected_of_walks hM hB hX (F := F) (A := D \ {sdArc hM hB hX g₀})
+    (fun f hf => hbelow f hf.1)
+    (fun g hg => ⟨hg.1, fun h => hg.2 (by rw [Set.mem_singleton_iff.1 h]; rfl)⟩)
+    (hD.walks_sdiff_singleton hf₀D (target_mem_cycleNodes hf₀D) (source_mem_cycleNodes hf₀D))
+  rw [← sdNode_source, ← sdNode_target] at hW
+  obtain ⟨D', hD', hg₀D', hsub⟩ := exists_isCycle_of_walks (G := G.graph) (e := g₀) (F := F)
+    (fun h => h.2 rfl) hW
+  have hsub' : D' ⊆ {g | sdArc hM hB hX g ∈ D} := fun g hg => by
+    rcases hsub hg with rfl | h
+    · exact hf₀D
+    · exact h.1
+  have hE : liftEdges hM hB hX D' = D :=
+    h1 _ _ (isCycle_liftEdges hM hB hX hD') hD ⟨_, (sdArc_mem_liftEdges_iff hM hB hX D' g₀).2 hg₀D',
+      hf₀D⟩
+  have hDD' : {g | sdArc hM hB hX g ∈ D} = D' := Set.Subset.antisymm
+    (fun g hg => (sdArc_mem_liftEdges_iff hM hB hX D' g).1 (hE.symm ▸ hg)) hsub'
+  rw [hDD']
+  exact ⟨hD', hE⟩
+
+end Semidirected
+
+/-! ### The blocks of a cycle of `Q⊕_s` in `N⁻` -/
+
+section Quartet
+
+variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) {s : Finset X}
+  (hs : #s = 4)
+
+/-- A node of `Q⊕_s` other than its root is, in `N`, strictly below `LSA(X)`. -/
+theorem quartetLSA_val_ne_lsa_univ {u : _} (hu : u ≠ (quartetLSA N hN.1 s hs).root) :
+    u.1.1 ≠ lsa hN.1 Set.univ Set.univ_nonempty := by
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  have hm := lsa_univ_reaches hN.1 hZ.nonempty
+  intro h
+  refine hu (Subtype.ext (Subtype.ext ?_))
+  show u.1.1 = lsa hN.1 (s : Set X) hZ.nonempty
+  rw [h]
+  exact eq_of_reaches_of_reaches hN.1.acyclic hm (h ▸ u.1.2.1)
+
+include hX in
+/-- **A walk of `Q⊕_s` avoiding a set `D` of its arcs gives a walk of `N⁻` avoiding the edges whose
+arcs are on the chains of `D`**: the chains of the arcs of the walk are not on those of `D`. -/
+theorem walks_unrooted_of_walks_quartetLSA {D : Set _} {u w : _}
+    (h : (quartetLSA N hN.1 s hs).graph.Walks Dᶜ u w) {C' : Set (SemidirectedArc hN.1 hN.2 hX)}
+    (hC' : ∀ g ∈ C', sdArc hN.1 hN.2 hX g ∈ Subtype.val '' cycleChainArcs _ D) :
+    (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) (sdNode hN.1 hN.2 hX w.1.1) := by
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  have h₁ := walks_cycleChainArcs_of_walks (lsaNetwork_isPhylogenetic hN.1 hZ) h
+  have h₂ := walks_image_of_hom (φ := Subtype.val) (ψ := Subtype.val) (fun _ => rfl) (fun _ => rfl) h₁
+  refine walks_semidirected_of_walks hN.1 hN.2 hX (fun f hf => ?_) (fun g hg hgC => ?_) h₂
+  · obtain ⟨e, -, rfl⟩ := hf
+    exact (lsa_univ_reaches hN.1 hZ.nonempty).trans e.2.1
+  · obtain ⟨e, ⟨g₁, hg₁, hon₁⟩, he⟩ := hg
+    obtain ⟨e', ⟨g₂, hg₂, hon₂⟩, he'⟩ := hC' g hgC
+    have hee' : e = e' := Subtype.ext (he.trans he'.symm)
+    subst hee'
+    exact hg₁ (eq_of_isOnChain_of_isOnChain hon₁ hon₂ ▸ hg₂)
+
+include hX in
+/-- A node of a cycle of `Q⊕_s` other than its root is a node of the cycle of `N⁻` whose arcs are on
+its chains. -/
+theorem sdNode_mem_cycleNodes_of_quartetLSA {D : Set _} {u : _}
+    (hu : u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D)
+    (hur : u ≠ (quartetLSA N hN.1 s hs).root) {C' : Set (SemidirectedArc hN.1 hN.2 hX)}
+    (hC' : liftEdges hN.1 hN.2 hX C' = Subtype.val '' cycleChainArcs _ D) :
+    sdNode hN.1 hN.2 hX u.1.1 ∈ cycleNodes (unrooted N hN hX).graph C' := by
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  obtain ⟨f, hf, hfu⟩ := val_mem_cycleNodes_cycleChainArcs (lsaNetwork_isPhylogenetic hN.1 hZ) hu
+  have hmem : sdVert hN.1 hX (sdNode hN.1 hN.2 hX u.1.1) ∈
+      cycleNodes N.graph (liftEdges hN.1 hN.2 hX C') := by
+    rw [sdVert_sdNode hN.1 hN.2 hX ((lsa_univ_reaches hN.1 hZ.nonempty).trans u.1.2.1)
+      (quartetLSA_val_ne_lsa_univ hN hX hs hur), hC']
+    refine ⟨f.1, ⟨f, hf, rfl⟩, ?_⟩
+    rcases hfu with h | h
+    · exact Or.inl (congrArg Subtype.val h)
+    · exact Or.inr (congrArg Subtype.val h)
+  exact (sdVert_mem_cycleNodes_liftEdges_iff hN.1 hN.2 hX C' _).1 hmem
+
+include hX in
+/-- **The taxa in the blocks of a cycle of `Q⊕_s` are in the blocks of `N⁻`** of the cycle of `N⁻`
+whose arcs are on its chains: every taxon of `s` is joined, avoiding that cycle, to a node of the
+cycle of `Q⊕_s` other than the root (whose block in `Q⊕_s` holds it), and every such node to a taxon
+of `s` (`nodeBlock_nonempty`). -/
+theorem exists_walks_unrooted_quartetLSA (h1 : IsLevelOne N.graph) {D : Set _}
+    (hD : IsCycle (quartetLSA N hN.1 s hs).graph D) {v : _}
+    (hv : v ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D)
+    (h2 : (quartetLSA N hN.1 s hs).graph.indegree v = 2) {C' : Set (SemidirectedArc hN.1 hN.2 hX)}
+    (hC' : liftEdges hN.1 hN.2 hX C' = Subtype.val '' cycleChainArcs _ D) :
+    (∀ x : (s : Set X), ∃ u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D,
+      u ≠ (quartetLSA N hN.1 s hs).root ∧
+        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) ((unrooted N hN hX).leaf x)) ∧
+    (∀ u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D, u ≠ (quartetLSA N hN.1 s hs).root →
+      ∃ x : (s : Set X),
+        (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1) ((unrooted N hN hX).leaf x)) := by
+  have hQ := quartetLSA_isBinaryRootedNetwork hN hs
+  have hsub : ∀ g ∈ C', sdArc hN.1 hN.2 hX g ∈ Subtype.val '' cycleChainArcs _ D := fun g hg =>
+    hC' ▸ (sdArc_mem_liftEdges_iff hN.1 hN.2 hX C' g).2 hg
+  refine ⟨fun x => ?_, fun u hu hur => ?_⟩
+  · obtain ⟨u, hu, hx⟩ := exists_mem_nodeBlock hQ.1 hD x
+    have hur : u ≠ (quartetLSA N hN.1 s hs).root := by
+      rintro rfl
+      rw [nodeBlock_root hQ hD hu] at hx
+      exact hx
+    refine ⟨u, hu, hur, ?_⟩
+    have h := walks_unrooted_of_walks_quartetLSA hN hX hs hx hsub
+    rwa [show ((quartetLSA N hN.1 s hs).leaf x).1.1 = N.leaf x.1 from rfl, sdNode_leaf] at h
+  · obtain ⟨x, hx⟩ := nodeBlock_nonempty hQ (quartetLSA_isLevelOne hN h1 hs) hD hv h2
+      (quartetLSA_isLSANetwork hN hs) hu hur
+    refine ⟨x, ?_⟩
+    have h := walks_unrooted_of_walks_quartetLSA hN hX hs hx hsub
+    rwa [show ((quartetLSA N hN.1 s hs).leaf x).1.1 = N.leaf x.1 from rfl, sdNode_leaf] at h
+
+include hX in
+/-- Two nodes of a cycle of `Q⊕_s` other than the root joined in `N⁻` avoiding the cycle of `N⁻`
+whose arcs are on its chains are equal. -/
+theorem eq_of_walks_unrooted_quartetLSA (h1 : IsLevelOne N.graph) {D : Set _} {u u' : _}
+    (hu : u ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D) (hur : u ≠ (quartetLSA N hN.1 s hs).root)
+    (hu' : u' ∈ cycleNodes (quartetLSA N hN.1 s hs).graph D)
+    (hur' : u' ≠ (quartetLSA N hN.1 s hs).root) {C' : Set (SemidirectedArc hN.1 hN.2 hX)}
+    (hcyc : IsCycle (unrooted N hN hX).graph C')
+    (hC' : liftEdges hN.1 hN.2 hX C' = Subtype.val '' cycleChainArcs _ D)
+    (h : (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX u.1.1)
+      (sdNode hN.1 hN.2 hX u'.1.1)) : u = u' := by
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  have : Finite E := hN.1.finite_arcs
+  have : Fintype E := Fintype.ofFinite E
+  have heq := eq_of_walks_compl_of_mem_cycleNodes hN h1 hX hcyc
+    (sdNode_mem_cycleNodes_of_quartetLSA hN hX hs hu hur hC')
+    (sdNode_mem_cycleNodes_of_quartetLSA hN hX hs hu' hur' hC') h
+  have hval := congrArg (sdVert hN.1 hX) heq
+  rw [sdVert_sdNode hN.1 hN.2 hX ((lsa_univ_reaches hN.1 hZ.nonempty).trans u.1.2.1)
+      (quartetLSA_val_ne_lsa_univ hN hX hs hur),
+    sdVert_sdNode hN.1 hN.2 hX ((lsa_univ_reaches hN.1 hZ.nonempty).trans u'.1.2.1)
+      (quartetLSA_val_ne_lsa_univ hN hX hs hur')] at hval
+  exact Subtype.ext (Subtype.ext hval)
+
+end Quartet
+
 /-! ### The correspondence -/
 
 /-- **Lemma 12, the cycle of `N⁻` gives the 4-cycle of `Q⁻_s`** (proof of Lemma 12): if `N⁻` has a
 cycle `C_v` of size at least four for which the taxa of `s` are in distinct `v`-blocks, one of them in
-the hybrid block, then `s` induces a quartet network with a 4-cycle: the edges of `C_v` that lie on
-simple treks between taxa of `s` form a cycle of `(N⁻)_s`, through the four blocks of `s`. -/
+the hybrid block, then `s` induces a quartet network with a 4-cycle.
+
+The cycle of `N` of `C_v` lies below `LSA(s)`. Otherwise the root reaches the top of the cycle avoiding
+`LSA(s)`, then `v` along one of the two sides of the cycle (were `LSA(s)` on both, the two sides from
+`LSA(s)` to the parents of `v` would close a cycle through an arc into `v` without the arc into
+`LSA(s)`, another cycle sharing an arc with `C_v`), and then the taxon of `s` below `v`; and `LSA(s)` is
+not below `v`, whose block would then hold all of `s`. The arcs of the cycle are above that taxon, so
+they are arcs of the LSA network of `s` (the edges of `N⁻` on simple treks between taxa of `s`,
+`mem_trekEdges_iff`), and their chains form a cycle of `Q⊕_s` with hybrid node `v`. Each taxon of `s` is
+in the block of a node of this cycle other than the root, and then in the block of that node in `N⁻`;
+the four taxa being in distinct `v`-blocks, the cycle has four nodes other than the root, and no more
+since `Q⊕_s` has four taxa. The size of `C_v` follows from the other hypotheses. -/
 theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {v : _}
     (hC4 : 4 ≤ C.ncard) (hC : IsCycle (unrooted N hN hX).graph C)
@@ -154,13 +590,203 @@ theorem exists_fourCycle_of_separates {N : RootedNetwork V E X} (hN : IsBinaryRo
       ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y)
     (hdesc : ∃ x ∈ s, DescendsFrom (unrooted N hN hX) v x) :
     ∃ C' v' k, InducesCycleType (quartetLSA N hN.1 s hs) C' v' 4 k := by
-  sorry
+  have : Finite V := hN.1.finite_vertices
+  have : Finite E := hN.1.finite_arcs
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  set G := unrooted N hN hX with hG_def
+  set m₀ := lsa hN.1 Set.univ Set.univ_nonempty with hm₀_def
+  set m := lsa hN.1 (s : Set X) hZ.nonempty with hm_def
+  have hst := (lsa_spec hN.1 (s : Set X) hZ.nonempty).1
+  have hm₀m : N.graph.Reaches m₀ m := lsa_univ_reaches hN.1 hZ.nonempty
+  -- the cycle `CN` of `N` of `C`, with the hybrid node `vN` of `v`
+  set CN := liftEdges hN.1 hN.2 hX C with hCN_def
+  have hCN : IsCycle N.graph CN := isCycle_liftEdges _ _ _ hC
+  obtain ⟨hvC, hv2⟩ := (isHybridNodeOf_semidirected_iff hN.1 hN.2 hX hN h1 hC v).1 hv
+  set vN := sdVert hN.1 hX v with hvN_def
+  have hvCN : vN ∈ cycleNodes N.graph CN := (sdVert_mem_cycleNodes_liftEdges_iff _ _ _ C v).2 hvC
+  obtain ⟨a, ha, hda⟩ := hdesc
+  have hva : N.graph.Reaches vN (N.leaf a) :=
+    (descendsFrom_semidirected_iff hN.1 hN.2 hX v hv2 a).1 hda
+  have hm₀v : N.graph.Reaches m₀ vN := ((mem_range_sdVert hN.1 hX vN).1 ⟨v, rfl⟩).1
+  have hCNbelow : ∀ f ∈ CN, N.graph.Reaches m₀ (N.graph.source f) := by
+    rintro f ⟨g, -, rfl | ⟨hg, rfl⟩⟩
+    · exact ((mem_range_sdArc hN.1 hN.2 hX _).1 ⟨g, rfl⟩).1
+    · rw [(sdRootArc_spec hN.1 hN.2 hX).1]
+      exact .refl
+  -- no node below `vN` is above every taxon of `s`: the taxa below `vN` are in its block
+  have hbelowv : ∀ y, N.graph.Reaches vN y → (∀ x ∈ s, N.graph.Reaches y (N.leaf x)) → False := by
+    intro y hvy hy
+    have hwalk : ∀ x ∈ s, G.graph.Walks Cᶜ v (G.leaf x) := by
+      intro x hx
+      have hW : N.graph.Walks {f | f ∉ CN ∧ N.graph.Reaches m₀ (N.graph.source f)} vN (N.leaf x) :=
+        walks_of_reaches_of_forall (hvy.trans (hy x hx)) fun f hf _ => by
+          refine ⟨fun hfCN => ?_, hm₀v.trans hf⟩
+          have hfs : N.graph.source f = vN := eq_of_reaches_of_reaches hN.1.acyclic
+            (reaches_hybrid hN h1 hCN hvCN hv2 _ (source_mem_cycleNodes hfCN)) hf
+          exact notMem_of_source_eq_hybrid hN h1 hCN hvCN hv2 hfs hfCN
+      have h := walks_semidirected_of_walks hN.1 hN.2 hX (F := Cᶜ)
+        (A := {f | f ∉ CN ∧ N.graph.Reaches m₀ (N.graph.source f)}) (fun f hf => hf.2)
+        (fun g hg hgC => hg.1 ((sdArc_mem_liftEdges_iff hN.1 hN.2 hX C g).2 hgC)) hW
+      rwa [sdNode_sdVert, sdNode_leaf] at h
+    obtain ⟨x, hx, y', hy', hxy⟩ := Finset.one_lt_card.1 (by omega : 1 < #s)
+    exact hblk x hx y' hy' hxy ((G.graph.walks_symm (hwalk x hx)).trans (hwalk y' hy'))
+  have hvm : vN ≠ m := fun h => hbelowv m (h ▸ .refl) fun x hx => hst.reaches_leaf hN.1 hx
+  -- the top `t` of `CN`
+  obtain ⟨t, htC, htreach, htin, hentry, hroot⟩ := h1.exists_top hN.1 hCN
+  -- **`LSA(s)` is above `t`**: otherwise the root reaches `t` avoiding `LSA(s)`, and then one
+  -- of the two parents of `vN` along `CN`, and `vN`, and then a taxon of `s` below `vN`
+  have hmt : N.graph.Reaches m t := by
+    by_contra hmt
+    have htm : t ≠ m := fun h => hmt (h ▸ .refl)
+    have hpt : N.HasPathAvoiding N.root t m := by
+      by_contra hp
+      exact hmt (reaches_of_not_hasPathAvoiding (hN.1.root_reaches t) hp).2
+    have hpv : N.HasPathAvoiding N.root vN m := by
+      refine ⟨hpt.1, hvm, hpt.2.2.trans ?_⟩
+      by_contra hno
+      -- the two arcs into `vN`, on `CN`
+      obtain ⟨h₁, h₂, hne, hs₂⟩ := Set.ncard_eq_two.1 hv2
+      have ht₁ : N.graph.target h₁ = vN := (Set.ext_iff.1 hs₂ h₁).2 (Or.inl rfl)
+      have ht₂ : N.graph.target h₂ = vN := (Set.ext_iff.1 hs₂ h₂).2 (Or.inr rfl)
+      have hh₁ : h₁ ∈ CN := mem_of_target_eq_hybrid hN h1 hCN hvCN hv2 ht₁
+      have hh₂ : h₂ ∈ CN := mem_of_target_eq_hybrid hN h1 hCN hvCN hv2 ht₂
+      set CAdj : V → V → Prop := fun a b => ∃ f ∈ CN, N.graph.source f = a ∧ N.graph.target f = b
+        with hCAdj
+      -- `t` reaches every node of `CN` along `CN`
+      have hS1 : ∀ c ∈ cycleNodes N.graph CN, Relation.ReflTransGen CAdj t c := by
+        let rel : V → V → Prop := fun x y => Relation.TransGen N.graph.Adj x y
+        have : IsTrans V rel := ⟨fun _ _ _ h h' => h.trans h'⟩
+        have : Std.Irrefl rel := ⟨fun x h => hN.1.acyclic x h⟩
+        have hwf : WellFounded rel := Finite.wellFounded_of_trans_of_irrefl rel
+        intro c
+        induction c using hwf.induction with
+        | _ c ih =>
+          intro hc
+          by_cases hct : c = t
+          · rw [hct]
+          have hcr : c ≠ N.root := fun h => hct (h ▸ hroot (h ▸ hc))
+          obtain ⟨g, hg⟩ := (N.graph.one_le_indegree_iff c).1 (hN.1.nonroot_indegree c hcr)
+          have hgC := hentry c hc hct g hg
+          exact (ih _ (.single ⟨g, rfl, hg⟩) (source_mem_cycleNodes hgC)).tail ⟨g, hgC, rfl, hg⟩
+      -- neither parent of `vN` is reached from `t` along `CN` avoiding `m`
+      have hnav : ∀ h ∈ CN, N.graph.target h = vN →
+          ¬ Relation.ReflTransGen (fun x y => CAdj x y ∧ x ≠ m ∧ y ≠ m) t (N.graph.source h) := by
+        intro h hh hth hp
+        refine hno ((Relation.ReflTransGen.mono (fun x y ⟨⟨f, _, hf⟩, hx, hy⟩ => ⟨⟨f, hf⟩, hx, hy⟩)
+          _ _ hp).tail ⟨⟨h, rfl, hth⟩, ?_, hvm⟩)
+        exact Relation.ReflTransGen.ne_of_avoiding hp htm
+      have hpar₁ := Relation.ReflTransGen.through_of_not_avoiding
+        (hS1 _ (source_mem_cycleNodes hh₁)) (hnav h₁ hh₁ ht₁)
+      have hpar₂ := Relation.ReflTransGen.through_of_not_avoiding
+        (hS1 _ (source_mem_cycleNodes hh₂)) (hnav h₂ hh₂ ht₂)
+      -- so `m` is on `CN`; its arc `gm` in is on `CN`
+      have hmC : m ∈ cycleNodes N.graph CN := by
+        rcases Relation.ReflTransGen.cases_tail hpar₁.1 with h | ⟨c, -, f, hf, -, hft⟩
+        · exact absurd h.symm htm
+        · exact hft ▸ target_mem_cycleNodes hf
+      have hmr : m ≠ N.root := fun h => hmt (h ▸ hN.1.root_reaches t)
+      obtain ⟨gm, hgm⟩ := (N.graph.one_le_indegree_iff m).1 (hN.1.nonroot_indegree m hmr)
+      have hgmC := hentry m hmC htm.symm gm hgm
+      -- the paths from `m` to the parents of `vN` avoid `gm` and `h₁`
+      set F : Set E := {f | f ∈ CN ∧ f ≠ gm ∧ f ≠ h₁} with hF_def
+      have hcyc : ∀ {x y}, N.graph.Reaches x y → N.graph.Adj y x → False := fun h hab =>
+        hN.1.acyclic _ (Relation.TransGen.tail' h hab)
+      have hpath : ∀ h ∈ CN, N.graph.target h = vN →
+          Relation.ReflTransGen CAdj m (N.graph.source h) →
+          N.graph.Walks F m (N.graph.source h) := by
+        intro h _ hth hp
+        refine walks_of_reflTransGen_mem hp fun f hf h₁' h₂' => ⟨hf, fun hfg => ?_, fun hfh => ?_⟩
+        · exact hcyc (by rw [← hfg]; exact h₁') ⟨gm, rfl, hgm⟩
+        · exact hcyc (by rw [← ht₁, ← hfh]; exact h₂') ⟨h, rfl, hth⟩
+      have hW₁ := hpath h₁ hh₁ ht₁ hpar₁.2
+      have hW₂ := hpath h₂ hh₂ ht₂ hpar₂.2
+      have hh₂F : h₂ ∈ F := ⟨hh₂, fun h => hvm (ht₂.symm.trans (h ▸ hgm)), Ne.symm hne⟩
+      have hW : N.graph.Walks F (N.graph.target h₁) (N.graph.source h₁) := by
+        rw [ht₁, ← ht₂]
+        exact (Relation.ReflTransGen.single ⟨h₂, hh₂F, Or.inr ⟨rfl, rfl⟩⟩).trans
+          ((N.graph.walks_symm hW₂).trans hW₁)
+      obtain ⟨D, hD, hh₁D, hDsub⟩ := exists_isCycle_of_walks (e := h₁) (F := F)
+        (fun h => h.2.2 rfl) hW
+      have hDC : D = CN := h1 D CN hD hCN ⟨h₁, hh₁D, hh₁⟩
+      rcases hDsub (hDC ▸ hgmC : gm ∈ D) with h | h
+      · exact hvm (ht₁.symm.trans (h ▸ hgm))
+      · exact h.2.1 rfl
+    have hpa : N.HasPathAvoiding vN (N.leaf a) m := by
+      by_contra hp
+      exact hbelowv m (reaches_of_not_hasPathAvoiding hva hp).1 fun x hx =>
+        hst.reaches_leaf hN.1 hx
+    exact hst a ha ⟨hpv.1, hpa.2.1, hpv.2.2.trans hpa.2.2⟩
+  -- so the arcs of `CN` are arcs of the LSA network `L` on `s`: they form a cycle `CL` of `L`, and the
+  -- arcs of `Q⊕_s` whose chains are on `CL` a cycle `CQ` of `Q⊕_s`
+  have hCNL : ∀ f ∈ CN, f ∈ N.belowArcs m (s : Set X) := fun f hf =>
+    ⟨hmt.trans (htreach _ (source_mem_cycleNodes hf)),
+      ⟨a, ha, (reaches_hybrid hN h1 hCN hvCN hv2 _ (target_mem_cycleNodes hf)).trans hva⟩⟩
+  have hL := lsaNetwork_isPhylogenetic hN.1 hZ
+  have hL1 : IsLevelOne (lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph :=
+    IsLevelOne.of_injective h1 Subtype.val Subtype.val Subtype.val_injective Subtype.val_injective
+      (fun _ => rfl) (fun _ => rfl)
+  have hCL : IsCycle (lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph (Subtype.val ⁻¹' CN) :=
+    hCN.preimage_of_hom Subtype.val_injective Subtype.val_injective (fun _ => rfl) (fun _ => rfl)
+      fun f hf => ⟨⟨f, hCNL f hf⟩, rfl⟩
+  obtain ⟨hCQ, hchain⟩ := isCycle_suppress_preimage hL hL1 hCL
+  set CQ : Set {e // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex
+      ((lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.source e)} :=
+    {g | g.1 ∈ Subtype.val ⁻¹' CN} with hCQ_def
+  -- the hybrid node `vQ` of `CQ`
+  have hvL : vN ∈ N.belowVertices m (s : Set X) := ⟨hmt.trans (htreach _ hvCN), ⟨a, ha, hva⟩⟩
+  have hv2L : (lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.indegree ⟨vN, hvL⟩ = 2 :=
+    (belowNetwork_indegree hN.1 hst ⟨vN, hvL⟩ hvm).trans hv2
+  have hvnc : ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex ⟨vN, hvL⟩ := fun h => by
+    have := h.1
+    omega
+  have hvQC : (⟨⟨vN, hvL⟩, hvnc⟩ : {v // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex v})
+      ∈ cycleNodes (quartetLSA N hN.1 s hs).graph CQ := by
+    refine mem_cycleNodes_suppress_of_val hL ?_
+    rw [hchain]
+    obtain ⟨f, hf, h⟩ := hvCN
+    refine ⟨⟨f, hCNL f hf⟩, hf, ?_⟩
+    rcases h with h | h
+    · exact Or.inl (Subtype.ext h)
+    · exact Or.inr (Subtype.ext h)
+  have hvQ2 : (quartetLSA N hN.1 s hs).graph.indegree ⟨⟨vN, hvL⟩, hvnc⟩ = 2 :=
+    (suppress_indegree hL _).trans hv2L
+  -- `CQ` has four nodes other than the root: at most as many as taxa, and the taxa of `s`, in
+  -- distinct blocks of `C`, are in the blocks of distinct nodes of `CQ`
+  have : Fintype {v // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex v} :=
+    Fintype.ofFinite _
+  have : Fintype {e // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex
+      ((lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.source e)} := Fintype.ofFinite _
+  have hcs : Fintype.card (s : Set X) = 4 := by simp [hs]
+  have hcard : #(cycleNodesOffRoot (quartetLSA N hN.1 s hs) CQ) = 4 := by
+    refine le_antisymm ?_ ?_
+    · have := card_cycleNodesOffRoot_le (quartetLSA_isBinaryRootedNetwork hN hs)
+        (quartetLSA_isLevelOne hN h1 hs) (quartetLSA_isLSANetwork hN hs) hCQ
+      rwa [hcs] at this
+    · have hlift : liftEdges hN.1 hN.2 hX C = Subtype.val '' cycleChainArcs _ CQ := by
+        rw [hchain, Set.image_preimage_eq_of_subset fun f hf => ⟨⟨f, hCNL f hf⟩, rfl⟩]
+      obtain ⟨hall, -⟩ := exists_walks_unrooted_quartetLSA hN hX hs h1 hCQ hvQC hvQ2 hlift
+      choose uOf huOf hur hwalk using hall
+      have hinj : Set.InjOn uOf (Finset.univ : Finset (s : Set X)) := fun x _ y _ hxy => by
+        by_contra hne
+        exact hblk x.1 x.2 y.1 y.2 (fun h => hne (Subtype.ext h))
+          ((G.graph.walks_symm (hwalk x)).trans (by rw [hxy]; exact hwalk y))
+      have := Finset.card_le_card_of_injOn uOf
+        (fun x _ => mem_cycleNodesOffRoot.2 ⟨huOf x, hur x⟩) hinj
+      rwa [Finset.card_univ, hcs] at this
+  refine ⟨_, _, _, hCQ, hvQC, hvQ2, ?_, rfl⟩
+  exact (card_cycleNodesOffRoot (N := quartetLSA N hN.1 s hs) hCQ).symm.trans hcard
 
 /-- **Lemma 12, the 4-cycle of `Q⁻_s` gives the cycle of `N⁻`** (proof of Lemma 12): if `Q⁻_s` has a
 4-cycle with hybrid node `w`, then `N⁻` has a cycle of size at least four with hybrid node `w'`, the
 same node of `N`, for which the taxa of `s` are in distinct `w'`-blocks, one of them descending from
-`w'`: the cycle of `Q⁻_s` is made of chains of edges of a cycle of `N⁻`, and two taxa in distinct
-blocks of `Q⁻_s` are in distinct blocks of `N⁻`. -/
+`w'`.
+
+The 4-cycle is the image of a cycle of `Q⊕_s` with four nodes other than the root. The chains of its
+arcs form a cycle of `N` below `LSA(X)`, the cycle of `N` of a cycle `C'` of `N⁻` with at least as many
+edges. The block in `Q⊕_s` of each of the four nodes holds a taxon of `s`, joined to the node by a walk
+of `Q⊕_s` avoiding the cycle, and the chains of the arcs of that walk give a walk of `N⁻` avoiding
+`C'`. So the four nodes, distinct nodes of `C'`, have taxa of `s` in their `w'`-blocks, which are
+disjoint: two taxa in distinct blocks of `Q⁻_s` are in distinct blocks of `N⁻`. -/
 theorem exists_separates_of_fourCycle {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) {C : Set _} {w : _}
     (hC : IsCycle (quartetUnrooted N hN s hs).graph C) (hC4 : C.ncard = 4)
@@ -170,6 +796,112 @@ theorem exists_separates_of_fourCycle {N : RootedNetwork V E X} (hN : IsBinaryRo
       (∀ x ∈ s, ∀ y ∈ s, x ≠ y →
         ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y) ∧
       (∃ x ∈ s, DescendsFrom (unrooted N hN hX) w' x) ∧ w'.1.1 = w.1.1.1.1 := by
-  sorry
+  have : Finite V := hN.1.finite_vertices
+  have : Finite E := hN.1.finite_arcs
+  have hZ : (s : Set X).Nontrivial := Finset.one_lt_card_iff_nontrivial.mp (by omega)
+  have hL := lsaNetwork_isPhylogenetic hN.1 hZ
+  have hQ := quartetLSA_isBinaryRootedNetwork hN hs
+  have hQ1 := quartetLSA_isLevelOne hN h1 hs
+  have hQlsa := quartetLSA_isLSANetwork hN hs
+  have hXs : Nontrivial (s : Set X) := hZ.coe_sort
+  have hr := lsa_univ_eq_root hQ.1 hXs hQlsa
+  have : Fintype {v // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex v} :=
+    Fintype.ofFinite _
+  have : Fintype {e // ¬ (lsaNetwork hN.1 (s : Set X) hZ.nonempty).IsChainVertex
+      ((lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.source e)} := Fintype.ofFinite _
+  -- the cycle `CQ` of `Q⊕_s` of `C`, with the hybrid node `wQ` of `w`
+  set CQ := liftEdges hQ.1 hQ.2 hXs C with hCQ_def
+  have hCQ : IsCycle (quartetLSA N hN.1 s hs).graph CQ := isCycle_liftEdges _ _ _ hC
+  obtain ⟨hwC, hw2⟩ := (isHybridNodeOf_semidirected_iff _ _ _ hQ hQ1 hC w).1 hw
+  have hwCQ := (sdVert_mem_cycleNodes_liftEdges_iff _ _ _ C w).2 hwC
+  set wQ := sdVert hQ.1 hXs w with hwQ_def
+  have hwQr : wQ ≠ (quartetLSA N hN.1 s hs).root := hr ▸ sdVert_ne_lsa hQ.1 hXs w
+  -- the cycle `CN` of `N` of the chains of `CQ`, and the cycle `C'` of `N⁻`
+  have hCL := isCycle_cycleChainArcs hL hCQ
+  have hCN : IsCycle N.graph (Subtype.val '' cycleChainArcs _ CQ) :=
+    hCL.image_of_hom Subtype.val_injective Subtype.val_injective (fun _ => rfl) (fun _ => rfl)
+  have hbelow : ∀ f ∈ Subtype.val '' cycleChainArcs _ CQ,
+      N.graph.Reaches (lsa hN.1 Set.univ Set.univ_nonempty) (N.graph.source f) := by
+    rintro _ ⟨e, -, rfl⟩
+    exact (lsa_univ_reaches hN.1 hZ.nonempty).trans e.2.1
+  obtain ⟨hC', hlift⟩ := isCycle_semidirected_preimage hN.1 hN.2 hX hN h1 hCN hbelow
+  set C' := {g | sdArc hN.1 hN.2 hX g ∈ Subtype.val '' cycleChainArcs _ CQ} with hC'_def
+  -- the hybrid node `w'` of `C'`
+  set w' := sdNode hN.1 hN.2 hX wQ.1.1 with hw'_def
+  have hw'v : sdVert hN.1 hX w' = wQ.1.1 :=
+    sdVert_sdNode _ _ _ ((lsa_univ_reaches hN.1 hZ.nonempty).trans wQ.1.2.1)
+      (quartetLSA_val_ne_lsa_univ hN hX hs hwQr)
+  have hw2N : N.graph.indegree wQ.1.1 = 2 := by
+    rw [← hw2, show (quartetLSA N hN.1 s hs).graph.indegree wQ =
+      (lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.indegree wQ.1 from suppress_indegree hL wQ]
+    exact (belowNetwork_indegree hN.1 (lsa_spec hN.1 _ hZ.nonempty).1 wQ.1
+      fun h => hwQr (Subtype.ext (Subtype.ext h))).symm
+  have hw'C : w' ∈ cycleNodes (unrooted N hN hX).graph C' :=
+    sdNode_mem_cycleNodes_of_quartetLSA hN hX hs hwCQ hwQr hlift
+  have hw' : IsHybridNodeOf (unrooted N hN hX) C' w' :=
+    (isHybridNodeOf_semidirected_iff hN.1 hN.2 hX hN h1 hC' w').2 ⟨hw'C, hw'v ▸ hw2N⟩
+  refine ⟨C', w', ?_, hC', hw', ?_, ?_, hw'v⟩
+  · -- `C'` has at least four edges: as many as `CN`, less one when it passes through `LSA(X)`, and
+    -- then `CQ` passes through the root and has five edges
+    have hncard := ncard_liftEdges hN.1 hN.2 hX C'
+    rw [hlift, Set.ncard_image_of_injective _ Subtype.val_injective] at hncard
+    have h₂ : CQ.ncard ≤ (cycleChainArcs _ CQ).ncard := by
+      rw [← Set.ncard_image_of_injective CQ Subtype.val_injective]
+      exact Set.ncard_le_ncard (by rintro _ ⟨g, hg, rfl⟩; exact val_mem_cycleChainArcs_iff.2 hg)
+        (Set.toFinite _)
+    have h₃ := card_cycleNodesOffRoot_liftEdges _ _ _ hr hC
+    rw [card_cycleNodesOffRoot hCQ, hC4] at h₃
+    split_ifs at hncard with hm
+    · obtain ⟨g, ⟨f, hf, hgf⟩, hgm⟩ := hm
+      have hfm : (lsaNetwork hN.1 (s : Set X) hZ.nonempty).graph.source f =
+          (lsaNetwork hN.1 (s : Set X) hZ.nonempty).root := by
+        refine Subtype.ext ?_
+        show N.graph.source f.1 = lsa hN.1 (s : Set X) hZ.nonempty
+        rw [hgf, hgm]
+        exact eq_of_reaches_of_reaches hN.1.acyclic (lsa_univ_reaches hN.1 hZ.nonempty)
+          (hgm ▸ hgf ▸ f.2.1)
+      have hroot : (quartetLSA N hN.1 s hs).root ∈ cycleNodes (quartetLSA N hN.1 s hs).graph CQ :=
+        mem_cycleNodes_suppress_of_val hL ⟨f, hf, Or.inl hfm⟩
+      simp only [hroot, ↓reduceIte] at h₃
+      omega
+    · split_ifs at h₃ <;> omega
+  · -- the taxa of `s` are in the blocks of the four nodes of `CQ` other than the root, one in each
+    obtain ⟨hall, hnode⟩ := exists_walks_unrooted_quartetLSA hN hX hs h1 hCQ hwCQ hw2 hlift
+    choose uOf huOf hur hwalk using hall
+    have hsurj : cycleNodesOffRoot (quartetLSA N hN.1 s hs) CQ ⊆ Finset.univ.image uOf := by
+      intro u hu
+      obtain ⟨huC, hur'⟩ := mem_cycleNodesOffRoot.1 hu
+      obtain ⟨x, hx⟩ := hnode u huC hur'
+      refine Finset.mem_image.2 ⟨x, Finset.mem_univ _, ?_⟩
+      exact eq_of_walks_unrooted_quartetLSA hN hX hs h1 (huOf x) (hur x) huC hur' hC' hlift
+        ((hwalk x).trans ((unrooted N hN hX).graph.walks_symm hx))
+    have h₃ : #(cycleNodesOffRoot (quartetLSA N hN.1 s hs) CQ) = C.ncard :=
+      card_cycleNodesOffRoot_liftEdges _ _ _ hr hC
+    rw [hC4] at h₃
+    have hinj : Set.InjOn uOf (Finset.univ : Finset (s : Set X)) := by
+      refine Finset.card_image_iff.1 (le_antisymm Finset.card_image_le ?_)
+      have := Finset.card_le_card hsurj
+      have hcs : Fintype.card (s : Set X) = 4 := by simp [hs]
+      rw [Finset.card_univ, hcs]
+      omega
+    intro x hx y hy hxy hsame
+    have hW : (unrooted N hN hX).graph.Walks C'ᶜ (sdNode hN.1 hN.2 hX (uOf ⟨x, hx⟩).1.1)
+        (sdNode hN.1 hN.2 hX (uOf ⟨y, hy⟩).1.1) :=
+      ((hwalk ⟨x, hx⟩).trans hsame).trans ((unrooted N hN hX).graph.walks_symm (hwalk ⟨y, hy⟩))
+    have := hinj (Finset.mem_coe.2 (Finset.mem_univ ⟨x, hx⟩))
+      (Finset.mem_coe.2 (Finset.mem_univ ⟨y, hy⟩))
+      (eq_of_walks_unrooted_quartetLSA hN hX hs h1 (huOf ⟨x, hx⟩) (hur ⟨x, hx⟩) (huOf ⟨y, hy⟩)
+        (hur ⟨y, hy⟩) hC' hlift hW)
+    exact hxy (congrArg Subtype.val this)
+  · -- a taxon below the hybrid node `wQ` of `Q⊕_s`, so below `w'` in `N`
+    obtain ⟨x, hx⟩ := RootedNetwork.exists_reaches_leaf hQ.1 wQ
+    have : Fintype (N.belowVertices (lsa hN.1 (s : Set X) hZ.nonempty) (s : Set X)) :=
+      Fintype.ofFinite _
+    have : Fintype (N.belowArcs (lsa hN.1 (s : Set X) hZ.nonempty) (s : Set X)) :=
+      Fintype.ofFinite _
+    have hxL := reaches_of_suppress_reaches hL hx
+    have hxN : N.graph.Reaches wQ.1.1 (N.leaf x.1) := belowNetwork_reaches_iff.1 hxL
+    exact ⟨x.1, x.2, (descendsFrom_semidirected_iff hN.1 hN.2 hX w' (hw'v ▸ hw2N) x.1).2
+      (hw'v ▸ hxN)⟩
 
 end Banos2019

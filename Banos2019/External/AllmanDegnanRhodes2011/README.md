@@ -32,24 +32,21 @@ concordance factors of such a network with `quartetProb` of its species tree
 
 ## Where the proofs come from
 
-The four statements are stated here with `sorry`. Allman, Degnan and Rhodes 2011 is formalized in
-lean4-adr11 (<https://github.com/vltanh/lean4-adr11>; the names below are those of commit
-`ed42599e5ad66a98a5761a7481d5112d1e0cdfec`, in its namespace `ADR11`, on its own copy of the species
-tree definitions, which agree with those of lean4-phylogenetics). Once that repository is in the
-collection on lean4-phylogenetics's `SpeciesTree`, the statements are to be proved from these
-theorems:
+Allman, Degnan and Rhodes 2011 is formalized in lean4-allman2011
+(<https://github.com/vltanh/lean4-allman2011>), on lean4-phylogenetics's `SpeciesTree`, which this
+repository requires. Each statement is proved from its theorems, which follow the source's arguments:
 
-| Declaration | Theorem of lean4-adr11 | Its statement | The source's argument |
+| Declaration | Theorem of lean4-allman2011 | Its statement | The source's argument |
 | --- | --- | --- | --- |
-| `equation1` | `ADR11.n4_unrootedDist_of_mem`, `ADR11.n4_unrootedDist_of_ne` (`ADR11/Nonbinary/FourTaxa.lean`), with `ADR11.four_unrootedDist_eq_zero` (`ADR11/Identifiability/FourTaxaAnalysis.lean`) | For `A \| Aᶜ` a split of `σ⁻` with `#A = 2`, any `σ` on four taxa: `σ.unrootedDist id (treeOfClusters {A}) = 1 - 2/3 * exp (-σ.unrootedLength A)`, and `1/3 * exp (-σ.unrootedLength A)` for `treeOfClusters {B}`, `#B = 2`, `B ≠ A, Aᶜ`; every other unrooted tree has probability `0`. | Section 4.1: the formulas for the five binary rootings of `ab\|cd` (`ADR11.fourTaxa_caterpillar`, `ADR11.fourTaxa_balanced`, with relabelling); Section 5: the nonbinary rootings `((a,b):t,c,d)` are limits of caterpillars as an edge length tends to `0`. |
-| `proposition3` | `ADR11.proposition3` (`ADR11/Identifiability/Proposition3.lean`) | The same statement. | Section 4.1: a binary `σ` on four taxa has exactly one nontrivial split, whose quartet tree is strictly the most probable, and the internal edge length is `-log((3/2)(1 - ℙ(T)))` for that quartet tree `T`; the caterpillars `(((a,b),c),d)` and `(((a,b),d),c)` have the same distribution. |
-| `proposition4` | `ADR11.proposition11_proposition3` (`ADR11/Nonbinary/Proposition11.lean`) | The same statement. | Proposition 11 for Proposition 3: by Section 5 the distribution of any species tree on four taxa determines its unrooted metric tree (`ADR11.unrootedDist_eq_iff_four`); the same two caterpillars. |
-| `unrootedDist_eq_of_sameUnrootedMetricTree` | `(ADR11.unrootedDist_eq_iff_four hX σ σ').2`, the same as `(ADR11.proposition11_theorem9_four hX σ σ').2` (`ADR11/Nonbinary/FourTaxa.lean`, `ADR11/Nonbinary/Proposition11.lean`) | On four taxa, `σ.unrootedDist id = σ'.unrootedDist id ↔ σ.SameUnrootedMetricTree σ'`. | Theorem 9 for four taxa and Proposition 11: the quartet probabilities depend only on `σ⁻` (Sections 4.1 and 5). For binary trees it is `ADR11.theorem9_four`. |
+| `equation1` | `Allman2011.n4_unrootedDist_of_mem`, `Allman2011.n4_unrootedDist_of_ne` (`Allman2011/Nonbinary/FourTaxa.lean`), with `Allman2011.four_unrootedDist_eq_zero` (`Allman2011/FourTaxa/Analysis.lean`) | For `A \| Aᶜ` a split of `σ⁻` with `#A = 2`, any `σ` on four taxa: `σ.unrootedDist id (treeOfClusters {A}) = 1 - 2/3 * exp (-σ.unrootedLength A)`, and `1/3 * exp (-σ.unrootedLength A)` for `treeOfClusters {B}`, `#B = 2`, `B ≠ A, Aᶜ`; every other unrooted tree has probability `0`. | Section 4.1: the formulas for the five binary rootings of `ab\|cd` (`Allman2011.fourTaxa_caterpillar`, `Allman2011.fourTaxa_balanced`, with relabelling); Section 5: the nonbinary rootings `((a,b):t,c,d)` are limits of caterpillars as an edge length tends to `0`. |
+| `proposition3` | `Allman2011.proposition3` (`Allman2011/FourTaxa/Proposition3.lean`) | The same statement. | Section 4.1: a binary `σ` on four taxa has exactly one nontrivial split, whose quartet tree is strictly the most probable, and the internal edge length is `-log((3/2)(1 - ℙ(T)))` for that quartet tree `T`; the caterpillars `(((a,b),c),d)` and `(((a,b),d),c)` have the same distribution. |
+| `proposition4` | `Allman2011.proposition11_proposition3` (`Allman2011/Nonbinary/Proposition11.lean`) | The same statement. | Proposition 11 for Proposition 3: by Section 5 the distribution of any species tree on four taxa determines its unrooted metric tree (`Allman2011.unrootedDist_eq_iff_four`); the same two caterpillars. |
+| `unrootedDist_eq_of_sameUnrootedMetricTree` | `(Allman2011.unrootedDist_eq_iff_four hX σ σ').2` (`Allman2011/Nonbinary/FourTaxa.lean`) | On four taxa, `σ.unrootedDist id = σ'.unrootedDist id ↔ σ.SameUnrootedMetricTree σ'`. | Theorem 9 for four taxa and Proposition 11: the quartet probabilities depend only on `σ⁻` (Sections 4.1 and 5). For binary trees it is `Allman2011.theorem9_four`. |
 
 `equation1` is stated with `quartetProb`, the sum over the unrooted gene trees that display the
-quartet tree, while lean4-adr11 gives the probabilities of the unrooted gene trees
+quartet tree, while lean4-allman2011 gives the probabilities of the unrooted gene trees
 `treeOfClusters {B}`. The two are linked in `Banos2019.External.AllmanDegnanRhodes2011.Quartets`: on
 four taxa the unrooted tree `treeOfClusters {C}` (`#C = 2`) displays the quartet tree `r` exactly when
 `treeOfClusters {C} = treeOfClusters {B}` for a cherry `B` of `r` (`displays_treeOfClusters_iff`), so
-that, with `ADR11.four_unrootedDist_eq_zero` as the hypothesis on the support,
+that, with `Allman2011.four_unrootedDist_eq_zero` as the hypothesis on the support,
 `quartetProb σ r = σ.unrootedDist id (treeOfClusters {B})` (`quartetProb_eq_of_support`, in `Basic`).
