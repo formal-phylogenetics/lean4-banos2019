@@ -64,11 +64,9 @@ def IsLevelOne (G : DirectedMultigraph V E) : Prop :=
 
 section CycleFacts
 
-variable {G : DirectedMultigraph V E}
-
 /-- The nodes of a cycle are the nodes of its edges. -/
-theorem IsCycleOf.cycleNodes_eq {k : ℕ} {v : Fin k → V} {e : Fin k → E}
-    (hC : IsCycleOf G k v e) : cycleNodes G (Set.range e) = Set.range v := by
+theorem IsCycleOf.cycleNodes_eq {G : DirectedMultigraph V E} {k : ℕ} {v : Fin k → V}
+    {e : Fin k → E}    (hC : IsCycleOf G k v e) : cycleNodes G (Set.range e) = Set.range v := by
   ext u
   constructor
   · rintro ⟨f, ⟨i, rfl⟩, hu⟩
@@ -83,14 +81,16 @@ theorem IsCycleOf.cycleNodes_eq {k : ℕ} {v : Fin k → V} {e : Fin k → E}
     · exact ⟨e i, ⟨i, rfl⟩, Or.inr h₂⟩
 
 /-- The ends of an edge of `C` are nodes of `C`. -/
-theorem source_mem_cycleNodes {C : Set E} {f : E} (hf : f ∈ C) : G.source f ∈ cycleNodes G C :=
+theorem source_mem_cycleNodes {G : DirectedMultigraph V E} {C : Set E} {f : E} (hf : f ∈ C) :
+    G.source f ∈ cycleNodes G C :=
   ⟨f, hf, Or.inl rfl⟩
 
-theorem target_mem_cycleNodes {C : Set E} {f : E} (hf : f ∈ C) : G.target f ∈ cycleNodes G C :=
+theorem target_mem_cycleNodes {G : DirectedMultigraph V E} {C : Set E} {f : E} (hf : f ∈ C) :
+    G.target f ∈ cycleNodes G C :=
   ⟨f, hf, Or.inr rfl⟩
 
 /-- **A node of a cycle is on two distinct edges of it**, when the cycle is not a loop. -/
-theorem IsCycle.exists_ne_of_mem {C : Set E} (hC : IsCycle G C)
+theorem IsCycle.exists_ne_of_mem {G : DirectedMultigraph V E} {C : Set E} (hC : IsCycle G C)
     (hloop : ∀ f ∈ C, G.source f ≠ G.target f) {u : V} (hu : u ∈ cycleNodes G C) :
     ∃ f₁ ∈ C, ∃ f₂ ∈ C, f₁ ≠ f₂ ∧ (G.source f₁ = u ∨ G.target f₁ = u) ∧
       (G.source f₂ = u ∨ G.target f₂ = u) := by
@@ -118,7 +118,7 @@ theorem IsCycle.exists_ne_of_mem {C : Set E} (hC : IsCycle G C)
 /-- **A walk avoiding an edge `e` between its ends closes a cycle through `e`**, whose other edges
 are those of the walk. A shortest such walk is a path (`exists_isPathOf_of_walks`), and `e` closes
 it. -/
-theorem exists_isCycle_of_walks {e : E} {F : Set E} (he : e ∉ F)
+theorem exists_isCycle_of_walks {G : DirectedMultigraph V E} {e : E} {F : Set E} (he : e ∉ F)
     (h : G.Walks F (G.target e) (G.source e)) : ∃ C, IsCycle G C ∧ e ∈ C ∧ C ⊆ insert e F := by
   obtain ⟨n, p, q, hP, hp0, hpn⟩ := exists_isPathOf_of_walks h
   refine ⟨Set.range (Fin.snoc (α := fun _ => E) q e),
@@ -148,8 +148,9 @@ theorem exists_isCycle_of_walks {e : E} {F : Set E} (he : e ∉ F)
       exact Or.inl rfl
 
 /-- A cycle with its last edge removed is a path, through the nodes in order. -/
-theorem IsCycleOf.isPathOf {n : ℕ} {v : Fin (n + 1) → V} {e : Fin (n + 1) → E}
-    (hC : IsCycleOf G (n + 1) v e) : IsPathOf G (Set.range e) n v fun l => e l.castSucc where
+theorem IsCycleOf.isPathOf {G : DirectedMultigraph V E} {n : ℕ} {v : Fin (n + 1) → V}
+    {e : Fin (n + 1) → E} (hC : IsCycleOf G (n + 1) v e) :
+    IsPathOf G (Set.range e) n v fun l => e l.castSucc where
   mem l := ⟨_, rfl⟩
   link l := by
     have hr : finRotate (n + 1) l.castSucc = l.succ := by
@@ -163,8 +164,9 @@ theorem IsCycleOf.isPathOf {n : ℕ} {v : Fin (n + 1) → V} {e : Fin (n + 1) �
 /-- **In a level-1 graph, two nodes of a cycle `C` joined by a walk avoiding the edges of `C` are
 equal.** Otherwise the walk and an arc of `C` would close a cycle through an edge of `C` that misses
 another edge of `C`. -/
-theorem IsLevelOne.eq_of_walks_compl (h1 : IsLevelOne G) {C : Set E} (hC : IsCycle G C) {u w : V}
-    (hu : u ∈ cycleNodes G C) (hw : w ∈ cycleNodes G C) (huw : G.Walks Cᶜ u w) : u = w := by
+theorem IsLevelOne.eq_of_walks_compl {G : DirectedMultigraph V E} (h1 : IsLevelOne G) {C : Set E}
+    (hC : IsCycle G C) {u w : V} (hu : u ∈ cycleNodes G C) (hw : w ∈ cycleNodes G C)
+    (huw : G.Walks Cᶜ u w) : u = w := by
   obtain ⟨k, v, e, hC', rfl⟩ := hC
   rw [hC'.cycleNodes_eq] at hu hw
   obtain ⟨i, rfl⟩ := hu
@@ -215,8 +217,9 @@ theorem IsLevelOne.eq_of_walks_compl (h1 : IsLevelOne G) {C : Set E} (hC : IsCyc
 
 /-- **The edges of a cycle are not all on a path.** The first node of the path on the cycle is on
 two edges of the cycle, but only on one edge of the path that goes to a node of the cycle. -/
-theorem IsPathOf.not_subset_of_isCycle {F : Set E} {n : ℕ} {p : Fin (n + 1) → V} {q : Fin n → E}
-    (hP : IsPathOf G F n p q) {C : Set E} (hC : IsCycle G C) (hsub : C ⊆ Set.range q) : False := by
+theorem IsPathOf.not_subset_of_isCycle {G : DirectedMultigraph V E} {F : Set E} {n : ℕ}
+    {p : Fin (n + 1) → V} {q : Fin n → E} (hP : IsPathOf G F n p q) {C : Set E} (hC : IsCycle G C)
+    (hsub : C ⊆ Set.range q) : False := by
   classical
   have hends : ∀ l : Fin n, q l ∈ C → p l.castSucc ∈ cycleNodes G C ∧ p l.succ ∈ cycleNodes G C :=
     fun l hl => by
@@ -261,27 +264,26 @@ end CycleFacts
 
 section Hits
 
-variable {G : DirectedMultigraph V E} (C : Set E)
-
 /-- A step along an arc that is not an edge of `C`. -/
-def AdjOff (a b : V) : Prop := ∃ f, f ∉ C ∧ G.source f = a ∧ G.target f = b
-
-variable {C}
+def AdjOff (G : DirectedMultigraph V E) (C : Set E) (a b : V) : Prop :=
+  ∃ f, f ∉ C ∧ G.source f = a ∧ G.target f = b
 
 /-- A directed path whose arcs are not in `C` is a walk avoiding `C`. -/
-theorem walks_of_adjOff {a b : V} (h : Relation.ReflTransGen (AdjOff (G := G) C) a b) :
+theorem walks_of_adjOff {G : DirectedMultigraph V E} {C : Set E} {a b : V}
+    (h : Relation.ReflTransGen (AdjOff G C) a b) :
     G.Walks Cᶜ a b :=
   Relation.ReflTransGen.mono (fun _ _ ⟨f, hf, hs, ht⟩ => ⟨f, hf, Or.inl ⟨hs, ht⟩⟩) _ _ h
 
-theorem reaches_of_adjOff {a b : V} (h : Relation.ReflTransGen (AdjOff (G := G) C) a b) :
+theorem reaches_of_adjOff {G : DirectedMultigraph V E} {C : Set E} {a b : V}
+    (h : Relation.ReflTransGen (AdjOff G C) a b) :
     G.Reaches a b :=
   Relation.ReflTransGen.mono (fun _ _ ⟨f, _, hs, ht⟩ => ⟨f, hs, ht⟩) _ _ h
 
 /-- **The first node of `C` on a directed path**: a directed path from `s` either avoids the edges
 of `C` or reaches a node of `C` before using any. -/
-theorem first_hit {s z : V} (h : G.Reaches s z) :
-    Relation.ReflTransGen (AdjOff (G := G) C) s z ∨
-      ∃ c ∈ cycleNodes G C, Relation.ReflTransGen (AdjOff (G := G) C) s c := by
+theorem first_hit {G : DirectedMultigraph V E} {C : Set E} {s z : V} (h : G.Reaches s z) :
+    Relation.ReflTransGen (AdjOff G C) s z ∨
+      ∃ c ∈ cycleNodes G C, Relation.ReflTransGen (AdjOff G C) s c := by
   induction h with
   | refl => exact Or.inl .refl
   | @tail y z _ hyz ih =>
@@ -294,9 +296,9 @@ theorem first_hit {s z : V} (h : G.Reaches s z) :
 
 /-- **The last node of `C` on a directed path**: a directed path to `z` either avoids the edges of
 `C` or leaves a node of `C` for the last time and then avoids them. -/
-theorem last_hit {s z : V} (h : G.Reaches s z) :
-    Relation.ReflTransGen (AdjOff (G := G) C) s z ∨
-      ∃ c ∈ cycleNodes G C, Relation.ReflTransGen (AdjOff (G := G) C) c z := by
+theorem last_hit {G : DirectedMultigraph V E} {C : Set E} {s z : V} (h : G.Reaches s z) :
+    Relation.ReflTransGen (AdjOff G C) s z ∨
+      ∃ c ∈ cycleNodes G C, Relation.ReflTransGen (AdjOff G C) c z := by
   induction h with
   | refl => exact Or.inl .refl
   | @tail y z _ hyz ih =>
@@ -316,10 +318,10 @@ the lemma from Rosselló and Valiente (2009) and gives no proof.
 
 Proved here directly. Two nodes of `C` are not joined by a walk avoiding the edges of `C`
 (`IsLevelOne.eq_of_walks_compl`), so the root reaches exactly one node `a` of `C` by a directed path
-avoiding them; every arc entering another node of `C` is an edge of `C`, `a` is above every node of
-`C`, and no edge of `C` enters `a`. A lowest node of `C` is entered by its two edges of `C`, so it is
-a hybrid node; counting the edges of `C` by the node they enter (none enters `a`, at least one enters
-every other node, two enter a hybrid node) leaves room for only one. A node on two cycles without a
+avoiding them; every arc entering another node of `C` is an edge of `C`, `a` is above every node
+of `C`, and no edge of `C` enters `a`. A lowest node of `C` is entered by its two edges of `C`, so
+it is a hybrid node; counting the edges of `C` by the node they enter (none enters `a`, at least one
+enters every other node, two enter a hybrid node) leaves room for only one. A node on two cycles without a
 common edge would be on four edges, and a node of a binary network is on at most three. -/
 theorem lemma3 [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {C : Set E} (hC : IsCycle N.graph C) :
@@ -338,12 +340,12 @@ theorem lemma3 [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork 
   have hv0 : v ⟨0, hC'.pos⟩ ∈ cycleNodes N.graph (Set.range e) := by
     rw [hC'.cycleNodes_eq]; exact ⟨_, rfl⟩
   obtain ⟨a, haT, ha⟩ : ∃ a ∈ cycleNodes N.graph (Set.range e),
-      Relation.ReflTransGen (AdjOff (G := N.graph) (Set.range e)) N.root a := by
+      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root a := by
     rcases first_hit (C := Set.range e) (hN.1.root_reaches (v ⟨0, hC'.pos⟩)) with h | h
     · exact ⟨_, hv0, h⟩
     · exact h
   have huniq : ∀ c ∈ cycleNodes N.graph (Set.range e),
-      Relation.ReflTransGen (AdjOff (G := N.graph) (Set.range e)) N.root c → c = a :=
+      Relation.ReflTransGen (AdjOff N.graph (Set.range e)) N.root c → c = a :=
     fun c hc h => h1.eq_of_walks_compl hC hc haT
       ((N.graph.walks_symm (walks_of_adjOff h)).trans (walks_of_adjOff ha))
   -- every arc entering a node of `C` other than `a` is an edge of `C`
