@@ -17,7 +17,7 @@ open Phylogenetics Phylogenetics.RootedNetwork
 
 namespace Banos2019
 
-variable {V E X : Type*} [Fintype V] [Fintype E] [Fintype X] {N : RootedNetwork V E X}
+variable {V E X : Type*} [Fintype E] {N : RootedNetwork V E X}
 
 /-- Two generic properties hold together for generic parameters. -/
 theorem ForGenericParams.and {P Q : MetricData E → Prop} (hP : ForGenericParams N P)
