@@ -1,6 +1,7 @@
 module
 
-public import Banos2019.Network.Semidirected
+public import Banos2019.Network.TrekArc
+public import Banos2019.Network.Proposition1
 public import Phylogenetics.NMSC.InducedParams
 
 /-!
@@ -518,6 +519,136 @@ def inducedRootedMetric [Finite E] (N : RootedNetwork V E X) (hN : N.IsPhylogene
     ⟨fun e => θ.length e.1, fun e => θ.inheritance e.1⟩
   ⟨fun e => μ.length e.1, fun e => μ.inheritance e.1⟩
 
+/-! ### Appendix -/
+
+/-- A rooted network as a semidirected network in which every edge is directed. -/
+def asSemidirected (N : RootedNetwork V E X) : SemidirectedNetwork V E X :=
+  ⟨N.graph, fun _ => True, N.leaf⟩
+
+/-- **Lemma 17** (`lem::trekmrca`): in a binary rooted network, an edge `e` below `LSA(Z)` with a
+descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` whose edges are all below
+`LSA(Z)`.
+
+The proof is the paper's: `y` comes from Lemma 2; when `y` is not below `e`, the trek is
+`trek_of_not_below`; otherwise `trek_of_config` is the induction on the number of nodes below `e`
+common to the two paths, with the five cases on the position of `w` in `trek_mainStep`, which uses
+that the network is binary. -/
+theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X}
+    (hZ : Z.Nonempty) {e : E} (he : N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e))
+    (hdesc : ∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) :
+    ∃ x ∈ Z, ∃ y ∈ Z, ∃ t P₁ P₂, IsSimpleTrek (asSemidirected N) (N.leaf x) (N.leaf y) t P₁ P₂ ∧
+      e ∈ P₁ ∪ P₂ ∧ ∀ f ∈ P₁ ∪ P₂, N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source f) := by
+  have hA := hN.1.acyclic
+  have : Finite V := hN.1.finite_vertices
+  let _ : PartialOrder V := reachOrderOfIsAcyclic N.graph hA
+  have hle : ∀ a b, N.graph.Reaches a b ↔ a ≤ b := fun _ _ => Iff.rfl
+  -- the network is binary: at most two arcs leave a node, and one leaves a node entered by two
+  have : Finite E := hN.1.finite_arcs
+  have hout : ∀ f₁ f₂ f₃ : E, N.graph.source f₁ = N.graph.source f₂ →
+      N.graph.source f₁ = N.graph.source f₃ → f₁ = f₂ ∨ f₁ = f₃ ∨ f₂ = f₃ := by
+    intro f₁ f₂ f₃ h₂ h₃
+    by_contra hne
+    push Not at hne
+    have h3 : ({f₁, f₂, f₃} : Set E).ncard = 3 :=
+      Set.ncard_eq_three.mpr ⟨f₁, f₂, f₃, hne.1, hne.2.1, hne.2.2, rfl⟩
+    have hsub : ({f₁, f₂, f₃} : Set E) ⊆ {f | N.graph.source f = N.graph.source f₁} := by
+      rintro f (rfl | rfl | rfl)
+      · rfl
+      · exact h₂.symm
+      · exact h₃.symm
+    have := (Set.ncard_le_ncard hsub).trans (hN.outdegree_le_two (N.graph.source f₁))
+    omega
+  have hhyb : ∀ g₁ g₂ f₁ f₂ : E, g₁ ≠ g₂ → N.graph.target g₁ = N.graph.target g₂ →
+      N.graph.source f₁ = N.graph.target g₁ → N.graph.source f₂ = N.graph.target g₁ → f₁ = f₂ := by
+    intro g₁ g₂ f₁ f₂ hg ht h₁ h₂
+    by_contra hf
+    have hin : ({g₁, g₂} : Set E) ⊆ {f | N.graph.target f = N.graph.target g₁} := by
+      rintro f (rfl | rfl)
+      · rfl
+      · exact ht.symm
+    have hout' : ({f₁, f₂} : Set E) ⊆ {f | N.graph.source f = N.graph.target g₁} := by
+      rintro f (rfl | rfl)
+      · exact h₁
+      · exact h₂
+    have hi := Set.ncard_le_ncard hin
+    have ho := Set.ncard_le_ncard hout'
+    rw [Set.ncard_pair hg] at hi
+    rw [Set.ncard_pair hf] at ho
+    have := hN.indegree_add_outdegree_le (N.graph.target g₁)
+    unfold DirectedMultigraph.indegree DirectedMultigraph.outdegree at this
+    omega
+  obtain ⟨x, hx, hex⟩ := hdesc
+  -- with one taxon, the LSA is the taxon, and no edge is below it
+  by_cases hZ2 : Z.Nontrivial
+  swap
+  · exfalso
+    have hZx : ∀ z ∈ Z, z = x := fun z hz => by
+      by_contra hne
+      exact hZ2 ⟨z, hz, x, hx, hne⟩
+    have hst : N.IsStableAncestor Z (N.leaf x) := fun z hz hp => hp.2.1 (by rw [hZx z hz])
+    exact hA _ (Relation.TransGen.trans_right (((lsa_spec hN.1 Z hZ).2 _ hst).trans he)
+      (Relation.TransGen.head' ⟨e, rfl, rfl⟩ hex))
+  -- Lemma 2: some `y ∈ Z` has `LSA(x, y) = LSA(Z)`
+  obtain ⟨y, hy, hxy⟩ := lemma2 hN hZ2 hx
+  rw [← hxy] at he ⊢
+  set m := lsa hN.1 {x, y} (Set.insert_nonempty x {y})
+  have hlsa := lsa_spec hN.1 {x, y} (Set.insert_nonempty x {y})
+  have hmpaths : ∀ b, m ≤ b → b ≠ m → ∃ Z₀, (Z₀ = N.leaf x ∨ Z₀ = N.leaf y) ∧
+      ∃ S P, IsDPath N.graph m Z₀ S P ∧ b ∉ S := by
+    intro b hb hbm
+    obtain ⟨z, hz, S, P, hP, hbS⟩ := exists_isDPath_avoiding hN.1 hlsa hb hbm
+    refine ⟨N.leaf z, ?_, S, P, hP, hbS⟩
+    rcases hz with rfl | hz
+    · exact Or.inl rfl
+    · rw [Set.mem_singleton_iff.mp hz]
+      exact Or.inr rfl
+  have hmy : N.graph.Reaches m (N.leaf y) :=
+    hlsa.1.reaches_leaf hN.1 (Set.mem_insert_of_mem x rfl)
+  -- a path from `m` to a taxon below `e`, through `e`
+  have hthrough : ∀ z, N.graph.Reaches (N.graph.target e) (N.leaf z) →
+      ∃ S P, IsDPath N.graph m (N.leaf z) S P ∧ e ∈ P := by
+    intro z hz
+    obtain ⟨S₁, P₁, h₁⟩ := IsDPath.of_reaches he
+    obtain ⟨S₂, P₂, h₂⟩ := IsDPath.of_reaches hz
+    exact ⟨_, _, h₁.append (.cons e h₂), Or.inr (Set.mem_insert _ _)⟩
+  obtain ⟨Sx, Px, hPx, hePx⟩ := hthrough x hex
+  have key : HasTrekThrough N.graph m (N.leaf x) (N.leaf y) e := by
+    by_cases hyb : N.graph.Reaches (N.graph.target e) (N.leaf y)
+    · -- `y` below `e`: a path from `m` to `x` or `y` avoids the child of `e`
+      have htm : N.graph.target e ≠ m := fun h =>
+        not_reaches_target_source_of_isAcyclic hA e (h ▸ he)
+      obtain ⟨Z₀, hZ₀, Sy, Py, hPy, hey⟩ :=
+        hmpaths _ (he.tail ⟨e, rfl, rfl⟩) htm
+      rcases hZ₀ with rfl | rfl
+      · obtain ⟨Sx', Px', hPx', hePx'⟩ := hthrough y hyb
+        exact (trek_of_config hle hA hout hhyb _ _ _ _ _ _ _
+          (fun b h h' => (hmpaths b h h').imp fun _ h => ⟨h.1.symm, h.2⟩)
+          hPx' hePx' hPy hey rfl).symm
+      · exact trek_of_config hle hA hout hhyb _ _ _ _ _ _ _ hmpaths hPx hePx hPy hey rfl
+    · -- `y` not below `e`
+      obtain ⟨Sy, Py, hPy⟩ := IsDPath.of_reaches hmy
+      exact trek_of_not_below hle hA hPx hePx hPy hyb
+  obtain ⟨t, S₁, P₁, S₂, P₂, h₁, h₂, hS, heP, hmS⟩ := key
+  refine ⟨x, hx, y, hy, t, P₁, P₂, ⟨S₁, S₂, ⟨h₁.isSDPath hA rfl, h₂.isSDPath hA rfl⟩, hS⟩, heP, ?_⟩
+  rintro f (hf | hf)
+  · exact hmS _ (Or.inl (h₁.ends_mem hf).1)
+  · exact hmS _ (Or.inr (h₂.ends_mem hf).1)
+
+/-- `contractRoot` contracts the edge at the root (Definition 7, step 3). -/
+theorem isContraction_contractRoot (M : RootedNetwork V E X) (hM : M.IsPhylogenetic) :
+    IsContraction M (contractRoot M hM) Subtype.val Subtype.val where
+  inj_v := Subtype.val_injective
+  inj_e := Subtype.val_injective
+  source _ := rfl
+  target _ := rfl
+  range_v s := ⟨fun ⟨c, hc⟩ => hc ▸ c.2, fun h => ⟨⟨s, h⟩, rfl⟩⟩
+  range_e a := ⟨fun ⟨e, he⟩ => he ▸ e.2, fun h => ⟨⟨a, h⟩, rfl⟩⟩
+  leaf _ := rfl
+  root_one h := by
+    simp only [contractRoot, h, ↓reduceDIte]
+    exact ⟨_, Set.Nonempty.some_mem (s := {e | M.graph.source e = M.root}) _, rfl⟩
+  root_ne h := by simp only [contractRoot, h, ↓reduceDIte]
+
 /-- **Proposition 1** (`prop::ancestralinduced`): for a binary rooted network `N` and a set `Z` of at
 least two taxa, `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic as leaf-labelled semidirected networks;
 `proposition1_metric` gives the isomorphism of metric networks. The paper allows any `Z ⊆ X`; with one
@@ -527,8 +658,12 @@ theorem proposition1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (h
     {Z : Set X} (hZ : Z.Nontrivial) :
     Nonempty (SDIso (inducedUnrooted (unrooted N hN hX) Z)
       (unrooted (inducedRooted N hN.1 Z hZ.nonempty) (inducedRooted_isBinaryRootedNetwork hN hZ)
-        hZ.coe_sort)) := by
-  sorry
+        hZ.coe_sort)) :=
+  -- the edges of `N⁻` on simple treks between taxa of `Z` are those of the LSA network (by Lemma 17,
+  -- `mem_trekEdges_iff`), and suppressing their nodes of degree two gives `(N⁺_Z)⁻`
+  nonempty_sdIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
+    (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
+    (isContraction_contractRoot _ _)
 
 /-- **Proposition 1**, for metric networks: `(N⁻)_Z` and `(N⁺_Z)⁻`, with their metrics, are
 isomorphic. -/
@@ -540,24 +675,15 @@ theorem proposition1_metric [Fintype E] {N : RootedNetwork V E X} (hN : IsBinary
       (unrooted (inducedRooted N hN.1 Z hZ.nonempty) (inducedRooted_isBinaryRootedNetwork hN hZ)
         hZ.coe_sort)
       (unrootedMetric _ (inducedRooted_isBinaryRootedNetwork hN hZ) hZ.coe_sort
-        (inducedRootedMetric N hN.1 Z hZ.nonempty θ))) := by
-  sorry
-
-/-! ### Appendix -/
-
-/-- A rooted network as a semidirected network in which every edge is directed. -/
-def asSemidirected (N : RootedNetwork V E X) : SemidirectedNetwork V E X :=
-  ⟨N.graph, fun _ => True, N.leaf⟩
-
-/-- **Lemma 17** (`lem::trekmrca`): in a binary rooted network, an edge `e` below `LSA(Z)` with a
-descendant in `Z` lies on a simple trek of `N⁺` between two taxa `x, y ∈ Z` whose edges are all below
-`LSA(Z)`. -/
-theorem lemma17 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {Z : Set X}
-    (hZ : Z.Nonempty) {e : E} (he : N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source e))
-    (hdesc : ∃ z ∈ Z, N.graph.Reaches (N.graph.target e) (N.leaf z)) :
-    ∃ x ∈ Z, ∃ y ∈ Z, ∃ t P₁ P₂, IsSimpleTrek (asSemidirected N) (N.leaf x) (N.leaf y) t P₁ P₂ ∧
-      e ∈ P₁ ∪ P₂ ∧ ∀ f ∈ P₁ ∪ P₂, N.graph.Reaches (lsa hN.1 Z hZ) (N.graph.source f) := by
-  sorry
+        (inducedRootedMetric N hN.1 Z hZ.nonempty θ))) :=
+  -- the same isomorphism; along a chain, lengths add, and the inheritance probability is that of the
+  -- last arc, the others being tree arcs
+  nonempty_sdMetricIso_trekNet hN hX hZ (fun _ he hd => lemma17 hN hZ.nonempty he hd)
+    (inducedRooted_isBinaryRootedNetwork hN hZ) Subtype.val Subtype.val
+    (isContraction_contractRoot _ _) θ hθ.1.2.2.1 _ fun e => by
+      let _ : Fintype (N.AncestralArc Z) := Fintype.ofFinite _
+      exact ⟨suppressMetric_length_ancestral hN.1 hZ.nonempty θ e.1,
+        suppressMetric_inheritance_ancestral hN.1 hZ.nonempty θ e.1⟩
 
 /-! ### Quartet networks -/
 
