@@ -114,8 +114,9 @@ automation:
   notes: >-
     The maintainer chose the paper and decided the layout, the libraries and the correction of Proposition 13. AI
     systems wrote the statements, the proofs, the audit and the documents. The audit checks every declaration of this
-    repository and of the modules of the libraries it imports, all on the standard axioms. Comparator has not been run
-    on this repository. See docs/Banos2019/CREDITS.md.
+    repository and of the modules of the libraries it imports, all on the standard axioms. Three kernels accept the 11
+    theorems of the Challenge (scripts/check_kernels.sh: Lean's kernel and NanoDa through Comparator, and con-ron).
+    See docs/Banos2019/CREDITS.md.
 
 fidelity:
   divergences: >-
@@ -149,7 +150,7 @@ review:
     No person has reviewed the proofs. Independent AI agents, which did not write what they checked, reviewed the
     statements and the Challenge against the paper, compared the formal proofs with the paper's, searched the
     literature, and checked the findings against the paper's text and the TeX source of arXiv v1. The axiom audit and
-    the route check run locally and in CI. Comparator has not been run on this repository.
+    the route check run locally and in CI; Comparator and the three kernels (scripts/check_kernels.sh) ran locally.
 
 alignment:
   namespace: "Banos2019Challenge"

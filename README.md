@@ -104,7 +104,8 @@ Lean does and why.
 - [`scripts/route_check.py`](scripts/route_check.py) compares those routes with the paper's, in [`docs/Banos2019/paper_routes.tsv`](docs/Banos2019/paper_routes.tsv);
   [`docs/Banos2019/route_differences.tsv`](docs/Banos2019/route_differences.tsv) records every difference, with its reason.
 - [`palomar/Banos2019/comparator.json`](palomar/Banos2019/comparator.json) configures Comparator, which checks that the Solution proves exactly the
-  Challenge's statements; it has not been run on this repository.
+  Challenge's statements. [`scripts/check_kernels.sh`](scripts/check_kernels.sh) runs it and checks the eleven theorems under the three kernels
+  that Palomar uses: Lean's kernel and NanoDa (through Comparator) and con-ron; all three accept them.
 - **No person has reviewed the proofs.** Independent agents reviewed the statements and the Challenge against the
   paper, compared the proofs with the paper's, and checked the findings and the literature.
 
@@ -135,7 +136,7 @@ lake exe cache get
 lake build
 lake env lean scripts/Audit.lean                                    # axioms and dependencies
 python3 scripts/route_check.py check docs/Banos2019/paper_routes.tsv --accept docs/Banos2019/route_differences.tsv
-lake env lake comparator --config=palomar/Banos2019/comparator.json  # Comparator (needs bubblewrap)
+scripts/check_kernels.sh                                            # Comparator and con-ron (needs bubblewrap)
 python3 scripts/linkify_docs.py                                     # the documents' links to the code
 ```
 

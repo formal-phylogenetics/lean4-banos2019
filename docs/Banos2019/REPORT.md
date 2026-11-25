@@ -49,7 +49,8 @@ Status of the formalization:
   block of [`Banos2019/Defs.lean`](../../Banos2019/Defs.lean), copied by [`scripts/sync_challenge_defs.py`](../../scripts/sync_challenge_defs.py). [`palomar/Banos2019/Solution.lean`](../../palomar/Banos2019/Solution.lean) proves
   them, under the same names, from the library, through the bridges of [`Banos2019/Bridge/`](../../Banos2019/Bridge), which prove that these
   definitions are the library's. [`palomar/Banos2019/comparator.json`](../../palomar/Banos2019/comparator.json) has Comparator check that the Solution proves
-  exactly the Challenge's eleven statements.
+  exactly the Challenge's eleven statements; Lean's kernel, NanoDa and con-ron accept them
+  ([`scripts/check_kernels.sh`](../../scripts/check_kernels.sh)).
 - **Proofs.** They follow the paper's arguments, except the seven departures of Section 7, each forced by an error or
   a gap in the paper's step or by the representation, and recorded with its reason. Many steps that the paper asserts
   without argument are filled along its lines (Section 3). [`docs/Banos2019/route_differences.tsv`](route_differences.tsv) records every
