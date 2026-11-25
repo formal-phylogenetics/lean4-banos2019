@@ -303,6 +303,222 @@ theorem suppressAnc_isLeastStableAncestor (hB : N.IsBinary) (hZ : Z.Nontrivial) 
       exact hw ⟨x, hx⟩ trivial ⟨hsw, fun h => hz (congrArg (valS hN hZ.nonempty) h), hps⟩
     exact (suppressAnc_reaches_iff hN hZ.nonempty _ _).mpr (hlsa.2 _ hst)
 
+/-- The nodes of the chain of the ancestral network from `a`. -/
+def chainNodes (a : V) : Set V :=
+  {v | ∃ (ha : a ∈ N.ancestralVertices Z) (hv : v ∈ N.ancestralVertices Z),
+    (N.ancestralNetwork Z hZ hN.root_reaches).ChainReach ⟨a, ha⟩ ⟨v, hv⟩}
+
+/-- The arcs of the chain of the ancestral network from `a`: those out of its chain nodes. -/
+def chainTailArcs (a : V) : Set E :=
+  {e | ∃ (ha : a ∈ N.ancestralVertices Z) (he : e ∈ N.ancestralArcs Z),
+    (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source ⟨e, he⟩) ∧
+    (N.ancestralNetwork Z hZ hN.root_reaches).ChainReach ⟨a, ha⟩
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.source ⟨e, he⟩)}
+
+/-- **The chain of the ancestral network from a node, as a path of `N`**, to the end of the chain. -/
+theorem isDPath_chainTail [Finite V] {a : V} (ha : a ∈ N.ancestralVertices Z) :
+    IsDPath N.graph a (chainEndZ hN hZ a) (chainNodes hN hZ a) (chainTailArcs hN hZ a) := by
+  set M := N.ancestralNetwork Z hZ hN.root_reaches
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  rw [chainEndZ_of_mem hN hZ ha]
+  suffices key : ∀ b : N.AncestralVertex Z, IsDPath N.graph b.1 (chainEnd hM b).1
+      {v | ∃ hv : v ∈ N.ancestralVertices Z, M.ChainReach b ⟨v, hv⟩}
+      {e | ∃ he : e ∈ N.ancestralArcs Z, M.IsChainVertex (M.graph.source ⟨e, he⟩) ∧
+        M.ChainReach b (M.graph.source ⟨e, he⟩)} by
+    have h := key ⟨a, ha⟩
+    convert h using 1
+    · ext v
+      exact ⟨fun ⟨_, hv, h⟩ => ⟨hv, h⟩, fun ⟨hv, h⟩ => ⟨ha, hv, h⟩⟩
+    · ext e
+      exact ⟨fun ⟨_, he, h⟩ => ⟨he, h⟩, fun ⟨he, h⟩ => ⟨ha, he, h⟩⟩
+  let r : N.AncestralVertex Z → N.AncestralVertex Z → Prop :=
+    fun a b => Relation.TransGen M.graph.Adj b a
+  have : IsTrans _ r := ⟨fun _ _ _ h h' => h'.trans h⟩
+  have : Std.Irrefl r := ⟨fun a h => hM.acyclic a h⟩
+  have hwf : WellFounded r := Finite.wellFounded_of_trans_of_irrefl r
+  intro b
+  induction b using hwf.induction with
+  | _ b ih =>
+    by_cases hc : M.IsChainVertex b
+    · obtain ⟨g, hg⟩ := (M.graph.outdegree_eq_one_iff b).mp hc.2
+      have hgs : M.graph.source g = b := (hg g).mpr rfl
+      have hadj : M.graph.Adj b (M.graph.target g) := ⟨g, hgs, rfl⟩
+      have ih' := ih _ (.single hadj)
+      rw [chainEnd_eq_of_adj hM hc hadj]
+      -- the chain from `b` is the arc `g` followed by the chain from its child
+      have hreach : ∀ x, M.ChainReach b x ↔ x = b ∨ M.ChainReach (M.graph.target g) x := by
+        intro x
+        constructor
+        · intro h
+          rcases Relation.ReflTransGen.cases_head h with h | ⟨c, hc', hcx⟩
+          · exact Or.inl h.symm
+          · exact Or.inr (hc.adj_unique hc'.2 hadj ▸ hcx)
+        · rintro (rfl | h)
+          · exact .refl
+          · exact h.head ⟨hc, hadj⟩
+      have := IsDPath.cons g.1 ih'
+      rw [show N.graph.source g.1 = b.1 from congrArg Subtype.val hgs] at this
+      convert this using 1
+      · ext v
+        simp only [Set.mem_ofPred_eq, Set.mem_insert_iff]
+        constructor
+        · rintro ⟨hv, h⟩
+          rcases (hreach _).mp h with h | h
+          · exact Or.inl (congrArg Subtype.val h)
+          · exact Or.inr ⟨hv, h⟩
+        · rintro (rfl | ⟨hv, h⟩)
+          · exact ⟨b.2, (hreach _).mpr (Or.inl rfl)⟩
+          · exact ⟨hv, (hreach _).mpr (Or.inr h)⟩
+      · ext e
+        simp only [Set.mem_ofPred_eq, Set.mem_insert_iff]
+        constructor
+        · rintro ⟨he, hce, h⟩
+          rcases (hreach _).mp h with h | h
+          · exact Or.inl (congrArg Subtype.val ((hg ⟨e, he⟩).mp h))
+          · exact Or.inr ⟨he, hce, h⟩
+        · rintro (rfl | ⟨he, hce, h⟩)
+          · exact ⟨g.2, hgs ▸ hc, (hreach _).mpr (Or.inl hgs)⟩
+          · exact ⟨he, hce, (hreach _).mpr (Or.inr h)⟩
+    · rw [chainEnd_eq_self hM hc]
+      have hreach : ∀ x, M.ChainReach b x ↔ x = b := by
+        intro x
+        constructor
+        · intro h
+          rcases Relation.ReflTransGen.cases_head h with h | ⟨c, hc', -⟩
+          · exact h.symm
+          · exact absurd hc'.1 hc
+        · rintro rfl
+          exact .refl
+      convert IsDPath.nil (G := N.graph) b.1 using 1
+      · ext v
+        simp only [Set.mem_ofPred_eq, Set.mem_singleton_iff]
+        constructor
+        · rintro ⟨hv, h⟩
+          exact congrArg Subtype.val ((hreach _).mp h)
+        · rintro rfl
+          exact ⟨b.2, .refl⟩
+      · ext e
+        simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
+        rintro ⟨he, hce, h⟩
+        exact hc ((hreach _).mp h ▸ hce)
+
+/-- A node of a chain other than its end is a chain node. -/
+theorem chainZ_of_mem_chainNodes {a v : V} (hv : v ∈ chainNodes hN hZ a)
+    (hne : v ≠ chainEndZ hN hZ a) : ChainZ hN hZ v := by
+  obtain ⟨ha, hv', h⟩ := hv
+  refine ⟨hv', ?_⟩
+  by_contra hc
+  rw [chainEndZ_of_mem hN hZ ha, chainEnd_eq_of_chainReach _ h hc] at hne
+  exact hne rfl
+
+/-- The end of a chain is not a chain node. -/
+theorem not_chainZ_chainEndZ {a : V} (ha : a ∈ N.ancestralVertices Z) :
+    ¬ ChainZ hN hZ (chainEndZ hN hZ a) := by
+  rintro ⟨h, hc⟩
+  have heq : (⟨chainEndZ hN hZ a, h⟩ : N.AncestralVertex Z) =
+      chainEnd (N.ancestralNetwork_isPhylogenetic hN Z hZ) ⟨a, ha⟩ :=
+    Subtype.ext (chainEndZ_of_mem hN hZ ha)
+  rw [heq] at hc
+  exact not_isChainVertex_chainEnd (N.ancestralNetwork_isPhylogenetic hN Z hZ) ⟨a, ha⟩ hc
+
+/-- The arcs of the chain of the ancestral network starting with `f`. -/
+def chainArcs (f : E) : Set E :=
+  {g | ∃ (hf : f ∈ N.ancestralArcs Z) (hg : g ∈ N.ancestralArcs Z),
+    (N.ancestralNetwork Z hZ hN.root_reaches).IsOnChain ⟨f, hf⟩ ⟨g, hg⟩}
+
+theorem chainArcs_eq {f : E} (hf : f ∈ N.ancestralArcs Z) :
+    chainArcs hN hZ f = insert f (chainTailArcs hN hZ (N.graph.target f)) := by
+  ext g
+  constructor
+  · intro hgm
+    obtain ⟨_, hg, h⟩ := hgm
+    rcases h with h | ⟨hc, hr⟩
+    · exact Or.inl (congrArg Subtype.val h)
+    · exact Or.inr ⟨hf, hg, hc, hr⟩
+  · intro hgm
+    rcases hgm with h | hgm
+    · subst h
+      exact ⟨hf, hf, Or.inl rfl⟩
+    · obtain ⟨_, hg, hc, hr⟩ := hgm
+      exact ⟨hf, hg, Or.inr ⟨hc, hr⟩⟩
+
+/-- The chain from a node of a chain ends where the chain does. -/
+theorem chainEndZ_eq_of_mem {a v : V} (hv : v ∈ chainNodes hN hZ a) :
+    chainEndZ hN hZ a = chainEndZ hN hZ v := by
+  obtain ⟨ha, hv', h⟩ := hv
+  rw [chainEndZ_of_mem hN hZ ha, chainEndZ_of_mem hN hZ hv',
+    chainEnd_eq_of_chainReach_left _ h]
+
+theorem reaches_of_mem_chainNodes {a v : V} (hv : v ∈ chainNodes hN hZ a) :
+    N.graph.Reaches a v := by
+  obtain ⟨ha, hv', h⟩ := hv
+  exact (N.ancestralGraph_reaches_iff Z ⟨a, ha⟩ ⟨v, hv'⟩).mp h.reaches
+
+theorem mem_chainNodes_self {a : V} (ha : a ∈ N.ancestralVertices Z) : a ∈ chainNodes hN hZ a :=
+  ⟨ha, ha, .refl⟩
+
+theorem chainEndZ_mem_chainNodes {a : V} (ha : a ∈ N.ancestralVertices Z) :
+    chainEndZ hN hZ a ∈ chainNodes hN hZ a := by
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  rw [chainEndZ_of_mem hN hZ ha]
+  exact ⟨ha, (chainEnd hM ⟨a, ha⟩).2, chainReach_chainEnd hM ⟨a, ha⟩⟩
+
+theorem chainEndZ_mem {a : V} (ha : a ∈ N.ancestralVertices Z) :
+    chainEndZ hN hZ a ∈ N.ancestralVertices Z := by
+  rw [chainEndZ_of_mem hN hZ ha]
+  exact (chainEnd (N.ancestralNetwork_isPhylogenetic hN Z hZ) ⟨a, ha⟩).2
+
+/-- An arc into a node that is not a chain node is the last arc of its chain. -/
+theorem target_eq_chainEndZ_of_mem_chainArcs {f g : E} (hg : g ∈ chainArcs hN hZ f)
+    (hc : ¬ ChainZ hN hZ (N.graph.target g)) :
+    N.graph.target g = chainEndZ hN hZ (N.graph.target f) := by
+  obtain ⟨hf, hg', h⟩ := hg
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  have hc' : ¬ (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex ⟨N.graph.target g, hg'⟩ :=
+    fun h' => hc ⟨hg', h'⟩
+  rw [chainEndZ_of_mem hN hZ hf]
+  have := h.chainEnd_eq hM
+  have hc'' : ¬ (N.ancestralNetwork Z hZ hN.root_reaches).IsChainVertex
+      ((N.ancestralNetwork Z hZ hN.root_reaches).graph.target ⟨g, hg'⟩) := hc'
+  rw [chainEnd_eq_self hM hc''] at this
+  exact (congrArg Subtype.val this).symm
+
+/-- Distinct chains from nodes that are not chain nodes end at distinct nodes, when one of them
+ends at a node with one parent. -/
+theorem chainEndZ_ne {f f' : E} (hf : f ∈ N.ancestralArcs Z) (hf' : f' ∈ N.ancestralArcs Z)
+    (hs : ¬ ChainZ hN hZ (N.graph.source f)) (hs' : ¬ ChainZ hN hZ (N.graph.source f'))
+    (hne : f ≠ f') (hin : N.graph.indegree (chainEndZ hN hZ (N.graph.target f)) = 1) :
+    chainEndZ hN hZ (N.graph.target f) ≠ chainEndZ hN hZ (N.graph.target f') := by
+  have := hN.finite_arcs
+  set M := N.ancestralNetwork Z hZ hN.root_reaches
+  have hM := N.ancestralNetwork_isPhylogenetic hN Z hZ
+  have hsA : ¬ M.IsChainVertex (M.graph.source ⟨f, hf⟩) :=
+    fun h => hs ⟨N.source_mem_ancestralVertices hf, h⟩
+  have hsA' : ¬ M.IsChainVertex (M.graph.source ⟨f', hf'⟩) :=
+    fun h => hs' ⟨N.source_mem_ancestralVertices hf', h⟩
+  intro heq
+  have h₁ := target_chainLast hM ⟨f, hf⟩
+  have h₂ := target_chainLast hM ⟨f', hf'⟩
+  have hl : chainLast hM ⟨f, hf⟩ ≠ chainLast hM ⟨f', hf'⟩ := fun h => hne (congrArg Subtype.val
+    (congrArg Subtype.val (chainLast_injective hM (a₁ := ⟨⟨f, hf⟩, hsA⟩) (a₂ := ⟨⟨f', hf'⟩, hsA'⟩) h)))
+  have hl' : (chainLast hM ⟨f, hf⟩).1 ≠ (chainLast hM ⟨f', hf'⟩).1 := fun h => hl (Subtype.ext h)
+  have ht₁ : N.graph.target (chainLast hM ⟨f, hf⟩).1 = chainEndZ hN hZ (N.graph.target f) := by
+    rw [chainEndZ_of_mem hN hZ hf]
+    exact congrArg Subtype.val h₁
+  have ht₂ : N.graph.target (chainLast hM ⟨f', hf'⟩).1 = chainEndZ hN hZ (N.graph.target f) := by
+    rw [heq, chainEndZ_of_mem hN hZ hf']
+    exact congrArg Subtype.val h₂
+  have hsub : ({(chainLast hM ⟨f, hf⟩).1, (chainLast hM ⟨f', hf'⟩).1} : Set E) ⊆
+      {e | N.graph.target e = chainEndZ hN hZ (N.graph.target f)} := by
+    rintro e (rfl | rfl)
+    · exact ht₁
+    · exact ht₂
+  have := Set.ncard_le_ncard hsub
+  rw [Set.ncard_pair hl'] at this
+  unfold DirectedMultigraph.indegree at hin
+  omega
+
 end Anc
 
 end Banos2019

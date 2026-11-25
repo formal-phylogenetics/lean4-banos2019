@@ -490,6 +490,46 @@ def lVertEquiv : {u // IsBranch (trekNet hN hX Z) ∅ u} ≃
           not_isBranch_trekNet_lsa hN hX hZ h17 u.1 h u.2
         exact ⟨hv, (isBranch_trekNet_iff hN hX hZ h17 u.1 hvm).mp u.2, hmv, hvm⟩
 
+omit h17 in
+/-- A node below `LSA(Z)` is not `LSA(X)`, unless both are `LSA(Z)`. -/
+theorem ne_lsa_univ {s : V} (hms : N.graph.Reaches (lsa hN.1 Z hZ.nonempty) s)
+    (h : s ≠ lsa hN.1 Z hZ.nonempty ∨ lsa hN.1 Z hZ.nonempty ≠ lsa hN.1 Set.univ Set.univ_nonempty) :
+    s ≠ lsa hN.1 Set.univ Set.univ_nonempty := by
+  rintro rfl
+  have := eq_of_reaches_of_reaches hN.1.acyclic hms (lsa_univ_reaches hN.1 hZ.nonempty)
+  rcases h with h | h
+  · exact h this.symm
+  · exact h this
+
+/-- **A path of `N` below `LSA(Z)` is a path of `K`**, when it avoids `LSA(X)`. -/
+theorem isDPath_trekNet {a b : V} {S : Set V} {P : Set E} (h : IsDPath N.graph a b S P)
+    (hS : ∀ s ∈ S, N.graph.Reaches (lsa hN.1 Z hZ.nonempty) s ∧ s ∈ N.ancestralVertices Z ∧
+      s ≠ lsa hN.1 Set.univ Set.univ_nonempty)
+    {ua ub : keptNodes (semidirected hN.1 hN.2 hX) (trekEdges (semidirected hN.1 hN.2 hX) Z) Z}
+    (hua : valH hN hX ua = a) (hub : valH hN hX ub = b) :
+    IsDPath (trekNet hN hX Z).graph ua ub (valH hN hX ⁻¹' S) (valK hN hX ⁻¹' P) := by
+  refine h.pullback (valH hN hX) (valK hN hX) (valH_injective hN hX) (valK_injective hN hX)
+    (fun e he => ?_) hua hub
+  obtain ⟨hs₁, -, hs₃⟩ := hS _ (h.ends_mem he).1
+  obtain ⟨-, ht₂, -⟩ := hS _ (h.ends_mem he).2
+  obtain ⟨g, rfl⟩ := exists_valK hN hX hZ h17 (e := e) ⟨hs₁, ht₂⟩
+    fun h' => hs₃ (h' ▸ (sdRootArc_spec hN.1 hN.2 hX).1)
+  exact ⟨g, rfl, (sdVert_source_of_ne hN hX g.1 hs₃).symm, rfl⟩
+
+/-- A node of `K` that is not a chain node and is not `LSA(Z)` is kept. -/
+theorem isBranch_of_not_chainZ (u : keptNodes (semidirected hN.1 hN.2 hX)
+    (trekEdges (semidirected hN.1 hN.2 hX) Z) Z) (hm : valH hN hX u ≠ lsa hN.1 Z hZ.nonempty)
+    (hc : ¬ ChainZ hN.1 hZ.nonempty (valH hN hX u)) : IsBranch (trekNet hN hX Z) ∅ u :=
+  (isBranch_trekNet_iff hN hX hZ h17 u hm).mpr hc
+
+/-- A chain node is removed by suppression. -/
+theorem not_isBranch_of_chainZ (u : keptNodes (semidirected hN.1 hN.2 hX)
+    (trekEdges (semidirected hN.1 hN.2 hX) Z) Z)
+    (hc : ChainZ hN.1 hZ.nonempty (valH hN hX u)) : ¬ IsBranch (trekNet hN hX Z) ∅ u := by
+  have hm : valH hN hX u ≠ lsa hN.1 Z hZ.nonempty := fun h =>
+    not_chainZ_lsa hN.1 hN.2 hZ (h ▸ hc)
+  exact fun h => (isBranch_trekNet_iff hN hX hZ h17 u hm).mp h hc
+
 end Kept
 
 end Restricted
@@ -700,5 +740,105 @@ theorem rootArcR_spec :
   rw [← valC_source hN hZ ι κ hK, h₁, valC_lsa hN hZ hC ι κ hK]
 
 end RSide
+
+section Chains
+
+variable {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X) {Z : Set X}
+  (hZ : Z.Nontrivial) (h17 : Lemma17Conclusion hN Z hZ.nonempty)
+  {VC EC : Type*} {C : RootedNetwork VC EC Z} (hC : IsBinaryRootedNetwork C)
+  (ι : VC → {v : N.AncestralVertex Z //
+    ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex v})
+  (κ : EC → {e : N.AncestralArc Z // ¬ (N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).IsChainVertex
+    ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).graph.source e)})
+  (hK : IsContraction ((N.ancestralNetwork Z hZ.nonempty hN.1.root_reaches).suppress
+    (N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty)) C ι κ)
+
+/-- The arcs of `N` of an edge of `(N⁺_Z)⁻`: the chain of the ancestral network starting with its arc,
+and, for the edge out of `LSA(Z)`, the chain starting with the other arc out of `LSA(Z)`. -/
+def edgeArcsR (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) : Set E :=
+  {e | e ∈ chainArcs hN.1 hZ.nonempty (valRE hN hZ hC κ g) ∨
+    (N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty ∧
+      e ∈ chainArcs hN.1 hZ.nonempty (rootArcR hN hZ hC κ))}
+
+/-- The chain of `K` of an edge of `(N⁺_Z)⁻`. -/
+def chainOfR (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort) :
+    Set (trekEdges (semidirected hN.1 hN.2 hX) Z) :=
+  valK hN hX ⁻¹' edgeArcsR hN hZ hC κ g
+
+/-- The properties of a path of `K` that make it the chain of an edge of `(N⁺_Z)⁻`. -/
+def IsChainTrail (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
+    (u w : keptNodes (semidirected hN.1 hN.2 hX) (trekEdges (semidirected hN.1 hN.2 hX) Z) Z)
+    (S : Set (keptNodes (semidirected hN.1 hN.2 hX) (trekEdges (semidirected hN.1 hN.2 hX) Z) Z)) :
+    Prop :=
+  IsUTrail (trekNet hN hX Z).graph u w S (chainOfR hN hX hZ hC κ g) ∧
+    valH hN hX u = valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.source g) ∧
+    valH hN hX w = valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.target g) ∧
+    (chainOfR hN hX hZ hC κ g).Nonempty ∧ IsBranch (trekNet hN hX Z) ∅ u ∧
+    IsBranch (trekNet hN hX Z) ∅ w ∧ ∀ s ∈ S, s ≠ u → s ≠ w → ¬ IsBranch (trekNet hN hX Z) ∅ s
+
+include h17 hK in
+/-- **The chain of an edge of `(N⁺_Z)⁻` below `LSA(Z)`**: its arc, then the chain from its child. -/
+theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
+    (hg : N.graph.source (valRE hN hZ hC κ g) ≠ lsa hN.1 Z hZ.nonempty) :
+    ∃ u w S, IsChainTrail hN hX hZ hC ι κ g u w S := by
+  have := hN.1.finite_vertices
+  set m := lsa hN.1 Z hZ.nonempty
+  set f := valRE hN hZ hC κ g
+  obtain ⟨hf, hnc, hmf, hfr⟩ := (mem_range_valRE hN hZ hC ι κ hK f).mp ⟨g, rfl⟩
+  have htf : N.graph.target f ∈ N.ancestralVertices Z := hf
+  have hsf : N.graph.source f ∈ N.ancestralVertices Z := N.source_mem_ancestralVertices hf
+  have hpath := IsDPath.cons f (isDPath_chainTail hN.1 hZ.nonempty htf)
+  have hgood : ∀ s ∈ insert (N.graph.source f) (chainNodes hN.1 hZ.nonempty (N.graph.target f)),
+      N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ lsa hN.1 Set.univ Set.univ_nonempty := by
+    rintro s (rfl | hs)
+    · exact ⟨hmf, hsf, ne_lsa_univ hN hX hZ hmf (Or.inl hg)⟩
+    · have hms : N.graph.Reaches m s := (hmf.tail ⟨f, rfl, rfl⟩).trans
+        (reaches_of_mem_chainNodes hN.1 hZ.nonempty hs)
+      have hsm : s ≠ m := by
+        rintro rfl
+        exact not_reaches_target_source' hN.1.acyclic f
+          ((reaches_of_mem_chainNodes hN.1 hZ.nonempty hs).trans hmf)
+      exact ⟨hms, hs.2.1, ne_lsa_univ hN hX hZ hms (Or.inl hsm)⟩
+  obtain ⟨u, hu⟩ := exists_valH hN hX hZ h17 hmf hsf ((hgood _ (Set.mem_insert _ _)).2.2)
+  have hend := Set.mem_insert_of_mem (N.graph.source f) (chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf)
+  obtain ⟨w, hw⟩ := exists_valH hN hX hZ h17 (hgood _ hend).1 (hgood _ hend).2.1 (hgood _ hend).2.2
+  have hK' := isDPath_trekNet hN hX hZ h17 hpath hgood hu hw
+  have hedges : valK hN hX ⁻¹' insert f (chainTailArcs hN.1 hZ.nonempty (N.graph.target f)) =
+      chainOfR hN hX hZ hC κ g := by
+    unfold chainOfR edgeArcsR
+    congr 1
+    ext e
+    rw [← chainArcs_eq hN.1 hZ.nonempty hf]
+    exact ⟨fun h => Or.inl h, fun h => h.elim id fun h' => absurd h'.1 hg⟩
+  rw [hedges] at hK'
+  have hwm : chainEndZ hN.1 hZ.nonempty (N.graph.target f) ≠ m := by
+    intro h
+    have h1 := reaches_of_mem_chainNodes hN.1 hZ.nonempty
+      (chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf)
+    rw [h] at h1
+    exact not_reaches_target_source' hN.1.acyclic f (h1.trans hmf)
+  refine ⟨u, w, _, hK'.isUTrail (trekNet_isAcyclic hN hX), ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · classical
+    rw [valR_source hN hZ hC ι κ hK]
+    split_ifs with h'
+    · exact absurd h' hg
+    · exact hu
+  · rw [valR_target hN hZ hC ι κ hK, hw]
+  · obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (e := f) ⟨hmf, hf⟩ fun h =>
+      (hgood _ (Set.mem_insert _ _)).2.2 (h ▸ (sdRootArc_spec hN.1 hN.2 hX).1)
+    exact ⟨e, by rw [← hedges]; exact Set.mem_preimage.mpr (he ▸ Set.mem_insert _ _)⟩
+  · exact isBranch_of_not_chainZ hN hX hZ h17 u (by rw [hu]; exact hg) (by rw [hu]; exact hnc)
+  · refine isBranch_of_not_chainZ hN hX hZ h17 w (by rw [hw]; exact hwm) ?_
+    rw [hw]
+    exact not_chainZ_chainEndZ hN.1 hZ.nonempty htf
+  · intro s hs hsu hsw
+    rcases hs with hs | hs
+    · exact absurd (valH_injective hN hX (hs.trans hu.symm)) hsu
+    · by_cases hse : valH hN hX s = chainEndZ hN.1 hZ.nonempty (N.graph.target f)
+      · exact absurd (valH_injective hN hX (hse.trans hw.symm)) hsw
+      · exact not_isBranch_of_chainZ hN hX hZ h17 s
+          (chainZ_of_mem_chainNodes hN.1 hZ.nonempty hs hse)
+
+end Chains
 
 end Banos2019
