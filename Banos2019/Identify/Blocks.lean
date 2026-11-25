@@ -309,6 +309,18 @@ theorem exists_separatesQuartet_of_not_sameBlock [DecidableEq X] (h1 : IsLevelOn
   · exact ⟨y, by simp, h.symm⟩
   · exact ⟨c, by simp, h.symm⟩
 
+/-- A cycle separating four taxa has at least four nodes, so size at least four. -/
+theorem four_le_ncard_of_separatesQuartet (h1 : IsLevelOne N.graph) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) {v} (hv : IsHybridNodeOf (unrooted N hN hX) C v)
+    {s : Finset X} (hs : #s = 4) (hsep : SeparatesQuartet (unrooted N hN hX) C v s) :
+    4 ≤ C.ncard := by
+  have := hN.1.finite_vertices
+  have hinj := ((separatesQuartet_iff h1 hC hv s).1 hsep).1
+  rw [← ncard_cycleNodes hC, ← hs, ← Set.ncard_coe_finset, ← hinj.ncard_image]
+  refine Set.ncard_le_ncard ?_ (Set.toFinite _)
+  rintro _ ⟨x, -, rfl⟩
+  exact blockNode_mem hC x
+
 /-! ### The order of the blocks around a cycle -/
 
 /-- The nodes of the cycle `C` whose blocks contain a taxon of `T`. -/
