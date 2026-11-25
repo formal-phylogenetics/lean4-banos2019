@@ -65,11 +65,193 @@ if the root then has outdegree one, contract the edge at the root. -/
 def inducedRooted (N : RootedNetwork V E X) (hN : N.IsPhylogenetic) (Z : Set X) (hZ : Z.Nonempty) :=
   contractRoot (ancestralSuppressed N hN Z hZ) (ancestralSuppressed_isPhylogenetic hN Z hZ)
 
-/-- `N⁺_Z` is a binary rooted network, for at least two taxa. -/
+/-- **Contracting the edge at the root gives a binary network** when the network has no node of
+indegree one and outdegree one, every node other than the root and the taxa has degree three, the
+root has outdegree one or two, and there are two taxa. -/
+theorem contractRoot_isBinaryRootedNetwork {V' E' X' : Type*} {M : RootedNetwork V' E' X'}
+    (hM : M.IsPhylogenetic)
+    (hMchain : ∀ v, ¬ (M.graph.indegree v = 1 ∧ M.graph.outdegree v = 1))
+    (hMdeg : ∀ v, v ≠ M.root → M.graph.outdegree v ≠ 0 →
+      M.graph.indegree v + M.graph.outdegree v = 3)
+    (hMroot : M.graph.outdegree M.root = 1 ∨ M.graph.outdegree M.root = 2) {z₁ z₂ : X'}
+    (hleaves : z₁ ≠ z₂) : IsBinaryRootedNetwork (contractRoot M hM) := by
+  classical
+  have : Finite V' := hM.finite_vertices
+  have : Finite E' := hM.finite_arcs
+  have hMr0 : ∀ e, M.graph.target e ≠ M.root := hM.target_ne_root
+  have hreach_root : ∀ a, M.graph.Reaches a M.root → a = M.root := fun a h => by
+    rcases Relation.ReflTransGen.cases_tail h with h | ⟨b, -, f, -, hf⟩
+    · exact h.symm
+    · exact absurd hf (hMr0 f)
+  have hKout : ∀ v, (contractRoot M hM).graph.outdegree v = M.graph.outdegree v.1 := fun v =>
+    Set.ncard_congr'
+      { toFun := fun e => ⟨e.1.1, congrArg Subtype.val e.2⟩
+        invFun := fun e => ⟨⟨e.1, fun h => v.2 ⟨e.2.symm.trans h.1, h.2⟩⟩, Subtype.ext e.2⟩
+        left_inv := fun _ => rfl
+        right_inv := fun _ => rfl }
+  have hKin : ∀ v, (∀ e, M.graph.target e = v.1 →
+        ¬ (M.graph.source e = M.root ∧ M.graph.outdegree M.root = 1)) →
+      (contractRoot M hM).graph.indegree v = M.graph.indegree v.1 := fun v hv =>
+    Set.ncard_congr'
+      { toFun := fun e => ⟨e.1.1, congrArg Subtype.val e.2⟩
+        invFun := fun e => ⟨⟨e.1, hv e.1 e.2⟩, Subtype.ext e.2⟩
+        left_inv := fun _ => rfl
+        right_inv := fun _ => rfl }
+  -- a path of `M` from a node of `K = contractRoot M hM` is a path of `K`
+  have hlift : ∀ a (ha : ¬ (a = M.root ∧ M.graph.outdegree M.root = 1)) b
+      (hb : ¬ (b = M.root ∧ M.graph.outdegree M.root = 1)),
+      M.graph.Reaches a b → (contractRoot M hM).graph.Reaches ⟨a, ha⟩ ⟨b, hb⟩ := by
+    intro a ha b hb hab
+    induction hab with
+    | refl => exact .refl
+    | @tail y b hay hyb ih =>
+      have hy : ¬ (y = M.root ∧ M.graph.outdegree M.root = 1) := fun h =>
+        ha ⟨hreach_root a (h.1 ▸ hay), h.2⟩
+      obtain ⟨f, hfs, hft⟩ := hyb
+      exact (ih hy).tail ⟨⟨f, fun h => hy ⟨hfs.symm.trans h.1, h.2⟩⟩, Subtype.ext hfs,
+        Subtype.ext hft⟩
+  have hacyc : (contractRoot M hM).graph.IsAcyclic := fun v h => hM.acyclic v.1
+    (Relation.TransGen.lift Subtype.val
+      (fun a b ⟨e, hs, ht⟩ => ⟨e.1, congrArg Subtype.val hs, congrArg Subtype.val ht⟩) v v h)
+  have hleafinj : Function.Injective (contractRoot M hM).leaf := fun x y h =>
+    hM.leaf_injective (congrArg Subtype.val h)
+  have hKleaves : ∀ v, (contractRoot M hM).graph.outdegree v = 0 ↔
+      ∃ x, (contractRoot M hM).leaf x = v := fun v => by
+    rw [hKout]
+    exact (hM.leaves v.1).trans ⟨fun ⟨x, hx⟩ => ⟨x, Subtype.ext hx⟩,
+      fun ⟨x, hx⟩ => ⟨x, congrArg Subtype.val hx⟩⟩
+  rcases hMroot with hP1 | hP2
+  · -- the root of `M` has one child `c`, which is the root of `contractRoot M hM`
+    obtain ⟨e₀, he₀⟩ := (M.graph.outdegree_eq_one_iff _).mp hP1
+    have hKroot : (contractRoot M hM).root.1 = M.graph.target e₀ := by
+      show (contractRoot M hM).root.1 = _
+      simp only [contractRoot, dite_eq_left hP1]
+      refine congrArg M.graph.target ((he₀ _).mp ?_)
+      exact Set.Nonempty.some_mem (s := {e | M.graph.source e = M.root}) _
+    have hcr : M.graph.target e₀ ≠ M.root := hMr0 e₀
+    have hcreach : ∀ v, v ≠ M.root → M.graph.Reaches (M.graph.target e₀) v := fun v hv => by
+      rcases Relation.ReflTransGen.cases_head (hM.root_reaches v) with h | ⟨b, ⟨g, hg, rfl⟩, hb⟩
+      · exact absurd h.symm hv
+      · rwa [(he₀ g).mp hg] at hb
+    -- `c` is not a taxon: two taxa are below it
+    have hcout0 : M.graph.outdegree (M.graph.target e₀) ≠ 0 := fun h => by
+      have h₁ := M.graph.eq_of_reaches_of_outdegree_eq_zero
+        (hcreach _ (M.leaf_ne_root hM z₁)) h
+      have h₂ := M.graph.eq_of_reaches_of_outdegree_eq_zero
+        (hcreach _ (M.leaf_ne_root hM z₂)) h
+      exact hleaves (hM.leaf_injective (h₁.trans h₂.symm))
+    -- `c` has the root as its only parent, so it has two children
+    have hcin : ∀ f, M.graph.target f = M.graph.target e₀ → f = e₀ := fun f hf => by
+      by_contra hfe
+      have hfs : M.graph.source f ≠ M.root := fun h => hfe ((he₀ f).mp h)
+      exact hM.acyclic _ (Relation.TransGen.tail' (hcreach _ hfs) ⟨f, rfl, hf⟩)
+    have hcin1 : M.graph.indegree (M.graph.target e₀) = 1 :=
+      (M.graph.indegree_eq_one_iff _).mpr ⟨e₀, fun f => ⟨hcin f, fun h => h ▸ rfl⟩⟩
+    have hcout : M.graph.outdegree (M.graph.target e₀) = 2 := by
+      have := hMdeg _ hcr hcout0
+      have := hMchain (M.graph.target e₀)
+      omega
+    have hKin' : ∀ v : {v // ¬ (v = M.root ∧ M.graph.outdegree M.root = 1)},
+        v.1 ≠ M.graph.target e₀ → (contractRoot M hM).graph.indegree v = M.graph.indegree v.1 :=
+      fun v hvc =>
+      hKin v fun e he h => hvc (he.symm.trans (congrArg M.graph.target ((he₀ e).mp h.1)))
+    have hvr : ∀ v : {v // ¬ (v = M.root ∧ M.graph.outdegree M.root = 1)}, v.1 ≠ M.root :=
+      fun v h => v.2 ⟨h, hP1⟩
+    have hvc : ∀ v, v ≠ (contractRoot M hM).root → v.1 ≠ M.graph.target e₀ :=
+      fun v hv h => hv (Subtype.ext (h.trans hKroot.symm))
+    refine ⟨⟨Subtype.finite, Subtype.finite, hM.finite_taxa, hacyc, fun v => ?_, ?_,
+      fun v hv => ?_, hleafinj, fun x => ?_, hKleaves⟩, ?_, fun v hv h0 => ?_⟩
+    · have := hlift _ (fun h => hcr h.1) v.1 v.2 (hcreach v.1 (hvr v))
+      rwa [show (⟨M.graph.target e₀, fun h => hcr h.1⟩ :
+          {v // ¬ (v = M.root ∧ M.graph.outdegree M.root = 1)}) = (contractRoot M hM).root from
+        Subtype.ext hKroot.symm] at this
+    · rw [DirectedMultigraph.indegree_eq_zero_iff]
+      intro e he
+      have : e.1 = e₀ := hcin _ ((congrArg Subtype.val he).trans hKroot)
+      exact e.2 ⟨by rw [this]; exact (he₀ e₀).mpr rfl, hP1⟩
+    · rw [hKin' v (hvc v hv)]
+      exact hM.nonroot_indegree _ (hvr v)
+    · have hxc : ((contractRoot M hM).leaf x).1 ≠ M.graph.target e₀ := fun h => hcout0 (by
+        rw [← h]
+        exact (hM.leaves _).mpr ⟨x, rfl⟩)
+      rw [hKin' _ hxc]
+      exact hM.leaf_indegree x
+    · rw [hKout, hKroot, hcout]
+    · rw [hKin' v (hvc v hv), hKout]
+      rw [hKout] at h0
+      exact hMdeg _ (hvr v) h0
+  · -- the root of `M` has two children: `contractRoot M hM` is `M`
+    have hnP : ¬ M.graph.outdegree M.root = 1 := by omega
+    have hKroot : (contractRoot M hM).root.1 = M.root := by
+      show (contractRoot M hM).root.1 = _
+      simp only [contractRoot, dite_eq_right hnP]
+    have hKin'' : ∀ v, (contractRoot M hM).graph.indegree v = M.graph.indegree v.1 := fun v =>
+      hKin v fun _ _ h => hnP h.2
+    have hvr : ∀ v, v ≠ (contractRoot M hM).root → v.1 ≠ M.root :=
+      fun v hv h => hv (Subtype.ext (h.trans hKroot.symm))
+    refine ⟨⟨Subtype.finite, Subtype.finite, hM.finite_taxa, hacyc, fun v => ?_, ?_,
+      fun v hv => ?_, hleafinj, fun x => ?_, hKleaves⟩, ?_, fun v hv h0 => ?_⟩
+    · have := hlift _ (fun h => hnP h.2) v.1 v.2 (hM.root_reaches v.1)
+      rwa [show (⟨M.root, fun h => hnP h.2⟩ :
+          {v // ¬ (v = M.root ∧ M.graph.outdegree M.root = 1)}) = (contractRoot M hM).root from
+        Subtype.ext hKroot.symm] at this
+    · rw [hKin'', hKroot]
+      exact hM.root_indegree
+    · rw [hKin'']
+      exact hM.nonroot_indegree _ (hvr v hv)
+    · rw [hKin'']
+      exact hM.leaf_indegree x
+    · rw [hKout, hKroot, hP2]
+    · rw [hKin'', hKout]
+      rw [hKout] at h0
+      exact hMdeg _ (hvr v hv) h0
+
+/-- `N⁺_Z` is a binary rooted network, for at least two taxa: the ancestral network keeps the
+indegrees of `N` and its taxa, suppression removes the nodes of indegree and outdegree one, and when
+the root is left with one child, that child is a tree node, which contracting the edge at the root
+makes the root (`contractRoot_isBinaryRootedNetwork`). -/
 theorem inducedRooted_isBinaryRootedNetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     {Z : Set X} (hZ : Z.Nontrivial) :
     IsBinaryRootedNetwork (inducedRooted N hN.1 Z hZ.nonempty) := by
-  sorry
+  classical
+  have : Finite V := hN.1.finite_vertices
+  have : Finite E := hN.1.finite_arcs
+  have hA := N.ancestralNetwork_isPhylogenetic hN.1 Z hZ.nonempty
+  set M := ancestralSuppressed N hN.1 Z hZ.nonempty with hM_def
+  have hM : M.IsPhylogenetic := ancestralSuppressed_isPhylogenetic hN.1 Z hZ.nonempty
+  have : Finite (N.AncestralArc Z) := Subtype.finite
+  -- the degrees of `M`: those of `N` for the indegree, at most those of `N` for the outdegree
+  have hMin : ∀ v, M.graph.indegree v = N.graph.indegree v.1.1 := fun v =>
+    (suppress_indegree hA v).trans (N.ancestralGraph_indegree Z v.1)
+  have hMout : ∀ v, M.graph.outdegree v ≤ N.graph.outdegree v.1.1 := fun v =>
+    (suppress_outdegree hA v).le.trans (Set.ncard_le_ncard_of_injOn (fun e => e.1)
+      (fun _ he => congrArg Subtype.val he) (fun _ _ _ _ h => Subtype.ext h) (Set.toFinite _))
+  have hMchain : ∀ v, ¬ (M.graph.indegree v = 1 ∧ M.graph.outdegree v = 1) :=
+    suppress_not_isChainVertex hA
+  have hMroot_val : M.root.1.1 = N.root := rfl
+  have hMne : ∀ v : _, v ≠ M.root → v.1.1 ≠ N.root := fun v hv h =>
+    hv (Subtype.ext (Subtype.ext h))
+  -- `M` is binary but for a root of outdegree one
+  have hMdeg : ∀ v, v ≠ M.root → M.graph.outdegree v ≠ 0 →
+      M.graph.indegree v + M.graph.outdegree v = 3 := by
+    intro v hv h0
+    have hr := hMne v hv
+    have h1 := hN.1.nonroot_indegree _ hr
+    have hle := hMout v
+    have h3 := hN.2.2 _ hr (by omega)
+    have := hMchain v
+    rw [hMin] at this ⊢
+    omega
+  have hMroot : M.graph.outdegree M.root = 1 ∨ M.graph.outdegree M.root = 2 := by
+    have hle := hMout M.root
+    rw [hMroot_val, hN.2.1] at hle
+    have h0 : M.graph.outdegree M.root ≠ 0 := fun h => by
+      obtain ⟨x, hx⟩ := (hM.leaves _).mp h
+      exact M.leaf_ne_root hM x hx
+    omega
+  obtain ⟨z₁, hz₁, z₂, hz₂, hz₁₂⟩ := id hZ
+  exact contractRoot_isBinaryRootedNetwork hM hMchain hMdeg hMroot
+    (z₁ := ⟨z₁, hz₁⟩) (z₂ := ⟨z₂, hz₂⟩) fun h => hz₁₂ (congrArg Subtype.val h)
 
 /-! ### Definition 8 -/
 
