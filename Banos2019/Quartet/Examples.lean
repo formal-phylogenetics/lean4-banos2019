@@ -1,7 +1,7 @@
 module
 
 public import Banos2019.Quartet.Reduction
-public import Banos2019.Quartet.Concrete
+public import Banos2019.Quartet.Fig17
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!
@@ -68,6 +68,192 @@ def InducesNetwork {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuar
     (G : SemidirectedNetwork (Fin 8) (Fin 8) X) (μ : MetricData (Fin 8)) : Prop :=
   Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) G μ)
 
+/-! ### The parameters of a figure and its rootings -/
+
+omit [Fintype V] [DecidableEq X] in
+/-- The lengths of a figure that an LSA quartet network induces are positive. -/
+theorem InducesNetwork.len_pos {Q : RootedNetwork V E X} {θ : MetricData E} {hQ : IsLSAQuartet Q θ}
+    {G : SemidirectedNetwork (Fin 8) (Fin 8) X} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hiso : InducesNetwork hQ G (figMetric len γ)) (i : Fin 8) : 0 < len i := by
+  obtain ⟨φ⟩ := hiso
+  have h := φ.length (φ.edge.symm i)
+  rw [Equiv.apply_symm_apply] at h
+  show 0 < (figMetric len γ).length i
+  rw [h]
+  simp only [unrootedMetric, semidirectedMetric]
+  split_ifs
+  · exact add_pos (hQ.metric.2 _) (hQ.metric.2 _)
+  · exact hQ.metric.2 _
+
+/-- The inheritance probability `γ` of the hybrid edge `6` of a figure that an LSA quartet network
+induces is in `(0, 1)`: it is that of a hybrid edge of the network. -/
+theorem InducesNetwork.inheritance_mem_Ioo {Q : RootedNetwork V E X} {θ : MetricData E}
+    {hQ : IsLSAQuartet Q θ} {src tgt : Fin 8 → Fin 8} {a b c : X} {len : Fin 8 → ℝ} {γ : ℝ}
+    (hiso : InducesNetwork hQ (figNet src tgt a b c) (figMetric len γ)) : 0 < γ ∧ γ < 1 := by
+  obtain ⟨φ⟩ := hiso
+  have hP := hQ.binary.1
+  have : Nonempty X := hQ.nontrivial.to_nonempty
+  set e := φ.edge.symm 6
+  have hd : hQ.unrooted.IsDirected e := by
+    rw [← φ.isDirected_iff, Equiv.apply_symm_apply]
+    exact Or.inl rfl
+  have hh : Q.IsHybridArc e.1.1 :=
+    (belowNetwork_isHybridArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+      (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+      hP (lsa_spec hP _ _).1 e.1).1 hd
+  have hγ := φ.inheritance e hd
+  rw [Equiv.apply_symm_apply] at hγ
+  have hγ' : γ = θ.inheritance e.1.1 := hγ
+  rw [hγ']
+  exact Banos2019.inheritance_mem_Ioo hQ.binary hQ.metric hh
+
+omit [Fintype X] in
+theorem figLeaf_castSucc (a b c x : X) : (figLeaf a b c x).castSucc = quartetLeaf9 a b c x := by
+  simp only [figLeaf, quartetLeaf9]
+  split_ifs <;> rfl
+
+/-- **The metric unrooted network of `q17` is Figure 17.** -/
+theorem inducesNetwork_q17 {a b c d : X} (h : Distinct4 a b c d) {len : Fin 8 → ℝ} {γ : ℝ}
+    (hQ : IsLSAQuartet (q17 a b c) (q17Metric len γ)) :
+    InducesNetwork hQ (fig17 a b c) (figMetric len γ) := by
+  have hP := hQ.binary.1
+  have hB := hQ.binary.2
+  have hXn := hQ.nontrivial
+  have : Nonempty X := hXn.to_nonempty
+  have hl : lsa hP Set.univ Set.univ_nonempty = 8 :=
+    IsLeastStableAncestor.unique hP (lsa_spec hP _ _) (q17_isLSANetwork h)
+  have hr : (rootTreeArc hP hB hXn).1 = 8 := by
+    obtain ⟨hs, ht⟩ := rootTreeArc_spec hP hB hXn
+    have hs' : q17Src (rootTreeArc hP hB hXn).1 = 8 := by
+      rw [← hl]
+      exact congrArg Subtype.val hs
+    have ht' : (q17 a b c).IsTreeArc (rootTreeArc hP hB hXn).1 :=
+      (belowNetwork_isTreeArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+        (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+        hP (lsa_spec hP _ _).1 _).1 ht
+    rw [q17_isTreeArc_iff] at ht'
+    have key : ∀ r : Fin 9, q17Src r = 8 → ¬ (r = 6 ∨ r = 7) → r = 8 := by decide
+    exact key _ hs' ht'
+  -- the nodes and the edges of `Q⁻`: those of `q17` but the root and the edge `8`
+  have hv : ∀ v : SemidirectedVertex hP hXn, v.1.1 ≠ Fin.last 8 := fun v hv => v.2 (Subtype.ext
+    (show v.1.1 = lsa hP Set.univ Set.univ_nonempty by rw [hv]; exact hl.symm))
+  have he : ∀ e : SemidirectedArc hP hB hXn, e.1.1 ≠ Fin.last 8 := fun e he =>
+    e.2 (Subtype.ext (by rw [he]; exact hr.symm))
+  let vert : SemidirectedVertex hP hXn ≃ Fin 8 :=
+    { toFun := fun v => v.1.1.castPred (hv v)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun v => v.1) hi
+          simp only at this
+          rw [this]
+          exact hl)⟩
+      left_inv := fun v => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  let edge : SemidirectedArc hP hB hXn ≃ Fin 8 :=
+    { toFun := fun e => e.1.1.castPred (he e)
+      invFun := fun i => ⟨⟨i.castSucc, hl ▸ hP.root_reaches _, mem_ancestralVertices_univ hP _⟩,
+        fun hi => Fin.castSucc_ne_last i (by
+          have := congrArg (fun e => e.1) hi
+          simp only at this
+          rw [this]
+          exact hr)⟩
+      left_inv := fun e => Subtype.ext (Subtype.ext (Fin.castSucc_castPred _ _))
+      right_inv := fun i => by simp }
+  have hvert : ∀ v, (vert v).castSucc = v.1.1 := fun v => Fin.castSucc_castPred _ (hv v)
+  have hedge : ∀ e, (edge e).castSucc = e.1.1 := fun e => Fin.castSucc_castPred _ (he e)
+  -- the ends of the edges of `Q⁻`: the edge `7` from the root is merged into one from `7`
+  have hroot : ∀ e : SemidirectedArc hP hB hXn,
+      (lsaPlus hP hXn).graph.source e.1 = (lsaPlus hP hXn).root ↔ q17Src e.1.1 = 8 := by
+    intro e
+    rw [← hl]
+    exact ⟨fun h => congrArg Subtype.val h, fun h => Subtype.ext h⟩
+  have hsrc : ∀ e, (hQ.unrooted.graph.source e).1.1 =
+      if q17Src e.1.1 = 8 then 7 else q17Src e.1.1 := by
+    intro e
+    show ((unrootAt (lsaPlus hP hXn) (lsaPlus_isPhylogenetic hP hXn)
+      (rootTreeArc hP hB hXn)).graph.source e).1.1 = _
+    simp only [unrootAt]
+    by_cases h8 : q17Src e.1.1 = 8
+    · rw [dite_eq_left ((hroot e).2 h8), ite_eq_left h8]
+      show q17Tgt (rootTreeArc hP hB hXn).1 = 7
+      rw [hr]
+      rfl
+    · rw [dite_eq_right (fun h' => h8 ((hroot e).1 h')), ite_eq_right h8]
+      rfl
+  have htgt : ∀ e, (hQ.unrooted.graph.target e).1.1 = q17Tgt e.1.1 := fun e => rfl
+  have hdir : ∀ e, hQ.unrooted.IsDirected e ↔ e.1.1 = 6 ∨ e.1.1 = 7 := fun e =>
+    ((belowNetwork_isHybridArc_iff (hl := lsa_mem_ancestralVertices hP Set.univ_nonempty)
+      (hleaf := fun _ hx => (lsa_spec hP Set.univ Set.univ_nonempty).1.reaches_leaf hP hx)
+      hP (lsa_spec hP _ _).1 e.1).trans (q17_isHybridArc_iff e.1.1))
+  -- the edge `4` of Figure 17 is the edge `7 → 4` of `q17` read the other way
+  have fjoin : ∀ j : Fin 8,
+      (((fig17 a b c).graph.source j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
+        ((fig17 a b c).graph.target j).castSucc = q17Tgt j.castSucc) ∨
+      (((fig17 a b c).graph.source j).castSucc = q17Tgt j.castSucc ∧
+        ((fig17 a b c).graph.target j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc)) := by
+    show ∀ j : Fin 8,
+      (((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
+        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc) ∨
+      (((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc ∧
+        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc))
+    decide
+  have fdir : ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      ((fig17 a b c).graph.source j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
+        ((fig17 a b c).graph.target j).castSucc = q17Tgt j.castSucc := by
+    show ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      ((![4, 5, 6, 7, 4, 4, 5, 7] : Fin 8 → Fin 8) j).castSucc =
+          (if q17Src j.castSucc = 8 then 7 else q17Src j.castSucc) ∧
+        ((![0, 1, 2, 3, 7, 5, 6, 6] : Fin 8 → Fin 8) j).castSucc = q17Tgt j.castSucc
+    decide
+  have hS : ∀ e, (vert (hQ.unrooted.graph.source e)).castSucc =
+      if q17Src (edge e).castSucc = 8 then 7 else q17Src (edge e).castSucc := fun e => by
+    rw [hvert, hsrc, hedge]
+  have hT : ∀ e, (vert (hQ.unrooted.graph.target e)).castSucc = q17Tgt (edge e).castSucc :=
+    fun e => by rw [hvert, htgt, hedge]
+  refine ⟨⟨⟨vert, edge, fun e => ?_, fun e => ?_, fun e hd => ?_, fun x => ?_⟩, fun e => ?_,
+    fun e _ => ?_⟩⟩
+  · rw [hdir, ← hedge e]
+    show edge e = 6 ∨ edge e = 7 ↔ _
+    generalize edge e = j
+    revert j
+    decide
+  · rcases fjoin (edge e) with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
+    · exact Or.inl ⟨Fin.castSucc_injective _ (by rw [h₁, hS]),
+        Fin.castSucc_injective _ (by rw [h₂, hT])⟩
+    · exact Or.inr ⟨Fin.castSucc_injective _ (by rw [h₁, hT]),
+        Fin.castSucc_injective _ (by rw [h₂, hS])⟩
+  · have hj : edge e = 6 ∨ edge e = 7 := by
+      rw [hdir, ← hedge e] at hd
+      rcases hd with h' | h'
+      · exact Or.inl (Fin.castSucc_injective _ h')
+      · exact Or.inr (Fin.castSucc_injective _ h')
+    obtain ⟨h₁, h₂⟩ := fdir _ hj
+    exact ⟨Fin.castSucc_injective _ (by rw [h₁, hS]), Fin.castSucc_injective _ (by rw [h₂, hT])⟩
+  · apply Fin.castSucc_injective
+    rw [hvert]
+    exact figLeaf_castSucc a b c x
+  · simp only [figMetric, unrootedMetric, semidirectedMetric]
+    rw [hr, ← hedge e]
+    split_ifs with h8
+    · have h8' : q17Src (edge e).castSucc = 8 := by rw [hedge e]; exact (hroot e).1 h8
+      have h7 : edge e = 7 := by
+        have key : ∀ j : Fin 8, q17Src j.castSucc = 8 → j = 7 := by decide
+        exact key _ h8'
+      rw [h7]
+      simp [q17Metric]
+    · have h8' : q17Src (edge e).castSucc ≠ 8 := fun h' => h8 ((hroot e).2 (by rwa [← hedge e]))
+      generalize edge e = j at h8'
+      fin_cases j <;> first | exact absurd (by decide) h8' | simp [q17Metric]
+  · show (figMetric len γ).inheritance (edge e) = (q17Metric len γ).inheritance e.1.1
+    rw [← hedge e]
+    generalize edge e = j
+    fin_cases j <;> simp [figMetric, q17Metric]
+
 /-- **Example 2** (`ex:2_2`): the concordance factors of the `2₂`-cycle of Figure 15, with `xᵢ = e^{-tᵢ}`:
 `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂x₃) + 2γ(1-γ)(1 - ⅔x₁x₂) + γ²(1 - ⅔x₁x₂x₄)` and
 `CF_{AC|BD} = CF_{AD|BC} = (1-γ)²(⅓x₁x₂x₃) + 2γ(1-γ)(⅓x₁x₂) + γ²(⅓x₁x₂x₄)`. -/
@@ -107,7 +293,43 @@ theorem example4 {a b c d : X} (h : Distinct4 a b c d) {Q : RootedNetwork V E X}
     CF Q θ a b c d h =
       ((1 - γ) * (1 - 2 / 3 * x₁) + γ * (1 / 3 * x₂), (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * x₂),
         (1 - γ) * (1 / 3 * x₁) + γ * (1 - 2 / 3 * x₂)) := by
-  sorry
+  intro x₁ x₂
+  -- the decidable equality of the statement is the classical one
+  obtain rfl : ‹DecidableEq X› = fun a b => Classical.propDecidable (a = b) := Subsingleton.elim _ _
+  -- the rooting `q17` of Figure 17, with the same concordance factors (Proposition 5)
+  have hX := hQ.card_taxa
+  have hlen := hiso.len_pos
+  obtain ⟨hγ₀, hγ₁⟩ := hiso.inheritance_mem_Ioo
+  have hQ' := isLSAQuartet_q17 hX h hlen hγ₀ hγ₁
+  have hcf := proposition5 hQ hQ' ⟨hiso.some.trans (inducesNetwork_q17 h hQ').some.symm⟩
+  -- Lemma 10 at the 4-cycle of `q17`, with the hybrid edges `6` (`γ`) and `7`
+  obtain ⟨k, hct⟩ := inducesCycleType_q17 (a := a) (b := b) (c := c)
+  have hL := fun q => lemma10 hQ' (Or.inl ⟨k, hct⟩) (h₁ := 6) (h₂ := 7) (by decide) rfl rfl q
+  -- the two trees `Q₁⊕`, `Q₂⊕` (equation (1))
+  obtain ⟨s₁, s₂, s₃⟩ := cf_deleteArc_q17_seven hX h hlen hγ₀ hγ₁
+  obtain ⟨u₁, u₂, u₃⟩ := cf_deleteArc_q17_six hX h hlen hγ₀ hγ₁
+  have hinh : (q17Metric len γ).inheritance 6 = γ := rfl
+  show (cf Q θ _, cf Q θ _, cf Q θ _) = _
+  rw [hcf, hL, hL, hL, hinh]
+  refine Prod.ext ?_ (Prod.ext ?_ ?_)
+  · have key : γ * cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
+          (quartetTree a b c d h) + (1 - γ) * cf (deleteArc (q17 a b c) 6)
+          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) (quartetTree a b c d h) =
+        (1 - γ) * (1 - 2 / 3 * x₁) + γ * (1 / 3 * x₂) := by
+      rw [s₂, u₁]; ring
+    convert key using 5
+  · have key : γ * cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
+          (quartetTree a c b d (distinct4_acbd h)) + (1 - γ) * cf (deleteArc (q17 a b c) 6)
+          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) (quartetTree a c b d (distinct4_acbd h)) =
+        (1 - γ) * (1 / 3 * x₁) + γ * (1 / 3 * x₂) := by
+      rw [s₃, u₂]; ring
+    convert key using 5
+  · have key : γ * cf (deleteArc (q17 a b c) 7) (deleteArcMetric (q17 a b c) 7 (q17Metric len γ))
+          (quartetTree a d b c (distinct4_adbc h)) + (1 - γ) * cf (deleteArc (q17 a b c) 6)
+          (deleteArcMetric (q17 a b c) 6 (q17Metric len γ)) (quartetTree a d b c (distinct4_adbc h)) =
+        (1 - γ) * (1 / 3 * x₁) + γ * (1 - 2 / 3 * x₂) := by
+      rw [s₁, u₃]; ring
+    convert key using 5
 
 /-- **Example 5** (`ex:3_2`): the concordance factors of the `3₂`-cycle of Figure 18:
 `CF_{AB|CD} = (1-γ)²(1 - ⅔x₁x₂) + 2γ(1-γ)(1 - x₁ + ⅓x₁x₃) + γ²(1 - ⅔x₁x₄)` and

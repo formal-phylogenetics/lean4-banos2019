@@ -35,17 +35,6 @@ variable {V E X : Type*}
 def halfInheritanceMetric (N : RootedNetwork V E X) (ℓ : E → ℝ) : MetricData E :=
   ⟨ℓ, fun e => if N.IsHybridArc e then 1 / 2 else 1⟩
 
-/-- In a binary network, a node with two entering edges has exactly two. -/
-theorem indegree_eq_two_of_two_le {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) {v : V}
-    (hv : 2 ≤ N.graph.indegree v) : N.graph.indegree v = 2 := by
-  obtain ⟨-, -, -, -, -, hr0, -, hleaf, -, hother⟩ := (isBinaryRootedNetwork_iff N).1 hN
-  have hvr : v ≠ N.root := by rintro rfl; omega
-  have hvl : v ∉ Set.range N.leaf := by
-    rintro ⟨x, rfl⟩
-    have := (hleaf x).1
-    omega
-  rcases hother v hvr hvl with h | h <;> omega
-
 /-- `halfInheritanceMetric` with positive lengths is a metric. -/
 theorem isMetricNetwork_halfInheritanceMetric [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) {ℓ : E → ℝ} (hℓ : ∀ e, 0 < ℓ e) :
@@ -68,39 +57,6 @@ theorem isMetricNetwork_halfInheritanceMetric [Fintype E] {N : RootedNetwork V E
       rw [← h2, indegree_eq_card_filter_target]
     rw [hc]
     norm_num
-
-/-- A hybrid edge of a binary network has inheritance probability in `(0, 1)`. -/
-theorem inheritance_mem_Ioo [Fintype E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
-    {θ : MetricData E} (hθ : IsMetricNetwork N θ) {h : E} (hh : N.IsHybridArc h) :
-    0 < θ.inheritance h ∧ θ.inheritance h < 1 := by
-  obtain ⟨⟨-, -, -, hpos, hsum⟩, -⟩ := hθ
-  refine ⟨hpos h hh, ?_⟩
-  have h2 := indegree_eq_two_of_two_le hN hh
-  have hs := hsum _ hh
-  rw [← Finset.sum_filter] at hs
-  have hmem : h ∈ univ.filter fun e => N.graph.target e = N.graph.target h := by simp
-  have hc : (univ.filter fun e => N.graph.target e = N.graph.target h).card = 2 := by
-    rw [← h2, indegree_eq_card_filter_target]
-  obtain ⟨h', hh', hne⟩ : ∃ h' ∈ univ.filter (fun e => N.graph.target e = N.graph.target h), h' ≠ h := by
-    by_contra hcon
-    have : (univ.filter fun e => N.graph.target e = N.graph.target h) ⊆ {h} := fun e he =>
-      mem_singleton.2 (by_contra fun hne => hcon ⟨e, he, hne⟩)
-    have := card_le_card this
-    rw [hc, card_singleton] at this
-    omega
-  have hh'' : N.IsHybridArc h' := by
-    unfold IsHybridArc
-    rw [(mem_filter.1 hh').2]
-    exact hh
-  rw [← Finset.add_sum_erase _ _ hmem] at hs
-  have : θ.inheritance h' ≤ ∑ e ∈ (univ.filter fun e => N.graph.target e = N.graph.target h).erase h,
-      θ.inheritance e := by
-    refine Finset.single_le_sum (f := θ.inheritance) (fun e he => ?_) (mem_erase.2 ⟨hne, hh'⟩)
-    refine (hpos e ?_).le
-    unfold IsHybridArc
-    rw [(mem_filter.1 (mem_of_mem_erase he)).2]
-    exact hh
-  linarith [hpos h' hh'']
 
 variable [Fintype V] [Fintype E] [Fintype X]
 
