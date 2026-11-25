@@ -775,4 +775,28 @@ theorem card_cycleNodesOffRoot_le (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOn
 
 end Several
 
+section Exit
+
+variable {N : RootedNetwork V E X}
+
+/-- **Below an arc leaving a cycle**: the target `y` of an arc `g` off a cycle `C` leaving a node of
+`C` has `g` as its only parent arc and is a cut vertex. A second parent arc, or an arc entering the
+part below `y` from outside, would give a cycle through `g` (`exists_isCycle_of_target_eq`,
+`reaches_source_of_below`), which shares a node with `C` and is therefore `C` (Lemma 3). -/
+theorem isCut_target_of_exit (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) {C : Set E}
+    (hC : IsCycle N.graph C) {w : V} (hw : w ∈ cycleNodes N.graph C) {g : E}
+    (hg : N.graph.source g = w) (hgC : g ∉ C) :
+    IsCut N (N.graph.target g) ∧ ∀ e, N.graph.target e = N.graph.target g → e = g := by
+  have := hN.1.finite_arcs
+  have hcycle : ∀ C', IsCycle N.graph C' → g ∈ C' → False := fun C' hC' hgC' =>
+    hgC ((lemma3 hN h1 hC).2.2 C' hC' ⟨w, hw, hg ▸ source_mem_cycleNodes hgC'⟩ ▸ hgC')
+  refine ⟨⟨fun hr => hN.1.target_ne_root g (eq_of_reaches_of_reaches hN.1.acyclic hr
+      (hN.1.root_reaches _)), fun e he hne => reaches_source_of_below hN h1
+      (fun C' hC' _ hin _ _ _ => (hcycle C' hC' (hin g rfl)).elim) he hne⟩, fun e he => ?_⟩
+  by_contra hne
+  obtain ⟨C', hC', -, hgC'⟩ := exists_isCycle_of_target_eq hN h1 hne he
+  exact hcycle C' hC' hgC'
+
+end Exit
+
 end Banos2019

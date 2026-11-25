@@ -463,4 +463,78 @@ theorem cherryMass_cutInj_eq_upperLaw {N : RootedNetwork V E X} {r : V} {p : E}
 
 end Upper
 
+section Valid
+
+variable {N : RootedNetwork V E X} {v : V} {h₁ h₂ : E}
+
+omit [Fintype V] [Fintype E] in
+/-- **The forests at the sources of the hybrid arcs make a valid injection** when they are binary
+forests on disjoint sets of lineages that no other vertex carries, at distinct vertices carrying
+nothing else. -/
+theorem validInj_hybInj {inj : V → Finset (Finset X)} (hinj : ValidInj inj)
+    {t₁ t₂ : Finset (Finset X)} (hg₁ : IsGoodForest t₁) (hg₂ : IsGoodForest t₂)
+    (hd : Disjoint (lineages t₁) (lineages t₂)) (hs : N.graph.source h₁ ≠ N.graph.source h₂)
+    (he₁ : inj (N.graph.source h₁) = ∅) (he₂ : inj (N.graph.source h₂) = ∅)
+    (hl : ∀ x, x ∈ lineages t₁ ∨ x ∈ lineages t₂ → ∀ u, ¬ N.graph.Reaches v u →
+      x ∉ lineages (inj u)) :
+    ValidInj (hybInj N v h₁ h₂ inj t₁ t₂) := by
+  have hmem : ∀ u x, x ∈ lineages (hybInj N v h₁ h₂ inj t₁ t₂ u) ↔ ¬ N.graph.Reaches v u ∧
+      (x ∈ lineages (inj u) ∨ (u = N.graph.source h₁ ∧ x ∈ lineages t₁) ∨
+        (u = N.graph.source h₂ ∧ x ∈ lineages t₂)) := by
+    intro u x
+    unfold hybInj
+    split_ifs with h hu₁ hu₂ hu₂ <;> simp_all
+  refine ⟨fun u => ?_, fun u u' huu => disjoint_left.2 fun x hx hx' => ?_⟩
+  · unfold hybInj
+    split_ifs with h hu₁ hu₂ hu₂
+    · exact isGoodForest_empty
+    · exact absurd (hu₁.symm.trans hu₂) hs
+    · rw [hu₁, he₁, empty_union, union_empty]
+      exact hg₁
+    · rw [hu₂, he₂, empty_union, empty_union]
+      exact hg₂
+    · rw [union_empty, union_empty]
+      exact hinj.good u
+  · rw [hmem] at hx hx'
+    obtain ⟨hvu, hx⟩ := hx
+    obtain ⟨hvu', hx'⟩ := hx'
+    rcases hx with hx | ⟨rfl, hx⟩ | ⟨rfl, hx⟩ <;> rcases hx' with hx' | ⟨rfl, hx'⟩ | ⟨rfl, hx'⟩
+    · exact disjoint_left.1 (hinj.disj u u' huu) hx hx'
+    · exact hl x (Or.inl hx') u hvu hx
+    · exact hl x (Or.inr hx') u hvu hx
+    · exact hl x (Or.inl hx) u' hvu' hx'
+    · exact huu rfl
+    · exact disjoint_left.1 hd hx hx'
+    · exact hl x (Or.inr hx) u' hvu' hx'
+    · exact disjoint_left.1 hd hx' hx
+    · exact huu rfl
+
+end Valid
+
+/-- **Singletons do not change `quartetValue`**: they are neither clusters of two lineages nor
+cherries. -/
+theorem quartetValue_union_of_card_eq_one (q : QuartetTree X) {S F : Finset (Finset X)}
+    (hS : ∀ C ∈ S, #C = 1) : quartetValue q (S ∪ F) = quartetValue q F := by
+  unfold quartetValue
+  have h2 : (∃ C ∈ S ∪ F, #C = 2) ↔ ∃ C ∈ F, #C = 2 := by
+    constructor
+    · rintro ⟨C, hC, h⟩
+      rcases mem_union.1 hC with hC | hC
+      · rw [hS C hC] at h
+        omega
+      · exact ⟨C, hC, h⟩
+    · rintro ⟨C, hC, h⟩
+      exact ⟨C, mem_union_right _ hC, h⟩
+  have hq : (∃ C ∈ S ∪ F, C ∈ q.val) ↔ ∃ C ∈ F, C ∈ q.val := by
+    constructor
+    · rintro ⟨C, hC, h⟩
+      rcases mem_union.1 hC with hC | hC
+      · have := q.card_of_mem h
+        rw [hS C hC] at this
+        omega
+      · exact ⟨C, hC, h⟩
+    · rintro ⟨C, hC, h⟩
+      exact ⟨C, mem_union_right _ hC, h⟩
+  simp only [h2, hq]
+
 end Banos2019
