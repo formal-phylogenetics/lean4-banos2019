@@ -149,7 +149,55 @@ theorem exists_fig18 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQu
     {a b : X} (hab : a ≠ b) (hD : {x | Q.graph.Reaches v (Q.leaf x)} = {a, b}) :
     ∃ (c d : X) (h : Distinct4 a b c d) (len : Fin 8 → ℝ) (γ : ℝ), (∀ i, 0 < len i) ∧ 0 < γ ∧
       γ < 1 ∧ InducesNetwork hQ (fig18 a b c) (figMetric len γ) := by
-  sorry
+  -- `Q⊕` is one of four rootings of Figure 18, the root on the edge `m` of the figure
+  obtain ⟨c, d, h4, s, φ, hr⟩ := exists_rootedIso_threeTwo hQ hC hone hab hD
+  set m : Fin 8 := (![6, 5, 3, 3] : Fin 4 → Fin 8) s with hm
+  -- the lengths of the figure: those of the arcs, the two arcs at the root added
+  set len : Fin 8 → ℝ := fun j => if j = m then θ.length (φ.arc m.castSucc) + θ.length (φ.arc 8)
+    else θ.length (φ.arc j.castSucc) with hlen_def
+  set γ := θ.inheritance (φ.arc 6) with hγ
+  have hlen : ∀ i, 0 < len i := fun i => by
+    simp only [hlen_def]
+    split_ifs
+    · exact add_pos (hQ.metric.2 _) (hQ.metric.2 _)
+    · exact hQ.metric.2 _
+  -- the hybrid arcs `6` and `7` into the node `5`
+  have hv5 : ∀ j : Fin 9, j = 6 ∨ j = 7 → Q.graph.target (φ.arc j) = φ.vert 5 := by
+    rintro j (rfl | rfl) <;> rw [φ.target] <;> fin_cases s <;> rfl
+  have h67 : φ.arc 6 ≠ φ.arc 7 := fun h => by
+    have := φ.arc.injective h
+    exact absurd this (by decide)
+  have h2 : Q.graph.indegree (φ.vert 5) = 2 := by
+    refine le_antisymm (hQ.binary.indegree_le_two _) ?_
+    rw [← hv5 6 (Or.inl rfl)]
+    exact two_le_indegree_of_two_targets hQ.binary h67 rfl
+      ((hv5 7 (Or.inr rfl)).trans (hv5 6 (Or.inl rfl)).symm)
+  have hhyb6 : Q.IsHybridArc (φ.arc 6) := by
+    unfold IsHybridArc
+    rw [hv5 6 (Or.inl rfl), h2]
+  obtain ⟨hγ₀, hγ₁⟩ := inheritance_mem_Ioo hQ.binary hQ.metric hhyb6
+  have hsum := inheritance_add_eq_one hQ.metric.1 h2 h67 (hv5 6 (Or.inl rfl)) (hv5 7 (Or.inr rfl))
+  refine ⟨c, d, h4, len, γ, hlen, hγ₀, hγ₁, ?_⟩
+  have hlenm : θ.length (φ.arc m.castSucc) + θ.length (φ.arc 8) = len m := by
+    simp only [hlen_def, if_pos rfl]
+  have hlen' : ∀ j : Fin 8, j ≠ m → θ.length (φ.arc j.castSucc) = len j := fun j hj => by
+    simp only [hlen_def, if_neg hj]
+  have hinh : ∀ j : Fin 8, j = 6 ∨ j = 7 →
+      (figMetric len γ).inheritance j = θ.inheritance (φ.arc j.castSucc) := by
+    rintro j (rfl | rfl)
+    · rfl
+    · show 1 - γ = θ.inheritance (φ.arc 7)
+      linarith
+  -- the figure from the rooting (`inducesNetwork_of_rootedIso`)
+  fin_cases s
+  · exact inducesNetwork_of_rootedIso hQ φ hr (by decide) (by decide) (by decide) (by decide)
+      hlenm hlen' hinh
+  · exact inducesNetwork_of_rootedIso hQ φ hr (by decide) (by decide) (by decide) (by decide)
+      hlenm hlen' hinh
+  · exact inducesNetwork_of_rootedIso hQ φ hr (by decide) (by decide) (by decide) (by decide)
+      hlenm hlen' hinh
+  · exact inducesNetwork_of_rootedIso hQ φ hr (by decide) (by decide) (by decide) (by decide)
+      hlenm hlen' hinh
 
 /-! ### Orderings kept by convex combinations -/
 
