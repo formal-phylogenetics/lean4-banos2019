@@ -26,13 +26,14 @@ proofs use are in `Identify/`: the blocks of a cycle (`Identify/Blocks.lean`,
 `N⁻` induces in `Q⁻_s` (`Identify/QuartetCycles.lean`). The network refuting Proposition 13 as printed
 is in `Identify/Counterexample.lean`.
 
-The induction of Theorem 4 is in `Identify/TildeInduction.lean` (`tildeDetermined`), on: its claim and
+The induction of Theorem 4 is in `Identify/TildeInduction.lean` (`tildeDeterminedData`), on: its
 generic conditions (`Identify/TildeDefs.lean`, `Identify/NonDegenerate.lean`), the base case
 (`Identify/TildeBase.lean`, with `Identify/TreeIso.lean`), the induced networks
 (`Identify/InducedCycles.lean`), the gluing of two networks at leaves (`Identify/Glue.lean`), the tree
 of cycles (`Identify/TreeOfCycles.lean`), the leaf cycle and a cycle whose blocks are single taxa
-(`Identify/TildeCycle.lean`), and the counterpart of a
-cycle in a network with the same orderings (`Identify/SameData.lean`).
+(`Identify/TildeCycle.lean`), and the cycle data that Lemmas 15 and 16 give and that pass to the
+induced networks (`Identify/SameData.lean`, with the order of the blocks of their cycles in
+`Identify/InducedOrder.lean`).
 -/
 
 @[expose] public noncomputable section
@@ -149,10 +150,14 @@ theorem lemma16 (hX : Nontrivial X) :
             Determines hN s hs.1 w.1.1 → ∀ x y,
               (A (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
                 AdjacentBlocks (unrooted N hN hX) C x y) := by
-  refine ⟨adjacencyOf, ?_⟩
+  -- the blocks, the size and the hybrid block of the cycle, from `S` (Lemma 15)
+  obtain ⟨B, K, H, h15⟩ := lemma15 hX
+  refine ⟨adjacencyOf B K H, ?_⟩
   intro V E _ _ N hN h1
-  refine (lemma12 hN h1 hX).mono fun θ h12 hθ s hs C w hC hw hdet x y => ?_
-  exact lemma16_core hN h1 hX hθ (fun s h4 => by convert h12 hθ s h4) hs hC hw hdet x y
+  refine ((h15 V E N hN h1).and (lemma12 hN h1 hX)).mono
+    fun θ ⟨h15θ, h12⟩ hθ s hs C w hC hw hdet x y => ?_
+  obtain ⟨hB, hK, hH⟩ := h15θ hθ s hs C w hC hw hdet
+  exact lemma16_core hN h1 hX hθ (fun s h4 => by convert h12 hθ s h4) hs hC hw hdet hB hK hH x y
 
 /-- **Theorem 4** (`thm::main`): under the network multispecies coalescent, for generic parameters, the
 orderings of the quartet concordance factors identify the semidirected topological network `Ñ` obtained
@@ -162,24 +167,28 @@ of the parameters of each network, which holds for generic parameters, such that
 the same taxa, with parameters satisfying `G` and the same orderings of concordance factors, have
 isomorphic networks `Ñ`.
 
-The proof is the paper's induction on the number of cycles of size at least four of `N₁⁻`
-(`tildeDetermined`, `Identify/TildeInduction.lean`), with `G` the conditions `GoodParams`, which hold
-for generic parameters (`forGenericParams_goodParams`). Without such a cycle, `Ñ₁` and `Ñ₂` are trees,
-the orderings give the quartet trees they display, and these determine the trees (Semple and Steel
-2003; `tildeDetermined_zero`). With one cycle `C_v`, Lemmas 15 and 16 give a cycle of `N₂⁻` with the
-same blocks, size, order of the blocks and, for size at least five, hybrid block
-(`exists_bigCycle_sameData`). When the blocks are single taxa, `Ñ` is that cycle with a taxon at each
-node (`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block `P_u` of at least two taxa,
-read from the network induced on `P_u ∪ {q}` with an outgroup `q`, is joined to the node `u`: `Ñ` is
-the gluing at `u` of the networks `Ñ` of the networks induced on `P_u ∪ {q}`, which has no cycle of
-size at least four, and on the other taxa with one taxon of `P_u`, which has fewer taxa
-(`tildeDetermined_one`, by induction on the number of taxa). With more cycles, following Definition 13,
-a leaf of `T`, the tree of cycles of `Ñ`, arises from a cycle `C_v` all of whose `v`-blocks but one,
-`S_2`, the block of a node `u`, are 4-network blocks (`exists_leaf_bigCycle`); every other cycle of
-size at least four then has the taxa of `S_1 = X ∖ S_2` in one of its blocks. The networks `Ñ` of the
-networks induced on `S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}` have fewer cycles of size at least four, and
-`Ñ` is obtained by identifying `s_1` in one with `s_2` in the other and suppressing that node
-(`tildeDetermined_of_lt`, `tilde_sdIso_glue`, `glue_congr`).
+The proof is the paper's. `G` is the conditions `GoodParams`, which hold for generic parameters
+(`forGenericParams_goodParams`), with the conclusions of Lemmas 15 and 16 for the functions these
+lemmas give (`GivesBlocks`, `GivesAdjacency`). Lemmas 15 and 16 give the cycle data: every cycle of
+size at least four of `N₁⁻` has a cycle of `N₂⁻` with the same blocks, size, order of the blocks and,
+for size at least five, hybrid block (`sameCycleData_of_gives`), and these data pass to the networks
+induced on sets of taxa (`SameCycleData.inducedLSA`). The induction is on the number of cycles of
+size at least four of `N₁⁻` (`tildeDeterminedData`, `Identify/TildeInduction.lean`). Without such a
+cycle, `Ñ₁` and `Ñ₂` are trees, the orderings give the quartet trees they display, and these
+determine the trees (Semple and Steel 2003; `tildeDetermined_zero`). With one cycle `C_v`, the cycle
+data give a cycle of `N₂⁻` with the same blocks, size, order of the blocks and hybrid block. When the
+blocks are single taxa, `Ñ` is that cycle with a taxon at each node
+(`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block `P_u` of at least two taxa, read
+from the network induced on `P_u ∪ {q}` with an outgroup `q`, is joined to the node `u`: `Ñ` is the
+gluing at `u` of the networks `Ñ` of the networks induced on `P_u ∪ {q}`, which has no cycle of size
+at least four, and on the other taxa with one taxon of `P_u`, which has fewer taxa
+(`tildeDeterminedData_one`, by induction on the number of taxa). With more cycles, following
+Definition 13, a leaf of `T`, the tree of cycles of `Ñ`, arises from a cycle `C_v` all of whose
+`v`-blocks but one, `S_2`, the block of a node `u`, are 4-network blocks (`exists_leaf_bigCycle`);
+every other cycle of size at least four then has the taxa of `S_1 = X ∖ S_2` in one of its blocks.
+The networks `Ñ` of the networks induced on `S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}` have fewer cycles of
+size at least four, and `Ñ` is obtained by identifying `s_1` in one with `s_2` in the other and
+suppressing that node (`tildeDeterminedData_of_lt`, `tilde_sdIso_glue`, `glue_congr`).
 
 The induced networks `N⁻_{S_i ∪ {s_j}}` (Definition 10) are read as `(N⊕_Y)⁻`, the network `N⁻` of the
 induced LSA network on `Y`, as `Q⁻_s` is for quartets (Section 5): the two are isomorphic
@@ -205,10 +214,19 @@ theorem theorem4 (hX : Nontrivial X) :
         ∀ θ₁ θ₂, IsMetricNetwork N₁ θ₁ → IsMetricNetwork N₂ θ₂ → G V₁ E₁ N₁ θ₁ → G V₂ E₂ N₂ θ₂ →
           SameOrdering (cf N₁ θ₁) (cf N₂ θ₂) →
           Nonempty (SDIso (tildeNetwork (unrooted N₁ hN₁ hX)) (tildeNetwork (unrooted N₂ hN₂ hX))) := by
-  refine ⟨fun V E _ _ N θ => GoodParams hX N θ, fun V E _ _ N hN h1 =>
-    forGenericParams_goodParams hN h1 hX, ?_⟩
+  -- the functions of Lemmas 15 and 16
+  obtain ⟨B, K, H, h15⟩ := lemma15 hX
+  obtain ⟨A, h16⟩ := lemma16 hX
+  refine ⟨fun V E _ _ N θ => GoodParams hX N θ ∧ ∀ hN : IsBinaryRootedNetwork N,
+      IsLevelOne N.graph → GivesBlocks B K H hN hX θ ∧ GivesAdjacency A hN hX θ,
+    fun V E _ _ N hN h1 => (forGenericParams_goodParams hN h1 hX).and
+      (((h15 V E N hN h1).and (h16 V E N hN h1)).mono fun θ h _ _ => h), ?_⟩
   intro V₁ E₁ V₂ E₂ _ _ _ _ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord
-  exact tildeDetermined _ X hX V₁ E₁ V₂ E₂ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁ hG₂ hord rfl
+  obtain ⟨h15₁, h16₁⟩ := hG₁.2 hN₁ h1₁
+  obtain ⟨h15₂, h16₂⟩ := hG₂.2 hN₂ h1₂
+  -- the cycle data that Lemmas 15 and 16 give, and the induction
+  exact tildeDeterminedData _ X hX V₁ E₁ V₂ E₂ N₁ N₂ hN₁ hN₂ h1₁ h1₂ θ₁ θ₂ hθ₁ hθ₂ hG₁.1 hG₂.1 hord
+    (sameCycleData_of_gives hN₁ hN₂ h1₁ h1₂ hX hθ₁ hθ₂ hG₁.1 hG₂.1 hord h15₁ h15₂ h16₁ h16₂) rfl
 
 variable {V E : Type*} [Fintype V] [Fintype E]
 
@@ -296,9 +314,13 @@ satisfy the Big Cycle property (Lemma 12); so `e` is in the block of one of `i, 
 Corollary 4, `Q⁻_ijke` has a `3₂`-cycle, which comes from a cycle of `N⁻` with three of `i, j, k, e` in
 distinct blocks: by the added hypothesis, from `C_v`. Its two taxa below the hybrid node are in the
 hybrid block of `C_v`, and the only two of `i, j, k, e` in one block are `g` and `e`.
-Departure from the paper: the step that the two cycles have the same hybrid edges is replaced by the
-added hypothesis, as above; the paper also fixes the order of the cycle by Theorem 4 and the hybrid
-node of `{e, j, k, l}` by Lemma 13 before that step, which the corrected argument does not use. -/
+Departure from the paper (reason 1, the paper's step is wrong): the step that the 4-cycle of `Q⁻_abcd`
+and the `3₂`-cycle of `Q⁻_abce` have the same hybrid edges is false, and is replaced by the added
+hypothesis, as above. The paper prepares that step by fixing the order of the cycle (Theorem 4, the
+labels of Figure 21) and the hybrid node of `{e, j, k, l}` (Lemma 13), so as to compare the hybrid
+edges of the two quartet networks; with the step replaced, the two taxa in the hybrid block are read
+from the `3₂`-cycle, and these preparations are not used.
+-/
 theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} {v : SemidirectedVertex hN.1 hX}
     (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : C.ncard = 4)

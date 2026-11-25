@@ -1,5 +1,6 @@
 module
 
+public import Banos2019.External.SempleSteel2003.Quartets
 public import Banos2019.Structure
 public import Banos2019.Network.SuppressIso
 public import Banos2019.Network.Suppress
@@ -15,9 +16,9 @@ General facts on graphs used by the base case of Theorem 4 (Baños 2019, Section
   edges, the two sides of an edge, degrees (`isTree_ncard_neighborSet`). An isomorphism of the
   simple graphs of two multigraph trees without hybrid edges, fixing the taxa, is an isomorphism of
   the semidirected networks (`nonempty_sdIso_of_iso`).
-* `X`-trees (`SplitsEquivalence.IsXTree`) with leaves labelled injectively: their splits form an
-  unrooted tree (`isUnrootedTree_splitFinset`), which resolves every set of four taxa when the other
-  nodes have degree three (`exists_displays_splitFinset`).
+* `X`-trees (`SplitsEquivalence.IsXTree`) with leaves labelled injectively resolve every set of
+  four taxa when the other nodes have degree three (`exists_displays_splitFinset`): the splits
+  (`External.SempleSteel2003.splitFinset`) display a quartet tree on it.
 * Suppressing the nodes of degree two of a multigraph tree without hybrid edges: every edge is on a
   chain (`exists_isChain_mem`); the result is a multigraph tree (`suppress_isTree`) with the same
   degrees (`degree_suppress`), an `X`-tree (`suppress_xTree`) whose sides of edges are sides of
@@ -227,111 +228,9 @@ end IsoOfGraph
 
 section XTreeSplits
 
-open SplitsEquivalence
+open SplitsEquivalence External.SempleSteel2003
 
 variable {W X : Type*} {T : SimpleGraph W} {φ : X → W}
-
-/-- The sides of the splits of the edges of `T`, as finite sets. -/
-def splitFinset [Fintype X] (T : SimpleGraph W) (φ : X → W) : Finset (Finset X) :=
-  univ.filter fun A => (↑A : Set X) ∈ splitSides T φ
-
-/-- A finite set of taxa is in `splitFinset T φ` exactly when it is a side of a split of `T`. -/
-theorem mem_splitFinset [Fintype X] {A : Finset X} :
-    A ∈ splitFinset T φ ↔ (↑A : Set X) ∈ splitSides T φ := by
-  simp [splitFinset]
-
-/-- A node with a single neighbour `n` reaches only itself without the edge to `n`. -/
-theorem eq_of_reachable_deleteEdges_of_ncard_eq_one {w n z : W}
-    (hw : (T.neighborSet w).ncard = 1) (hn : T.Adj w n)
-    (h : (T.deleteEdges {s(w, n)}).Reachable w z) : z = w := by
-  rw [SimpleGraph.reachable_iff_reflTransGen] at h
-  rcases Relation.ReflTransGen.cases_head h with h | ⟨m, hm, -⟩
-  · exact h.symm
-  · exfalso
-    rw [SimpleGraph.deleteEdges_adj] at hm
-    obtain ⟨y, hy⟩ := Set.ncard_eq_one.1 hw
-    have h1 : n ∈ T.neighborSet w := hn
-    have h2 : m ∈ T.neighborSet w := hm.1
-    rw [hy, Set.mem_singleton_iff] at h1 h2
-    exact hm.2 (by rw [h2, ← h1]; exact Set.mem_singleton _)
-
-/-- The side of the edge at a leaf is its label alone. -/
-theorem sideOf_leaf (hinj : Function.Injective φ) {x : X} (hw : (T.neighborSet (φ x)).ncard = 1)
-    {n : W} (hn : T.Adj (φ x) n) : sideOf T φ s(φ x, n) (φ x) = {x} := by
-  ext y
-  rw [Set.mem_singleton_iff]
-  constructor
-  · intro h
-    exact hinj (eq_of_reachable_deleteEdges_of_ncard_eq_one hw hn h)
-  · rintro rfl
-    exact SimpleGraph.Reachable.refl _
-
-/-- Each side of a split of an `X`-tree is nonempty, and its complement is a side too. -/
-theorem compl_mem_splitSides [Finite W] (hX : IsXTree T φ) {A : Set X}
-    (hA : A ∈ splitSides T φ) : A.Nonempty ∧ Aᶜ.Nonempty ∧ Aᶜ ∈ splitSides T φ := by
-  obtain ⟨e, he, x, rfl⟩ := hA
-  refine ⟨⟨x, SimpleGraph.Reachable.refl _⟩, ?_⟩
-  induction e using Sym2.ind with
-  | _ a b =>
-  have hab : T.Adj a b := he
-  have key : ∀ {a b : W}, T.Adj a b → (T.deleteEdges {s(a, b)}).Reachable a (φ x) →
-      (edgeSide T φ s(a, b) x)ᶜ.Nonempty ∧ (edgeSide T φ s(a, b) x)ᶜ ∈ splitSides T φ := by
-    intro a b hab hax
-    obtain ⟨y, hy⟩ := exists_label_branch hX hab
-    have hnr : ¬ (T.deleteEdges {s(a, b)}).Reachable a b :=
-      not_reachable_deleteEdges hX.isTree.2 hab
-    have hc : (edgeSide T φ s(a, b) x)ᶜ = sideOf T φ s(a, b) b := by
-      rw [edgeSide_eq_sideOf, ← sideOf_eq_of_reachable hax]
-      exact sideOf_compl hX.isTree hab hnr
-    rw [hc]
-    refine ⟨⟨y, hy⟩, s(a, b), hab, y, ?_⟩
-    rw [edgeSide_eq_sideOf]
-    exact sideOf_eq_of_reachable hy
-  rcases reachable_deleteEdges_or hX.isTree.1 a b (φ x) with h | h
-  · exact key hab h
-  · rw [Sym2.eq_swap]
-    exact key hab.symm (by rw [Sym2.eq_swap]; exact h)
-
-/-- The splits of an `X`-tree are pairwise compatible (Semple, Steel 2003, Theorem 3.1.4). -/
-theorem pairwiseCompatible_splitSides [Finite X] [Nonempty X] [Finite W] (hX : IsXTree T φ) :
-    PairwiseCompatible (splitSides T φ) := by
-  obtain ⟨n, T', ⟨f⟩⟩ := exists_iso_fin T
-  exact (exists_xTree_iff (F := splitSides T φ) fun A hA => compl_mem_splitSides hX hA).2
-    ⟨n, T', f ∘ φ, hX.map f, splitSides_map f⟩
-
-/-- **The splits of an `X`-tree with injectively labelled leaves form an unrooted tree.** -/
-theorem isUnrootedTree_splitFinset [Fintype X] [DecidableEq X] [Finite W] (hX : IsXTree T φ)
-    (hinj : Function.Injective φ) (hleaf : ∀ x, (T.neighborSet (φ x)).ncard = 1)
-    (h2 : 2 ≤ Fintype.card X) : IsUnrootedTree (splitFinset T φ) := by
-  have : Nonempty X := Fintype.card_pos_iff.1 (by omega)
-  refine (isUnrootedTree_iff h2 _).2 ⟨fun A hA => ?_, fun A hA => ?_, fun A hA => ?_,
-    fun x => ?_, fun A hA B hB => ?_⟩
-  · obtain ⟨y, hy⟩ := (compl_mem_splitSides hX (mem_splitFinset.1 hA)).1
-    exact ⟨y, hy⟩
-  · obtain ⟨y, hy⟩ := (compl_mem_splitSides hX (mem_splitFinset.1 hA)).2.1
-    exact ⟨y, by simpa using hy⟩
-  · rw [mem_splitFinset, Finset.coe_compl]
-    exact (compl_mem_splitSides hX (mem_splitFinset.1 hA)).2.2
-  · rw [mem_splitFinset, Finset.coe_singleton]
-    obtain ⟨n, hn⟩ := Set.ncard_eq_one.1 (hleaf x)
-    have hadj : T.Adj (φ x) n := by
-      have : n ∈ T.neighborSet (φ x) := by rw [hn]; exact Set.mem_singleton _
-      exact this
-    refine ⟨s(φ x, n), hadj, x, ?_⟩
-    rw [edgeSide_eq_sideOf, sideOf_leaf hinj (hleaf x) hadj]
-  · have hc := pairwiseCompatible_splitSides hX _ (mem_splitFinset.1 hA) _
-      (mem_splitFinset.1 hB)
-    rcases hc with h | h | h | h
-    · refine Or.inr (Or.inr (Or.inl (Finset.disjoint_left.2 fun x hxA hxB => ?_)))
-      exact (Set.eq_empty_iff_forall_notMem.1 h x) ⟨hxA, hxB⟩
-    · exact Or.inl fun x hxA => by_contra fun hxB =>
-        (Set.eq_empty_iff_forall_notMem.1 h x) ⟨hxA, hxB⟩
-    · exact Or.inr (Or.inl fun x hxB => by_contra fun hxA =>
-        (Set.eq_empty_iff_forall_notMem.1 h x) ⟨hxA, hxB⟩)
-    · refine Or.inr (Or.inr (Or.inr (Finset.eq_univ_of_forall fun x => ?_)))
-      by_contra hx
-      rw [Finset.mem_union, not_or] at hx
-      exact (Set.eq_empty_iff_forall_notMem.1 h x) ⟨hx.1, hx.2⟩
 
 /-- A side of a split of `T` meeting the set `q` of four taxa in two taxa gives a quartet tree on
 `q` displayed by the splits of `T`. -/
