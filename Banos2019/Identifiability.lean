@@ -1,6 +1,7 @@
 module
 
-public import Banos2019.CycleProperty
+public import Banos2019.Identify.Generic
+public import Banos2019.Identify.QuartetCycles
 
 /-!
 # Identifying cycles in networks (Baños 2019, Sections 8 and 9)
@@ -34,8 +35,22 @@ def bigCycleEdges {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') : Set E'
 
 variable {X : Type} [Fintype X] [DecidableEq X]
 
+/-- `Y_a` (proof of Lemma 14): the taxa other than `a` of the sets of `S` that contain `a`. -/
+def complementBlock (S : Set (Finset X)) (a : X) : Set X :=
+  ⋃ s ∈ {s | s ∈ S ∧ a ∈ s}, ↑(s.erase a)
+
 /-- **Lemma 14** (`netblo`): for generic parameters, the 4-network blocks of a level-1 network are
-determined by `S`. -/
+determined by `S`.
+
+The proof is the paper's: the 4-network block of `a` is the complement of `Y_a`. A set of four taxa with
+the Big Cycle property is separated by a cycle of size at least four (Lemma 12), so its taxa are in
+distinct 4-network blocks. Conversely, a taxon `b` outside the 4-network block of `a` is in another
+block than `a` of some cycle `C_v` of size at least four (Lemma 4); with taxa `c`, `d` of two other
+blocks, one of the four in the hybrid block, `{a, b, c, d}` has the Big Cycle property (Lemma 12), and
+`b ∈ Y_a`.
+Departure from the paper: the paper leaves out `|X| < 3` ("nothing to prove"; there is no set of four
+taxa when `|X| < 4`) and derives the case `|X| = 4` from Proposition 9, which gives only one of the two
+inclusions; its argument for `|X| ≥ 5` uses no bound on `|X|`, and the proof applies it to every `X`. -/
 theorem lemma14 (hX : Nontrivial X) :
     ∃ F : Set (Finset X) → X → X → Prop,
       ∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X)
@@ -44,7 +59,29 @@ theorem lemma14 (hX : Nontrivial X) :
           (F (bcSets N θ) x y ↔
             SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf
               (bigCycleEdges (unrooted N hN hX)) x y) := by
-  sorry
+  refine ⟨fun S x y => y ∉ complementBlock S x, ?_⟩
+  intro V E _ _ N hN h1
+  refine (lemma12 hN h1 hX).imp fun θ h12 hθ x y => ?_
+  have h12 := h12 hθ
+  constructor
+  · -- a taxon outside the 4-network block of `x` is in `Y_x`
+    intro hy
+    by_contra hnb
+    obtain ⟨C, ⟨hC, hC4⟩, hCxy⟩ := lemma4 (unrooted N hN hX).leaf (unrooted_isConnected hN hX)
+      (unrooted_isLevelOne hN h1 hX)
+      (fun C (hC : C ∈ cyclesOfSizeAtLeast (unrooted N hN hX).graph 4) => hC.1) hnb
+    obtain ⟨v, hv⟩ := exists_isHybridNodeOf h1 hC
+    obtain ⟨c, d, h4, hsep⟩ := exists_separatesQuartet_of_not_sameBlock h1 hC hC4 hv hCxy
+    have hxy : y ≠ x := fun h => hCxy (h ▸ .refl)
+    refine hy (Set.mem_biUnion (x := {x, y, c, d}) ⟨⟨h4, (h12 _ h4).2 ⟨C, v, hC4, hsep⟩⟩, by simp⟩ ?_)
+    simp [hxy]
+  · -- the taxa of a set of `S` are in distinct 4-network blocks
+    intro hsb hy
+    obtain ⟨s, ⟨hsS, hxs⟩, hys⟩ := Set.mem_iUnion₂.1 hy
+    obtain ⟨hyx, hys⟩ := mem_erase.1 hys
+    obtain ⟨C, v, hC4, hsep⟩ := (h12 s hsS.1).1 hsS.2
+    exact hsep.2.2.1 x hxs y hys (Ne.symm hyx)
+      (hsb.mono (Set.subset_sUnion_of_mem (show C ∈ cyclesOfSizeAtLeast _ 4 from ⟨hsep.1, hC4⟩)))
 
 /-- **Lemma 15** (`blov`): for generic parameters, for every set `s ∈ S`, the blocks of the cycle `C_v`
 of `N⁻` whose hybrid node `v` it determines and the size `k_v` of the cycle are determined by `S`, and so
@@ -103,7 +140,16 @@ variable {V E : Type*} [Fintype V] [Fintype E]
 /-- **Proposition 12** (`pub:prop12`; unlabelled in the TeX): for generic parameters, if `s` satisfies the
 Cycle property but not the Big Cycle property, and no `{i, j, k, e}` with `i, j, k ∈ s` distinct satisfies
 the Big Cycle property, then `N⁻` contains a 3-cycle with at least two taxa descending from its hybrid
-node. -/
+node.
+
+The paper's proof: by Proposition 8, `Q⁻_s` has a `3₂`-cycle, so three taxa of `s` are in distinct
+blocks of a cycle `C_v` of `N⁻`; no extension of three of them satisfies the Big Cycle property, so
+`C_v` has size less than four; and by Proposition 7, `C_v` has size three with two taxa of `s` below `v`.
+Departure from the paper: Proposition 8 gives a `3₂`-cycle or a 4-cycle, and only for generic parameters
+does the failure of the Big Cycle property exclude the 4-cycle (Theorem 3): that is Corollary 4, which
+the proof uses. A fourth block of `C_v` would give, with a taxon of `s` in the hybrid block and two in
+other blocks, a set of four taxa with the Big Cycle property (Lemma 12). The two taxa below `v` come from
+the type `3₂` of the cycle, and Proposition 7 (where the concordance factors lie) is not needed. -/
 theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {s : Finset X} (hs : #s = 4) :
     ForGenericParams N fun θ => IsMetricNetwork N θ → CyclePropertyOn (cf N θ) s →
@@ -112,7 +158,45 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       ∃ C v, IsCycle (unrooted N hN hX).graph C ∧ C.ncard = 3 ∧
         IsHybridNodeOf (unrooted N hN hX) C v ∧
         2 ≤ {x | DescendsFrom (unrooted N hN hX) v x}.ncard := by
-  sorry
+  refine ((corollary4 hN h1 hs).and (lemma12 hN h1 hX)).imp ?_
+  rintro θ ⟨h4, h12⟩ hθ hcp hbc hno
+  -- the `3₂`-cycle of `Q⁻_s` and the cycle `C_v` of `N⁻` it comes from
+  obtain ⟨C, v, hC, hv, p, hp, q, hq, r, hr, t, ht, hpq, hdp, hdq, hpr, hpt, hrt⟩ :=
+    exists_cycle_of_hasThreeTwoCycle hN h1 hX hs (h4 hθ (by convert hcp) (by convert hbc))
+  have hβp := (blockNode_eq_iff_descendsFrom h1 hC hv p).2 hdp
+  rw [sameBlock_iff_blockNode_eq h1 hC] at hpr hpt hrt
+  set β := blockNode (unrooted N hN hX) C
+  have hsub : ({β p, β r, β t} : Set _) ⊆ cycleNodes (unrooted N hN hX).graph C := by
+    rintro u (rfl | rfl | rfl) <;> exact blockNode_mem hC _
+  have h3 : ({β p, β r, β t} : Set _).ncard = 3 :=
+    Set.ncard_eq_three.2 ⟨_, _, _, hpr, hpt, hrt, rfl⟩
+  refine ⟨C, v, hC, le_antisymm ?_ ?_, hv, ?_⟩
+  · -- a fourth block would give a set of four taxa with the Big Cycle property (Lemma 12)
+    by_contra hlt
+    obtain ⟨u, hu, hun⟩ :=
+      hC.exists_mem_cycleNodes_notMem (Set.toFinite {β p, β r, β t}) (by omega)
+    obtain ⟨e, rfl⟩ := exists_blockNode_eq h1 hC hu
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hun
+    obtain ⟨hep, her, het⟩ := hun
+    have hne : ∀ {a b : X}, β a ≠ β b → a ≠ b := fun h h' => h (h' ▸ rfl)
+    refine hno ⟨{p, r, t}, ?_, card_eq_three.2 ⟨p, r, t, hne hpr, hne hpt, hne hrt, rfl⟩, e, ?_, ?_⟩
+    · intro x hx
+      simp only [mem_insert, mem_singleton] at hx
+      rcases hx with rfl | rfl | rfl <;> assumption
+    · simp only [mem_insert, mem_singleton, not_or]
+      exact ⟨hne hep, hne her, hne het⟩
+    · have h4' := card_four_of_ne (hne hep) (hne her) (hne het) (hne hpr) (hne hpt) (hne hrt)
+      convert (h12 hθ _ h4').2 ⟨C, v, by omega, (separatesQuartet_iff h1 hC hv _).2
+        ⟨injOn_four hep her het hpr hpt hrt, p, by simp, hβp⟩⟩
+  · -- three taxa of `s` in distinct blocks
+    rw [← ncard_cycleNodes hC, ← h3]
+    exact Set.ncard_le_ncard hsub (Set.toFinite _)
+  · -- two taxa descend from the hybrid node
+    rw [← Set.ncard_pair hpq]
+    refine Set.ncard_le_ncard ?_ (Set.toFinite _)
+    rintro x (rfl | rfl)
+    · exact hdp
+    · exact hdq
 
 /-- No cycle of `G` other than `C` has three taxa of `T` in pairwise distinct blocks. -/
 def OnlyCycleSeparatingThree {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E')
@@ -129,7 +213,17 @@ other than `C_v` has three of `i, j, k, e` in distinct blocks, then `e` is in th
 The paper states this without the last hypothesis, and its proof asserts that the 4-cycle of `Q⁻_abcd`
 and the `3₂`-cycle of `Q⁻_abce` "have to have the same hybrid edges, otherwise the level-1 condition
 would be violated". The `3₂`-cycle can come from another cycle of `N⁻`, and then the conclusion fails:
-`proposition13_asPrinted_false`. -/
+`proposition13_asPrinted_false`.
+
+The proof is the paper's. Say `l` is the fourth of `a, b, c, d`. The taxon `e` is not in the block of
+`l`, or `i, j, k, e` would be in the four blocks of `C_v`, one of them the hybrid block, and would
+satisfy the Big Cycle property (Lemma 12); so `e` is in the block of one of `i, j, k`, say `g`. By
+Corollary 4, `Q⁻_ijke` has a `3₂`-cycle, which comes from a cycle of `N⁻` with three of `i, j, k, e` in
+distinct blocks: by the added hypothesis, from `C_v`. Its two taxa below the hybrid node are in the
+hybrid block of `C_v`, and the only two of `i, j, k, e` in one block are `g` and `e`.
+Departure from the paper: the step that the two cycles have the same hybrid edges is replaced by the
+added hypothesis, as above; the paper also fixes the order of the cycle by Theorem 4 and the hybrid
+node of `{e, j, k, l}` by Lemma 13 before that step, which the corrected argument does not use. -/
 theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} {v : SemidirectedVertex hN.1 hX}
     (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : C.ncard = 4)
@@ -143,7 +237,79 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
           OnlyCycleSeparatingThree (unrooted N hN hX) C {i, j, k, e} →
           CyclePropertyOn (cf N θ) {i, j, k, e} →
           ¬ BigCycleOn (cf N θ) {i, j, k, e} → DescendsFrom (unrooted N hN hX) v e := by
-  sorry
+  refine ((ForGenericParams.forall (ι := {s : Finset X // #s = 4})
+    fun s => corollary4 hN h1 s.2).and (lemma12 hN h1 hX)).imp ?_
+  rintro θ ⟨h4, h12⟩ hθ i hi j hj k hk hij hik hjk e he4 honly hcp hbc
+  set β := blockNode (unrooted N hN hX) C
+  have hβ : ∀ x ∈ ({a, b, c, d} : Finset X), ∀ y ∈ ({a, b, c, d} : Finset X), x ≠ y → β x ≠ β y :=
+    fun x hx y hy hxy => (sameBlock_iff_blockNode_eq h1 hC x y).not.1 (hblocks x hx y hy hxy)
+  have hβij := hβ i hi j hj hij
+  have hβik := hβ i hi k hk hik
+  have hβjk := hβ j hj k hk hjk
+  -- the blocks of `i, j, k` and a fourth block: the four blocks of `C_v`
+  have hsub : ({β i, β j, β k} : Set _) ⊆ cycleNodes (unrooted N hN hX).graph C := by
+    rintro u (rfl | rfl | rfl) <;> exact blockNode_mem hC _
+  have h3 : ({β i, β j, β k} : Set _).ncard = 3 :=
+    Set.ncard_eq_three.2 ⟨_, _, _, hβij, hβik, hβjk, rfl⟩
+  obtain ⟨u₄, hu₄, hu₄ijk⟩ :=
+    hC.exists_mem_cycleNodes_notMem (Set.toFinite {β i, β j, β k}) (by omega)
+  have hnodes : cycleNodes (unrooted N hN hX).graph C = insert u₄ {β i, β j, β k} := by
+    refine (Set.eq_of_subset_of_ncard_le (Set.insert_subset hu₄ hsub) ?_ (Set.toFinite _)).symm
+    rw [ncard_cycleNodes hC, hC4, Set.ncard_insert_of_notMem hu₄ijk, h3]
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff, not_or] at hu₄ijk
+  obtain ⟨hu₄i, hu₄j, hu₄k⟩ := hu₄ijk
+  -- `e` is not in the fourth block: otherwise `{i, j, k, e}` would satisfy the Big Cycle property
+  have he₄ : β e ≠ u₄ := by
+    intro h
+    apply hbc
+    have hv' := hv.mem_cycleNodes
+    rw [hnodes] at hv'
+    convert (h12 hθ _ he4).2 ⟨C, v, by omega, (separatesQuartet_iff h1 hC hv _).2
+      ⟨injOn_four hβij hβik (fun h' => hu₄i (h.symm.trans h'.symm)) hβjk
+        (fun h' => hu₄j (h.symm.trans h'.symm)) (fun h' => hu₄k (h.symm.trans h'.symm)), ?_⟩⟩
+    rcases hv' with h' | h' | h' | h'
+    · exact ⟨e, by simp, h.trans h'.symm⟩
+    · exact ⟨i, by simp, h'.symm⟩
+    · exact ⟨j, by simp, h'.symm⟩
+    · exact ⟨k, by simp, h'.symm⟩
+  -- so `e` is in the block of one of `i, j, k`
+  obtain ⟨g, hg, hge⟩ : ∃ g ∈ ({i, j, k} : Finset X), β g = β e := by
+    have he' := blockNode_mem hC e
+    rw [hnodes] at he'
+    rcases he' with h' | h' | h' | h'
+    · exact absurd h' he₄
+    · exact ⟨i, by simp, h'.symm⟩
+    · exact ⟨j, by simp, h'.symm⟩
+    · exact ⟨k, by simp, h'.symm⟩
+  -- by Corollary 4, `Q⁻_ijke` has a `3₂`-cycle; it comes from `C_v`
+  obtain ⟨C', w, hC', hw, p, hp, q, hq, r, hr, t, ht, hpq, hdp, hdq, hpr, hpt, hrt⟩ :=
+    exists_cycle_of_hasThreeTwoCycle hN h1 hX he4
+      (h4 ⟨_, he4⟩ hθ (by convert hcp) (by convert hbc))
+  have hCC' : C' = C := by
+    by_contra hCC'
+    have hsb : ∀ {x y : X}, ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C' x y →
+        x ≠ y := fun h h' => h (h' ▸ .refl)
+    rcases honly C' hC' hCC' p hp r hr t ht (hsb hpr) (hsb hpt) (hsb hrt) with h | h | h
+    · exact hpr h
+    · exact hpt h
+    · exact hrt h
+  subst hCC'
+  have hwv : w = v := hw.eq h1 hC' hv
+  subst hwv
+  -- its two taxa below the hybrid node are `g` and `e`
+  have hβp := (blockNode_eq_iff_descendsFrom h1 hC' hw p).2 hdp
+  have hβq := (blockNode_eq_iff_descendsFrom h1 hC' hw q).2 hdq
+  have hpair : ∀ x ∈ ({i, j, k, e} : Finset X), ∀ y ∈ ({i, j, k, e} : Finset X), x ≠ y →
+      β x = β y → x = e ∨ y = e := by
+    intro x hx y hy hxy hβxy
+    simp only [mem_insert, mem_singleton] at hx hy
+    rcases hx with rfl | rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl | rfl <;>
+      first
+        | exact Or.inl rfl | exact Or.inr rfl | exact absurd rfl hxy
+        | exact absurd hβxy ‹_› | exact absurd hβxy.symm ‹_›
+  rcases hpair p hp q hq hpq (hβp.trans hβq.symm) with rfl | rfl
+  · exact hdp
+  · exact hdq
 
 /-- **Proposition 13 as printed**: for every binary level-1 network, 4-cycle `C_v` of `N⁻`, and taxa
 `a, b, c, d` in distinct `v`-blocks, for generic parameters, if `{i, j, k, e}` with distinct
