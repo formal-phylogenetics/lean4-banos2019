@@ -50,7 +50,8 @@ def segmentsI : Set (ℝ × ℝ × ℝ) :=
 off the vertices of the simplex is `CF(Q)` for such a `Q`. The paper states the second claim for every
 point of `I`. Its proof shows that the image is the union of the three open segments, which do not
 contain the vertices `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)` of `I`: concordance factors are positive. -/
-theorem proposition7 [DecidableEq X] {a b c d : X} (habcd : Distinct4 a b c d) :
+theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
+    (habcd : Distinct4 a b c d) :
     (∀ {Q : RootedNetwork V E X} {θ : MetricData E}, IsLSAQuartet Q θ →
         (∃ C v, InducesCycleType Q C v 3 2) → CF Q θ a b c d habcd ∈ segmentsI) ∧
       ∀ p ∈ segmentsI, 0 < p.1 → 0 < p.2.1 → 0 < p.2.2 →

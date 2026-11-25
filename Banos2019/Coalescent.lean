@@ -15,7 +15,9 @@ library's `Phylogenetics.geneTreeDist N θ 0`, and the concordance factor of a q
 * `SameOrdering` (Definition 15): two families of concordance factors order the quartet trees on each
   set of four taxa in the same way.
 * `IsTreelikeOn`, `CyclePropertyOn` (Definition 16), `BigCycleOn` (Definition 17), `IsBCQuartet`
-  (`q^BC`), stated for a function on quartet trees and a set of four taxa.
+  (`q^BC`), stated for a function on quartet trees and a set of four taxa. For a set `s` without four
+  elements there is no quartet tree on `s`, so `IsTreelikeOn` is false and the two properties are true:
+  every statement that uses them is about a set of four taxa.
 * `ForGenericParams`: a property of the numerical parameters holds outside a null set
   (`RootedNetwork.IsGenericNull`).
 -/

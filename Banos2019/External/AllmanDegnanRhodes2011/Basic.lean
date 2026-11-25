@@ -39,25 +39,34 @@ theorem equation1 (hX : Fintype.card X = 4) (σ : SpeciesTree X) {a b c d : X} {
       ∀ r ∈ q.alternatives, quartetProb σ r = 1 / 3 * Real.exp (-σ.unrootedLength {a, b}) := by
   sorry
 
-/-- **Proposition 3** of Baños 2019 (`pub:prop3`), "proven in [1]": for four taxa, the unrooted metric
-species tree `T⁻` is identifiable from the distribution of unrooted gene trees under the multispecies
-coalescent on a binary `T⁺`, and `T⁺` is not. Two binary species trees have the same distribution
-exactly when they have the same unrooted metric tree; and two binary species trees with different rooted
-metric trees have the same distribution. -/
+/-- **Proposition 3** of Baños 2019 (`pub:prop3`), "proven in [1]" (Allman, Degnan, Rhodes 2011,
+Proposition 3): for four taxa, the unrooted metric species tree `T⁻` is identifiable from the
+distribution of unrooted gene trees under the multispecies coalescent on a binary `T⁺`, and `T⁺` is not:
+two binary species trees with the same distribution have the same unrooted metric tree, and two binary
+species trees with different rooted metric trees have the same distribution. -/
 theorem proposition3 (hX : Fintype.card X = 4) :
     (∀ σ σ' : SpeciesTree X, σ.IsBinary → σ'.IsBinary →
-      ((∀ T, σ.unrootedDist id T = σ'.unrootedDist id T) ↔ σ.SameUnrootedMetricTree σ')) ∧
-    ∃ σ σ' : SpeciesTree X, σ.IsBinary ∧ σ'.IsBinary ∧ ¬ σ.SameRootedMetricTree σ' ∧
-      ∀ T, σ.unrootedDist id T = σ'.unrootedDist id T := by
+      σ.unrootedDist id = σ'.unrootedDist id → σ.SameUnrootedMetricTree σ') ∧
+    ∃ σ σ' : SpeciesTree X, σ.IsBinary ∧ σ'.IsBinary ∧
+      σ.unrootedDist id = σ'.unrootedDist id ∧ ¬ σ.SameRootedMetricTree σ' := by
   sorry
 
-/-- **Proposition 4** of Baños 2019 (`pub:prop4`), "proven in [1]": Proposition 3 remains valid when the
-species tree is not binary. -/
+/-- **Proposition 4** of Baños 2019 (`pub:prop4`), "proven in [1]" (Allman, Degnan, Rhodes 2011,
+Proposition 11 applied to Proposition 3): Proposition 3 remains valid when the species tree is not
+binary. -/
 theorem proposition4 (hX : Fintype.card X = 4) :
-    (∀ σ σ' : SpeciesTree X,
-      ((∀ T, σ.unrootedDist id T = σ'.unrootedDist id T) ↔ σ.SameUnrootedMetricTree σ')) ∧
-    ∃ σ σ' : SpeciesTree X, ¬ σ.SameRootedMetricTree σ' ∧
-      ∀ T, σ.unrootedDist id T = σ'.unrootedDist id T := by
+    (∀ σ σ' : SpeciesTree X, σ.unrootedDist id = σ'.unrootedDist id → σ.SameUnrootedMetricTree σ') ∧
+    ∃ σ σ' : SpeciesTree X, σ.unrootedDist id = σ'.unrootedDist id ∧ ¬ σ.SameRootedMetricTree σ' := by
+  sorry
+
+/-- **The root placement does not matter** (`pub:rootplace`): on four taxa, species trees with the same
+unrooted metric tree, binary or not, have the same distribution of unrooted gene trees. Baños 2019 states
+it in Section 4 ("it is known that the quartet concordance factors do not depend on the root placement
+[1]") and uses it in the proofs of Lemmas 7 and 9 and Proposition 5, where it cites Propositions 3 and 4:
+"`T⁺` is not identifiable" is read there as this statement, which Allman, Degnan, Rhodes 2011 prove
+(Theorem 9 and Proposition 11, for four taxa). -/
+theorem unrootedDist_eq_of_sameUnrootedMetricTree (hX : Fintype.card X = 4) {σ σ' : SpeciesTree X}
+    (h : σ.SameUnrootedMetricTree σ') : σ.unrootedDist id = σ'.unrootedDist id := by
   sorry
 
 end External.AllmanDegnanRhodes2011

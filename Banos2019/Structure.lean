@@ -52,7 +52,9 @@ network blocks induced by `𝒟`. -/
 def SameBlock (D : Set E) (x y : X) : Prop := G.Walks Dᶜ (ℓ x) (ℓ y)
 
 /-- The block `B_u` associated with the node `u` of a cycle with edges `D`: the taxa joined to `u` by a
-walk avoiding `D`. -/
+walk avoiding `D`. The paper defines `B_u` as the side of the partition `{B_u, X ∖ B_u}` obtained by
+removing `u`; in a binary level-1 network the component of `u` without the edges of its cycle is what
+hangs from `u`, so the two agree. -/
 def nodeBlock (D : Set E) (u : V) : Set X := {x | G.Walks Dᶜ u (ℓ x)}
 
 /-- The edges of the cycles of the family `𝒟`. -/

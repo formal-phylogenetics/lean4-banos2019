@@ -11,7 +11,9 @@ public import Phylogenetics.NMSC.InducedParams
   has outdegree one.
 * `inducedLSA` (Definition 8): `N⊕_Z`, the part of `N⁺_Z` below `LSA(Z)`, rooted at `LSA(Z)`. It is the
   library's `RootedNetwork.inducedNetwork`, which removes what is above the LSA before suppressing the
-  nodes of degree two; on a binary network the LSA keeps outdegree two, so the order does not matter.
+  nodes of degree two. The order does not matter: a node below the LSA that is ancestral to `Z` has all
+  its parents below or at the LSA (a parent above it would give a path to a taxon of `Z` avoiding the
+  LSA), so its degree is the same either way, and on a binary network the LSA keeps outdegree two.
 * `inducedUnrooted` (Definition 10): `(N⁻)_Z`, the edges of `N⁻` on simple treks between taxa of `Z`,
   with the nodes of degree two suppressed.
 * `proposition1`: `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic; `lemma17` (Appendix).
@@ -91,6 +93,22 @@ abbrev unrootedMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (
     (θ : MetricData E) :=
   semidirectedMetric hN.1 hN.2 hX θ
 
+/-- **Lemma 3** (`lem:assos`), for unrooted networks: in `N⁻` of a binary level-1 rooted network, a
+cycle `C` contains exactly one hybrid node (a node entered by two hybrid edges), the hybrid edges
+entering a node of `C` are edges of `C`, and two cycles with a common node are the same. -/
+theorem lemma3_unrooted [Finite E] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _}
+    (hC : IsCycle (unrooted N hN hX).graph C) :
+    (∃! v, v ∈ cycleNodes (unrooted N hN hX).graph C ∧
+      ∃ h₁ h₂, h₁ ≠ h₂ ∧ (unrooted N hN hX).IsDirected h₁ ∧ (unrooted N hN hX).IsDirected h₂ ∧
+        (unrooted N hN hX).graph.target h₁ = v ∧ (unrooted N hN hX).graph.target h₂ = v) ∧
+      (∀ v ∈ cycleNodes (unrooted N hN hX).graph C, ∀ h, (unrooted N hN hX).IsDirected h →
+        (unrooted N hN hX).graph.target h = v → h ∈ C) ∧
+      ∀ C', IsCycle (unrooted N hN hX).graph C' →
+        (cycleNodes (unrooted N hN hX).graph C ∩ cycleNodes (unrooted N hN hX).graph C').Nonempty →
+        C = C' := by
+  sorry
+
 /-- **Definition 10** (`def:inducenetontaxa`): the *induced unrooted network* `(N⁻)_Z`: retain only the
 edges of `N⁻` on simple treks between pairs of taxa of `Z`, then suppress all nodes of degree two. -/
 def inducedUnrooted {V' E' : Type*} (G : SemidirectedNetwork V' E' X) (Z : Set X) :=
@@ -117,7 +135,9 @@ def inducedRootedMetric [Finite E] (N : RootedNetwork V E X) (hN : N.IsPhylogene
 
 /-- **Proposition 1** (`prop::ancestralinduced`): for a binary rooted network `N` and a set `Z` of at
 least two taxa, `(N⁻)_Z` and `(N⁺_Z)⁻` are isomorphic as leaf-labelled semidirected networks;
-`proposition1_metric` gives the isomorphism of metric networks. -/
+`proposition1_metric` gives the isomorphism of metric networks. The paper allows any `Z ⊆ X`; with one
+taxon the LSA is a leaf, which Definition 5 cannot suppress, so `(N⁺_Z)⁻` is defined only for at least
+two taxa. -/
 theorem proposition1 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (hX : Nontrivial X)
     {Z : Set X} (hZ : Z.Nontrivial) :
     Nonempty (SDIso (inducedUnrooted (unrooted N hN hX) Z)

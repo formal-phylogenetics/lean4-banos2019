@@ -17,9 +17,12 @@ the library's `RootedNetwork.semidirected` and `RootedNetwork.semidirectedMetric
 * `IsTrek`, `IsSimpleTrek` (Definition 9).
 * `trekEdges`, `restrict`: the edges on simple treks between taxa of `Z`, and the network they form.
 * `suppress` (Section 2.3, Figure 3): suppressing every node of degree two. The edges of the result
-  are the maximal chains through nodes of degree two (other than taxa); a chain is a hybrid edge, directed toward one of
-  its ends, when it contains a hybrid edge and all its hybrid edges point toward that end, which is the
-  result of suppressing its inner nodes one at a time by the rules of Figure 3.
+  are the maximal chains through nodes of degree two (other than taxa); a chain is a hybrid edge,
+  directed toward one of its ends, when it contains a hybrid edge and all its hybrid edges point toward
+  that end. Suppressing the inner nodes one at a time by the rules of Figure 3 gives the same result on
+  every chain whose hybrid edges enter its ends, which are the chains of the networks the paper
+  suppresses; on a chain with hybrid edges in both directions inside it, the result of one-at-a-time
+  suppression depends on the order, and the rule here is one choice.
 * `SDIso`, `SDMetricIso`: isomorphisms of leaf-labelled semidirected networks, topological and metric.
 -/
 
@@ -140,9 +143,10 @@ def ChainRep.PointsBackward {G : SemidirectedNetwork V E X} {P : Set V} {c : Set
 open Classical in
 /-- Suppressing the nodes of degree two other than the taxa and the nodes of `P`. The nodes are the
 others; the edges are the chains, each from its first node to its last, reversed when it points toward
-its first node. A chain is a hybrid edge when it points toward one of its ends: that is what
-suppressing its inner nodes one at a time by the rules of Figure 3 gives (`x → z — y`, `x — z → y`,
-`x → z → y` give `x → y`; `x → z ← y`, `x ← z → y`, `x — z — y` give `x — y`). -/
+its first node. A chain is a hybrid edge when it points toward one of its ends. On a chain with one
+inner node this is Figure 3 (`x → z — y`, `x — z → y`, `x → z → y` give `x → y`; `x → z ← y`,
+`x ← z → y`, `x — z — y` give `x — y`); on longer chains whose hybrid edges enter their ends it is the
+result of applying Figure 3 one node at a time, in any order. -/
 def suppressExcept (G : SemidirectedNetwork V E X) (P : Set V) :
     SemidirectedNetwork {u // IsBranch G P u} {c : Set E // IsChain G P c} X where
   graph :=

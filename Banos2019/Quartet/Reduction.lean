@@ -71,8 +71,9 @@ theorem lemma6 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet 
 
 omit [Fintype V] [Fintype E] in
 /-- **Observation 1** (`obs:quartetcoales`): the first coalescent event of a gene tree on four taxa
-determines its unrooted topology: the two lineages it joins form a cluster `A` with two elements of the
-rooted binary gene tree, and the unrooted gene tree displays `A | Aᶜ`. -/
+determines its unrooted topology. The two lineages it joins form a cluster `A` with two elements of the
+rooted binary gene tree, and the unrooted gene tree displays `A | Aᶜ`: a fact about rooted binary trees
+on four taxa, which is what the observation rests on. -/
 theorem observation1 (hX : Fintype.card X = 4) {G : Finset (Finset X)} (hG : IsBinaryHierarchy G)
     {A : Finset X} (hA : A ∈ G) (hA2 : #A = 2) :
     ∃ q : QuartetTree X, q.val = {A, Aᶜ} ∧ Displays (unroot G) q := by

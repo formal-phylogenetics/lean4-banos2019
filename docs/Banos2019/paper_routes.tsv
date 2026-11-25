@@ -60,3 +60,5 @@ pub:prop4	proposition	0
 pub:prop12	proposition	1	prop::cpcycle,prop:3c2
 # ext:semple-steel: Semple, Steel 2003 [22], the quartets of a tree determine it; cited in the proof of thm::main.
 ext:semple-steel	theorem	0	
+# pub:rootplace: the root placement does not change the concordance factors of a species tree (Section 4, "it is known ... [1]"); a cited result.
+pub:rootplace	theorem	0	

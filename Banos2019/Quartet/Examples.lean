@@ -10,7 +10,7 @@ The unrooted quartet networks of Figures 15–18, with taxa `a, b, c, d` at the 
 metric semidirected networks on `Fin 8` nodes and `Fin 8` edges. An edge length `t i` of a figure is the
 length of the edge so labelled; the other edges (pendant edges, and hybrid edges the figure does not
 label) have arbitrary lengths `ℓ`. The concordance factors of an unrooted quartet network are those of
-any LSA quartet network inducing it (Corollary 3), so each example is stated for every LSA quartet
+any LSA quartet network inducing it (Proposition 5), so each example is stated for every LSA quartet
 network whose metric unrooted network is isomorphic to the figure.
 -/
 

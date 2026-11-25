@@ -49,7 +49,48 @@ theorem isBinaryRootedNetwork_iff (N : RootedNetwork V E X) :
         ∀ v, v ≠ N.root → v ∉ Set.range N.leaf →
           (N.graph.indegree v = 1 ∧ N.graph.outdegree v = 2) ∨
             (N.graph.indegree v = 2 ∧ N.graph.outdegree v = 1) := by
-  sorry
+  constructor
+  · rintro ⟨hP, hB⟩
+    have := hP.finite_arcs
+    refine ⟨hP.finite_vertices, hP.finite_arcs, hP.finite_taxa, graph_connected N hP, hP.acyclic,
+      hP.root_indegree, hB.1, fun x => ⟨hP.leaf_indegree x, (hP.leaves _).mpr ⟨x, rfl⟩⟩,
+      hP.leaf_injective, fun v hr hl => ?_⟩
+    have h1 := hP.nonroot_indegree v hr
+    have h0 : N.graph.outdegree v ≠ 0 := fun h => hl ((hP.leaves v).mp h)
+    have h3 := hB.2 v hr h0
+    omega
+  · rintro ⟨hV, hE, hX, -, hA, hr0, hr2, hleaf, hinj, hother⟩
+    have hnonroot : ∀ v, v ≠ N.root → 1 ≤ N.graph.indegree v := fun v hv => by
+      by_cases hl : v ∈ Set.range N.leaf
+      · obtain ⟨x, rfl⟩ := hl
+        exact (hleaf x).1.ge
+      · rcases hother v hv hl with h | h <;> omega
+    -- the root reaches every node: go up along entering arcs, which ends at the root
+    let r : V → V → Prop := fun a b => Relation.TransGen N.graph.Adj a b
+    have : IsTrans V r := ⟨fun _ _ _ h h' => h.trans h'⟩
+    have : Std.Irrefl r := ⟨fun a h => hA a h⟩
+    have hwf : WellFounded r := Finite.wellFounded_of_trans_of_irrefl r
+    have hreach : ∀ v, N.graph.Reaches N.root v := fun v => by
+      induction v using hwf.induction with
+      | _ v ih =>
+        by_cases hv : v = N.root
+        · rw [hv]
+          exact .refl
+        · obtain ⟨e, he⟩ := (N.graph.one_le_indegree_iff v).mp (hnonroot v hv)
+          exact (ih (N.graph.source e) (.single ⟨e, rfl, he⟩)).tail ⟨e, rfl, he⟩
+    refine ⟨⟨hV, hE, hX, hA, hreach, hr0, hnonroot, hinj, fun x => (hleaf x).1, fun v => ?_⟩,
+      hr2, fun v hv h0 => ?_⟩
+    · constructor
+      · intro h0
+        by_contra hl
+        have hvr : v ≠ N.root := fun h => by rw [h, hr2] at h0; exact absurd h0 (by norm_num)
+        rcases hother v hvr (fun ⟨x, hx⟩ => hl ⟨x, hx⟩) with h | h <;> omega
+      · rintro ⟨x, rfl⟩
+        exact (hleaf x).2
+    · have hl : v ∉ Set.range N.leaf := by
+        rintro ⟨x, rfl⟩
+        exact h0 (hleaf x).2
+      rcases hother v hv hl with h | h <;> omega
 
 /-- **Definition 2**: a *metric* `(λ, γ)` for a binary rooted network: every edge has a positive length,
 and the inheritance probabilities make the library's valid parameters (`RootedNetwork.IsMetric`: those
@@ -82,7 +123,14 @@ other node of `D`. The library's stable ancestors are the nodes of `D`, and its 
 theorem isLeastStableAncestor_iff_def4 (N : RootedNetwork V E X) (Z : Set X) (v : V) :
     N.IsLeastStableAncestor Z v ↔
       N.IsStableAncestor Z v ∧ ∀ u, N.IsStableAncestor Z u → u ≠ v → IsAbove N u v := by
-  sorry
+  refine ⟨fun ⟨h₁, h₂⟩ => ⟨h₁, fun u hu huv => ?_⟩, fun ⟨h₁, h₂⟩ => ⟨h₁, fun u hu => ?_⟩⟩
+  · rcases Relation.reflTransGen_iff_eq_or_transGen.mp (h₂ u hu) with h | h
+    · exact absurd h.symm huv
+    · exact h
+  · by_cases huv : u = v
+    · rw [huv]
+      exact .refl
+    · exact (h₂ u hu huv).to_reflTransGen
 
 /-- **Lemma 1** (`lem::MRCAproperties`): for nonempty sets of taxa `Z ⊆ Y` of a binary rooted network,
 (i) the LSA of `Z` has indegree at most one; (ii) at most one of its out-edges is hybrid; (iii) the LSA

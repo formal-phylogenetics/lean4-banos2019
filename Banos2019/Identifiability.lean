@@ -65,7 +65,8 @@ theorem lemma15 (hX : Nontrivial X) :
 
 /-- **Lemma 16** (`orderofcycles`): for generic parameters, the order of the blocks around each cycle
 `C_v` of size at least four (which blocks are adjacent) is determined by the orderings of the
-concordance factors. -/
+concordance factors: the function `A` sees only how the concordance factors of quartet trees on the same
+four taxa compare (Definition 15). -/
 theorem lemma16 (hX : Nontrivial X) :
     ∃ A : (QuartetTree X → QuartetTree X → Prop) → Finset X → X → X → Prop,
       ∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X)
@@ -73,7 +74,7 @@ theorem lemma16 (hX : Nontrivial X) :
         ForGenericParams N fun θ => IsMetricNetwork N θ → ∀ s (hs : s ∈ bcSets N θ),
           ∀ C w, IsCycle (unrooted N hN hX).graph C → IsHybridNodeOf (unrooted N hN hX) C w →
             Determines hN s hs.1 w.1.1 → ∀ x y,
-              (A (fun q r => cf N θ q ≤ cf N θ r) s x y ↔
+              (A (fun q r => q.taxa = r.taxa ∧ cf N θ q ≤ cf N θ r) s x y ↔
                 AdjacentBlocks (unrooted N hN hX) C x y) := by
   sorry
 
@@ -113,10 +114,22 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
         2 ≤ {x | DescendsFrom (unrooted N hN hX) v x}.ncard := by
   sorry
 
-/-- **Proposition 13** (`lem::cpto4c`): let `C_v` be a 4-cycle of `N⁻` and `a, b, c, d` taxa in distinct
-`v`-blocks. For generic parameters, if for distinct `i, j, k ∈ {a, b, c, d}` some taxon `e` makes
-`{i, j, k, e}` satisfy the Cycle property but not the Big Cycle property, then `e` is in the `v`-hybrid
-block. -/
+/-- No cycle of `G` other than `C` has three taxa of `T` in pairwise distinct blocks. -/
+def OnlyCycleSeparatingThree {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E')
+    (T : Finset X') : Prop :=
+  ∀ C', IsCycle G.graph C' → C' ≠ C → ∀ x ∈ T, ∀ y ∈ T, ∀ z ∈ T, x ≠ y → x ≠ z → y ≠ z →
+    SameBlock G.graph G.leaf C' x y ∨ SameBlock G.graph G.leaf C' x z ∨
+      SameBlock G.graph G.leaf C' y z
+
+/-- **Proposition 13** (`lem::cpto4c`), corrected: let `C_v` be a 4-cycle of `N⁻` and `a, b, c, d` taxa
+in distinct `v`-blocks. For generic parameters, if for distinct `i, j, k ∈ {a, b, c, d}` some taxon `e`
+makes `{i, j, k, e}` satisfy the Cycle property but not the Big Cycle property, and no cycle of `N⁻`
+other than `C_v` has three of `i, j, k, e` in distinct blocks, then `e` is in the `v`-hybrid block.
+
+The paper states this without the last hypothesis, and its proof asserts that the 4-cycle of `Q⁻_abcd`
+and the `3₂`-cycle of `Q⁻_abce` "have to have the same hybrid edges, otherwise the level-1 condition
+would be violated". The `3₂`-cycle can come from another cycle of `N⁻`, and then the conclusion fails:
+`proposition13_asPrinted_false`. -/
 theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) (hX : Nontrivial X) {C : Set _} {v : SemidirectedVertex hN.1 hX}
     (hC : IsCycle (unrooted N hN hX).graph C) (hC4 : C.ncard = 4)
@@ -126,8 +139,37 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     ForGenericParams N fun θ => IsMetricNetwork N θ →
       ∀ i ∈ ({a, b, c, d} : Finset X), ∀ j ∈ ({a, b, c, d} : Finset X),
         ∀ k ∈ ({a, b, c, d} : Finset X), i ≠ j → i ≠ k → j ≠ k → ∀ e,
-          #({i, j, k, e} : Finset X) = 4 → CyclePropertyOn (cf N θ) {i, j, k, e} →
+          #({i, j, k, e} : Finset X) = 4 →
+          OnlyCycleSeparatingThree (unrooted N hN hX) C {i, j, k, e} →
+          CyclePropertyOn (cf N θ) {i, j, k, e} →
           ¬ BigCycleOn (cf N θ) {i, j, k, e} → DescendsFrom (unrooted N hN hX) v e := by
+  sorry
+
+/-- **Proposition 13 as printed**: for every binary level-1 network, 4-cycle `C_v` of `N⁻`, and taxa
+`a, b, c, d` in distinct `v`-blocks, for generic parameters, if `{i, j, k, e}` with distinct
+`i, j, k ∈ {a, b, c, d}` satisfies the Cycle property but not the Big Cycle property, then `e` is in the
+`v`-hybrid block. -/
+def Proposition13AsPrinted : Prop :=
+  ∀ (V E X : Type) [Fintype V] [Fintype E] [Fintype X] [DecidableEq X] (N : RootedNetwork V E X)
+    (hN : IsBinaryRootedNetwork N), IsLevelOne N.graph → ∀ (hX : Nontrivial X) (C : Set _)
+    (v : SemidirectedVertex hN.1 hX), IsCycle (unrooted N hN hX).graph C → C.ncard = 4 →
+    IsHybridNodeOf (unrooted N hN hX) C v → ∀ a b c d : X,
+    (∀ x ∈ ({a, b, c, d} : Finset X), ∀ y ∈ ({a, b, c, d} : Finset X), x ≠ y →
+      ¬ SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C x y) →
+    ForGenericParams N fun θ => IsMetricNetwork N θ →
+      ∀ i ∈ ({a, b, c, d} : Finset X), ∀ j ∈ ({a, b, c, d} : Finset X),
+        ∀ k ∈ ({a, b, c, d} : Finset X), i ≠ j → i ≠ k → j ≠ k → ∀ e,
+          #({i, j, k, e} : Finset X) = 4 → CyclePropertyOn (cf N θ) {i, j, k, e} →
+          ¬ BigCycleOn (cf N θ) {i, j, k, e} → DescendsFrom (unrooted N hN hX) v e
+
+/-- **Proposition 13 as printed is false.** In the network with edges `r → a`, `r → t`, `t → p`,
+`t → u`, `p → e`, `p → u`, `u → w`, `w → x`, `w → y`, `x → b`, `x → v`, `y → c`, `y → v`, `v → d`,
+`C_v = {wx, xv, wy, yv}` is a 4-cycle of `N⁻` with blocks `{a, e}`, `{b}`, `{c}`, `{d}` and hybrid block
+`{d}`. In `Q⁻_abce` the cycle `C_v` disappears and the 3-cycle `t, p, u` is a `3₂`-cycle with hybrid
+block `{b, c}` (Figure 18 relabelled), so on an open set of parameters around those of Example 6,
+`{a, b, c, e}` satisfies the Cycle property but not the Big Cycle property, while `e` is not in the
+`v`-hybrid block. -/
+theorem proposition13_asPrinted_false : ¬ Proposition13AsPrinted := by
   sorry
 
 end Banos2019

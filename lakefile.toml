@@ -19,7 +19,7 @@ rev = "b56ce531644230622f069aaa8aa51a5143c1411e"
 [[require]]
 name = "PhyloNetwork"
 git = "https://github.com/vltanh/lean4-phylo-network"
-rev = "51d53ffd885195694fd0ce91090f07efa620db7a"
+rev = "d069aaa85c4d9ee9d2a8746b71170f27c92a8633"
 
 [[require]]
 name = "mathlib"
