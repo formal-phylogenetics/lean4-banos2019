@@ -1,0 +1,62 @@
+# label	environment	proved	cited statements (route_check.py extract on arXiv v1, completed by hand)
+# Numbering in the formalization is that of the published version; labels are those of the arXiv v1 TeX.
+lem::MRCAproperties	lemma	1	
+lem::mrcaxy	lemma	1	lem::MRCAproperties
+prop::ancestralinduced	proposition	1	lem::trekmrca
+lem:assos	lemma	0	
+prop::structureabove	proposition	1	lem::MRCAproperties
+# 2taxnetblo: "straightforward to prove"; the paper prints no proof.
+2taxnetblo	lemma	1	
+# cor:partiofparti: proved in the sentence before it, from 2taxnetblo.
+cor:partiofparti	corollary	1	2taxnetblo
+# ex::nmsc: Example 1 illustrates the model; it states no result.
+lem:numberofcycles	lemma	1	
+lem::no2 3_2	lemma	1	
+thm::MRCA	theorem	1	obs:quartetcoales
+lem::formula2:1	lemma	1	pub:prop4
+lem::formula2:3	lemma	1	
+# cor:2isgood: "Together, the preceding Lemmas yield the following": proved in running text.
+cor:2isgood	corollary	1	lem::formula2:1,lem::formula2:3
+lem::formula2:2	lemma	1	pub:prop3,pub:prop4
+lem::formula43:1	lemma	1	
+lem::formula3:2	lemma	1	
+prop::CFunrooted	proposition	1	lem::formula2:1,lem::formula2:2,lem::formula2:3,lem::formula3:2,lem::formula43:1,pub:prop3
+# cor::quartetisgood: follows from thm::MRCA and prop::CFunrooted (the paper states it after both).
+cor::quartetisgood	corollary	1	thm::MRCA,prop::CFunrooted
+# ex:2_2, ex:3_1, ex:4_1, ex:3_2: computed in the text "By Lemma 9/10/11, with x_i = e^{-t_i}", from equation (1).
+ex:2_2	example	1	lem::formula2:2,CFtree
+ex:3_1	example	1	lem::formula43:1,CFtree
+ex:4_1	example	1	lem::formula43:1,CFtree
+ex:3_2	example	1	lem::formula3:2,CFtree
+prop:Cfspreserv	proposition	1	cor:2isgood,lem::formula2:2,lem::formula43:1,CFtree
+# ex::cpbc, ex::cpbc4: evaluations of equations (9) and (8).
+ex::cpbc	example	1	ex:3_2
+prop:3c2	proposition	1	cor:2isgood,lem::formula2:2,lem::formula43:1,ex:3_2
+prop::cpcycle	proposition	1	prop:Cfspreserv
+ex::cpbc4	example	1	ex:4_1
+prop:Bc4cycle1dir	proposition	1	prop:3c2,prop::cpcycle
+prop:BCgenerically	proposition	1	cor:2isgood,ex:4_1
+# thm::twocor: "follows immediately from" prop:BCgenerically and prop:Bc4cycle1dir.
+thm::twocor	theorem	1	prop:BCgenerically,prop:Bc4cycle1dir
+# cor::Cpgen: "Theorem 3 and Proposition 8 yield the following".
+cor::Cpgen	corollary	1	thm::twocor,prop::cpcycle
+prop:isbc	proposition	1	cor:2isgood,ex:4_1
+cfs	lemma	1	thm::twocor
+3tax	lemma	1	cfs
+netblo	lemma	1	2taxnetblo,cfs,prop:Bc4cycle1dir
+blov	lemma	1	3tax,cfs
+orderofcycles	lemma	1	blov,prop:isbc
+thm::main	theorem	1	blov,netblo,orderofcycles,ext:semple-steel
+lem::cpto4c	proposition	1	3tax,cor::Cpgen,thm::main
+lem::trekmrca	lemma	1	lem::mrcaxy
+# obs:quartetcoales: Observation 1 (environment `obs`, not seen by the extraction); stated without proof.
+obs:quartetcoales	observation	0	
+# CFtree: equation (1), the CFs of a quartet tree, "known" from Allman, Degnan, Rhodes 2011 [1]; a cited result.
+CFtree	equation	0	
+# pub:prop3, pub:prop4: Propositions 3 and 4 of the published version, absent from arXiv v1 (no TeX label); "proven in [1]" (Allman, Degnan, Rhodes 2011).
+pub:prop3	proposition	0	
+pub:prop4	proposition	0	
+# pub:prop12: Proposition 12, unlabelled in the TeX (line 1209); its proof cites Propositions 8 and 7.
+pub:prop12	proposition	1	prop::cpcycle,prop:3c2
+# ext:semple-steel: Semple, Steel 2003 [22], the quartets of a tree determine it; cited in the proof of thm::main.
+ext:semple-steel	theorem	0	
