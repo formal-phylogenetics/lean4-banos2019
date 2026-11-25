@@ -497,6 +497,249 @@ theorem exists_isUTrail_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
       · exact absurd hx hxs
       · exact (hS₁mem x hx).2 fun h => hxw (Subtype.ext h)
 
+include h2 hl in
+/-- The source in `M` of the arc of an edge of the unrooted network of `reduceNet M` is the root
+exactly when its source in `reduceNet M` is the root. -/
+theorem source_reduceArc_eq_root_iff (g : SemidirectedArc hb.1 hb.2 hX) :
+    M.graph.source (reduceArc hM hb hX g) = M.root ↔
+      (reduceNet M hM.phylo).graph.source (sdArc hb.1 hb.2 hX g) =
+        lsa hb.1 Set.univ Set.univ_nonempty := by
+  have hr := lsa_univ_eq_root hb.1 hX hl
+  have hK := hM.isContraction
+  have hsrc := hK.source (sdArc hb.1 hb.2 hX g)
+  rw [hr]
+  constructor
+  · intro h
+    apply hK.inj_v
+    rw [hsrc, finContractVertex_root_reduceNet hM h2]
+    exact Subtype.ext h
+  · intro h
+    rw [h, finContractVertex_root_reduceNet hM h2] at hsrc
+    exact (congrArg Subtype.val hsrc).symm
+
+include h2 hl in
+/-- **Every arc of `M` other than `e₀` is on the chain of one edge** of the unrooted network of
+`reduceNet M`. -/
+theorem exists_mem_reduceChainOf (f : {e // e ≠ reduceRootArc hM hb hX}) :
+    ∃ g, f ∈ reduceChainOf hM hb hX g := by
+  have hP := hM.phylo
+  have hr := lsa_univ_eq_root hb.1 hX hl
+  set h := chainHead hP f.1
+  by_cases hh : h.1 = reduceRootArc hM hb hX
+  · -- the merged edge
+    have := hb.1.finite_arcs
+    obtain ⟨x, y, hxy, hs⟩ := Set.ncard_eq_two.1 hb.2.1
+    have hx : (reduceNet M hP).graph.source x = (reduceNet M hP).root :=
+      (Set.ext_iff.1 hs x).2 (Or.inl rfl)
+    have hy : (reduceNet M hP).graph.source y = (reduceNet M hP).root :=
+      (Set.ext_iff.1 hs y).2 (Or.inr rfl)
+    obtain ⟨a, ha, ha₀⟩ : ∃ a, (reduceNet M hP).graph.source a = (reduceNet M hP).root ∧
+        a ≠ sdRootArc hb.1 hb.2 hX := by
+      by_cases hx₀ : x = sdRootArc hb.1 hb.2 hX
+      · exact ⟨y, hy, fun h' => hxy (hx₀.trans h'.symm)⟩
+      · exact ⟨x, hx, hx₀⟩
+    obtain ⟨g, rfl⟩ := (mem_range_sdArc hb.1 hb.2 hX a).2 ⟨hr ▸ hb.1.root_reaches _, ha₀⟩
+    refine ⟨g, Or.inr ⟨(source_reduceArc_eq_root_iff hM hb hX h2 hl g).2 (ha.trans hr.symm), ?_⟩⟩
+    have hc := isOnChain_chainHead hP f.1
+    rw [hh] at hc
+    exact hc
+  · obtain ⟨g, hg⟩ := exists_reduceArc_eq hM hb hX h2 hl h.2 hh
+    refine ⟨g, Or.inl ?_⟩
+    rw [hg]
+    exact isOnChain_chainHead hP f.1
+
+include h2 hl in
+/-- **An arc of `M` is on the chain of at most one edge.** -/
+theorem eq_of_mem_reduceChainOf {f : {e // e ≠ reduceRootArc hM hb hX}}
+    {g g' : SemidirectedArc hb.1 hb.2 hX} (hg : f ∈ reduceChainOf hM hb hX g)
+    (hg' : f ∈ reduceChainOf hM hb hX g') : g = g' := by
+  have hc := not_isChainVertex_source_reduceArc hM hb hX
+  have hc₀ := not_isChainVertex_source_reduceRootArc hM hb hX
+  have hne := reduceArc_ne_reduceRootArc hM hb hX
+  rcases hg with hg | ⟨hgr, hg⟩ <;> rcases hg' with hg' | ⟨hgr', hg'⟩
+  · exact reduceArc_injective hM hb hX (IsOnChain.unique hg hg' (hc g) (hc g'))
+  · exact absurd (IsOnChain.unique hg hg' (hc g) hc₀) (hne g)
+  · exact absurd (IsOnChain.unique hg' hg (hc g') hc₀) (hne g')
+  · exact eq_of_source_sdArc_eq_lsa hb.1 hb.2 hX
+      ((source_reduceArc_eq_root_iff hM hb hX h2 hl g).1 hgr)
+      ((source_reduceArc_eq_root_iff hM hb hX h2 hl g').1 hgr')
+
+include h2 hl in
+/-- The chain of `reduceRootArc` has no hybrid arc: it is the arc that the unrooted network of
+`reduceNet M` merges, a tree arc. -/
+theorem not_isHybridArc_of_isOnChain_reduceRootArc {f : E}
+    (hf : M.IsOnChain (reduceRootArc hM hb hX) f) : ¬ M.IsHybridArc f := by
+  have hP := hM.phylo
+  have htwo := hM.two
+  intro hh
+  have hlast := NMSC.eq_lastArc hP hf (fun hc => by
+    unfold IsHybridArc at hh
+    rw [hc.1] at hh
+    omega)
+  have ht := (sdRootArc_spec hb.1 hb.2 hX).2
+  rw [hlast] at hh
+  have := (isHybridArc_reduceNet_iff hP htwo (sdRootArc hb.1 hb.2 hX)).2 hh
+  unfold IsTreeArc at ht
+  unfold IsHybridArc at this
+  omega
+
+include h2 hl in
+/-- **A hybrid arc on the chain of an edge is the last arc of the chain of the arc of the edge.** -/
+theorem eq_lastArc_of_mem_reduceChainOf {g : SemidirectedArc hb.1 hb.2 hX}
+    {f : {e // e ≠ reduceRootArc hM hb hX}} (hf : f ∈ reduceChainOf hM hb hX g)
+    (hh : M.IsHybridArc f.1) : f.1 = NMSC.lastArc hM.phylo (reduceArc hM hb hX g) := by
+  rcases hf with hf | ⟨-, hf⟩
+  · exact NMSC.eq_lastArc hM.phylo hf (fun hc => by
+      unfold IsHybridArc at hh
+      rw [hc.1] at hh
+      omega)
+  · exact absurd hh (not_isHybridArc_of_isOnChain_reduceRootArc hM hb hX h2 hl hf)
+
+omit [Fintype V] in
+/-- A sum over the arcs other than `e₀` satisfying `p`, which `e₀` does not. -/
+theorem finsum_mem_subtype_ne {e₀ : E} {p : E → Prop} (hp : ¬ p e₀) (F : E → ℝ) :
+    ∑ᶠ f ∈ {f : {e // e ≠ e₀} | p f.1}, F f.1 = ∑ e ∈ univ.filter p, F e := by
+  have himg : Subtype.val '' {f : {e // e ≠ e₀} | p f.1} = ↑(univ.filter p) := by
+    ext e
+    simp only [Set.mem_image, Set.mem_ofPred_eq, Finset.coe_filter, Finset.mem_univ, true_and]
+    constructor
+    · rintro ⟨f, hf, rfl⟩
+      exact hf
+    · intro he
+      exact ⟨⟨e, fun h => hp (h ▸ he)⟩, he, rfl⟩
+  rw [← finsum_mem_image (g := Subtype.val) Subtype.val_injective.injOn, himg,
+    finsum_mem_coe_finset]
+
+include h2 hl in
+/-- The last arc of the chain of the arc of an edge is not `e₀`. -/
+theorem lastArc_reduceArc_ne (g : SemidirectedArc hb.1 hb.2 hX) :
+    NMSC.lastArc hM.phylo (reduceArc hM hb hX g) ≠ reduceRootArc hM hb hX := fun h => by
+  have hc := NMSC.isOnChain_lastArc hM.phylo (reduceArc hM hb hX g)
+  rw [h] at hc
+  rcases hc with hc | ⟨hc, -⟩
+  · exact reduceArc_ne_reduceRootArc hM hb hX g hc.symm
+  · rw [source_reduceRootArc hM hb hX h2 hl] at hc
+    exact not_isChainVertex_root hM.phylo hc
+
+include h2 hl in
+/-- **The length of an edge of the unrooted network of `reduceNet M` is the total length of its
+chain.** -/
+theorem length_eq_finsum_reduceChainOf (g : SemidirectedArc hb.1 hb.2 hX) :
+    (unrootedMetric (reduceNet M hM.phylo) hb hX (reduceMetric M hM.phylo θ)).length g =
+      ∑ᶠ f ∈ reduceChainOf hM hb hX g,
+        (unrootAtMetric M (reduceRootArc hM hb hX) θ).length f := by
+  have hP := hM.phylo
+  have hr := lsa_univ_eq_root hb.1 hX hl
+  set e₀ := reduceRootArc hM hb hX
+  set ε := reduceArc hM hb hX g
+  have he₀ : M.graph.source e₀ = M.root := source_reduceRootArc hM hb hX h2 hl
+  have hεe₀ : ε ≠ e₀ := reduceArc_ne_reduceRootArc hM hb hX g
+  have hc₀ : ¬ M.IsChainVertex (M.graph.source e₀) :=
+    not_isChainVertex_source_reduceRootArc hM hb hX
+  have hnot₀ : ¬ M.IsOnChain ε e₀ := fun h => by
+    rcases h with h | ⟨h, -⟩
+    · exact hεe₀ h.symm
+    · exact hc₀ h
+  have hLε : (reduceMetric M hP θ).length (sdArc hb.1 hb.2 hX g) =
+      ∑ f ∈ univ.filter (M.IsOnChain ε), θ.length f := rfl
+  have hL₀ : (reduceMetric M hP θ).length (sdRootArc hb.1 hb.2 hX) =
+      ∑ f ∈ univ.filter (M.IsOnChain e₀), θ.length f := rfl
+  -- the arcs of a chain other than its first arc leave chain nodes, not the root
+  have hsrc : ∀ {a f : E}, M.IsOnChain a f → f ≠ a → M.graph.source f ≠ M.root := by
+    intro a f h hfa hr'
+    rcases h with h | ⟨h, -⟩
+    · exact hfa h
+    · rw [hr'] at h
+      exact not_isChainVertex_root hP h
+  rw [semidirectedMetric_length]
+  by_cases hroot : M.graph.source ε = M.root
+  · have hroot' := (source_reduceArc_eq_root_iff hM hb hX h2 hl g).1 hroot
+    rw [if_pos hroot', hLε, hL₀]
+    -- the merged edge
+    set p : E → Prop := fun e => M.IsOnChain ε e ∨ (M.IsOnChain e₀ e ∧ e ≠ e₀)
+    have hset : reduceChainOf hM hb hX g = {f : {e // e ≠ e₀} | p f.1} := by
+      ext f
+      have h₀ : f.1 ≠ e₀ := f.2
+      show (M.IsOnChain ε f.1 ∨ (M.graph.source ε = M.root ∧ M.IsOnChain e₀ f.1)) ↔ p f.1
+      simp only [p, hroot, true_and, ne_eq, h₀, not_false_eq_true, and_true]
+    have hF : ∀ f ∈ {f : {e // e ≠ e₀} | p f.1},
+        (unrootAtMetric M e₀ θ).length f =
+          θ.length f.1 + (if f.1 = ε then θ.length e₀ else 0) := by
+      intro f hf
+      show (if M.graph.source f.1 = M.root then θ.length f.1 + θ.length e₀ else θ.length f.1) = _
+      by_cases hfε : f.1 = ε
+      · rw [if_pos (hfε ▸ hroot), if_pos hfε]
+      · rw [if_neg hfε, add_zero, if_neg]
+        rcases hf with hf | ⟨hf, -⟩
+        · exact hsrc hf hfε
+        · exact hsrc hf f.2
+    rw [hset, finsum_mem_congr rfl hF, finsum_mem_subtype_ne (p := p)
+      (fun h => h.elim hnot₀ (fun h' => h'.2 rfl))
+      (fun e => θ.length e + if e = ε then θ.length e₀ else 0), sum_add_distrib]
+    have hpε : p ε := Or.inl (Or.inl rfl)
+    simp only [Finset.sum_ite_eq', Finset.mem_filter, Finset.mem_univ, true_and, if_pos hpε]
+    have hdis : ∀ x, M.IsOnChain ε x → ¬ M.IsOnChain e₀ x := fun x h₁ h₂ =>
+      hεe₀ (IsOnChain.unique h₁ h₂ (not_isChainVertex_source_reduceArc hM hb hX g) hc₀)
+    have h₀₀ : M.IsOnChain e₀ e₀ := Or.inl rfl
+    rw [Finset.sum_filter, Finset.sum_filter, Finset.sum_filter, ← sum_add_distrib,
+      show θ.length e₀ = ∑ x, if x = e₀ then θ.length x else 0 by simp, ← sum_add_distrib]
+    refine sum_congr rfl fun x _ => ?_
+    by_cases h₁ : M.IsOnChain ε x
+    · have h₂ : ¬ M.IsOnChain e₀ x := hdis x h₁
+      have h₃ : x ≠ e₀ := fun h => hnot₀ (h ▸ h₁)
+      simp [p, h₁, h₂, h₃]
+    · by_cases h₃ : x = e₀
+      · rw [h₃]
+        simp [p, hnot₀, h₀₀]
+      · by_cases h₂ : M.IsOnChain e₀ x <;> simp [p, h₁, h₂, h₃]
+  · have hroot' : ¬ (reduceNet M hP).graph.source (sdArc hb.1 hb.2 hX g) =
+        lsa hb.1 Set.univ Set.univ_nonempty := fun h =>
+      hroot ((source_reduceArc_eq_root_iff hM hb hX h2 hl g).2 h)
+    rw [if_neg hroot', hLε]
+    have hset : reduceChainOf hM hb hX g = {f : {e // e ≠ e₀} | M.IsOnChain ε f.1} := by
+      ext f
+      show (M.IsOnChain ε f.1 ∨ (M.graph.source ε = M.root ∧ M.IsOnChain e₀ f.1)) ↔
+        M.IsOnChain ε f.1
+      exact ⟨fun h => h.resolve_right fun h' => hroot h'.1, Or.inl⟩
+    have hF : ∀ f ∈ {f : {e // e ≠ e₀} | M.IsOnChain ε f.1},
+        (unrootAtMetric M e₀ θ).length f = θ.length f.1 := by
+      intro f hf
+      show (if M.graph.source f.1 = M.root then θ.length f.1 + θ.length e₀ else θ.length f.1) = _
+      rw [if_neg]
+      by_cases hfε : f.1 = ε
+      · rw [hfε]
+        exact hroot
+      · exact hsrc hf hfε
+    rw [hset, finsum_mem_congr rfl hF, finsum_mem_subtype_ne hnot₀ θ.length]
+
+include h2 hl in
+/-- **The inheritance of a hybrid edge of the unrooted network of `reduceNet M` is that of the only
+hybrid arc of its chain.** -/
+theorem inheritance_eq_finprod_reduceChainOf (hθ : M.IsNormalized θ) (g : SemidirectedArc hb.1 hb.2 hX)
+    (hd : (unrooted _ hb hX).IsDirected g) :
+    (unrootedMetric (reduceNet M hM.phylo) hb hX (reduceMetric M hM.phylo θ)).inheritance g =
+      ∏ᶠ f ∈ {f | f ∈ reduceChainOf hM hb hX g ∧
+        (unrootAt M hM.phylo (reduceRootArc hM hb hX)).IsDirected f},
+        (unrootAtMetric M (reduceRootArc hM hb hX) θ).inheritance f := by
+  have hP := hM.phylo
+  have hlast := lastArc_reduceArc_ne hM hb hX h2 hl g
+  have hhyb : M.IsHybridArc (NMSC.lastArc hP (reduceArc hM hb hX g)) := by
+    rw [semidirected_isDirected_iff] at hd
+    exact (isHybridArc_reduceNet_iff hP hM.two _).1 hd
+  have hset : {f | f ∈ reduceChainOf hM hb hX g ∧
+      (unrootAt M hP (reduceRootArc hM hb hX)).IsDirected f} =
+      {⟨NMSC.lastArc hP (reduceArc hM hb hX g), hlast⟩} := by
+    ext f
+    simp only [Set.mem_ofPred_eq, Set.mem_singleton_iff]
+    constructor
+    · rintro ⟨hf, hh⟩
+      exact Subtype.ext (eq_lastArc_of_mem_reduceChainOf hM hb hX h2 hl hf hh)
+    · rintro rfl
+      exact ⟨Or.inl (NMSC.isOnChain_lastArc hP _), hhyb⟩
+  rw [hset, finprod_mem_singleton, semidirectedMetric_inheritance,
+    reduceMetric_inheritance _ hθ]
+  rfl
+
 end Reduce
 
 end Banos2019
