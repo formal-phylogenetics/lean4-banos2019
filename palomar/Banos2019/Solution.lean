@@ -3,6 +3,7 @@ module
 public import Banos2019.Defs
 public import Banos2019.Bridge.Statements
 public import Banos2019.Bridge.Examples
+public import Banos2019.Bridge.Generic
 public import Banos2019.Identifiability
 public import Banos2019.Quartet.Examples
 
@@ -77,5 +78,54 @@ Definition 1's connectedness follows from its other clauses. -/
 theorem root_reaches {V E X : Type*} (N : Network V E X) (hN : N.IsBinaryNetwork) (v : V) :
     N.graph.Reaches N.root v := by
   exact Banos2019.Model.root_reaches N hN v
+
+/-- **"For generic parameters" is not vacuous** (a check of the definitions): the metric parameters
+of a binary rooted network do not form a null set, so no binary network satisfies a false property for
+generic parameters. -/
+theorem not_forGenericParams_false {V E X : Type*} [Fintype E] (N : Network V E X)
+    (hN : N.IsBinaryNetwork) : ¬ N.ForGenericParams fun _ => False := by
+  exact N.not_forGenericParams_false hN
+
+/-- **Example 6** (a check of the definitions): the network of Figure 18, with a `3₂`-cycle, rooted on
+one of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`; the node `4` of `0, 1`
+is below the hybrid node `5` (edge of length `t₁ = -log(6/7)`); the node `7` of `3` joins the node `6`
+of `2` (length `t₃ = -log(1/14)`); the hybrid edges into `5` come from `6` (length `t₂ = -log(6/7)`)
+and from `7` (length `t₄ = -log(13/14)`, which the root `8` halves), each of inheritance probability
+`1/2`; the pendant edges have length one. It is a binary level-1 metric network rooted at the LSA of its
+taxa, and its concordance factors are `32/98` for `01|23` and `33/98` for `02|13` and `03|12`: the Cycle
+property holds and the Big Cycle property does not. -/
+theorem example6 :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (6 / 7), -Real.log (1 / 14), -Real.log (13 / 14) / 2,
+          -Real.log (6 / 7), -Real.log (13 / 14) / 2], ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+  exact Banos2019.Model.example6_explicit
+
+/-- **Example 7** (a check of the definitions): the network of Figure 17, with a 4-cycle, rooted on one
+of its hybrid edges. The taxa `0, 1, 2, 3` are at the leaves `0, 1, 2, 3`, below the nodes `4, 5, 6, 7`
+of the cycle; `7` joins `4` (length `t₁ = -log(48/49)`), `4` joins `5` (length `t₂ = -log(48/49)`), and the
+hybrid edges into `6` come from `5` and from `7` (the latter halved by the root `8`), each of length one
+and inheritance probability `1/2`; the pendant edges have length one. It is a binary level-1 metric
+network rooted at the LSA of its taxa, and its concordance factors are `33/98` for `01|23` and `03|12`
+and `32/98` for `02|13`. The paper prints `32/98` for `AB|CD` and `33/98` for `AC|BD` and `AD|BC`: those
+are the values with the taxa `1` and `2` exchanged. -/
+theorem example7 :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (48 / 49), -Real.log (48 / 49), 1, 1 / 2, 1 / 2],
+        ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+  exact Banos2019.Model.example7_explicit
 
 end Banos2019Challenge

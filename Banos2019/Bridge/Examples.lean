@@ -2,6 +2,8 @@ module
 
 public import Banos2019.Bridge.Model
 public import Banos2019.Quartet.Trees
+public import Banos2019.Quartet.Examples
+public import Banos2019.Quartet.Fig18
 
 /-!
 # Equation (1) on an explicit quartet tree, on the Challenge's definitions
@@ -210,5 +212,126 @@ theorem equation1_balanced (t₁ t₂ : ℝ) (h₁ : 0 < t₁) (h₂ : 0 < t₂)
     rw [this, e₁]
   · rw [hcf, e₂ _ (halt q (Or.inl hq))]
   · rw [hcf, e₂ _ (halt q (Or.inr hq))]
+
+/-! ### Examples 6 and 7 -/
+
+theorem distinct4_fin4 : Distinct4 (0 : Fin 4) 1 2 3 := by
+  unfold Distinct4
+  decide
+
+/-- **Example 6**, on the Challenge's definitions: the rooting `q18` of Figure 18, with `γ = 1/2`,
+`t₁ = t₂ = -log(6/7)`, `t₃ = -log(1/14)`, `t₄ = -log(13/14)`, the root halving `t₄`. -/
+theorem example6_explicit :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 4, 6, 7, 5, 7, 8, 6, 8], ![0, 1, 2, 3, 4, 6, 5, 5, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (6 / 7), -Real.log (1 / 14), -Real.log (13 / 14) / 2,
+          -Real.log (6 / 7), -Real.log (13 / 14) / 2], ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+  intro N θ
+  have hd := distinct4_fin4
+  let len : Fin 8 → ℝ := ![1, 1, 1, 1, -Real.log (6 / 7), -Real.log (1 / 14), -Real.log (13 / 14),
+    -Real.log (6 / 7)]
+  have a₁ : Real.log (6 / 7) < 0 := Real.log_neg (by norm_num) (by norm_num)
+  have a₂ : 0 < Real.log 14 := Real.log_pos (by norm_num)
+  have a₃ : Real.log (13 / 14) < 0 := Real.log_neg (by norm_num) (by norm_num)
+  have hlen : ∀ i, 0 < len i := by
+    intro i
+    fin_cases i <;> simp [len, a₁, a₂, a₃]
+  have hQ := isLSAQuartet_q18 (by simp) hd hlen (γ := 1 / 2) (by norm_num) (by norm_num)
+  have hN' : N.toRooted = q18 0 1 2 := by
+    change (⟨⟨_, _⟩, 8, ![0, 1, 2, 3]⟩ : RootedNetwork (Fin 9) (Fin 9) (Fin 4)) =
+      ⟨⟨q18Src, q18Tgt⟩, 8, fun x => (figLeaf 0 1 2 x).castSucc⟩
+    congr 1
+    funext x
+    fin_cases x <;> rfl
+  have hθ' : θ.toMetric = q18Metric len (1 / 2) := by
+    change (⟨_, _⟩ : MetricData (Fin 9)) = ⟨_, _⟩
+    congr 1
+    funext i
+    fin_cases i <;> norm_num [θ, q18Metric]
+  have hNb : N.IsBinaryNetwork := (Network.isBinaryNetwork_iff N).mpr (hN' ▸ hQ.binary)
+  have h1 : N.graph.IsLevelOne := by
+    rw [Digraph.isLevelOne_iff, ← Network.graph_toRooted, hN']
+    exact hQ.levelOne
+  have hl : N.IsLSA Set.univ N.root := by
+    have := hQ.isLSA
+    rw [← hN'] at this
+    exact this
+  have hm : N.IsMetric θ := by
+    rw [N.isMetric_iff hNb, hN', hθ']
+    exact hQ.metric
+  refine ⟨hNb, h1, hl, hm, fun q => ?_⟩
+  have e := example6 hd hQ len rfl rfl rfl rfl (inducesNetwork_q18 hd hQ)
+  simp only [CF, Prod.mk.injEq] at e
+  have hcf : ∀ q, N.cf θ q = Banos2019.cf (q18 0 1 2) (q18Metric len (1 / 2)) (quartetTreeEquiv q) :=
+    fun q => by rw [N.cf_eq, Function.comp_apply, hN', hθ']
+  refine ⟨fun hq => ?_, fun hq => ?_, fun hq => ?_⟩
+  · rw [hcf, ← e.1]
+    exact congrArg _ (Subtype.ext hq)
+  · rw [hcf, ← e.2.1]
+    exact congrArg _ (Subtype.ext hq)
+  · rw [hcf, ← e.2.2]
+    exact congrArg _ (Subtype.ext hq)
+
+/-- **Example 7**, on the Challenge's definitions: the rooting `q17` of Figure 17, with `γ = 1/2`,
+`t₁ = t₂ = -log(48/49)`, the root halving the hybrid edge from the node of `3`. -/
+theorem example7_explicit :
+    let N : Network (Fin 9) (Fin 9) (Fin 4) :=
+      ⟨⟨![4, 5, 6, 7, 7, 4, 5, 8, 8], ![0, 1, 2, 3, 4, 5, 6, 6, 7]⟩, 8, ![0, 1, 2, 3]⟩
+    let θ : Params (Fin 9) :=
+      ⟨![1, 1, 1, 1, -Real.log (48 / 49), -Real.log (48 / 49), 1, 1 / 2, 1 / 2],
+        ![1, 1, 1, 1, 1, 1, 1 / 2, 1 / 2, 1]⟩
+    N.IsBinaryNetwork ∧ N.graph.IsLevelOne ∧ N.IsLSA Set.univ N.root ∧ N.IsMetric θ ∧
+      ∀ q : QuartetTree (Fin 4),
+        (q.1 = {{0, 1}, {2, 3}} → N.cf θ q = 33 / 98) ∧
+        (q.1 = {{0, 2}, {1, 3}} → N.cf θ q = 32 / 98) ∧
+        (q.1 = {{0, 3}, {1, 2}} → N.cf θ q = 33 / 98) := by
+  intro N θ
+  have hd := distinct4_fin4
+  let len : Fin 8 → ℝ := ![1, 1, 1, 1, -Real.log (48 / 49), -Real.log (48 / 49), 1, 1]
+  have a₁ : Real.log (48 / 49) < 0 := Real.log_neg (by norm_num) (by norm_num)
+  have hlen : ∀ i, 0 < len i := by
+    intro i
+    fin_cases i <;> simp [len, a₁]
+  have hQ := isLSAQuartet_q17 (by simp) hd hlen (γ := 1 / 2) (by norm_num) (by norm_num)
+  have hN' : N.toRooted = q17 0 1 2 := by
+    change (⟨⟨_, _⟩, 8, ![0, 1, 2, 3]⟩ : RootedNetwork (Fin 9) (Fin 9) (Fin 4)) =
+      ⟨⟨q17Src, q17Tgt⟩, 8, quartetLeaf9 0 1 2⟩
+    congr 1
+    funext x
+    fin_cases x <;> rfl
+  have hθ' : θ.toMetric = q17Metric len (1 / 2) := by
+    change (⟨_, _⟩ : MetricData (Fin 9)) = ⟨_, _⟩
+    congr 1
+    funext i
+    fin_cases i <;> norm_num [θ, q17Metric]
+  have hNb : N.IsBinaryNetwork := (Network.isBinaryNetwork_iff N).mpr (hN' ▸ hQ.binary)
+  have h1 : N.graph.IsLevelOne := by
+    rw [Digraph.isLevelOne_iff, ← Network.graph_toRooted, hN']
+    exact hQ.levelOne
+  have hl : N.IsLSA Set.univ N.root := by
+    have := hQ.isLSA
+    rw [← hN'] at this
+    exact this
+  have hm : N.IsMetric θ := by
+    rw [N.isMetric_iff hNb, hN', hθ']
+    exact hQ.metric
+  refine ⟨hNb, h1, hl, hm, fun q => ?_⟩
+  have e := (example7 hd hQ len rfl rfl (inducesNetwork_q17 hQ)).1
+  simp only [CF, Prod.mk.injEq] at e
+  have hcf : ∀ q, N.cf θ q = Banos2019.cf (q17 0 1 2) (q17Metric len (1 / 2)) (quartetTreeEquiv q) :=
+    fun q => by rw [N.cf_eq, Function.comp_apply, hN', hθ']
+  refine ⟨fun hq => ?_, fun hq => ?_, fun hq => ?_⟩
+  · rw [hcf, ← e.1]
+    exact congrArg _ (Subtype.ext hq)
+  · rw [hcf, ← e.2.1]
+    exact congrArg _ (Subtype.ext hq)
+  · rw [hcf, ← e.2.2]
+    exact congrArg _ (Subtype.ext hq)
 
 end Banos2019.Model
