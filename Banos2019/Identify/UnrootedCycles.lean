@@ -10,9 +10,6 @@ public import Banos2019.Network.CycleFacts
   Quartet/Correspondence).
 * `exists_isHybridNodeOf`, `IsHybridNodeOf.eq`, `IsHybridNodeOf.cycle_eq`: a cycle of `N⁻` has
   exactly one hybrid node, and a hybrid node lies on one cycle (Lemma 3).
-* `exists_walks_compl_cycleNodes`: in a connected graph, every node is joined to a node of a cycle
-  by a walk avoiding the cycle.
-* `card_four_of_ne`, `injOn_four`: sets of four elements.
 -/
 
 @[expose] public noncomputable section
@@ -41,29 +38,6 @@ theorem IsCycle.exists_mem_cycleNodes_notMem {C : Set E} (hC : IsCycle G C) {F :
   Set.exists_mem_notMem_of_ncard_lt_ncard (by rwa [ncard_cycleNodes hC]) hF
 
 end Multigraph
-
-/-! ### Four distinct elements -/
-
-section Four
-
-variable {α β : Type*} [DecidableEq α]
-
-/-- Four distinct elements make a set of four. -/
-theorem card_four_of_ne {a b c d : α} (hab : a ≠ b) (hac : a ≠ c) (had : a ≠ d) (hbc : b ≠ c)
-    (hbd : b ≠ d) (hcd : c ≠ d) : #({a, b, c, d} : Finset α) = 4 := by
-  rw [card_insert_of_notMem (by simp [hab, hac, had]), card_insert_of_notMem (by simp [hbc, hbd]),
-    card_pair hcd]
-
-/-- A map taking four elements to four distinct values is injective on them. -/
-theorem injOn_four {f : α → β} {a b c d : α} (hab : f a ≠ f b) (hac : f a ≠ f c) (had : f a ≠ f d)
-    (hbc : f b ≠ f c) (hbd : f b ≠ f d) (hcd : f c ≠ f d) :
-    Set.InjOn f ↑({a, b, c, d} : Finset α) := by
-  intro x hx y hy hxy
-  simp only [coe_insert, coe_singleton, Set.mem_insert_iff, Set.mem_singleton_iff] at hx hy
-  rcases hx with rfl | rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl | rfl <;>
-    first | rfl | exact absurd hxy ‹_› | exact absurd hxy.symm ‹_›
-
-end Four
 
 /-! ### `N⁻` is connected and level-1 -/
 

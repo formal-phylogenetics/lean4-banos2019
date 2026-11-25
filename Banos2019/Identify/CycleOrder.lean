@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Identify.Blocks
+public import Banos2019.Basic.Data.Finset.Card
 
 /-!
 # The order of the blocks around a cycle of `N⁻` (Baños 2019, Lemma 16)
@@ -267,10 +268,10 @@ theorem adjacentBlocks_iff_forall_joinedAvoiding [DecidableEq X] (h1 : IsLevelOn
     have hzz' : blockNode (unrooted N hN hX) C z ≠ blockNode (unrooted N hN hX) C z' := by
       rw [hz, hz']
       exact hvne _ _ (by omega)
-    have hcard := card_four_of_ne (hβne hxy) (hβne hxz) (hβne hxz') (hβne hyz) (hβne hyz')
+    have hcard := Finset.card_four_of_ne (hβne hxy) (hβne hxz) (hβne hxz') (hβne hyz) (hβne hyz')
       (hβne hzz')
     have hsep : SeparatesQuartet (unrooted N hN hX) C v {x, y, z, z'} := by
-      refine (separatesQuartet_iff h1 hC hv _).2 ⟨injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
+      refine (separatesQuartet_iff h1 hC hv _).2 ⟨Finset.injOn_four hxy hxz hxz' hyz hyz' hzz', ?_⟩
       rcases hhyb with hv0 | hva | hvm | hvb
       · exact ⟨x, by simp, h0.symm.trans hv0.symm⟩
       · exact ⟨z, by simp, hz.trans hva.symm⟩

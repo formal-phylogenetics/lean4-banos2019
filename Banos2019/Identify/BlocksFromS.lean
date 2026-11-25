@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Identify.QuartetCycles
+public import Banos2019.Basic.Data.Finset.Card
 
 /-!
 # The blocks and the order of the cycles from `S` (Baños 2019, proofs of Lemmas 14, 15 and 16)
@@ -701,7 +702,7 @@ theorem adjacencyTest_iff (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.grap
   have hsep : ∀ z z', Distinct4 x y z z' → β x ≠ β z → β x ≠ β z' → β y ≠ β z → β y ≠ β z' →
       β z ≠ β z' → SeparatesQuartet (unrooted N hN hX) C w {x, y, z, z'} := by
     intro z z' h hxz hxz' hyz hyz' hzz'
-    have hinj := injOn_four hxy hxz hxz' hyz hyz' hzz'
+    have hinj := Finset.injOn_four hxy hxz hxz' hyz hyz' hzz'
     refine (separatesQuartet_iff h1 hC hw _).2 ⟨hinj, ?_⟩
     rcases hx with h4 | hxw
     · have := hN.1.finite_vertices
@@ -802,7 +803,7 @@ theorem isBCQuartetOf_cf_iff_lt (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne 
   have hp' : (ι p : ℕ) = n := by rw [hp, Fin.val_last]
   have htlt := (ι t).isLt
   have hsep : SeparatesQuartet (unrooted N hN hX) (Set.range e) w {a, t, x, p} :=
-    (separatesQuartet_iff h1 hC hw _).2 ⟨injOn_four (hβ (by omega)) (hβ (by omega))
+    (separatesQuartet_iff h1 hC hw _).2 ⟨Finset.injOn_four (hβ (by omega)) (hβ (by omega))
       (hβ (by omega)) (hβ (by omega)) (hβ (by omega)) (hβ (by omega)), a, by simp,
       by rw [← hι, ha, h0]⟩
   rw [← not_iff_not, not_isBCQuartet_iff_joinedAvoiding hN h1 hX hθ hS hC4 h hsep, not_lt]

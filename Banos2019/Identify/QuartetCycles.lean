@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Identify.CycleOrder
+public import Banos2019.Basic.Logic.RelationSymm
 
 /-!
 # The cycles of `Q⁻_s` and those of `N⁻` (Baños 2019, Sections 7–9)
@@ -96,13 +97,6 @@ theorem IsCycle.walks_diff_singleton {C : Set E'} (hC : IsCycle G C) {f : E'} (h
     exact hW
   · rw [h₁, h₂]
     exact G.walks_symm hW
-
-/-- A relation's reflexive transitive closure is symmetric when the relation is. -/
-theorem reflTransGen_symm_of_symm {α : Type*} {r : α → α → Prop} (hr : ∀ a b, r a b → r b a)
-    {a b : α} (h : Relation.ReflTransGen r a b) : Relation.ReflTransGen r b a := by
-  induction h with
-  | refl => exact .refl
-  | tail _ hbc ih => exact ih.head (hr _ _ hbc)
 
 /-- **Of four nodes of a cycle, the three pairs `p₁ p₂`, `p₂ p₃`, `p₁ p₃` are not all joined along
 the cycle avoiding the other two nodes**: one of these pairs is a pair of opposite nodes, separated
@@ -1502,10 +1496,11 @@ theorem reflTransGen_unrooted_of_joins_quartet {C' : Set _}
         rcases he₀ with h₀ | h₀
         · have hst := hstep _ heĈ hem (fun h => hne (h.trans h₀).symm) a₁ a₂
             (by rw [ha₁, ← h₀]) ha₂ (by rw [ha₁]; exact hPr) (by rw [ha₂]; exact hPt)
-          exact (reflTransGen_symm_of_symm hsymm w₁).trans (Relation.ReflTransGen.head hst w₂)
+          exact (Relation.ReflTransGen.symm_of_symm hsymm w₁).trans
+            (Relation.ReflTransGen.head hst w₂)
         · have hst := hstep _ hrĈ hrm (fun h => hne (h.trans h₀)) a₂ a₁
             (by rw [ha₂, ← h₀]) ha₁ (by rw [ha₂]; exact hPt) (by rw [ha₁]; exact hPr)
-          exact (reflTransGen_symm_of_symm hsymm w₁).trans
+          exact (Relation.ReflTransGen.symm_of_symm hsymm w₁).trans
             (Relation.ReflTransGen.head (hsymm _ _ hst) w₂)
       · -- `LSA(s)` is a node of `N⁻`
         obtain ⟨nl, hnl⟩ := exists_unrooted_node (hX := hX) hN.1 (reaches_lsa_quartet hN hs _) hm
@@ -1514,7 +1509,7 @@ theorem reflTransGen_unrooted_of_joins_quartet {C' : Set _}
           hpathr) n₁ hn₁'
         have w₂ := hlift nl hPl (Relation.ReflTransGen.head ⟨_, heĈ, heN.trans hnl.symm, rfl, hPt⟩
           hpath) n₂ hn₂
-        exact (reflTransGen_symm_of_symm hsymm w₁).trans w₂
+        exact (Relation.ReflTransGen.symm_of_symm hsymm w₁).trans w₂
     · -- an arc of `Q⊕_s`
       have hs₁ := unrooted_source_val_of_ne hQb e
         (fun h => hr (h.trans (lsa_univ_quartetLSA hN hs Set.univ_nonempty)))
@@ -1523,7 +1518,7 @@ theorem reflTransGen_unrooted_of_joins_quartet {C' : Set _}
         (Relation.ReflTransGen.head ⟨_, heĈ, hn₁'.symm, rfl, hPt⟩ hpath) n₂ hn₂
   rcases hj with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
   · exact core n₁ n₂ (by rw [h₁]; exact hn₁) (by rw [h₂]; exact hn₂) hn₁F hn₂F
-  · exact reflTransGen_symm_of_symm hsymm
+  · exact Relation.ReflTransGen.symm_of_symm hsymm
       (core n₂ n₁ (by rw [h₁]; exact hn₂) (by rw [h₂]; exact hn₁) hn₂F hn₁F)
 
 end Correspondence

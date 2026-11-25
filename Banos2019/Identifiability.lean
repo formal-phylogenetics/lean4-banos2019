@@ -5,6 +5,7 @@ public import Banos2019.Identify.QuartetCycles
 public import Banos2019.Identify.Counterexample
 public import Banos2019.Identify.BlocksFromS
 public import Banos2019.Identify.TildeInduction
+public import Banos2019.Basic.Data.Finset.Card
 
 /-!
 # Identifying cycles in networks (Baños 2019, Sections 8 and 9)
@@ -298,9 +299,9 @@ theorem proposition12 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
       rcases hx with rfl | rfl | rfl <;> assumption
     · simp only [mem_insert, mem_singleton, not_or]
       exact ⟨hne hep, hne her, hne het⟩
-    · have h4' := card_four_of_ne (hne hep) (hne her) (hne het) (hne hpr) (hne hpt) (hne hrt)
+    · have h4' := Finset.card_four_of_ne (hne hep) (hne her) (hne het) (hne hpr) (hne hpt) (hne hrt)
       convert (h12 hθ _ h4').2 ⟨C, v, by omega, (separatesQuartet_iff h1 hC hv _).2
-        ⟨injOn_four hep her het hpr hpt hrt, p, by simp, hβp⟩⟩
+        ⟨Finset.injOn_four hep her het hpr hpt hrt, p, by simp, hβp⟩⟩
   · -- three taxa of `s` in distinct blocks
     rw [← ncard_cycleNodes hC, ← h3]
     exact Set.ncard_le_ncard hsub (Set.toFinite _)
@@ -391,7 +392,7 @@ theorem proposition13 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     have hv' := hv.mem_cycleNodes
     rw [hnodes] at hv'
     convert (h12 hθ _ he4).2 ⟨C, v, by omega, (separatesQuartet_iff h1 hC hv _).2
-      ⟨injOn_four hβij hβik (fun h' => hu₄i (h.symm.trans h'.symm)) hβjk
+      ⟨Finset.injOn_four hβij hβik (fun h' => hu₄i (h.symm.trans h'.symm)) hβjk
         (fun h' => hu₄j (h.symm.trans h'.symm)) (fun h' => hu₄k (h.symm.trans h'.symm)), ?_⟩⟩
     rcases hv' with h' | h' | h' | h'
     · exact ⟨e, by simp, h.trans h'.symm⟩

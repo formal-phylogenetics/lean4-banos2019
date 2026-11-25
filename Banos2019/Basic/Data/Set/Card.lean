@@ -13,6 +13,8 @@ public import Mathlib.Algebra.BigOperators.Finprod
 * `Set.exists_mem_and_exists_notMem_of_ncard_eq_two`,
   `Set.exists_not_and_forall_ne_of_ncard_eq_three`: subsets of two and three elements of a type
   with four.
+* `Set.ncard_nontrivialClasses_subtype_lt`: restricting an equivalence relation to a set that meets
+  one of its classes with at least two elements in a single element leaves fewer such classes.
 * `Set.ncard_setOf_eq_card_filter`: the size of a set of elements of `Fin n` as a finset.
 -/
 
@@ -84,6 +86,45 @@ theorem exists_not_and_forall_ne_of_ncard_eq_three [Fintype α] (hα : Fintype.c
     have : x ∈ ({x | P x}ᶜ) := hPx
     rw [hd] at this
     exact hx this
+
+/-- **Classes of an equivalence relation on a subset**: when `Y` holds one element `x` of a class
+with at least two elements and all the elements of the other classes, the classes of the relation on
+`Y` with at least two elements are the other classes of `R` with at least two elements, so there are
+fewer of them than there are of `R`. -/
+theorem ncard_nontrivialClasses_subtype_lt [Finite α] (R : α → α → Prop)
+    (hrefl : ∀ a, R a a) (hsymm : ∀ a b, R a b → R b a) (htrans : ∀ a b c, R a b → R b c → R a c)
+    {Y : Set α} {x : α} (hY : ∀ z, z ∈ Y ↔ z = x ∨ ¬ R x z) (hP : {y | R x y}.Nontrivial) :
+    {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial}.ncard <
+      {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial}.ncard := by
+  have hmaps : ∀ B ∈ {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial},
+      Subtype.val '' B ∈ {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} \ {{y | R x y}} := by
+    rintro B ⟨⟨a, rfl⟩, hB⟩
+    -- `a` is not in the class of `x`, which meets `Y` in `x` only
+    have hxa : ¬ R x a := by
+      intro hxa
+      obtain ⟨b₁, hb₁, b₂, hb₂, hne⟩ := hB
+      have e : ∀ b : Y, R a b → (b : α) = x := fun b hb =>
+        ((hY b).1 b.2).resolve_right (not_not.2 (htrans _ _ _ hxa hb))
+      exact hne (Subtype.ext ((e b₁ hb₁).trans (e b₂ hb₂).symm))
+    -- so the class of `a` lies in `Y`
+    have himg : Subtype.val '' {b : Y | R a b} = {b | R a b} := by
+      ext z
+      refine ⟨?_, fun hz => ⟨⟨z, (hY z).2 (Or.inr fun hxz =>
+        hxa (htrans _ _ _ hxz (hsymm _ _ hz)))⟩, hz, rfl⟩⟩
+      rintro ⟨b, hb, rfl⟩
+      exact hb
+    refine ⟨⟨⟨a, himg⟩, hB.image Subtype.val_injective⟩, fun h => hxa ?_⟩
+    have hx : x ∈ ({y | R a y} : Set α) := by
+      rw [← himg, Set.mem_singleton_iff.1 h]
+      exact hrefl x
+    exact hsymm _ _ hx
+  calc _ = (Set.image (Set.image Subtype.val)
+        {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial}).ncard :=
+        (Set.ncard_image_of_injective _ Subtype.val_injective.image_injective).symm
+    _ ≤ ({B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} \ {{y | R x y}}).ncard :=
+        Set.ncard_le_ncard (by rintro _ ⟨B, hB, rfl⟩; exact hmaps B hB)
+    _ < _ := Set.ncard_sdiff_singleton_lt_of_mem
+        (show {y | R x y} ∈ {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} from ⟨⟨x, rfl⟩, hP⟩)
 
 theorem ncard_setOf_eq_card_filter {n : ℕ} (p : Fin n → Prop) [DecidablePred p] :
     {a | p a}.ncard = (Finset.univ.filter p).card := by

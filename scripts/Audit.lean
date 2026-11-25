@@ -222,6 +222,7 @@ import all Allman2011.Rootings.Statements
 import all Allman2011.Rootings.Support
 import all PhyloNetwork
 import all Banos2019.Basic.Algebra.BigOperators.Finprod
+import all Banos2019.Basic.Data.Finset.Card
 import all Banos2019.Basic.Data.Finset.Image
 import all Banos2019.Basic.Data.Set.Card
 import all Banos2019.Basic.Logic.EquivOfInjective

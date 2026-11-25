@@ -6,6 +6,8 @@ public import Banos2019.Identify.Glue
 public import Banos2019.Identify.InducedCycles
 public import Banos2019.Identify.TildeCycle
 public import Banos2019.Identify.SameData
+public import Banos2019.Basic.Data.Finset.Card
+public import Banos2019.Basic.Data.Set.Card
 
 /-!
 # The induction of Theorem 4 (Baños 2019, Section 8)
@@ -55,19 +57,6 @@ open scoped Classical
 
 namespace Banos2019
 
-/-- Four elements of `insert a T` include two distinct elements of `T`. -/
-theorem exists_ne_mem_of_card_four_subset_insert {α : Type*} [DecidableEq α] {s : Finset α}
-    (hs : #s = 4) {a : α} {T : Set α} (h : (s : Set α) ⊆ insert a T) :
-    ∃ x ∈ s, ∃ y ∈ s, x ≠ y ∧ x ∈ T ∧ y ∈ T := by
-  have h1 : 1 < #(s.erase a) := by
-    have := Finset.pred_card_le_card_erase (s := s) (a := a)
-    omega
-  obtain ⟨x, hx, y, hy, hxy⟩ := Finset.one_lt_card.1 h1
-  obtain ⟨hxa, hx⟩ := Finset.mem_erase.1 hx
-  obtain ⟨hya, hy⟩ := Finset.mem_erase.1 hy
-  exact ⟨x, hx, y, hy, hxy, (Set.mem_insert_iff.1 (h (mem_coe.2 hx))).resolve_left hxa,
-    (Set.mem_insert_iff.1 (h (mem_coe.2 hy))).resolve_left hya⟩
-
 /-- A cycle does not separate four taxa of `insert a T` when the taxa of `T` are in one of its
 blocks. -/
 theorem not_separatesQuartet_of_subset_insert {V' E' X' : Type*} [DecidableEq X']
@@ -75,7 +64,7 @@ theorem not_separatesQuartet_of_subset_insert {V' E' X' : Type*} [DecidableEq X'
     {T : Set X'} (hT : ∀ x ∈ T, ∀ y ∈ T, SameBlock G.graph G.leaf C x y)
     (h : (s : Set X') ⊆ insert a T) : ¬ SeparatesQuartet G C v s := by
   intro hsep
-  obtain ⟨x, hx, y, hy, hxy, hxT, hyT⟩ := exists_ne_mem_of_card_four_subset_insert hs h
+  obtain ⟨x, hx, y, hy, hxy, hxT, hyT⟩ := Finset.exists_ne_mem_of_card_four_subset_insert hs h
   exact hsep.2.2.1 x hx y hy hxy (hT x hxT y hyT)
 
 variable {X : Type} [Fintype X] [DecidableEq X] {V E : Type} [Fintype V] [Fintype E]
@@ -245,45 +234,6 @@ theorem tilde_sdIso_of_leafCycle {V' E' : Type} [Fintype V'] [Fintype E']
 
 /-! ### One cycle of size at least four -/
 
-/-- **Classes of an equivalence relation on a subset**: when `Y` holds one element `x` of a class
-with at least two elements and all the elements of the other classes, the classes of the relation on
-`Y` with at least two elements are the other classes of `R` with at least two elements, so there are
-fewer of them than there are of `R`. -/
-theorem ncard_nontrivialClasses_subtype_lt {α : Type*} [Finite α] (R : α → α → Prop)
-    (hrefl : ∀ a, R a a) (hsymm : ∀ a b, R a b → R b a) (htrans : ∀ a b c, R a b → R b c → R a c)
-    {Y : Set α} {x : α} (hY : ∀ z, z ∈ Y ↔ z = x ∨ ¬ R x z) (hP : {y | R x y}.Nontrivial) :
-    {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial}.ncard <
-      {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial}.ncard := by
-  have hmaps : ∀ B ∈ {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial},
-      Subtype.val '' B ∈ {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} \ {{y | R x y}} := by
-    rintro B ⟨⟨a, rfl⟩, hB⟩
-    -- `a` is not in the class of `x`, which meets `Y` in `x` only
-    have hxa : ¬ R x a := by
-      intro hxa
-      obtain ⟨b₁, hb₁, b₂, hb₂, hne⟩ := hB
-      have e : ∀ b : Y, R a b → (b : α) = x := fun b hb =>
-        ((hY b).1 b.2).resolve_right (not_not.2 (htrans _ _ _ hxa hb))
-      exact hne (Subtype.ext ((e b₁ hb₁).trans (e b₂ hb₂).symm))
-    -- so the class of `a` lies in `Y`
-    have himg : Subtype.val '' {b : Y | R a b} = {b | R a b} := by
-      ext z
-      refine ⟨?_, fun hz => ⟨⟨z, (hY z).2 (Or.inr fun hxz =>
-        hxa (htrans _ _ _ hxz (hsymm _ _ hz)))⟩, hz, rfl⟩⟩
-      rintro ⟨b, hb, rfl⟩
-      exact hb
-    refine ⟨⟨⟨a, himg⟩, hB.image Subtype.val_injective⟩, fun h => hxa ?_⟩
-    have hx : x ∈ ({y | R a y} : Set α) := by
-      rw [← himg, Set.mem_singleton_iff.1 h]
-      exact hrefl x
-    exact hsymm _ _ hx
-  calc _ = (Set.image (Set.image Subtype.val)
-        {B : Set Y | (∃ a : Y, B = {b : Y | R a b}) ∧ B.Nontrivial}).ncard :=
-        (Set.ncard_image_of_injective _ Subtype.val_injective.image_injective).symm
-    _ ≤ ({B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} \ {{y | R x y}}).ncard :=
-        Set.ncard_le_ncard (by rintro _ ⟨B, hB, rfl⟩; exact hmaps B hB)
-    _ < _ := Set.ncard_sdiff_singleton_lt_of_mem
-        (show {y | R x y} ∈ {B : Set α | (∃ a, B = {b | R a b}) ∧ B.Nontrivial} from ⟨⟨x, rfl⟩, hP⟩)
-
 /-- The blocks of the cycle `C` with at least two taxa. -/
 def nontrivialBlocks {V' E' X' : Type*} (G : SemidirectedNetwork V' E' X') (C : Set E') :
     Set (Set X') :=
@@ -332,7 +282,7 @@ theorem ncard_nontrivialBlocks_inducedLSA_lt {N : RootedNetwork V E X}
         (unrooted N hN hX).leaf C₀ a b}) ∧ B.Nontrivial} := by
     simp only [nontrivialBlocks, hiff]
   rw [heq]
-  exact ncard_nontrivialClasses_subtype_lt
+  exact Set.ncard_nontrivialClasses_subtype_lt
     (fun a b => SameBlock (unrooted N hN hX).graph (unrooted N hN hX).leaf C₀ a b) (fun _ => .refl)
     (fun _ _ h => DirectedMultigraph.walks_symm _ h) (fun _ _ _ h h' => h.trans h') hYx hP
 

@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Identify.HybridBlock
+public import Banos2019.Basic.Data.Finset.Card
 
 /-!
 # The blocks of a cycle of `N⁻` (Baños 2019, Sections 3, 7 and 8)
@@ -141,10 +142,10 @@ theorem exists_separatesQuartet_of_not_sameBlock [DecidableEq X] (h1 : IsLevelOn
   obtain ⟨d, rfl⟩ := exists_blockNode_eq h1 hC hu₄
   obtain ⟨hcx, hcy⟩ := hu₃xy
   obtain ⟨hdc, hdx, hdy⟩ := hu₄xy
-  refine ⟨c, d, card_four_of_ne (hne hxy) (hne (Ne.symm hcx)) (hne (Ne.symm hdx))
+  refine ⟨c, d, Finset.card_four_of_ne (hne hxy) (hne (Ne.symm hcx)) (hne (Ne.symm hdx))
     (hne (Ne.symm hcy)) (hne (Ne.symm hdy)) (hne (Ne.symm hdc)),
-    (separatesQuartet_iff h1 hC hv _).2 ⟨injOn_four hxy (Ne.symm hcx) (Ne.symm hdx) (Ne.symm hcy)
-      (Ne.symm hdy) (Ne.symm hdc), ?_⟩⟩
+    (separatesQuartet_iff h1 hC hv _).2 ⟨Finset.injOn_four hxy (Ne.symm hcx) (Ne.symm hdx)
+      (Ne.symm hcy) (Ne.symm hdy) (Ne.symm hdc), ?_⟩⟩
   rcases hvu₃ with h | h | h
   · exact ⟨x, by simp, h.symm⟩
   · exact ⟨y, by simp, h.symm⟩

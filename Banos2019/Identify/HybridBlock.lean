@@ -15,8 +15,6 @@ The proofs pass between `N⁻` and `N`: the nodes of `N⁻` are the vertices of 
 `LSA(X)`, and its edges the arcs of `N` below `LSA(X)` other than `rootTreeArc`, the edge leaving
 `LSA(X)` having the child of `rootTreeArc` as source.
 
-* `reaches_source_of_below_hybrid`: in `N`, the vertices below a hybrid node `v` other than `v`
-  are entered only from below `v`.
 * `descendsFrom_of_reaches`: a directed path of `N` from a node of `N⁻` to a taxon is a semidirected
   path of `N⁻`.
 * `walks_compl_of_isSDPathOf`: a semidirected path from a node of `C` that no step leaves along `C`
