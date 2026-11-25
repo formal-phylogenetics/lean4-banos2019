@@ -15,6 +15,11 @@ public import Banos2019.Quartet.Generic
 * `proposition9`, `proposition10`, `theorem3`, `corollary4`, `proposition11`, `lemma12`, `lemma13`:
   the Big Cycle property detects 4-cycles, for generic parameters, and the quartet with the smallest
   concordance factor tells which blocks of the 4-cycle are adjacent.
+
+The inductions of the proofs of Propositions 6 and 7 are `orderedAsQuartetTree_of_onlyTwoTwoThreeOne`
+and `onSegmentOfI_of_threeTwo`; `cf_eq_fig17` is the reduction of the proofs of Propositions 10 and 11
+to equation (8), and `hasFourCycle_of_bigCycleOn` the direction of Theorem 3 that holds for all
+parameters.
 -/
 
 @[expose] public noncomputable section
@@ -207,8 +212,10 @@ def segmentsI : Set (ℝ × ℝ × ℝ) :=
     (1 / 6 < p.2.2 ∧ p.1 = p.2.1)}
 
 /-- The concordance factors of the `3₂`-cycle of Figure 18 (equation (9)) with `γ = 1/2` and
-`x₄ = x₂` reach every point `(1 - 2y, y, y)` with `0 < y < 5/12`: for `x₂` close to `1` and `x₃`
-close to `0` the factor of `x₁` in `CF_{AC|BD}` exceeds `y`, and `x₁ ∈ (0, 1)` makes it `y`. -/
+`x₄ = x₂` reach every point `(1 - 2y, y, y)` with `0 < y < 5/12` (proof of Proposition 7). Near the
+limit `t₂, t₄ → 0`, `t₃ → ∞` of the paper (`x₂` close to `1`, `x₃` close to `0`) the factor of `x₁` in
+`CF_{AC|BD}` exceeds `y`; as `t₁` runs over `(0, ∞)`, `x₁` runs over `(0, 1)`, and the intermediate value
+`CF_{AC|BD} = y`, which the paper obtains by continuity, is reached at `x₁ = y / K`. -/
 theorem exists_fig18_params {y : ℝ} (hy₀ : 0 < y) (hy₁ : y < 5 / 12) :
     ∃ len : Fin 8 → ℝ, (∀ i, 0 < len i) ∧
       let x₁ := Real.exp (-len 4); let x₂ := Real.exp (-len 7); let x₃ := Real.exp (-len 5)
@@ -694,7 +701,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
   -- `Q⊕_s` is an LSA quartet network (named here with one of its metrics)
   have hQ₀ : IsLSAQuartet (quartetLSA N hN.1 s hs) (halfInheritanceMetric (quartetLSA N hN.1 s hs) fun _ => 1) :=
     ⟨hQb, quartetLSA_isLevelOne hN h1 hs, quartetLSA_isLSANetwork hN hs, by simp [hs],
-      isMetricNetwork_halfMetric hQb fun _ => one_pos⟩
+      isMetricNetwork_halfInheritanceMetric hQb fun _ => one_pos⟩
   -- its 4-cycle, the hybrid block `{c}` adjacent to the blocks of `b` and `d`
   obtain ⟨C₀, v₀, k, hC₀⟩ := h4
   obtain ⟨C, hCt⟩ := (inducesCycleType_iff hQ₀ 4 k).1 ⟨C₀, v₀, hC₀⟩
@@ -742,7 +749,7 @@ theorem proposition10 {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
         split_ifs
         · positivity
         · exact one_pos
-      have hθw := isMetricNetwork_halfMetric hQb hℓ
+      have hθw := isMetricNetwork_halfInheritanceMetric hQb hℓ
       refine isGenericNull_nmscCF_eq hθw.1 fun heq => ?_
       have hγ : (halfInheritanceMetric (quartetLSA N hN.1 s hs) ℓ).inheritance h = 1 / 2 := by
         simp [halfInheritanceMetric, hh]
@@ -995,7 +1002,13 @@ def Determines {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N) (s : Fin
     IsHybridNodeOf (quartetUnrooted N hN s hs) C w ∧ quartetNode hN hs w = v
 
 /-- **Lemma 13** (`3tax`): if `{a, b, c, d}` and `{a, b, c, e}` satisfy the Big Cycle property, they
-determine the same hybrid node. -/
+determine the same hybrid node.
+
+Departure from the paper: the paper cites Lemma 12 for the taxa of a set with the Big Cycle property
+being in distinct blocks of the cycle of `N⁻` that the set determines; Lemma 12 holds for generic
+parameters, and Lemma 13 is stated for given parameters, so the proof uses the direction of the proof
+of Lemma 12 that holds for all parameters: Proposition 9 (`hasFourCycle_of_bigCycleOn`) and
+`exists_separates_of_fourCycle`. -/
 theorem lemma13 [DecidableEq X] {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {a b c d e : X}
     (h₁ : #({a, b, c, d} : Finset X) = 4) (h₂ : #({a, b, c, e} : Finset X) = 4)

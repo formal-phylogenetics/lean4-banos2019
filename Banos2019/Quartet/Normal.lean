@@ -56,7 +56,7 @@ theorem indegree_eq_two_of_two_le {N : RootedNetwork V E X} (hN : IsBinaryRooted
   rcases hother v hvr hvl with h | h <;> omega
 
 /-- `halfInheritanceMetric` with positive lengths is a metric. -/
-theorem isMetricNetwork_halfMetric [Fintype E] {N : RootedNetwork V E X}
+theorem isMetricNetwork_halfInheritanceMetric [Fintype E] {N : RootedNetwork V E X}
     (hN : IsBinaryRootedNetwork N) {ℓ : E → ℝ} (hℓ : ∀ e, 0 < ℓ e) :
     IsMetricNetwork N (halfInheritanceMetric N ℓ) := by
   refine ⟨⟨fun e _ => hℓ e, fun e _ => (hℓ e).le, fun e he => ?_, fun e he => ?_, fun v hv => ?_⟩, hℓ⟩
