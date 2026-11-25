@@ -7,6 +7,15 @@ public import Banos2019.Quartet.SemidirectedCycles
 public import Banos2019.Quartet.HybridGlue
 public import Banos2019.Quartet.ReduceSpec
 public import Banos2019.Quartet.DisjointNet
+public import Banos2019.Quartet.ContractCompose
+public import Banos2019.Quartet.QuartetLSA
+public import Banos2019.Quartet.UnrootedIso
+public import Banos2019.Quartet.ThreeTwoCherry
+public import Banos2019.Quartet.DisjointTree
+public import Banos2019.Quartet.RootedIsoUnrooted
+public import Banos2019.Quartet.TreeUnrooted
+public import Banos2019.Quartet.ReduceUnrooted
+public import Banos2019.Quartet.ReduceUnrootedIso
 
 /-!
 # Computing quartet concordance factors (Baños 2019, Section 5)
@@ -21,7 +30,11 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
 * `corollary2Net`, `corollary2Net_spec`: the network `Q̃⊕` of Corollary 2, with its nodes of degree
   two suppressed, as an LSA quartet network for all parameters of `Q⊕`; `corollary2_step`: one step
   of Corollary 2.
-* `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network.
+* `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network;
+  `proposition5_aux`: the induction on the number of cycles, which applies the lemma of the type of a
+  cycle to two networks with isomorphic unrooted networks and the induction hypothesis to the
+  networks it produces (`nonempty_sdMetricIso_reduceNet_deleteArc`, `nonempty_sdMetricIso_contractNet`,
+  `nonempty_sdMetricIso_disjointNet`); `cf_eq_of_forall_not_isCycle`: networks without cycles.
 -/
 
 @[expose] public noncomputable section
@@ -43,7 +56,8 @@ structure IsLSAQuartet (Q : RootedNetwork V E X) (θ : MetricData E) : Prop wher
   metric : IsMetricNetwork Q θ
 
 omit [Fintype V] in
-theorem IsLSAQuartet.nontrivial {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ) :
+theorem IsLSAQuartet.nontrivial {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) :
     Nontrivial X :=
   Fintype.one_lt_card_iff_nontrivial.mp (by rw [hQ.card_taxa]; norm_num)
 
@@ -947,7 +961,14 @@ theorem cf_contractRooted_contractNet (hQ : IsLSAQuartet Q θ) (hC : IsCycle Q.g
       (contractMetric _ (IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C)))
         (contractNetMetric Q hQ.binary hQ.levelOne (· = C) θ)) =
       cf (contractRooted Q (IsTwoOneOrThree Q)) (contractMetric Q (IsTwoOneOrThree Q) θ) := by
-  sorry
+  have hO : SelectsCycle Q (· = C) C :=
+    ⟨hC, rfl, fun _ _ h => h, ncard_sub_eq_two_of_isTwoOneOrThree hCP⟩
+  have hQ₁ := (corollary2_step hQ hC hCP).1
+  exact cf_contractRooted_contractNet_eq (P := IsTwoOneOrThree Q)
+    (P₁ := IsTwoOneOrThree (contractNet Q hQ.binary hQ.levelOne (· = C))) hQ.binary hQ.levelOne
+    (fun _ _ hD => ncard_sub_eq_two_of_isTwoOneOrThree hD) hO hCP hQ₁.binary hQ₁.levelOne
+    (fun _ hD => contractNet_exists_inducesCycleType_or_iff hQ.binary hQ.levelOne hO hD 2 1 2 3)
+    hQ.metric.1 hQ₁.metric.1
 
 omit [Fintype V] [Fintype E] in
 /-- **Corollary 2, by induction on the number of cycles**, for networks on `Type`. -/
@@ -2256,15 +2277,675 @@ theorem lemma11 (hQ : IsLSAQuartet Q θ) (hC : InducesCycleType Q C v 3 2) {h₁
 
 end Reduction
 
+section Proposition5
+
+
+/-- The cycle `liftEdges D` of `Q⊕` of a cycle `D` of `Q⁻` with hybrid node `w` induces the type of
+`D`, with the hybrid node `w`. -/
+theorem inducesCycleType_liftEdges_of_isHybridNodeOf {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {D : Set _}
+    (hD : IsCycle hQ.unrooted.graph D) {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial}
+    (hw : IsHybridNodeOf hQ.unrooted D w) :
+    InducesCycleType Q (liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)
+      (sdVert hQ.binary.1 hQ.nontrivial w) D.ncard {x | DescendsFrom hQ.unrooted w x}.ncard := by
+  have hr := lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA
+  obtain ⟨hvD, h2⟩ := (isHybridNodeOf_semidirected_iff _ _ _ hQ.binary hQ.levelOne hD w).1 hw
+  refine ⟨isCycle_liftEdges _ _ _ hD, (sdVert_mem_cycleNodes_liftEdges_iff _ _ _ D w).2 hvD, h2,
+    ?_, ?_⟩
+  · have h := card_cycleNodesOffRoot_liftEdges _ _ _ hr hD
+    rw [card_cycleNodesOffRoot (isCycle_liftEdges _ _ _ hD)] at h
+    exact h
+  · congr 1
+    ext x
+    exact (descendsFrom_semidirected_iff _ _ _ w h2 x).symm
+
+/-- **The types of the cycles of `Q⁻`** (Section 5, before Lemma 5): a cycle of `Q⁻` is a `2₁`-,
+`2₂`-, `2₃`-, `3₁`-, `3₂`- or `4₁`-cycle, with a hybrid node (Lemma 3). -/
+theorem exists_isCycleType_of_isCycle {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {D : Set _}
+    (hD : IsCycle hQ.unrooted.graph D) :
+    ∃ n k, IsCycleType hQ.unrooted D n k ∧
+      ((n = 2 ∧ 1 ≤ k ∧ k ≤ 3) ∨ (n = 3 ∧ (k = 1 ∨ k = 2)) ∨ (n = 4 ∧ k = 1)) := by
+  obtain ⟨⟨w, ⟨hwD, h₁, h₂, hne, hd₁, hd₂, ht₁, ht₂⟩, -⟩, hmem, -⟩ :=
+    lemma3_unrooted hQ.binary hQ.levelOne hQ.nontrivial hD
+  have hw : IsHybridNodeOf hQ.unrooted D w :=
+    ⟨h₁, hmem w hwD h₁ hd₁ ht₁, h₂, hmem w hwD h₂ hd₂ ht₂, hne, hd₁, hd₂, ht₁, ht₂⟩
+  have hC := inducesCycleType_liftEdges_of_isHybridNodeOf hQ hD hw
+  obtain ⟨h, hk, hn⟩ := add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hC
+  rw [hQ.card_taxa] at h
+  exact ⟨_, _, ⟨hD, rfl, w, hw, rfl⟩, by omega⟩
+
+/-- **Base case of Proposition 5, the trees**: two LSA quartet networks without hybrid edges whose
+unrooted metric networks are isomorphic have species trees with the same unrooted metric tree. -/
+theorem sameUnrootedMetricTree_of_sdMetricIso {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (ht : ∀ e, ¬ Q.IsHybridArc e) (ht' : ∀ e, ¬ Q'.IsHybridArc e)
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
+    (treeSpeciesTree Q hQ.binary.1 ht hQ.metric.1).SameUnrootedMetricTree
+      (treeSpeciesTree Q' hQ'.binary.1 ht' hQ'.metric.1) :=
+  sameUnrootedMetricTree_of_iso hQ.binary hQ.isLSA hQ'.binary hQ'.isLSA hQ.nontrivial ht ht'
+    hQ.metric.1 hQ'.metric.1 φ
+
+omit [Fintype V] [Fintype E] [Fintype X] in
+/-- A binary level-1 network without cycles has no hybrid arc: two arcs into one node lie on a
+cycle. -/
+theorem not_isHybridArc_of_forall_not_isCycle {N : RootedNetwork V E X}
+    (hN : IsBinaryRootedNetwork N) (h1 : IsLevelOne N.graph) (h0 : ∀ D, ¬ IsCycle N.graph D)
+    (e : E) : ¬ N.IsHybridArc e := by
+  intro he
+  have := hN.1.finite_arcs
+  unfold IsHybridArc DirectedMultigraph.indegree at he
+  obtain ⟨f, hf, hfe⟩ : ∃ f, N.graph.target f = N.graph.target e ∧ f ≠ e := by
+    by_contra hno
+    push Not at hno
+    have : {f | N.graph.target f = N.graph.target e} ⊆ {e} := fun f hf => hno f hf
+    have := Set.ncard_le_ncard this (Set.toFinite _)
+    rw [Set.ncard_singleton] at this
+    omega
+  obtain ⟨C, hC, -⟩ := exists_isCycle_of_target_eq hN h1 hfe hf
+  exact h0 C hC
+
+/-- **Proposition 5 for networks without cycles**: LSA quartet networks without cycles are trees
+(`not_isHybridArc_of_forall_not_isCycle`), whose concordance factors are those of their species trees
+(`nmscCF_eq_quartetProb`); isomorphic unrooted metric networks give the same unrooted metric species
+tree (`sameUnrootedMetricTree_of_sdMetricIso`), and by Proposition 3 of Allman, Degnan, Rhodes (2011)
+(`External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree`) the same distribution of
+unrooted gene trees. -/
+theorem cf_eq_of_forall_not_isCycle {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (h0 : ∀ D, ¬ IsCycle Q.graph D) (h0' : ∀ D, ¬ IsCycle Q'.graph D)
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) :
+    cf Q θ = cf Q' θ' := by
+  have ht := not_isHybridArc_of_forall_not_isCycle hQ.binary hQ.levelOne h0
+  have ht' := not_isHybridArc_of_forall_not_isCycle hQ'.binary hQ'.levelOne h0'
+  have hX : 2 ≤ Fintype.card X := by rw [hQ.card_taxa]; norm_num
+  have hσ := External.AllmanDegnanRhodes2011.unrootedDist_eq_of_sameUnrootedMetricTree hQ.card_taxa
+    (sameUnrootedMetricTree_of_sdMetricIso hQ hQ' ht ht' φ)
+  funext q
+  show nmscCF Q θ 0 q = nmscCF Q' θ' 0 q
+  rw [nmscCF_eq_quartetProb hQ.binary.1 ht hQ.metric.1 hX le_rfl,
+    nmscCF_eq_quartetProb hQ'.binary.1 ht' hQ'.metric.1 hX le_rfl]
+  unfold External.AllmanDegnanRhodes2011.quartetProb
+  rw [hσ]
+
+
+/-- **`Q₁⊕`, `Q₂⊕` as LSA quartet networks**: without a hybrid edge `h` of a cycle `C`, and with its
+nodes of degree two suppressed (`reduceNet`), an LSA quartet network gives an LSA quartet network with
+the concordance factors of `deleteArc Q h` and fewer cycles. -/
+theorem isLSAQuartet_reduceNet_deleteArc {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V} {n k : ℕ}
+    (hC : InducesCycleType Q C v n k) {h : E} (hh : Q.graph.target h = v)
+    (hM : IsReducible (deleteArc Q h) (deleteArcMetric Q h θ)) :
+    IsLSAQuartet (reduceNet (deleteArc Q h) hM.phylo)
+        (reduceMetric (deleteArc Q h) hM.phylo (deleteArcMetric Q h θ)) ∧
+      cf (reduceNet (deleteArc Q h) hM.phylo)
+          (reduceMetric (deleteArc Q h) hM.phylo (deleteArcMetric Q h θ)) =
+        cf (deleteArc Q h) (deleteArcMetric Q h θ) ∧
+      {D | IsCycle (reduceNet (deleteArc Q h) hM.phylo).graph D}.ncard <
+        {D | IsCycle Q.graph D}.ncard := by
+  refine ⟨⟨hM.isBinaryRootedNetwork, hM.isLevelOne, hM.isLSANetwork fun D w k' hD => ?_,
+    hQ.card_taxa, hM.isMetricNetwork⟩, hM.cf_eq, ?_⟩
+  · obtain ⟨D', w', -, hD', -⟩ := (deleteArc_exists_inducesCycleType_iff hQ.binary hQ.levelOne hC hh
+      1 k' _).1 ⟨D, w, hD, rfl⟩
+    have := (add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hD').2.2
+    omega
+  · rw [hM.ncard_setOf_isCycle]
+    exact ncard_setOf_isCycle_deleteArc_lt hQ.binary hQ.levelOne hC hh
+
+/-- **The unrooted networks of `Q₁⊕` and `Q̃₁⊕`** (proof of Proposition 5): deleting corresponding
+hybrid edges `h` and `φ h` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic
+metric unrooted networks. The unrooted network of `Q₁⊕` is `Q⁻` without `h` with its nodes of degree
+two suppressed (`nonempty_sdMetricIso_suppress_deleteHybridEdge`), wherever the root of `Q⊕` is, and
+`φ` maps this network to the one of `Q̃⁻` without `φ h`. -/
+theorem nonempty_sdMetricIso_reduceNet_deleteArc {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
+    {h : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hh : hQ.unrooted.IsDirected h)
+    (hP : (deleteArc Q (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h)).IsPhylogenetic)
+    (hP' : (deleteArc Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h))).IsPhylogenetic)
+    (hb : IsBinaryRootedNetwork (reduceNet _ hP)) (hb' : IsBinaryRootedNetwork (reduceNet _ hP')) :
+    Nonempty (SDMetricIso (unrooted _ hb hQ.nontrivial)
+      (unrootedMetric _ hb hQ.nontrivial (reduceMetric _ hP
+        (deleteArcMetric Q (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h) θ)))
+      (unrooted _ hb' hQ'.nontrivial)
+      (unrootedMetric _ hb' hQ'.nontrivial (reduceMetric _ hP'
+        (deleteArcMetric Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h)) θ')))) := by
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_suppress_deleteHybridEdge hQ.binary hQ.nontrivial hQ.levelOne
+    hQ.isLSA hQ.metric hh hP hb
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_suppress_deleteHybridEdge hQ'.binary hQ'.nontrivial
+    hQ'.levelOne hQ'.isLSA hQ'.metric ((φ.isDirected_iff h).2 hh) hP' hb'
+  exact ⟨ι.symm.trans ((φ.deleteHybridEdge hh).suppress.trans ι')⟩
+
+/-- **The unrooted networks of `Q₀⊕` and `Q̃₀⊕`** (proof of Proposition 5): contracting corresponding
+2-cycles `D` and `φ D` of `Q⁻ ≅ Q̃⁻`, and suppressing the nodes of degree two, gives isomorphic metric
+unrooted networks. The unrooted network of `Q₀⊕` is `Q⁻` with `D` contracted and its nodes of degree
+two suppressed (`nonempty_sdMetricIso_suppress_contractCycles`), whether or not the cycle of `Q⊕`
+passes through the root, and `φ` maps this network to the one of `Q̃⁻` with `φ D` contracted. -/
+theorem nonempty_sdMetricIso_contractNet {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
+    {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
+    (hD : IsCycle hQ.unrooted.graph D) (hD2 : D.ncard = 2)
+    (hb : IsBinaryRootedNetwork (contractNet Q hQ.binary hQ.levelOne
+      (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)))
+    (hb' : IsBinaryRootedNetwork (contractNet Q' hQ'.binary hQ'.levelOne
+      (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))) :
+    Nonempty (SDMetricIso (unrooted _ hb hQ.nontrivial)
+      (unrootedMetric _ hb hQ.nontrivial (contractNetMetric Q hQ.binary hQ.levelOne
+        (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ))
+      (unrooted _ hb' hQ'.nontrivial)
+      (unrootedMetric _ hb' hQ'.nontrivial (contractNetMetric Q' hQ'.binary hQ'.levelOne
+        (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ'))) := by
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_suppress_contractCycles hQ.binary hQ.levelOne hQ.nontrivial
+    hQ.isLSA hQ.card_taxa hQ.metric hD hD2 hb
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_suppress_contractCycles hQ'.binary hQ'.levelOne
+    hQ'.nontrivial hQ'.isLSA hQ'.card_taxa hQ'.metric (φ.isCycle_image hD)
+    ((φ.ncard_image D).trans hD2) hb'
+  have hcyc : ∀ C, IsCycle hQ.unrooted.graph C → (φ.edge '' C = φ.edge '' D ↔ C = D) :=
+    fun C _ => φ.edge.injective.image_injective.eq_iff
+  exact ⟨ι.symm.trans ((φ.contractCycles hcyc).suppress.trans ι')⟩
+
+/-- **`Q_a⊕` as an LSA quartet network**: when the only cycle `C` of `Q⊕` induces a `3₂`-cycle with
+the taxa `a`, `b` below its hybrid node `v`, `Q_a⊕` is an LSA quartet network without cycles. -/
+theorem isLSAQuartet_disjointNet {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) {C : Set E} {v : V}
+    (hC : InducesCycleType Q C v 3 2) (hone : ∀ C', IsCycle Q.graph C' → C' = C) {h₁ h₂ : E}
+    (hne : h₁ ≠ h₂) (hh₁ : Q.graph.target h₁ = v) (hh₂ : Q.graph.target h₂ = v) {a b : X}
+    (hab : a ≠ b) (hbelow : ∀ x, Q.graph.Reaches v (Q.leaf x) ↔ x = a ∨ x = b) :
+    IsLSAQuartet (disjointNet Q v h₁ h₂ a b) (disjointMetric Q v h₁ h₂ θ) ∧
+      ∀ D, ¬ IsCycle (disjointNet Q v h₁ h₂ a b).graph D := by
+  obtain ⟨hb, hl, hθ⟩ := disjointNet_spec hQ.binary hQ.levelOne hone hC.2.1 hC.2.2.1 hne hh₁ hh₂
+    hab hbelow hQ.metric
+  have h0 := disjointNet_not_isCycle hQ.binary hQ.levelOne hone hC.2.1 hC.2.2.1 hne hh₁ hh₂
+    (a := a) (b := b)
+  exact ⟨⟨hb, fun C₁ _ hC₁ => absurd hC₁ (h0 C₁), hl, hQ.card_taxa, hθ⟩, h0⟩
+
+/-- **The unrooted networks of `Q_a⊕` and `Q̃_a⊕`** (proof of Proposition 5): for corresponding hybrid
+nodes `w`, `φ w` of `Q⁻ ≅ Q̃⁻` with the taxa `a`, `b` descending from them, and corresponding hybrid
+edges, `Q_a⊕` and `Q̃_a⊕` have isomorphic metric unrooted networks. The unrooted network of `Q_a⊕` is
+`Q⁻` cut below `w` (`nonempty_sdMetricIso_disjointNet_cutSD`), and `φ` maps this network to `Q̃⁻` cut
+below `φ w` (`SDMetricIso.nonempty_cutSD_of_isDirected`). -/
+theorem nonempty_sdMetricIso_disjointNet {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
+    {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial}
+    {h₁ h₂ : SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial} (hne : h₁ ≠ h₂)
+    (hd₁ : hQ.unrooted.IsDirected h₁) (hd₂ : hQ.unrooted.IsDirected h₂)
+    (ht₁ : hQ.unrooted.graph.target h₁ = w) (ht₂ : hQ.unrooted.graph.target h₂ = w) {a b : X}
+    (hab : a ≠ b) (hbelow : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b)
+    (hb : IsBinaryRootedNetwork (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
+      (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₁)
+      (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₂) a b))
+    (hl : (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
+      (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₁)
+      (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₂) a b).IsLSANetwork)
+    (hb' : IsBinaryRootedNetwork (disjointNet Q' (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+      (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₁))
+      (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₂)) a b))
+    (hl' : (disjointNet Q' (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+      (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₁))
+      (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₂)) a b).IsLSANetwork) :
+    Nonempty (SDMetricIso (unrooted _ hb hQ.nontrivial)
+      (unrootedMetric _ hb hQ.nontrivial (disjointMetric Q (sdVert hQ.binary.1 hQ.nontrivial w)
+        (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₁)
+        (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial h₂) θ))
+      (unrooted _ hb' hQ'.nontrivial)
+      (unrootedMetric _ hb' hQ'.nontrivial (disjointMetric Q'
+        (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+        (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₁))
+        (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge h₂)) θ'))) := by
+  obtain ⟨ι⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ.binary hQ.levelOne hQ.nontrivial
+    (lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA) θ hne hd₁ ht₁ ht₂ hab hb hl
+  obtain ⟨ι'⟩ := nonempty_sdMetricIso_disjointNet_cutSD hQ'.binary hQ'.levelOne hQ'.nontrivial
+    (lsa_univ_eq_root hQ'.binary.1 hQ'.nontrivial hQ'.isLSA) θ' (φ.edge.injective.ne hne)
+    ((φ.isDirected_iff h₁).2 hd₁) ((φ.directed h₁ hd₁).2.trans (congrArg φ.vert ht₁))
+    ((φ.directed h₂ hd₂).2.trans (congrArg φ.vert ht₂)) hab hb' hl'
+  obtain ⟨κ⟩ := φ.nonempty_cutSD_of_isDirected w hd₁ hd₂ a b
+  exact ⟨ι.trans (κ.trans ι'.symm)⟩
+
+/-- **`P(K = k)` and `CF(Q₀⊕ | K = 1)` are read from the unrooted network** (proof of Proposition 5,
+Lemma 11): when the only cycle of `Q⊕` induces a `3₂`-cycle `D` of `Q⁻`, the child `u` of its hybrid
+node `v` has the two leaves `a`, `b` as children; the two lineages coalesce on the edge `c` from `v`
+to `u` with probability `1 - e^{-ℓ(c)}`, and given one lineage at `v` the cherry `{a, b}` decides the
+quartet tree. The length of `c` is that of the edge of `Q⁻` from `v` that is not hybrid. -/
+theorem probLineages_condCF_eq_of_threeTwo {V' E' : Type*} [Fintype V'] [Fintype E']
+    {Q : RootedNetwork V E X} {θ : MetricData E} {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
+    (hQ : IsLSAQuartet Q θ) (hQ' : IsLSAQuartet Q' θ')
+    (φ : SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+      (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))
+    {D : Set (SemidirectedArc hQ.binary.1 hQ.binary.2 hQ.nontrivial)}
+    (hD : IsCycle hQ.unrooted.graph D)
+    (hone : ∀ C', IsCycle Q.graph C' → C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)
+    (hone' : ∀ C', IsCycle Q'.graph C' →
+      C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D))
+    {w : SemidirectedVertex hQ.binary.1 hQ.nontrivial} (hw : IsHybridNodeOf hQ.unrooted D w)
+    (hk : {x | DescendsFrom hQ.unrooted w x}.ncard = 2)
+    {c : E} (hc : Q.graph.source c = sdVert hQ.binary.1 hQ.nontrivial w) {c' : E'}
+    (hc' : Q'.graph.source c' = sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+    (c₀ : {e // ∀ C', IsCycle Q.graph C' →
+      C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D → e ∉ C'}) (hc₀ : c₀.1 = c)
+    (c₀' : {e // ∀ C', IsCycle Q'.graph C' →
+      C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) → e ∉ C'})
+    (hc₀' : c₀'.1 = c') :
+    probLineages Q θ c 1 = probLineages Q' θ' c' 1 ∧
+      probLineages Q θ c 2 = probLineages Q' θ' c' 2 ∧
+      ∀ q, condCF (contractRooted Q (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+          (contractMetric Q (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) c₀ 1 q =
+        condCF (contractRooted Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+            (φ.edge '' D)))
+          (contractMetric Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+            (φ.edge '' D)) θ') c₀' 1 q := by
+  have hC := inducesCycleType_liftEdges_of_isHybridNodeOf hQ hD hw
+  have hC' := inducesCycleType_liftEdges_of_isHybridNodeOf hQ' (φ.isCycle_image hD)
+    (φ.isHybridNodeOf_image hw)
+  obtain ⟨a, b, hab, hs⟩ := Set.ncard_eq_two.1 hk
+  have hbelowD : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b := fun x => by
+    have := Set.ext_iff.1 hs x
+    simpa using this
+  have hbelow : ∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔
+      x = a ∨ x = b := fun x =>
+    (descendsFrom_semidirected_iff _ _ _ w hC.2.2.1 x).symm.trans (hbelowD x)
+  have hbelow' : ∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+      (Q'.leaf x) ↔ x = a ∨ x = b := fun x =>
+    (descendsFrom_semidirected_iff _ _ _ (φ.vert w) hC'.2.2.1 x).symm.trans
+      ((φ.descendsFrom_iff w x).trans (hbelowD x))
+  have hl := length_child_eq_of_sdMetricIso hQ.binary hQ.levelOne hQ.isLSA hQ'.binary hQ'.isLSA
+    hQ.nontrivial φ hC.2.2.1 hC'.2.2.1 hc hc'
+  obtain ⟨hP1, hP2⟩ := probLineages_cherry_of_single_cycle hQ.binary hQ.levelOne hC.1 hone hC.2.1
+    hC.2.2.1 hc hab hbelow hQ.metric.1
+  obtain ⟨hP1', hP2'⟩ := probLineages_cherry_of_single_cycle hQ'.binary hQ'.levelOne hC'.1 hone'
+    hC'.2.1 hC'.2.2.1 hc' hab hbelow' hQ'.metric.1
+  refine ⟨by rw [hP1, hP1', hl], by rw [hP2, hP2', hl], fun q => ?_⟩
+  rw [condCF_contractRooted_cherry_of_single_cycle hQ.binary hQ.levelOne hC.1 hone hC.2.1 hC.2.2.1
+      hc hab hbelow hQ.metric.1 hQ.card_taxa c₀ hc₀ q,
+    condCF_contractRooted_cherry_of_single_cycle hQ'.binary hQ'.levelOne hC'.1 hone' hC'.2.1
+      hC'.2.2.1 hc' hab hbelow' hQ'.metric.1 hQ'.card_taxa c₀' hc₀' q]
+
+
+omit [Fintype X] in
+/-- **Proposition 5, by induction on the number of cycles**, for networks on `Type`.
+
+The paper's proof. With no cycle, `Q⊕` and `Q̃⊕` are trees, and Proposition 3 of Allman, Degnan,
+Rhodes (2011) gives the equality (`cf_eq_of_forall_not_isCycle`). Otherwise a cycle `D` of `Q⁻` is the
+cycle `φ D` of `Q̃⁻` of the same type (`SDIso.isCycleType_image`), and `D`, `φ D` come from cycles of
+`Q⊕`, `Q̃⊕` of that type (`inducesCycleType_liftEdges_of_isHybridNodeOf`). The lemma of that type
+writes the concordance factors of `Q⊕` and of `Q̃⊕` in terms of networks with fewer cycles, the same
+for both since their unrooted metric networks are isomorphic (`nonempty_sdMetricIso_reduceNet_deleteArc`,
+`nonempty_sdMetricIso_contractNet`, `nonempty_sdMetricIso_disjointNet`), so the induction hypothesis
+applies, and the inheritance probabilities are those of corresponding hybrid edges of `Q⁻` and `Q̃⁻`.
+The cycles are taken in this order: a `2₁`- or `2₃`-cycle (Lemma 7 or 8, through `corollary2_step`),
+then a `2₂`-cycle (Lemma 9), then a `3₁`- or 4-cycle (Lemma 10), then a `3₂`-cycle (Lemma 11).
+
+Lemma 11 has the terms `P(K = k)` and `CF(Q₀⊕ | K = 1)`, which are not concordance factors of networks
+with fewer cycles; the paper does not say why they agree for `Q⊕` and `Q̃⊕`. With the `3₂`-cycle taken
+last, it is the only cycle (Lemma 6), the child of its hybrid node is the parent of the two taxa below
+it, and these terms are `1 - e^{-ℓ}`, `e^{-ℓ}` and the indicator of the cherry of these two taxa, for
+the length `ℓ` of the edge out of the hybrid node (`probLineages_condCF_eq_of_threeTwo`). -/
+theorem proposition5_aux [Fintype X] (n : ℕ) :
+    ∀ {V₀ E₀ V₁ E₁ : Type} [Fintype V₀] [Fintype E₀] [Fintype V₁] [Fintype E₁]
+      {Q : RootedNetwork V₀ E₀ X} {θ : MetricData E₀} (hQ : IsLSAQuartet Q θ)
+      {Q' : RootedNetwork V₁ E₁ X} {θ' : MetricData E₁} (hQ' : IsLSAQuartet Q' θ'),
+      {D | IsCycle Q.graph D}.ncard ≤ n →
+      Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ) hQ'.unrooted
+        (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ')) → cf Q θ = cf Q' θ' := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro V₀ E₀ V₁ E₁ _ _ _ _ Q θ hQ Q' θ' hQ' hn ⟨φ⟩
+  have IH : ∀ {V₂ E₂ V₃ E₃ : Type} [Fintype V₂] [Fintype E₂] [Fintype V₃] [Fintype E₃]
+      {Q₂ : RootedNetwork V₂ E₂ X} {θ₂ : MetricData E₂} (hQ₂ : IsLSAQuartet Q₂ θ₂)
+      {Q₃ : RootedNetwork V₃ E₃ X} {θ₃ : MetricData E₃} (hQ₃ : IsLSAQuartet Q₃ θ₃),
+      {D | IsCycle Q₂.graph D}.ncard < {D | IsCycle Q.graph D}.ncard →
+      Nonempty (SDMetricIso hQ₂.unrooted (unrootedMetric Q₂ hQ₂.binary hQ₂.nontrivial θ₂)
+        hQ₃.unrooted (unrootedMetric Q₃ hQ₃.binary hQ₃.nontrivial θ₃)) → cf Q₂ θ₂ = cf Q₃ θ₃ :=
+    by
+      intro V₂ E₂ V₃ E₃ _ _ _ _ Q₂ θ₂ hQ₂ Q₃ θ₃ hQ₃ hlt hiso
+      exact ih _ (lt_of_lt_of_le hlt hn) hQ₂ hQ₃ le_rfl hiso
+  have hr := lsa_univ_eq_root hQ.binary.1 hQ.nontrivial hQ.isLSA
+  have hr' := lsa_univ_eq_root hQ'.binary.1 hQ'.nontrivial hQ'.isLSA
+  have htwo : ∃ x y : X, x ≠ y := by
+    have : Nontrivial X := hQ.nontrivial
+    exact exists_pair_ne X
+  -- the arcs of `Q⊕` and `Q̃⊕` of the edges into a hybrid node `w` of `Q⁻` and `φ w` of `Q̃⁻`
+  have harc : ∀ g w, hQ.unrooted.graph.target g = w →
+      Q.graph.target (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g) =
+        sdVert hQ.binary.1 hQ.nontrivial w := fun g w hg =>
+    (sdVert_target _ _ _ g).symm.trans (congrArg _ hg)
+  have harc' : ∀ g w, hQ.unrooted.graph.target g = w → hQ.unrooted.IsDirected g →
+      Q'.graph.target (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g)) =
+        sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w) := fun g w hg hd =>
+    (sdVert_target _ _ _ _).symm.trans (congrArg _ ((φ.directed g hd).2.trans (congrArg _ hg)))
+  have hγ : ∀ g, hQ.unrooted.IsDirected g →
+      θ'.inheritance (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g)) =
+        θ.inheritance (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g) := fun g hd =>
+    φ.inheritance g hd
+  -- the corresponding cycles
+  have hcyc : ∀ D, IsCycle hQ.unrooted.graph D → ∀ w, IsHybridNodeOf hQ.unrooted D w →
+      InducesCycleType Q (liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D)
+          (sdVert hQ.binary.1 hQ.nontrivial w) D.ncard {x | DescendsFrom hQ.unrooted w x}.ncard ∧
+        InducesCycleType Q' (liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D))
+          (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w)) D.ncard
+          {x | DescendsFrom hQ.unrooted w x}.ncard := by
+    intro D hD w hw
+    refine ⟨inducesCycleType_liftEdges_of_isHybridNodeOf hQ hD hw, ?_⟩
+    have h := inducesCycleType_liftEdges_of_isHybridNodeOf hQ' (φ.isCycle_image hD)
+      (φ.isHybridNodeOf_image hw)
+    rw [φ.ncard_image] at h
+    convert h using 3
+    ext x
+    exact (φ.descendsFrom_iff w x).symm
+  -- deleting corresponding hybrid edges
+  have hdel : ∀ D, IsCycle hQ.unrooted.graph D → ∀ w, IsHybridNodeOf hQ.unrooted D w →
+      ∀ g, hQ.unrooted.IsDirected g → hQ.unrooted.graph.target g = w →
+      cf (deleteArc Q (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g))
+          (deleteArcMetric Q (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g) θ) =
+        cf (deleteArc Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g)))
+          (deleteArcMetric Q' (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g)) θ') := by
+    intro D hD w hw g hd ht
+    obtain ⟨hC, hC'⟩ := hcyc D hD w hw
+    have hn2 := (add_le_of_inducesCycleType hQ.binary hQ.levelOne hQ.isLSA hC).2.2
+    have hM := isReducible_deleteArc hQ.binary hQ.levelOne hC (harc g w ht) hQ.metric htwo hn2
+    have hM' := isReducible_deleteArc hQ'.binary hQ'.levelOne hC' (harc' g w ht hd) hQ'.metric htwo
+      hn2
+    obtain ⟨hQ₁, hcf₁, hlt₁⟩ := isLSAQuartet_reduceNet_deleteArc hQ hC (harc g w ht) hM
+    obtain ⟨hQ₁', hcf₁', -⟩ := isLSAQuartet_reduceNet_deleteArc hQ' hC' (harc' g w ht hd) hM'
+    rw [← hcf₁, ← hcf₁']
+    exact IH hQ₁ hQ₁' hlt₁ (nonempty_sdMetricIso_reduceNet_deleteArc hQ hQ' φ hd hM.phylo
+      hM'.phylo hQ₁.binary hQ₁'.binary)
+  -- contracting corresponding 2-cycles
+  have hcon : ∀ D, IsCycle hQ.unrooted.graph D → D.ncard = 2 →
+      cf (contractNet Q hQ.binary hQ.levelOne (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+          (contractNetMetric Q hQ.binary hQ.levelOne
+            (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) =
+        cf (contractNet Q' hQ'.binary hQ'.levelOne
+            (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
+          (contractNetMetric Q' hQ'.binary hQ'.levelOne
+            (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ') ∧
+      cf (contractNet Q hQ.binary hQ.levelOne (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+          (contractNetMetric Q hQ.binary hQ.levelOne
+            (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) =
+        cf (contractRooted Q (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D))
+          (contractMetric Q (· = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) θ) ∧
+      cf (contractNet Q' hQ'.binary hQ'.levelOne
+            (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
+          (contractNetMetric Q' hQ'.binary hQ'.levelOne
+            (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)) θ') =
+        cf (contractRooted Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D)))
+          (contractMetric Q' (· = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+            (φ.edge '' D)) θ') := by
+    intro D hD hD2
+    have hD' := φ.isCycle_image hD
+    have hn : ∀ C', IsCycle Q.graph C' → C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D →
+        C'.ncard - (if Q.root ∈ cycleNodes Q.graph C' then 1 else 0) = 2 := by
+      rintro C' - rfl
+      have h := card_cycleNodesOffRoot_liftEdges _ _ _ hr hD
+      rw [card_cycleNodesOffRoot (isCycle_liftEdges _ _ _ hD), hD2] at h
+      exact h
+    have hn' : ∀ C', IsCycle Q'.graph C' →
+        C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) →
+        C'.ncard - (if Q'.root ∈ cycleNodes Q'.graph C' then 1 else 0) = 2 := by
+      rintro C' - rfl
+      have h := card_cycleNodesOffRoot_liftEdges _ _ _ hr' hD'
+      rw [card_cycleNodesOffRoot (isCycle_liftEdges _ _ _ hD'), φ.ncard_image, hD2] at h
+      exact h
+    obtain ⟨hb, h1, hlsa, hθ, hcf, hnum, -, -⟩ :=
+      contractNet_spec hQ.binary hQ.levelOne hQ.isLSA hQ.card_taxa hQ.metric hn
+    obtain ⟨hb', h1', hlsa', hθ', hcf', -, -, -⟩ :=
+      contractNet_spec hQ'.binary hQ'.levelOne hQ'.isLSA hQ'.card_taxa hQ'.metric hn'
+    refine ⟨IH ⟨hb, h1, hlsa, hQ.card_taxa, hθ⟩ ⟨hb', h1', hlsa', hQ'.card_taxa, hθ'⟩ ?_
+      (nonempty_sdMetricIso_contractNet hQ hQ' φ hD hD2 hb hb'), hcf, hcf'⟩
+    rw [hnum]
+    exact Set.ncard_lt_ncard ⟨fun D hD => hD.1, fun hsub =>
+      (hsub (isCycle_liftEdges _ _ _ hD)).2 rfl⟩ (Set.toFinite _)
+  -- the cases
+  by_cases hA : ∃ D, IsCycleType hQ.unrooted D 2 1 ∨ IsCycleType hQ.unrooted D 2 3
+  · -- Lemmas 7 and 8 (Corollary 2)
+    obtain ⟨D, hD⟩ := hA
+    have hDc : IsCycle hQ.unrooted.graph D := by rcases hD with hD | hD <;> exact hD.1
+    have hD2 : D.ncard = 2 := by rcases hD with hD | hD <;> exact hD.2.1
+    obtain ⟨w, hw, hk⟩ : ∃ w, IsHybridNodeOf hQ.unrooted D w ∧
+        ({x | DescendsFrom hQ.unrooted w x}.ncard = 1 ∨
+          {x | DescendsFrom hQ.unrooted w x}.ncard = 3) := by
+      rcases hD with ⟨-, -, w, hw, hk⟩ | ⟨-, -, w, hw, hk⟩
+      · exact ⟨w, hw, Or.inl hk⟩
+      · exact ⟨w, hw, Or.inr hk⟩
+    obtain ⟨hC, hC'⟩ := hcyc D hDc w hw
+    rw [hD2] at hC hC'
+    have hCP : IsTwoOneOrThree Q (liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D) := by
+      rcases hk with hk | hk
+      · rw [hk] at hC; exact ⟨_, Or.inl hC⟩
+      · rw [hk] at hC; exact ⟨_, Or.inr hC⟩
+    have hCP' : IsTwoOneOrThree Q' (liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial
+        (φ.edge '' D)) := by
+      rcases hk with hk | hk
+      · rw [hk] at hC'; exact ⟨_, Or.inl hC'⟩
+      · rw [hk] at hC'; exact ⟨_, Or.inr hC'⟩
+    obtain ⟨-, hcf, -⟩ := corollary2_step hQ hC.1 hCP
+    obtain ⟨-, hcf', -⟩ := corollary2_step hQ' hC'.1 hCP'
+    rw [hcf, hcf']
+    exact (hcon D hDc hD2).1
+  by_cases hB : ∃ D, IsCycleType hQ.unrooted D 2 2
+  · -- Lemma 9
+    obtain ⟨D, hD⟩ := hB
+    obtain ⟨hDc, hD2, w, hw, hk⟩ := id hD
+    obtain ⟨g₁, -, g₂, -, hne, hd₁, hd₂, ht₁, ht₂⟩ := id hw
+    obtain ⟨hC, hC'⟩ := hcyc D hDc w hw
+    rw [hD2, hk] at hC hC'
+    have hne' : sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁) ≠
+        sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂) := fun h =>
+      hne (φ.edge.injective (sdArc_injective _ _ _ h))
+    funext q
+    rw [lemma9 hQ hC (fun h => hne (sdArc_injective _ _ _ h)) (harc g₁ w ht₁) (harc g₂ w ht₂) q,
+      lemma9 hQ' hC' hne' (harc' g₁ w ht₁ hd₁) (harc' g₂ w ht₂ hd₂) q, hγ g₁ hd₁,
+      congrFun (hdel D hDc w hw g₁ hd₁ ht₁) q, congrFun (hdel D hDc w hw g₂ hd₂ ht₂) q,
+      ← (hcon D hDc hD2).2.1, ← (hcon D hDc hD2).2.2, (hcon D hDc hD2).1]
+  by_cases hC4 : ∃ D, IsCycleType hQ.unrooted D 3 1 ∨ ∃ k, IsCycleType hQ.unrooted D 4 k
+  · -- Lemma 10
+    obtain ⟨D, hD⟩ := hC4
+    obtain ⟨n', k', hDc, hD3, w, hw, hk, hnk⟩ : ∃ n' k', IsCycle hQ.unrooted.graph D ∧
+        D.ncard = n' ∧ ∃ w, IsHybridNodeOf hQ.unrooted D w ∧
+          {x | DescendsFrom hQ.unrooted w x}.ncard = k' ∧ ((n' = 3 ∧ k' = 1) ∨ n' = 4) := by
+      rcases hD with ⟨hDc, hD3, w, hw, hk⟩ | ⟨k, hDc, hD4, w, hw, hk⟩
+      · exact ⟨3, 1, hDc, hD3, w, hw, hk, Or.inl ⟨rfl, rfl⟩⟩
+      · exact ⟨4, k, hDc, hD4, w, hw, hk, Or.inr rfl⟩
+    obtain ⟨g₁, -, g₂, -, hne, hd₁, hd₂, ht₁, ht₂⟩ := id hw
+    obtain ⟨hC, hC'⟩ := hcyc D hDc w hw
+    rw [hD3, hk] at hC hC'
+    have hne' : sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁) ≠
+        sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂) := fun h =>
+      hne (φ.edge.injective (sdArc_injective _ _ _ h))
+    have hT : ∀ {V₂ E₂ : Type} [Fintype V₂] [Fintype E₂] {Q₂ : RootedNetwork V₂ E₂ X} {C₂ v₂},
+        InducesCycleType Q₂ C₂ v₂ n' k' →
+          (∃ k, InducesCycleType Q₂ C₂ v₂ 4 k) ∨ InducesCycleType Q₂ C₂ v₂ 3 1 := by
+      intro V₂ E₂ _ _ Q₂ C₂ v₂ h
+      rcases hnk with ⟨rfl, rfl⟩ | rfl
+      · exact Or.inr h
+      · exact Or.inl ⟨_, h⟩
+    funext q
+    rw [lemma10 hQ (hT hC) (fun h => hne (sdArc_injective _ _ _ h)) (harc g₁ w ht₁)
+        (harc g₂ w ht₂) q,
+      lemma10 hQ' (hT hC') hne' (harc' g₁ w ht₁ hd₁) (harc' g₂ w ht₂ hd₂) q, hγ g₁ hd₁,
+      congrFun (hdel D hDc w hw g₁ hd₁ ht₁) q, congrFun (hdel D hDc w hw g₂ hd₂ ht₂) q]
+  by_cases hE : ∃ D, IsCycleType hQ.unrooted D 3 2
+  · -- Lemma 11
+    obtain ⟨D, hD⟩ := hE
+    obtain ⟨hDc, hD3, w, hw, hk⟩ := id hD
+    obtain ⟨g₁, -, g₂, -, hne, hd₁, hd₂, ht₁, ht₂⟩ := id hw
+    obtain ⟨hC, hC'⟩ := hcyc D hDc w hw
+    rw [hD3, hk] at hC hC'
+    -- the cycle `D` of `Q⁻` is its only cycle, and `φ D` the only cycle of `Q̃⁻`
+    have hnot : ∀ D' n' k', IsCycleType hQ.unrooted D' n' k' →
+        ((n' = 2 ∧ 1 ≤ k' ∧ k' ≤ 3) ∨ (n' = 3 ∧ (k' = 1 ∨ k' = 2)) ∨ (n' = 4 ∧ k' = 1)) →
+        D' = D := by
+      intro D' n' k' hDt hcases
+      rcases hcases with ⟨rfl, h1, h3⟩ | ⟨rfl, rfl | rfl⟩ | ⟨rfl, rfl⟩
+      · exfalso
+        interval_cases k'
+        · exact hA ⟨D', Or.inl hDt⟩
+        · exact hB ⟨D', hDt⟩
+        · exact hA ⟨D', Or.inr hDt⟩
+      · exact absurd ⟨D', Or.inl hDt⟩ hC4
+      · exact (lemma6 hQ).1 D' D hDt hD
+      · exact absurd ⟨D', Or.inr ⟨1, hDt⟩⟩ hC4
+    have hone : ∀ C', IsCycle Q.graph C' →
+        C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D := by
+      intro C' hC'c
+      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ.binary.1 hQ.binary.2 hQ.nontrivial hr hQ.binary hC'c
+      obtain ⟨n', k', hDt, hcases⟩ := exists_isCycleType_of_isCycle hQ hD'
+      rw [hnot D' n' k' hDt hcases]
+    have hone' : ∀ C', IsCycle Q'.graph C' →
+        C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) := by
+      intro C' hC'c
+      obtain ⟨D', hD', rfl⟩ := exists_liftEdges_eq hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial hr' hQ'.binary hC'c
+      obtain ⟨n', k', hDt, hcases⟩ := exists_isCycleType_of_isCycle hQ' hD'
+      have h := hnot _ n' k' (φ.symm.isCycleType_image hDt) hcases
+      rw [← h]
+      congr 1
+      exact (φ.edge.image_symm_image D').symm
+    -- the taxa `a`, `b` below the hybrid node
+    obtain ⟨a, b, hab, hs⟩ := Set.ncard_eq_two.1 hC.2.2.2.2
+    have hbelow : ∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔
+        x = a ∨ x = b := fun x => by
+      have := Set.ext_iff.1 hs x
+      simpa using this
+    have hbelowD : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b := fun x =>
+      (descendsFrom_semidirected_iff _ _ _ w hC.2.2.1 x).trans (hbelow x)
+    have hbelow' : ∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+        (Q'.leaf x) ↔ x = a ∨ x = b := fun x =>
+      (descendsFrom_semidirected_iff _ _ _ (φ.vert w) hC'.2.2.1 x).symm.trans
+        ((φ.descendsFrom_iff w x).trans (hbelowD x))
+    have hbelow_ba : ∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔
+        x = b ∨ x = a := fun x => (hbelow x).trans or_comm
+    have hbelow_ba' : ∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+        (Q'.leaf x) ↔ x = b ∨ x = a := fun x => (hbelow' x).trans or_comm
+    have hbelowD_ba : ∀ x, DescendsFrom hQ.unrooted w x ↔ x = b ∨ x = a := fun x =>
+      (hbelowD x).trans or_comm
+    -- the child edges of the hybrid nodes
+    obtain ⟨c, hc, -⟩ := existsUnique_child_of_hybrid hQ.binary hC.2.2.1
+    obtain ⟨c', hc', -⟩ := existsUnique_child_of_hybrid hQ'.binary hC'.2.2.1
+    let c₀ : {e // ∀ C', IsCycle Q.graph C' →
+        C' = liftEdges hQ.binary.1 hQ.binary.2 hQ.nontrivial D → e ∉ C'} :=
+      ⟨c, fun C' _ hC'e => hC'e ▸
+        notMem_of_source_eq_hybrid hQ.binary hQ.levelOne hC.1 hC.2.1 hC.2.2.1 hc⟩
+    let c₀' : {e // ∀ C', IsCycle Q'.graph C' →
+        C' = liftEdges hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge '' D) → e ∉ C'} :=
+      ⟨c', fun C' _ hC'e => hC'e ▸
+        notMem_of_source_eq_hybrid hQ'.binary hQ'.levelOne hC'.1 hC'.2.1 hC'.2.2.1 hc'⟩
+    have e := probLineages_condCF_eq_of_threeTwo hQ hQ' φ hDc hone hone' hw hk hc hc' c₀ rfl c₀' rfl
+    have hne₁ : sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁ ≠
+        sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂ := fun h => hne (sdArc_injective _ _ _ h)
+    have hne' : sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁) ≠
+        sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂) := fun h =>
+      hne (φ.edge.injective (sdArc_injective _ _ _ h))
+    -- `Q_a⊕` and `Q_b⊕`
+    have hdisj : ∀ a b, a ≠ b →
+        (∀ x, Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf x) ↔ x = a ∨ x = b) →
+        (∀ x, Q'.graph.Reaches (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w)) (Q'.leaf x) ↔
+          x = a ∨ x = b) →
+        (∀ x, DescendsFrom hQ.unrooted w x ↔ x = a ∨ x = b) →
+        cf (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
+            (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁)
+            (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂) a b)
+          (disjointMetric Q (sdVert hQ.binary.1 hQ.nontrivial w)
+            (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁)
+            (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂) θ) =
+        cf (disjointNet Q' (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+            (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁))
+            (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂)) a b)
+          (disjointMetric Q' (sdVert hQ'.binary.1 hQ'.nontrivial (φ.vert w))
+            (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₁))
+            (sdArc hQ'.binary.1 hQ'.binary.2 hQ'.nontrivial (φ.edge g₂)) θ') := by
+      intro a b hab hb hb' hbD
+      obtain ⟨hQa, h0a⟩ := isLSAQuartet_disjointNet hQ hC hone hne₁ (harc g₁ w ht₁)
+        (harc g₂ w ht₂) hab hb
+      obtain ⟨hQa', -⟩ := isLSAQuartet_disjointNet hQ' hC' hone' hne' (harc' g₁ w ht₁ hd₁)
+        (harc' g₂ w ht₂ hd₂) hab hb'
+      refine IH hQa hQa' ?_ (nonempty_sdMetricIso_disjointNet hQ hQ' φ hne hd₁ hd₂ ht₁ ht₂ hab hbD
+        hQa.binary hQa.isLSA hQa'.binary hQa'.isLSA)
+      have h0 : {D | IsCycle (disjointNet Q (sdVert hQ.binary.1 hQ.nontrivial w)
+          (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₁)
+          (sdArc hQ.binary.1 hQ.binary.2 hQ.nontrivial g₂) a b).graph D} = ∅ :=
+        Set.eq_empty_of_forall_notMem h0a
+      rw [h0, Set.ncard_empty]
+      exact (Set.ncard_pos (Set.toFinite _)).2 ⟨_, hC.1⟩
+    have ha : Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf a) :=
+      (hbelow a).2 (Or.inl rfl)
+    have hb : Q.graph.Reaches (sdVert hQ.binary.1 hQ.nontrivial w) (Q.leaf b) :=
+      (hbelow b).2 (Or.inr rfl)
+    have ha' := (hbelow' a).2 (Or.inl rfl)
+    have hb' := (hbelow' b).2 (Or.inr rfl)
+    funext q
+    rw [lemma11 hQ hC hne₁ (harc g₁ w ht₁) (harc g₂ w ht₂) hc c₀ rfl hab ha hb q,
+      lemma11 hQ' hC' hne' (harc' g₁ w ht₁ hd₁) (harc' g₂ w ht₂ hd₂) hc' c₀' rfl hab ha' hb' q,
+      hγ g₁ hd₁, congrFun (hdel D hDc w hw g₁ hd₁ ht₁) q, congrFun (hdel D hDc w hw g₂ hd₂ ht₂) q,
+      e.1, e.2.1, e.2.2 q, congrFun (hdisj a b hab hbelow hbelow' hbelowD) q,
+      congrFun (hdisj b a hab.symm hbelow_ba hbelow_ba' hbelowD_ba) q]
+  · -- no cycle: the base case
+    have hnone : ∀ D, ¬ IsCycle hQ.unrooted.graph D := by
+      intro D hD
+      obtain ⟨n', k', hDt, hcases⟩ := exists_isCycleType_of_isCycle hQ hD
+      rcases hcases with ⟨rfl, h1, h3⟩ | ⟨rfl, rfl | rfl⟩ | ⟨rfl, rfl⟩
+      · interval_cases k'
+        · exact hA ⟨D, Or.inl hDt⟩
+        · exact hB ⟨D, hDt⟩
+        · exact hA ⟨D, Or.inr hDt⟩
+      · exact hC4 ⟨D, Or.inl hDt⟩
+      · exact hE ⟨D, hDt⟩
+      · exact hC4 ⟨D, Or.inr ⟨1, hDt⟩⟩
+    refine cf_eq_of_forall_not_isCycle hQ hQ' (fun C hC => ?_) (fun C hC => ?_) φ
+    · obtain ⟨D, hD, -⟩ := exists_liftEdges_eq _ _ _ hr hQ.binary hC
+      exact hnone D hD
+    · obtain ⟨D, hD, -⟩ := exists_liftEdges_eq _ _ _ hr' hQ'.binary hC
+      exact hnone _ ((φ.isCycle_iff_symm_image D).1 hD)
+
+
+/-- An LSA quartet network on any types of nodes and edges is isomorphic to one on `Type`, with the
+same concordance factors and an isomorphic metric unrooted network. -/
+theorem exists_isLSAQuartet_type {Q : RootedNetwork V E X} {θ : MetricData E}
+    (hQ : IsLSAQuartet Q θ) :
+    ∃ (V₀ E₀ : Type) (_ : Fintype V₀) (_ : Fintype E₀) (Q₀ : RootedNetwork V₀ E₀ X)
+      (θ₀ : MetricData E₀) (hQ₀ : IsLSAQuartet Q₀ θ₀), cf Q₀ θ₀ = cf Q θ ∧
+      Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ)
+        hQ₀.unrooted (unrootedMetric Q₀ hQ₀.binary hQ₀.nontrivial θ₀)) := by
+  set φ := finCopyIso Q
+  have hlen : ∀ e, (finCopyMetric θ).length (φ.arc e) = θ.length e := fun e => by
+    simp [finCopyMetric, φ, finCopyIso]
+  have hinh : ∀ e, (finCopyMetric θ).inheritance (φ.arc e) = θ.inheritance e := fun e => by
+    simp [finCopyMetric, φ, finCopyIso]
+  have hQ₀ : IsLSAQuartet (finCopy Q) (finCopyMetric θ) :=
+    ⟨φ.isBinaryRootedNetwork hQ.binary, φ.isLevelOne hQ.levelOne, φ.isLSANetwork hQ.isLSA,
+      hQ.card_taxa, φ.isMetricNetwork hlen hinh hQ.metric⟩
+  exact ⟨_, _, inferInstance, inferInstance, finCopy Q, finCopyMetric θ, hQ₀,
+    φ.cf_eq hQ.binary.1 hlen hinh, φ.nonempty_sdMetricIso hQ.binary hQ₀.binary hQ.isLSA hQ₀.isLSA
+      hQ.nontrivial hlen hinh⟩
+
+end Proposition5
+
 /-- **Proposition 5** (`prop::CFunrooted`): two LSA quartet networks that induce the same metric unrooted
-network have the same concordance factors. -/
+network have the same concordance factors.
+
+The paper's proof, by induction on the number of cycles (`proposition5_aux`), for networks renamed to
+`Type` (`exists_isLSAQuartet_type`). -/
 theorem proposition5 {V' E' : Type*} [Fintype V'] [Fintype E'] {Q : RootedNetwork V E X}
     {θ : MetricData E} (hQ : IsLSAQuartet Q θ) {Q' : RootedNetwork V' E' X} {θ' : MetricData E'}
     (hQ' : IsLSAQuartet Q' θ')
     (hiso : Nonempty (SDMetricIso hQ.unrooted (unrootedMetric Q hQ.binary hQ.nontrivial θ)
       hQ'.unrooted (unrootedMetric Q' hQ'.binary hQ'.nontrivial θ'))) :
     cf Q θ = cf Q' θ' := by
-  sorry
+  obtain ⟨V₀, E₀, _, _, Q₀, θ₀, hQ₀, hcf₀, ⟨ψ₀⟩⟩ := exists_isLSAQuartet_type hQ
+  obtain ⟨V₁, E₁, _, _, Q₁, θ₁, hQ₁, hcf₁, ⟨ψ₁⟩⟩ := exists_isLSAQuartet_type hQ'
+  obtain ⟨φ⟩ := hiso
+  rw [← hcf₀, ← hcf₁]
+  exact proposition5_aux _ hQ₀ hQ₁ le_rfl ⟨(ψ₀.symm.trans φ).trans ψ₁⟩
 
 /-- The metric of `Q⁻_s`: that of `(Q⊕_s)⁻` from the induced metric of `Q⊕_s`. -/
 abbrev quartetUnrootedMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwork N) (s : Finset X)
@@ -2272,6 +2953,19 @@ abbrev quartetUnrootedMetric (N : RootedNetwork V E X) (hN : IsBinaryRootedNetwo
   unrootedMetric (quartetLSA N hN.1 s hs) (quartetLSA_isBinaryRootedNetwork hN hs)
     (Finset.one_lt_card_iff_nontrivial.mp (by omega)).coe_sort
     (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
+
+omit [Fintype V] [Fintype X] in
+/-- **`Q⊕_s` is an LSA quartet network**, with the parameters it inherits from `N`. -/
+theorem quartetLSA_isLSAQuartet {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
+    (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
+    (hs : #s = 4) : IsLSAQuartet (quartetLSA N hN.1 s hs)
+      (inducedMetric hN.1 (s : Set X) (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ)
+      where
+  binary := quartetLSA_isBinaryRootedNetwork hN hs
+  levelOne := isLevelOne_quartetLSA hN h1 hs
+  isLSA := isLSANetwork_quartetLSA hN hs
+  card_taxa := by simp [hs]
+  metric := isMetricNetwork_quartetLSA hN hθ hs
 
 /-- **Corollary 3** (`cor::quartetisgood`): under the network multispecies coalescent on a level-1 rooted
 metric network, `CF_abcd = CF(Q⊕_abcd)` (Theorem 2) can be computed from the metric unrooted network
@@ -2286,6 +2980,16 @@ theorem corollary3 {V' E' : Type*} [Fintype V'] [Fintype E'] {N : RootedNetwork 
       (quartetUnrooted N' hN' s hs) (quartetUnrootedMetric N' hN' s hs θ')))
     (q : QuartetTree X) (hq : q.taxa = s) :
     cf N θ q = cf N' θ' q := by
-  sorry
+  obtain ⟨r, rfl⟩ := NMSC.exists_map_val_eq hq
+  have e := congrFun (proposition5 (quartetLSA_isLSAQuartet hN h1 hθ hs)
+    (quartetLSA_isLSAQuartet hN' h1' hθ' hs) hiso) r
+  have e₁ := theorem2 hN h1 hθ hs r
+  have e₂ := theorem2 hN' h1' hθ' hs r
+  have e' : nmscCF (quartetLSA N hN.1 s hs) (inducedMetric hN.1 (s : Set X)
+      (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ) 0 r =
+      nmscCF (quartetLSA N' hN'.1 s hs) (inducedMetric hN'.1 (s : Set X)
+        (Finset.one_lt_card_iff_nontrivial.mp (by omega)).nonempty θ') 0 r := by
+    convert e using 2
+  convert e₁.symm.trans (e'.trans e₂) using 2
 
 end Banos2019

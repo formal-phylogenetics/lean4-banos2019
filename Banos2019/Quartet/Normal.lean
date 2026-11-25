@@ -73,9 +73,15 @@ theorem IsLSAQuartet.ofMetric {Q : RootedNetwork V E X} {θ θ' : MetricData E}
 /-- **The network `Q'` of Proposition 6 is a tree** (Section 6): if `Q⁻` has neither a `3₂`-cycle nor
 a 4-cycle, its cycles are `2`-cycles and `3₁`-cycles, so contracting them leaves no cycle. The
 concordance factors of the tree `Q'` are those of a species tree, the tree obtained by suppressing its
-nodes of degree two, which has an internal edge: the contracted cycles of `Q⁻` do not separate the
-four taxa into four blocks. The splits of two pairs of taxa of this species tree are those of the cut
-edges of `Q⊕`: its edges are those of `Q⊕` on no cycle. -/
+nodes of degree two (`nmscCF_eq_quartetProb`). The splits of two pairs of taxa of this species tree
+are those of the cut edges of `Q⊕`: a cut edge is on no cycle and every cycle is on one side of it
+(`contractSet_hasCutSplit_iff`), and the cut edges of a tree are the splits of its clusters
+(`hasCutSplit_iff_mem_unroot_treeClusters`).
+
+The species tree has an internal edge, which the proof of Proposition 6 uses without argument when it
+calls `Q'` a quartet tree (TeX 917–921): a lowest node with at least two taxa below it has one child
+per taxon below it, and a node of the contracted network has at most two children, the root at most
+three, so that node has exactly two taxa below it (`exists_card_two_mem_treeClusters`). -/
 theorem exists_speciesTree_contractRooted {Q : RootedNetwork V E X} {θ : MetricData E}
     (hQ : IsLSAQuartet Q θ) (h32 : ¬ ∃ C v, InducesCycleType Q C v 3 2)
     (h4 : ¬ ∃ C v k, InducesCycleType Q C v 4 k) (P : Set E → Prop)
