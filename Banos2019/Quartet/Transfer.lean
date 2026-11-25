@@ -1,6 +1,7 @@
 module
 
 public import Banos2019.Quartet.Reduction
+public import Banos2019.Network.Suppress
 
 /-!
 # Quartet trees on four taxa, and the quartet networks of a network
@@ -442,13 +443,16 @@ theorem quartetLSA_isLSANetwork {N : RootedNetwork V E X} (hN : IsBinaryRootedNe
     {s : Finset X} (hs : #s = 4) : (quartetLSA N hN.1 s hs).IsLSANetwork :=
   inducedNetwork_isLSANetwork hN.1 _
 
+omit [Fintype V] [Fintype E] [Fintype X] in
 /-- `Q⊕_s` of a level-1 network is level-1: a cycle of the induced network is made of chains of edges
 of `N` that form a cycle of `N`, and two cycles sharing a chain share its edges. -/
 theorem quartetLSA_isLevelOne {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {s : Finset X} (hs : #s = 4) :
-    IsLevelOne (quartetLSA N hN.1 s hs).graph := by
-  sorry
+    IsLevelOne (quartetLSA N hN.1 s hs).graph :=
+  suppress_isLevelOne _ (IsLevelOne.of_injective h1 Subtype.val Subtype.val Subtype.val_injective
+    Subtype.val_injective (fun _ => rfl) (fun _ => rfl))
 
+omit [Fintype V] [Fintype X] in
 /-- **`Q⊕_s` is an LSA quartet network.** -/
 theorem isLSAQuartet_quartetLSA {N : RootedNetwork V E X} (hN : IsBinaryRootedNetwork N)
     (h1 : IsLevelOne N.graph) {θ : MetricData E} (hθ : IsMetricNetwork N θ) {s : Finset X}
