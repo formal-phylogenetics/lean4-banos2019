@@ -192,6 +192,13 @@ import all Banos2019.Basic.Data.Set.Card
 import all Banos2019.Basic.Logic.EquivOfInjective
 import all Banos2019.Basic.Logic.RelationSymm
 import all Banos2019.Basic.Order.FiniteTotal
+import all Banos2019.Bridge.Examples
+import all Banos2019.Bridge.Invariance
+import all Banos2019.Bridge.Model
+import all Banos2019.Bridge.Quartet
+import all Banos2019.Bridge.Statements
+import all Banos2019.Bridge.Suppress
+import all Banos2019.Bridge.Unrooted
 import all Banos2019.Coalescent
 import all Banos2019.CycleProperty
 import all Banos2019.Defs
@@ -335,7 +342,8 @@ meta def paperResults : List (String × Name) :=
 `palomar/Banos2019/comparator.json`), as the Solution restates them. -/
 meta def solutionResults : List Name :=
   [``Banos2019Challenge.theorem3, ``Banos2019Challenge.theorem4,
-   ``Banos2019Challenge.proposition5]
+   ``Banos2019Challenge.proposition5, ``Banos2019Challenge.equation1_balanced,
+   ``Banos2019Challenge.lsa_isLSA, ``Banos2019Challenge.root_reaches]
 
 /-- Lean's standard axioms. -/
 meta def standardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
