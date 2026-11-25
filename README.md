@@ -175,10 +175,8 @@ From [Section 10 of the report](docs/Banos2019/REPORT.md#10-the-paper-in-the-lit
 
 ## What's next
 
-The paper leaves the hybrid nodes of 4-cycles, the 3-cycles and the numerical parameters open, and later work has
-taken up the first two; formalizing that work on this library is the next step. [Section 11 of the report](docs/Banos2019/REPORT.md#11-whats-next)
-has these directions and the simpler arguments found in the course of the work, among them a leaf of the tree of cycles
-by an extremal block. A private `NEXT.md` holds the candidate follow-up papers.
+A private `NEXT.md` holds the candidate follow-up papers. [Section 11 of the report](docs/Banos2019/REPORT.md#11-whats-next)
+says what the formalization holds for reuse.
 
 ## Credits
 

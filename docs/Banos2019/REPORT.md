@@ -668,44 +668,8 @@ repository.
 
 ## 11. What's next
 
-Plans for follow-up papers are kept in `NEXT.md`, which is not published. Below: how the results could be extended,
-the simpler arguments found in the course of the work, and what the formalization could add.
-
-### Open directions
-
-- **The hybrid nodes of 4-cycles, and the 3-cycles.** The paper leaves them to future work; Allman et al. 2024 and
-  Tiley et al. 2025 identify the hybrid nodes of 4-cycles for enough taxa, and Allman et al. 2024 say what can be
-  identified of 3-cycles (Section 10). Formalizing those results on this library is the next step for the topology.
-  Proposition 13, corrected, finds the hybrid node of a 4-cycle from orderings alone under its extra hypothesis; when
-  that hypothesis can itself be read from the orderings is open.
-- **Numerical parameters.** The paper identifies the topology only. Which edge lengths and inheritance probabilities
-  the concordance factors identify, beyond the formulas of equation (8) for a 4-cycle, it does not address.
-- **Five taxa.** The remark after Theorem 2 says that its argument extends to five taxa. The library's theorem is for
-  quartets; the statement for the concordance factors of quintets would need the five-taxon analogue of Observation 1.
-- **Noise.** The Discussion asks for tests of treelikeness and for reconstruction from erroneous quartets; NANUQ and
-  later methods take this up, and a formal account of their consistency would build on Theorems 3 and 4.
-
-### Simpler proofs
-
-- **A leaf of the tree of cycles (Theorem 4, the induction step).** The proof needs a cycle `C_v` all of whose `v`-blocks
-  but one are 4-network blocks, and reaches it through the tree of cycles, whose properties it does not prove (E16). An
-  extremal choice gives it directly: among the blocks of all cycles of size at least four, take a largest one, `B_u`,
-  of a cycle `C_v`. If another block of `C_v` held taxa separated by a cycle `C′` of size at least four, `C′` would lie
-  on that block's side of `C_v`, and its block containing `C_v` would contain `B_u` and more. The tree of cycles is then
-  not needed. Checked on paper only.
-- **Lemma 7, the root on the cycle.** Given `K′ = 0`, the lineages of `a, b, c` are at the top of the edge above `y`,
-  and in each of `Q₀⊕`, `Q₁⊕`, `Q₂⊕` the first coalescence joins two of them, or one of them with `d`, each with the
-  same probability by exchangeability of `a, b, c`. So the concordance factors are `(⅓, ⅓, ⅓)` in all three networks,
-  with no appeal to Propositions 3 and 4 or to the root placement. Checked in Lean, outside the library.
-- **Proposition 10, the null set.** The concordance factors are real analytic functions of the parameters (in
-  lean4-phylogenetics), so the parameters where two of them coincide form the zero set of an analytic function, null
-  as soon as it is not identically zero, which equation (8) shows. This avoids the maps `ν`, `η`, `f` and the variety
-  `V`. Checked in Lean, outside the library.
-- **Theorem 2.** The lineages at the LSA are exchangeable whatever lies above it, so the three quartet trees are equally
-  likely given four lineages there, without conditioning on the rooted shape and without the level-1 condition. This
-  is the library's proof (Section 7).
-- **Propositions 11 and 12.** Proposition 12 does not need Proposition 7 (E17), and Proposition 11 does not need the
-  Big Cycle property (Section 5).
+Plans for follow-up papers are kept in `NEXT.md`, which is not published. Below: what the formalization holds for
+reuse.
 
 ### The formalization
 
