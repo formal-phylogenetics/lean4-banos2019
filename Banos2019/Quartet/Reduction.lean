@@ -18,6 +18,9 @@ concordance factors are `cf Q θ`, a function on the quartet trees.
 * `lemma5`, `lemma6`: the cycles of `Q⁻`.
 * `observation1`, `theorem2`.
 * `lemma7`, `lemma8`, `corollary2`, `lemma9`, `lemma10`, `lemma11`: the reduction formulas.
+* `corollary2Net`, `corollary2Net_spec`: the network `Q̃⊕` of Corollary 2, with its nodes of degree
+  two suppressed, as an LSA quartet network for all parameters of `Q⊕`; `corollary2_step`: one step
+  of Corollary 2.
 * `proposition5`, `corollary3`: the concordance factors depend only on the unrooted network.
 -/
 
