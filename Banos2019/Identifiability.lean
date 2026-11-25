@@ -29,8 +29,9 @@ is in `Identify/Counterexample.lean`.
 The induction of Theorem 4 is in `Identify/TildeInduction.lean` (`tildeDetermined`), on: its claim and
 generic conditions (`Identify/TildeDefs.lean`, `Identify/NonDegenerate.lean`), the base case
 (`Identify/TildeBase.lean`, with `Identify/TreeIso.lean`), the induced networks
-(`Identify/InducedCycles.lean`), the gluing of two networks at leaves (`Identify/Glue.lean`), the leaf
-cycle and a cycle whose blocks are single taxa (`Identify/TildeCycle.lean`), and the counterpart of a
+(`Identify/InducedCycles.lean`), the gluing of two networks at leaves (`Identify/Glue.lean`), the tree
+of cycles (`Identify/TreeOfCycles.lean`), the leaf cycle and a cycle whose blocks are single taxa
+(`Identify/TildeCycle.lean`), and the counterpart of a
 cycle in a network with the same orderings (`Identify/SameData.lean`).
 -/
 
@@ -172,24 +173,27 @@ node (`tilde_sdIso_of_singletonBlocks`). Otherwise the tree of a block `P_u` of 
 read from the network induced on `P_u ∪ {q}` with an outgroup `q`, is joined to the node `u`: `Ñ` is
 the gluing at `u` of the networks `Ñ` of the networks induced on `P_u ∪ {q}`, which has no cycle of
 size at least four, and on the other taxa with one taxon of `P_u`, which has fewer taxa
-(`tildeDetermined_one`, by induction on the number of taxa). With more cycles, a cycle `C_v` and a node
-`u` of it, with block `S_2`, such that every other cycle of size at least four has the taxa of
-`S_1 = X ∖ S_2` in one of its blocks, split `Ñ` into the networks `Ñ` of the networks induced on
-`S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}`, which have fewer cycles of size at least four, and `Ñ` is obtained
-by identifying `s_1` in one with `s_2` in the other and suppressing that node (`tildeDetermined_of_lt`,
-`tilde_sdIso_glue`, `glue_congr`).
+(`tildeDetermined_one`, by induction on the number of taxa). With more cycles, following Definition 13,
+a leaf of `T`, the tree of cycles of `Ñ`, arises from a cycle `C_v` all of whose `v`-blocks but one,
+`S_2`, the block of a node `u`, are 4-network blocks (`exists_leaf_bigCycle`); every other cycle of
+size at least four then has the taxa of `S_1 = X ∖ S_2` in one of its blocks. The networks `Ñ` of the
+networks induced on `S_1 ∪ {s_2}` and on `S_2 ∪ {s_1}` have fewer cycles of size at least four, and
+`Ñ` is obtained by identifying `s_1` in one with `s_2` in the other and suppressing that node
+(`tildeDetermined_of_lt`, `tilde_sdIso_glue`, `glue_congr`).
 
-Departure from the paper: the induced networks `N⁻_{S_i ∪ {s_j}}` are taken as `(N⊕_Y)⁻`, the network
-`N⁻` of the induced LSA network on `Y`, as `Q⁻_s` is for quartets (Section 5).
-Departure from the paper: the generic conditions are those of Lemma 12 and concordance factors that are
-not all equal on any set of four taxa (`GoodParams`). The paper does not state the second; with a
-`3₂`-cycle the three concordance factors can be equal (Proposition 7).
-Departure from the paper: in the base case the quartet tree displayed by `Ñ` is read from the orderings
-as the one whose concordance factor differs from the two others, not as the one with the largest
-concordance factor, which with a `3₂`-cycle it need not be (Example 6).
-Departure from the paper: the leaf of the tree of cycles (Definition 13) is taken as a cycle of size at
-least four and a node of it with a largest block, which has the property of a leaf that the proof uses
-(`exists_leaf_bigCycle`, `Identify/TildeCycle.lean`). -/
+The induced networks `N⁻_{S_i ∪ {s_j}}` (Definition 10) are read as `(N⊕_Y)⁻`, the network `N⁻` of the
+induced LSA network on `Y`, as `Q⁻_s` is for quartets (Section 5): the two are isomorphic
+(`nonempty_sdIso_inducedUnrooted_unrooted_inducedLSA`, from Proposition 1).
+The paper's base case (TeX l.1180) is filled as follows. It reads the quartet tree of `Ñ` on four taxa
+from "the ordering of the concordance factors"; the reading that holds is the quartet tree whose
+concordance factor differs from the other two, which are equal (exchangeability across the cut edge of
+`N` under the edge of `Ñ`), and which need not be the largest (with a `3₂`-cycle, Example 6). The
+reading needs the three concordance factors not to be all equal, which with a `3₂`-cycle they can be
+(Proposition 7); this holds for generic parameters (`forGenericParams_nonDegenerateCF`) and is part
+of `G`, with the statement of Lemma 12 (`GoodParams`).
+The paper's claims on the tree of cycles (Definition 13) that `T` is a tree and that a leaf of `T`
+arises from a cycle `C_v` exactly when all `v`-blocks but one are 4-network blocks are proved in
+`Identify/TreeOfCycles.lean`. -/
 theorem theorem4 (hX : Nontrivial X) :
     ∃ G : ∀ (V E : Type) [Fintype V] [Fintype E], RootedNetwork V E X → MetricData E → Prop,
       (∀ (V E : Type) [Fintype V] [Fintype E] (N : RootedNetwork V E X),
