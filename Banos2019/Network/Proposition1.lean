@@ -839,6 +839,232 @@ theorem exists_chainTrail_of_ne (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
       · exact not_isBranch_of_chainZ hN hX hZ h17 s
           (chainZ_of_mem_chainNodes hN.1 hZ.nonempty hs hse)
 
+include h17 hK in
+/-- **The chain of the edge of `(N⁺_Z)⁻` out of `LSA(Z)`**: the two chains from `LSA(Z)` merged into
+one, through `LSA(Z)` when `LSA(Z) ≠ LSA(X)`, and through the edge of `N⁻` that replaces the two arcs
+out of `LSA(X)` when `LSA(Z) = LSA(X)` (the "straightforward modification" of the paper). -/
+theorem exists_chainTrail_of_eq (g : SemidirectedArc hC.1 hC.2 hZ.coe_sort)
+    (hg : N.graph.source (valRE hN hZ hC κ g) = lsa hN.1 Z hZ.nonempty) :
+    ∃ u w S, IsChainTrail hN hX hZ hC ι κ g u w S := by
+  classical
+  have := hN.1.finite_vertices
+  have := hN.1.finite_arcs
+  have hA := trekNet_isAcyclic hN hX (Z := Z)
+  set m := lsa hN.1 Z hZ.nonempty
+  set ρ := lsa hN.1 Set.univ Set.univ_nonempty
+  set f := valRE hN hZ hC κ g
+  set f₁ := rootArcR hN hZ hC κ
+  obtain ⟨hf, hnc, hmf, hff₁⟩ := (mem_range_valRE hN hZ hC ι κ hK f).mp ⟨g, rfl⟩
+  obtain ⟨hf₁s, hf₁in, hf₁a⟩ := rootArcR_spec hN hZ hC ι κ hK
+  have hm_anc : m ∈ N.ancestralVertices Z := lsa_mem_ancestralVertices hN.1 hZ.nonempty
+  have hmnc : ¬ ChainZ hN.1 hZ.nonempty m := not_chainZ_lsa hN.1 hN.2 hZ
+  have htf : N.graph.target f ∈ N.ancestralVertices Z := hf
+  have htf₁ : N.graph.target f₁ ∈ N.ancestralVertices Z := hf₁a
+  -- the two chains end at distinct nodes and have no common node
+  have hends : chainEndZ hN.1 hZ.nonempty (N.graph.target f₁) ≠
+      chainEndZ hN.1 hZ.nonempty (N.graph.target f) :=
+    chainEndZ_ne hN.1 hZ.nonempty hf₁a hf (hf₁s ▸ hmnc) (hg ▸ hmnc) (Ne.symm hff₁) hf₁in
+  have hdisj : ∀ v, v ∈ chainNodes hN.1 hZ.nonempty (N.graph.target f₁) →
+      v ∈ chainNodes hN.1 hZ.nonempty (N.graph.target f) → False := fun v h₁ h₂ =>
+    hends ((chainEndZ_eq_of_mem hN.1 hZ.nonempty h₁).trans
+      (chainEndZ_eq_of_mem hN.1 hZ.nonempty h₂).symm)
+  -- the nodes of the chains are strictly below `LSA(Z)`
+  have hbelow : ∀ {a : E}, N.graph.source a = m → ∀ s ∈ chainNodes hN.1 hZ.nonempty
+      (N.graph.target a), N.graph.Reaches m s ∧ s ≠ m := by
+    intro a ha s hs
+    have h₁ := reaches_of_mem_chainNodes hN.1 hZ.nonempty hs
+    refine ⟨(Relation.ReflTransGen.single ⟨a, ha, rfl⟩).trans h₁, ?_⟩
+    rintro rfl
+    exact not_reaches_target_source' hN.1.acyclic a (h₁.trans (ha ▸ .refl))
+  have hgood : ∀ {a : E}, N.graph.source a = m → ∀ s ∈ chainNodes hN.1 hZ.nonempty
+      (N.graph.target a), N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ ρ :=
+    fun ha s hs => ⟨(hbelow ha s hs).1, hs.2.1,
+      ne_lsa_univ hN hX hZ (hbelow ha s hs).1 (Or.inl (hbelow ha s hs).2)⟩
+  have hend₁ := chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf₁
+  have hend₂ := chainEndZ_mem_chainNodes hN.1 hZ.nonempty htf
+  obtain ⟨u₁, hu₁⟩ := exists_valH hN hX hZ h17 (hgood hf₁s _ hend₁).1 (hgood hf₁s _ hend₁).2.1
+    (hgood hf₁s _ hend₁).2.2
+  obtain ⟨u₂, hu₂⟩ := exists_valH hN hX hZ h17 (hgood hg _ hend₂).1 (hgood hg _ hend₂).2.1
+    (hgood hg _ hend₂).2.2
+  have hedges : chainOfR hN hX hZ hC κ g = valK hN hX ⁻¹'
+      (insert f₁ (chainTailArcs hN.1 hZ.nonempty (N.graph.target f₁)) ∪
+        insert f (chainTailArcs hN.1 hZ.nonempty (N.graph.target f))) := by
+    unfold chainOfR edgeArcsR
+    congr 1
+    ext e
+    rw [← chainArcs_eq hN.1 hZ.nonempty hf, ← chainArcs_eq hN.1 hZ.nonempty hf₁a]
+    exact ⟨fun h => h.elim Or.inr fun h' => Or.inl h'.2, fun h => h.elim (fun h' => Or.inr ⟨hg, h'⟩)
+      Or.inl⟩
+  have hsrc : valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.source g) =
+      chainEndZ hN.1 hZ.nonempty (N.graph.target f₁) := by
+    rw [valR_source hN hZ hC ι κ hK]
+    split_ifs with h'
+    · rfl
+    · exact absurd hg h'
+  have htgt : valR hN hZ hC ι ((semidirected hC.1 hC.2 hZ.coe_sort).graph.target g) =
+      chainEndZ hN.1 hZ.nonempty (N.graph.target f) := valR_target hN hZ hC ι κ hK g
+  have hbr₁ : IsBranch (trekNet hN hX Z) ∅ u₁ := by
+    refine isBranch_of_not_chainZ hN hX hZ h17 u₁ (by rw [hu₁]; exact (hbelow hf₁s _ hend₁).2) ?_
+    rw [hu₁]
+    exact not_chainZ_chainEndZ hN.1 hZ.nonempty htf₁
+  have hbr₂ : IsBranch (trekNet hN hX Z) ∅ u₂ := by
+    refine isBranch_of_not_chainZ hN hX hZ h17 u₂ (by rw [hu₂]; exact (hbelow hg _ hend₂).2) ?_
+    rw [hu₂]
+    exact not_chainZ_chainEndZ hN.1 hZ.nonempty htf
+  -- a node of a chain other than its end is removed
+  have hinner : ∀ s, (valH hN hX s ∈ chainNodes hN.1 hZ.nonempty (N.graph.target f₁) ∨
+      valH hN hX s ∈ chainNodes hN.1 hZ.nonempty (N.graph.target f)) → s ≠ u₁ → s ≠ u₂ →
+      ¬ IsBranch (trekNet hN hX Z) ∅ s := by
+    rintro s (hs | hs) hs₁ hs₂
+    · by_cases hse : valH hN hX s = chainEndZ hN.1 hZ.nonempty (N.graph.target f₁)
+      · exact absurd (valH_injective hN hX (hse.trans hu₁.symm)) hs₁
+      · exact not_isBranch_of_chainZ hN hX hZ h17 s
+          (chainZ_of_mem_chainNodes hN.1 hZ.nonempty hs hse)
+    · by_cases hse : valH hN hX s = chainEndZ hN.1 hZ.nonempty (N.graph.target f)
+      · exact absurd (valH_injective hN hX (hse.trans hu₂.symm)) hs₂
+      · exact not_isBranch_of_chainZ hN hX hZ h17 s
+          (chainZ_of_mem_chainNodes hN.1 hZ.nonempty hs hse)
+  by_cases hmρ : m = ρ
+  · -- `LSA(Z) = LSA(X)`: the edge of `N⁻` out of the child of `rootTreeArc` joins the two chains
+    set f₀ := sdRootArc hN.1 hN.2 hX
+    have hf₀s : N.graph.source f₀ = ρ := (sdRootArc_spec hN.1 hN.2 hX).1
+    have hout : N.graph.outdegree ρ = 2 := lsa_univ_outdegree hN.1 hN.2
+    have hgoodN : ∀ {a : E}, N.graph.source a = m → ∀ s ∈ chainNodes hN.1 hZ.nonempty
+        (N.graph.target a), N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ ρ := hgood
+    have hst₁ := mem_chainNodes_self hN.1 hZ.nonempty htf₁
+    have hst₂ := mem_chainNodes_self hN.1 hZ.nonempty htf
+    obtain ⟨ut₁, hut₁⟩ := exists_valH hN hX hZ h17 (hgoodN hf₁s _ hst₁).1 htf₁
+      (hgoodN hf₁s _ hst₁).2.2
+    obtain ⟨ut₂, hut₂⟩ := exists_valH hN hX hZ h17 (hgoodN hg _ hst₂).1 htf
+      (hgoodN hg _ hst₂).2.2
+    have Q₁ := (isDPath_trekNet hN hX hZ h17 (isDPath_chainTail hN.1 hZ.nonempty htf₁)
+      (hgoodN hf₁s) hut₁ hu₁).isUTrail hA
+    have Q₂ := (isDPath_trekNet hN hX hZ h17 (isDPath_chainTail hN.1 hZ.nonempty htf)
+      (hgoodN hg) hut₂ hu₂).isUTrail hA
+    -- the edge `e*`
+    have hstar : ∃ e : trekEdges (semidirected hN.1 hN.2 hX) Z, (valK hN hX e = f₁ ∨
+        valK hN hX e = f) ∧ Joins (trekNet hN hX Z).graph e ut₁ ut₂ := by
+      by_cases h₀ : f₁ = f₀
+      · obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (e := f) ⟨hmf, hf⟩ fun h => hff₁ (h.trans h₀.symm)
+        have hes : N.graph.source (valK hN hX e) = ρ := by rw [he, hg]; exact hmρ
+        refine ⟨e, Or.inr he, Or.inl ⟨valH_injective hN hX ?_, valH_injective hN hX ?_⟩⟩
+        · rw [hut₁, valH_source, sdVert_source_of_eq hN hX e.1 hes, h₀]
+        · rw [hut₂, valH_target, he]
+      · obtain ⟨e, he⟩ := exists_valK hN hX hZ h17 (e := f₁) ⟨hf₁s ▸ .refl, hf₁a⟩ h₀
+        have hes : N.graph.source (valK hN hX e) = ρ := by rw [he, hf₁s]; exact hmρ
+        have hff₀ : f = f₀ := by
+          by_contra hne
+          exact not_three_of_outdegree_eq_two hout (hg.trans hmρ) (hf₁s.trans hmρ) hf₀s hff₁ hne h₀
+        refine ⟨e, Or.inl he, Or.inr ⟨valH_injective hN hX ?_, valH_injective hN hX ?_⟩⟩
+        · rw [hut₂, valH_source, sdVert_source_of_eq hN hX e.1 hes, hff₀]
+        · rw [hut₁, valH_target, he]
+    obtain ⟨es, hes, hjs⟩ := hstar
+    have hes_uniq : ∀ e : trekEdges (semidirected hN.1 hN.2 hX) Z,
+        (valK hN hX e = f₁ ∨ valK hN hX e = f) → e = es := by
+      intro e he
+      have hne₀ : ∀ e : trekEdges (semidirected hN.1 hN.2 hX) Z, valK hN hX e ≠ f₀ := fun e =>
+        ((mem_range_sdArc hN.1 hN.2 hX _).mp ⟨e.1, rfl⟩).2
+      have hρs : ∀ e : trekEdges (semidirected hN.1 hN.2 hX) Z, (valK hN hX e = f₁ ∨
+          valK hN hX e = f) → N.graph.source (valK hN hX e) = ρ := by
+        rintro e (h | h) <;> rw [h]
+        · exact hf₁s.trans hmρ
+        · exact hg.trans hmρ
+      by_contra hne
+      have hne' : valK hN hX e ≠ valK hN hX es := fun h => hne (valK_injective hN hX h)
+      exact not_three_of_outdegree_eq_two hout (hρs e he) (hρs es hes) hf₀s hne' (hne₀ e) (hne₀ es)
+    have hut : ut₁ ≠ ut₂ := by
+      intro h
+      have : N.graph.target f₁ = N.graph.target f := by rw [← hut₁, ← hut₂, h]
+      exact hdisj _ hst₁ (this ▸ hst₂)
+    have mid := IsUTrail.single hjs hut
+    have T := Q₁.reverse.append (mid.append Q₂ (by
+      rintro s ⟨hs | hs, hs'⟩
+      · subst hs
+        exact absurd (hut₁ ▸ hs') (hdisj _ hst₁)
+      · exact hs)) (by
+      rintro s ⟨hs, (hs' | hs') | hs'⟩
+      · exact hs'
+      · rw [Set.mem_singleton_iff] at hs'
+        subst hs'
+        exact absurd (hut₂ ▸ hs) (fun h => hdisj _ h hst₂)
+      · exact absurd hs' (hdisj _ hs))
+    have hT : IsUTrail (trekNet hN hX Z).graph u₁ u₂
+        (valH hN hX ⁻¹' chainNodes hN.1 hZ.nonempty (N.graph.target f₁) ∪
+          ({ut₁, ut₂} ∪ valH hN hX ⁻¹' chainNodes hN.1 hZ.nonempty (N.graph.target f)))
+        (chainOfR hN hX hZ hC κ g) := by
+      convert T using 1
+      rw [hedges]
+      ext e
+      simp only [Set.mem_preimage, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]
+      constructor
+      · rintro ((h | h) | (h | h))
+        · exact Or.inr (Or.inl (hes_uniq e (Or.inl h)))
+        · exact Or.inl h
+        · exact Or.inr (Or.inl (hes_uniq e (Or.inr h)))
+        · exact Or.inr (Or.inr h)
+      · rintro (h | rfl | h)
+        · exact Or.inl (Or.inr h)
+        · rcases hes with h | h
+          · exact Or.inl (Or.inl h)
+          · exact Or.inr (Or.inl h)
+        · exact Or.inr (Or.inr h)
+    refine ⟨u₁, u₂, _, ⟨hT, hu₁.trans hsrc.symm, hu₂.trans htgt.symm, ⟨es, ?_⟩, hbr₁, hbr₂, ?_⟩⟩
+    · rw [hedges, Set.mem_preimage]
+      rcases hes with h | h <;> rw [h]
+      · exact Or.inl (Set.mem_insert _ _)
+      · exact Or.inr (Set.mem_insert _ _)
+    · rintro s (hs | ((hs | hs) | hs)) hs₁ hs₂
+      · exact hinner s (Or.inl hs) hs₁ hs₂
+      · subst hs
+        exact hinner _ (Or.inl (hut₁ ▸ hst₁)) hs₁ hs₂
+      · rw [Set.mem_singleton_iff] at hs
+        subst hs
+        exact hinner _ (Or.inr (hut₂ ▸ hst₂)) hs₁ hs₂
+      · exact hinner s (Or.inr hs) hs₁ hs₂
+  · -- `LSA(Z) ≠ LSA(X)`: the two chains through `LSA(Z)`
+    have hgoodm : ∀ {a : E}, N.graph.source a = m → ∀ s ∈ insert m (chainNodes hN.1 hZ.nonempty
+        (N.graph.target a)), N.graph.Reaches m s ∧ s ∈ N.ancestralVertices Z ∧ s ≠ ρ := by
+      intro a ha s hs
+      rcases hs with rfl | hs
+      · exact ⟨.refl, hm_anc, hmρ⟩
+      · exact ⟨(hbelow ha s hs).1, hs.2.1, ne_lsa_univ hN hX hZ (hbelow ha s hs).1 (Or.inr hmρ)⟩
+    obtain ⟨um, hum⟩ := exists_valH hN hX hZ h17 (v := m) .refl hm_anc hmρ
+    have P₁ := IsDPath.cons f₁ (isDPath_chainTail hN.1 hZ.nonempty htf₁)
+    have P₂ := IsDPath.cons f (isDPath_chainTail hN.1 hZ.nonempty htf)
+    rw [hf₁s] at P₁
+    rw [hg] at P₂
+    have Q₁ := (isDPath_trekNet hN hX hZ h17 P₁ (hgoodm hf₁s) hum hu₁).isUTrail hA
+    have Q₂ := (isDPath_trekNet hN hX hZ h17 P₂ (hgoodm hg) hum hu₂).isUTrail hA
+    have T := Q₁.reverse.append Q₂ (by
+      rintro s ⟨hs₁, hs₂⟩
+      by_cases hsm : valH hN hX s = m
+      · exact valH_injective hN hX (hsm.trans hum.symm)
+      · rcases hs₁ with h | hs₁
+        · exact absurd h hsm
+        rcases hs₂ with h | hs₂
+        · exact absurd h hsm
+        · exact absurd hs₂ (hdisj _ hs₁))
+    have hfK : ∃ e : trekEdges (semidirected hN.1 hN.2 hX) Z, valK hN hX e = f :=
+      exists_valK hN hX hZ h17 (e := f) ⟨hmf, hf⟩ fun h =>
+        hmρ (hg.symm.trans (h ▸ (sdRootArc_spec hN.1 hN.2 hX).1))
+    obtain ⟨ef, hef⟩ := hfK
+    have hT : IsUTrail (trekNet hN hX Z).graph u₁ u₂
+        (valH hN hX ⁻¹' insert m (chainNodes hN.1 hZ.nonempty (N.graph.target f₁)) ∪
+          valH hN hX ⁻¹' insert m (chainNodes hN.1 hZ.nonempty (N.graph.target f)))
+        (chainOfR hN hX hZ hC κ g) := by
+      rw [hedges, Set.preimage_union]
+      exact T
+    refine ⟨u₁, u₂, _, ⟨hT, hu₁.trans hsrc.symm, hu₂.trans htgt.symm, ⟨ef, ?_⟩, hbr₁, hbr₂, ?_⟩⟩
+    · rw [hedges]
+      exact Or.inr (hef ▸ Set.mem_insert _ _)
+    · rintro s (hs | hs) hs₁ hs₂
+      · rcases hs with hs | hs
+        · exact not_isBranch_trekNet_lsa hN hX hZ h17 s hs
+        · exact hinner s (Or.inl hs) hs₁ hs₂
+      · rcases hs with hs | hs
+        · exact not_isBranch_trekNet_lsa hN hX hZ h17 s hs
+        · exact hinner s (Or.inr hs) hs₁ hs₂
+
 end Chains
 
 end Banos2019
