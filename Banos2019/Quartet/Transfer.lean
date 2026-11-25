@@ -230,6 +230,17 @@ theorem isBCQuartet_acbd_iff (p : QuartetTree X → ℝ) (h : Distinct4 a b c d)
 
 end Triple
 
+/-- Treelikeness depends only on the ordering of the concordance factors. -/
+theorem isTreelikeOn_of_sameOrdering {X : Type*} [Fintype X] [DecidableEq X]
+    {p p' : QuartetTree X → ℝ} (h : SameOrdering p p') {s : Finset X} (ht : IsTreelikeOn p' s) :
+    IsTreelikeOn p s := by
+  obtain ⟨q, hq, r, hr, hqr, he, hmin⟩ := ht
+  have hqt := mem_treesOn.1 hq
+  have hrt := mem_treesOn.1 hr
+  refine ⟨q, hq, r, hr, hqr, le_antisymm ((h q r (hqt.trans hrt.symm)).2 he.le)
+    ((h r q (hrt.trans hqt.symm)).2 he.ge), fun u hu => ?_⟩
+  exact (h q u (hqt.trans (mem_treesOn.1 hu).symm)).2 (hmin u hu)
+
 /-! ### The taxa of a quartet network on `s` -/
 
 section Subtype

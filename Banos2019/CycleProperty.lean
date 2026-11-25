@@ -1,6 +1,6 @@
 module
 
-public import Banos2019.Quartet.Transfer
+public import Banos2019.Quartet.Normal
 public import Banos2019.Quartet.Generic
 
 /-!
@@ -66,7 +66,19 @@ theorem proposition7 [DecidableEq X] (hX : Fintype.card X = 4) {a b c d : X}
 theorem proposition8 {Q : RootedNetwork V E X} {θ : MetricData E} (hQ : IsLSAQuartet Q θ)
     (hcp : CyclePropertyOn (cf Q θ) univ) :
     (∃ C v, InducesCycleType Q C v 3 2) ∨ ∃ C v k, InducesCycleType Q C v 4 k := by
-  sorry
+  by_contra hno
+  obtain ⟨h32, h4⟩ := not_or.1 hno
+  -- without a `3₂`-cycle or a 4-cycle, `Q'` is a tree, whose concordance factors are treelike
+  obtain ⟨σ, a, b, c, d, habcd, hsplit, hcf⟩ :=
+    exists_speciesTree_contractRooted hQ h32 h4 (IsTwoOrThreeOne Q) rfl
+  have huniv : ({a, b, c, d} : Finset X) = univ :=
+    eq_univ_of_card _ (by rw [habcd.card_eq, hQ.card_taxa])
+  have htree : IsTreelikeOn
+      (cf (contractRooted Q (IsTwoOrThreeOne Q)) (contractMetric Q (IsTwoOrThreeOne Q) θ)) univ := by
+    rw [hcf, ← huniv]
+    exact isTreelikeOn_quartetProb hQ.card_taxa σ habcd hsplit
+  -- Proposition 6: the concordance factors of `Q` have the ordering of those of `Q'`
+  exact hcp (isTreelikeOn_of_sameOrdering (proposition6 hQ h32) htree)
 
 /-! ### Section 7 -/
 
